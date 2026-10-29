@@ -1,0 +1,420 @@
+{
+ "schemaVersion": 2,
+ "appId": "gmail",
+ "reviewed": "2026-10-12: drafted from official machine-readable API descriptions, corrected by an independent critic; see docs/UI-0-SCREEN-CONTRACTS.md section 9",
+ "groups": [
+  {
+   "id": "gmail.drafts.read",
+   "label": "Access drafts",
+   "effect": "read",
+   "defaultMode": "allow",
+   "operations": [
+    "gmail.users.drafts.get",
+    "gmail.users.drafts.list"
+   ],
+   "scopeSets": [
+    [
+     "https://www.googleapis.com/auth/gmail.modify"
+    ],
+    [
+     "https://www.googleapis.com/auth/gmail.readonly"
+    ]
+   ]
+  },
+  {
+   "id": "gmail.labels.read",
+   "label": "Access labels, filters and settings",
+   "effect": "read",
+   "defaultMode": "allow",
+   "operations": [
+    "gmail.users.labels.get",
+    "gmail.users.labels.list",
+    "gmail.users.settings.filters.get",
+    "gmail.users.settings.filters.list",
+    "gmail.users.settings.getAutoForwarding",
+    "gmail.users.settings.getImap",
+    "gmail.users.settings.getLanguage",
+    "gmail.users.settings.getPop",
+    "gmail.users.settings.getVacation",
+    "gmail.users.settings.sendAs.get",
+    "gmail.users.settings.sendAs.list",
+    "gmail.users.settings.sendAs.smimeInfo.get",
+    "gmail.users.settings.sendAs.smimeInfo.list",
+    "gmail.users.settings.forwardingAddresses.get",
+    "gmail.users.settings.forwardingAddresses.list",
+    "gmail.users.settings.delegates.get",
+    "gmail.users.settings.delegates.list",
+    "gmail.users.settings.cse.identities.get",
+    "gmail.users.settings.cse.identities.list",
+    "gmail.users.settings.cse.keypairs.get",
+    "gmail.users.settings.cse.keypairs.list"
+   ],
+   "scopeSets": [
+    [
+     "https://www.googleapis.com/auth/gmail.modify"
+    ],
+    [
+     "https://www.googleapis.com/auth/gmail.readonly"
+    ]
+   ],
+   "unavailable": {
+    "gmail.users.settings.delegates.get": "service-account-only",
+    "gmail.users.settings.delegates.list": "service-account-only",
+    "gmail.users.settings.cse.identities.get": "workspace-cse-only",
+    "gmail.users.settings.cse.identities.list": "workspace-cse-only",
+    "gmail.users.settings.cse.keypairs.get": "workspace-cse-only",
+    "gmail.users.settings.cse.keypairs.list": "workspace-cse-only"
+   }
+  },
+  {
+   "id": "gmail.messages.read",
+   "label": "Access emails",
+   "effect": "read",
+   "defaultMode": "allow",
+   "operations": [
+    "gmail.users.messages.get",
+    "gmail.users.messages.attachments.get",
+    "gmail.users.threads.get",
+    "gmail.users.history.list",
+    "gmail.users.getProfile"
+   ],
+   "scopeSets": [
+    [
+     "https://www.googleapis.com/auth/gmail.modify"
+    ],
+    [
+     "https://www.googleapis.com/auth/gmail.readonly"
+    ]
+   ]
+  },
+  {
+   "id": "gmail.messages.search",
+   "label": "Search emails",
+   "effect": "read",
+   "defaultMode": "allow",
+   "operations": [
+    "gmail.users.messages.list",
+    "gmail.users.threads.list"
+   ],
+   "scopeSets": [
+    [
+     "https://www.googleapis.com/auth/gmail.modify"
+    ],
+    [
+     "https://www.googleapis.com/auth/gmail.readonly"
+    ]
+   ]
+  },
+  {
+   "id": "gmail.drafts.write",
+   "label": "Draft emails",
+   "effect": "write",
+   "defaultMode": "allow",
+   "stayInAccount": true,
+   "operations": [
+    "gmail.users.drafts.create",
+    "gmail.users.drafts.update"
+   ],
+   "scopeSets": [
+    [
+     "https://www.googleapis.com/auth/gmail.modify"
+    ]
+   ],
+   "unsupported": {
+    "gmail.users.drafts.create": "Fabric's plain form of this operation cannot carry a whole message, so it would save an empty draft or blank one. Fabric writes drafts through its reviewed Gmail actions.",
+    "gmail.users.drafts.update": "Fabric's plain form of this operation cannot carry a whole message, so it would save an empty draft or blank one. Fabric writes drafts through its reviewed Gmail actions."
+   }
+  },
+  {
+   "id": "gmail.messages.send",
+   "label": "Send emails",
+   "effect": "write",
+   "defaultMode": "ask",
+   "audience": true,
+   "operations": [
+    "gmail.users.messages.send",
+    "gmail.users.drafts.send"
+   ],
+   "scopeSets": [
+    [
+     "https://www.googleapis.com/auth/gmail.modify"
+    ]
+   ],
+   "unsupported": {
+    "gmail.users.drafts.send": "It sends a draft by its id alone, so a draft changed after approval would go out. Fabric sends drafts through its reviewed Send draft action, which binds the message."
+   },
+   "bindContent": {
+    "gmail.users.drafts.send": {"kind": "resend", "at": "body:/message/raw"}
+   }
+  },
+  {
+   "id": "gmail.labels.manage",
+   "label": "Manage labels",
+   "effect": "write",
+   "defaultMode": "allow",
+   "stayInAccount": true,
+   "operations": [
+    "gmail.users.labels.create",
+    "gmail.users.labels.update",
+    "gmail.users.labels.patch"
+   ],
+   "scopeSets": [
+    [
+     "https://www.googleapis.com/auth/gmail.modify"
+    ]
+   ]
+  },
+  {
+   "id": "gmail.messages.mark",
+   "label": "Mark as read or unread, archive or label emails",
+   "effect": "write",
+   "defaultMode": "ask",
+   "operations": [
+    "gmail.users.messages.modify",
+    "gmail.users.threads.modify",
+    "gmail.users.messages.batchModify"
+   ],
+   "scopeSets": [
+    [
+     "https://www.googleapis.com/auth/gmail.modify"
+    ]
+   ],
+   "bodyRoutes": [
+    {
+     "member": "gmail.users.messages.modify",
+     "pointer": "/addLabelIds",
+     "contains": "TRASH",
+     "to": "gmail.messages.trash"
+    },
+    {
+     "member": "gmail.users.messages.modify",
+     "pointer": "/addLabelIds",
+     "contains": "SPAM",
+     "to": "gmail.messages.trash"
+    },
+    {
+     "member": "gmail.users.messages.modify",
+     "pointer": "/removeLabelIds",
+     "contains": "TRASH",
+     "to": "gmail.messages.trash"
+    },
+    {
+     "member": "gmail.users.messages.modify",
+     "pointer": "/removeLabelIds",
+     "contains": "SPAM",
+     "to": "gmail.messages.trash"
+    },
+    {
+     "member": "gmail.users.threads.modify",
+     "pointer": "/addLabelIds",
+     "contains": "TRASH",
+     "to": "gmail.messages.trash"
+    },
+    {
+     "member": "gmail.users.threads.modify",
+     "pointer": "/addLabelIds",
+     "contains": "SPAM",
+     "to": "gmail.messages.trash"
+    },
+    {
+     "member": "gmail.users.threads.modify",
+     "pointer": "/removeLabelIds",
+     "contains": "TRASH",
+     "to": "gmail.messages.trash"
+    },
+    {
+     "member": "gmail.users.threads.modify",
+     "pointer": "/removeLabelIds",
+     "contains": "SPAM",
+     "to": "gmail.messages.trash"
+    },
+    {
+     "member": "gmail.users.messages.batchModify",
+     "pointer": "/addLabelIds",
+     "contains": "TRASH",
+     "to": "gmail.messages.trash"
+    },
+    {
+     "member": "gmail.users.messages.batchModify",
+     "pointer": "/addLabelIds",
+     "contains": "SPAM",
+     "to": "gmail.messages.trash"
+    },
+    {
+     "member": "gmail.users.messages.batchModify",
+     "pointer": "/removeLabelIds",
+     "contains": "TRASH",
+     "to": "gmail.messages.trash"
+    },
+    {
+     "member": "gmail.users.messages.batchModify",
+     "pointer": "/removeLabelIds",
+     "contains": "SPAM",
+     "to": "gmail.messages.trash"
+    }
+   ]
+  },
+  {
+   "id": "gmail.messages.import",
+   "label": "Import emails",
+   "effect": "write",
+   "defaultMode": "ask",
+   "operations": [
+    "gmail.users.messages.import",
+    "gmail.users.messages.insert"
+   ],
+   "scopeSets": [
+    [
+     "https://www.googleapis.com/auth/gmail.modify"
+    ]
+   ],
+   "unsupported": {
+    "gmail.users.messages.import": "Fabric's plain form of this operation cannot carry a message, so it would import nothing. No reviewed action imports email."
+   }
+  },
+  {
+   "id": "gmail.messages.trash",
+   "label": "Move emails to or from trash",
+   "effect": "delete",
+   "defaultMode": "ask",
+   "operations": [
+    "gmail.users.messages.trash",
+    "gmail.users.messages.untrash",
+    "gmail.users.threads.trash",
+    "gmail.users.threads.untrash"
+   ],
+   "scopeSets": [
+    [
+     "https://www.googleapis.com/auth/gmail.modify"
+    ]
+   ]
+  },
+  {
+   "id": "gmail.settings.write",
+   "label": "Change mail settings, filters and vacation reply",
+   "effect": "write",
+   "defaultMode": "ask",
+   "operations": [
+    "gmail.users.settings.filters.create",
+    "gmail.users.settings.updateVacation",
+    "gmail.users.settings.updateImap",
+    "gmail.users.settings.updatePop",
+    "gmail.users.settings.updateLanguage",
+    "gmail.users.settings.sendAs.smimeInfo.insert",
+    "gmail.users.settings.sendAs.smimeInfo.delete",
+    "gmail.users.settings.sendAs.smimeInfo.setDefault",
+    "gmail.users.settings.cse.identities.create",
+    "gmail.users.settings.cse.identities.delete",
+    "gmail.users.settings.cse.identities.patch",
+    "gmail.users.settings.cse.keypairs.create",
+    "gmail.users.settings.cse.keypairs.disable",
+    "gmail.users.settings.cse.keypairs.enable"
+   ],
+   "scopeSets": [
+    [
+     "https://www.googleapis.com/auth/gmail.settings.basic"
+    ]
+   ],
+   "unavailable": {
+    "gmail.users.settings.cse.identities.create": "workspace-cse-only",
+    "gmail.users.settings.cse.identities.delete": "workspace-cse-only",
+    "gmail.users.settings.cse.identities.patch": "workspace-cse-only",
+    "gmail.users.settings.cse.keypairs.create": "workspace-cse-only",
+    "gmail.users.settings.cse.keypairs.disable": "workspace-cse-only",
+    "gmail.users.settings.cse.keypairs.enable": "workspace-cse-only"
+   },
+   "bodyRoutes": [
+    {
+     "member": "gmail.users.settings.filters.create",
+     "pointer": "/action/forward",
+     "present": true,
+     "to": "gmail.access.grant"
+    },
+    {
+     "member": "gmail.users.settings.filters.create",
+     "pointer": "/action/addLabelIds",
+     "contains": "TRASH",
+     "to": "gmail.messages.trash"
+    },
+    {
+     "member": "gmail.users.settings.filters.create",
+     "pointer": "/action/addLabelIds",
+     "contains": "SPAM",
+     "to": "gmail.messages.trash"
+    }
+   ]
+  },
+  {
+   "id": "gmail.items.delete",
+   "label": "Delete drafts, labels or filters",
+   "effect": "delete",
+   "defaultMode": "ask",
+   "operations": [
+    "gmail.users.drafts.delete",
+    "gmail.users.labels.delete",
+    "gmail.users.settings.filters.delete"
+   ],
+   "scopeSets": [
+    [
+     "https://www.googleapis.com/auth/gmail.modify"
+    ]
+   ],
+   "memberScopeSets": {
+    "gmail.users.settings.filters.delete": [
+     [
+      "https://www.googleapis.com/auth/gmail.settings.basic"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "gmail.permanent.delete",
+   "label": "Permanently delete emails",
+   "effect": "delete",
+   "defaultMode": "deny",
+   "operations": [
+    "gmail.users.messages.delete",
+    "gmail.users.messages.batchDelete",
+    "gmail.users.threads.delete",
+    "gmail.users.settings.cse.keypairs.obliterate"
+   ],
+   "unavailable": {
+    "gmail.users.messages.delete": "not-requested",
+    "gmail.users.messages.batchDelete": "not-requested",
+    "gmail.users.threads.delete": "not-requested",
+    "gmail.users.settings.cse.keypairs.obliterate": "workspace-cse-only"
+   }
+  },
+  {
+   "id": "gmail.access.grant",
+   "label": "Give access to other people or services",
+   "effect": "write",
+   "defaultMode": "deny",
+   "locked": "fabric",
+   "operations": [
+    "gmail.users.watch",
+    "gmail.users.stop",
+    "gmail.users.settings.sendAs.patch",
+    "gmail.users.settings.sendAs.update",
+    "gmail.users.settings.sendAs.create",
+    "gmail.users.settings.sendAs.delete",
+    "gmail.users.settings.sendAs.verify",
+    "gmail.users.settings.updateAutoForwarding",
+    "gmail.users.settings.forwardingAddresses.create",
+    "gmail.users.settings.forwardingAddresses.delete",
+    "gmail.users.settings.delegates.create",
+    "gmail.users.settings.delegates.delete"
+   ],
+   "unavailable": {
+    "gmail.users.settings.sendAs.create": "service-account-only",
+    "gmail.users.settings.sendAs.delete": "service-account-only",
+    "gmail.users.settings.sendAs.verify": "service-account-only",
+    "gmail.users.settings.updateAutoForwarding": "service-account-only",
+    "gmail.users.settings.forwardingAddresses.create": "service-account-only",
+    "gmail.users.settings.forwardingAddresses.delete": "service-account-only",
+    "gmail.users.settings.delegates.create": "service-account-only",
+    "gmail.users.settings.delegates.delete": "service-account-only"
+   }
+  }
+ ]
+}

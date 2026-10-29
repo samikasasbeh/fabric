@@ -1,0 +1,8 @@
+[
+ {"appId": "coverage", "file": "blockers.openapi.json", "kind": "openapi", "sourceUrl": "https://specs.coverage.example.com/openapi.json", "apiOrigins": ["https://api.coverage.example.com"]},
+ {"appId": "coverage31", "file": "blockers31.openapi.json", "kind": "openapi", "sourceUrl": "https://specs.coverage.example.com/openapi31.json", "apiOrigins": ["https://api.coverage.example.com"]},
+ {"appId": "coverage-swagger2", "file": "blockers.swagger2.json", "kind": "openapi", "sourceUrl": "https://specs.coverage.example.com/swagger.json", "apiOrigins": ["https://api.coverage.example.com"]},
+ {"appId": "coverage-google", "file": "blockers.google.json", "kind": "google-discovery", "sourceUrl": "https://coverage.googleapis.com/$discovery/rest?version=v1", "apiOrigins": ["https://coverage.googleapis.com"]},
+ {"appId": "github", "file": "../../../examples/github.openapi.json", "kind": "openapi", "sourceUrl": "https://raw.githubusercontent.com/github/rest-api-description/main/descriptions/api.github.com/api.github.com.json", "apiOrigins": ["https://api.github.com"]},
+ {"appId": "google-calendar", "file": "../../../examples/google-calendar.openapi.json", "kind": "openapi", "sourceUrl": "https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest", "apiOrigins": ["https://www.googleapis.com"]}
+]

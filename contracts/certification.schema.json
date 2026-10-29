@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fabric.invalid/contracts/certification.schema.json",
+  "title": "Fabric certification metadata v1",
+  "$comment": "Structural interchange schema only. Runtime validators additionally enforce valid UTC timestamps and their ordering, unique check IDs, scope equality, exact binding and freshness. This metadata does not authenticate evidence, prove artifact existence, or authorize publication.",
+  "oneOf": [{"$ref": "#/$defs/ProviderReadiness"}, {"$ref": "#/$defs/CertificationEvidence"}, {"$ref": "#/$defs/CertificationTarget"}, {"$ref": "#/$defs/CertificationAssessment"}],
+  "$defs": {
+    "Identifier": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@-]{0,127}$"},
+    "AppId": {"type": "string", "pattern": "^[a-z][a-z0-9-]{0,63}$"},
+    "Hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "AuthKind": {"enum": ["oauth2", "api-key", "none"]},
+    "Generation": {"type": "integer", "minimum": 1, "maximum": 9007199254740991},
+    "Timestamp": {"type": "string", "format": "date-time", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{3})?Z$"},
+    "ProviderScopes": {"type": "array", "maxItems": 64, "uniqueItems": true, "items": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,255}$"}},
+    "CheckResult": {
+      "type": "object", "additionalProperties": false, "required": ["id", "outcome"],
+      "properties": {
+        "id": {"enum": ["registration", "callback", "scope-mapping", "credential-flow", "access-route", "identity", "input-validation", "output-validation", "policy-denial", "read", "write", "delete", "readback", "restart", "revocation", "renewal"]},
+        "outcome": {"enum": ["passed", "failed", "not_run"]}, "artifactId": {"$ref": "#/$defs/Identifier"}
+      },
+      "if": {"properties": {"outcome": {"const": "passed"}}}, "then": {"properties": {"artifactId": {"$ref": "#/$defs/Identifier"}}, "required": ["artifactId"]}
+    },
+    "Checks": {"type": "array", "minItems": 1, "maxItems": 16, "items": {"$ref": "#/$defs/CheckResult"}},
+    "ProviderReadiness": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schemaVersion", "id", "scope", "appId", "authKind", "configurationGeneration", "status", "owner", "backupOwner", "accountTypes", "supportedScopes", "checks", "checkedAt", "expiresAt"],
+      "properties": {
+        "schemaVersion": {"const": 1}, "id": {"$ref": "#/$defs/Identifier"}, "scope": {"$ref": "identity.schema.json#/$defs/Scope"}, "appId": {"$ref": "#/$defs/AppId"},
+        "authKind": {"$ref": "#/$defs/AuthKind"}, "configurationGeneration": {"$ref": "#/$defs/Generation"}, "status": {"enum": ["not_configured", "testing", "production_ready"]},
+        "owner": {"$ref": "#/$defs/Identifier"}, "backupOwner": {"$ref": "#/$defs/Identifier"},
+        "accountTypes": {"type": "array", "minItems": 1, "maxItems": 16, "uniqueItems": true, "items": {"$ref": "#/$defs/Identifier"}},
+        "supportedScopes": {"$ref": "#/$defs/ProviderScopes"}, "checks": {"$ref": "#/$defs/Checks"}, "checkedAt": {"$ref": "#/$defs/Timestamp"}, "expiresAt": {"$ref": "#/$defs/Timestamp"}
+      }
+    },
+    "CertificationEvidence": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schemaVersion", "id", "scope", "appId", "authKind", "configurationGeneration", "packageHash", "capabilityId", "definitionHash", "accountType", "requiredScopes", "grantedScopes", "environment", "performedBy", "checks", "startedAt", "completedAt", "expiresAt"],
+      "properties": {
+        "schemaVersion": {"const": 1}, "id": {"$ref": "#/$defs/Identifier"}, "scope": {"$ref": "identity.schema.json#/$defs/Scope"}, "appId": {"$ref": "#/$defs/AppId"},
+        "authKind": {"$ref": "#/$defs/AuthKind"}, "configurationGeneration": {"$ref": "#/$defs/Generation"}, "packageHash": {"$ref": "#/$defs/Hash"}, "capabilityId": {"$ref": "#/$defs/Identifier"}, "definitionHash": {"$ref": "#/$defs/Hash"}, "accountType": {"$ref": "#/$defs/Identifier"},
+        "requiredScopes": {"$ref": "#/$defs/ProviderScopes"}, "grantedScopes": {"$ref": "#/$defs/ProviderScopes"}, "environment": {"enum": ["fixture", "live"]}, "performedBy": {"$ref": "identity.schema.json#/$defs/Principal"},
+        "checks": {"$ref": "#/$defs/Checks"}, "startedAt": {"$ref": "#/$defs/Timestamp"}, "completedAt": {"$ref": "#/$defs/Timestamp"}, "expiresAt": {"$ref": "#/$defs/Timestamp"}
+      }
+    },
+    "CertificationTarget": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schemaVersion", "scope", "appId", "authKind", "configurationGeneration", "packageHash", "capabilityId", "definitionHash", "accountType", "requiredScopes", "effect"],
+      "properties": {
+        "schemaVersion": {"const": 1}, "scope": {"$ref": "identity.schema.json#/$defs/Scope"}, "appId": {"$ref": "#/$defs/AppId"}, "packageHash": {"$ref": "#/$defs/Hash"},
+        "authKind": {"$ref": "#/$defs/AuthKind"}, "configurationGeneration": {"$ref": "#/$defs/Generation"}, "capabilityId": {"$ref": "#/$defs/Identifier"}, "definitionHash": {"$ref": "#/$defs/Hash"}, "accountType": {"$ref": "#/$defs/Identifier"}, "requiredScopes": {"$ref": "#/$defs/ProviderScopes"}, "effect": {"enum": ["read", "write", "delete"]}
+      }
+    },
+    "CertificationAssessment": {
+      "type": "object", "additionalProperties": false, "required": ["schemaVersion", "status", "assessedAt", "blockers", "evidenceIds", "publicationAuthorized"],
+      "properties": {
+        "schemaVersion": {"const": 1}, "status": {"enum": ["blocked", "ready_for_release_review"]}, "assessedAt": {"$ref": "#/$defs/Timestamp"},
+        "blockers": {"type": "array", "uniqueItems": true, "items": {"type": "string"}}, "evidenceIds": {"type": "array", "uniqueItems": true, "maxItems": 64, "items": {"$ref": "#/$defs/Identifier"}}, "publicationAuthorized": {"const": false}
+      }
+    }
+  }
+}

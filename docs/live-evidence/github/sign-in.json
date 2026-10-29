@@ -1,0 +1,89 @@
+{
+ "schemaVersion": 1,
+ "appId": "github",
+ "note": "Live sign-in evidence (exit gate check 7). Session 1 ran on 2026-10-29 (docs/MANUAL-TESTS.md, the S7.13 session): Sami signed in and the test operator recorded what each screen showed, from his reports and screenshots. Phase A ran version 1 code (54c85bd), Phase B the main line (03e290d). Corrected after the branch review of step 14: a record says passed only where the session notes show exactly the kind the exit gate names. Fields the notes did not record say so. No email, name, account id, login, page name or token is kept.",
+ "full-consent": {
+  "passed": true,
+  "date": "2026-10-29",
+  "runtime": "npm start, single owner",
+  "folder": "live session 1 parent folder",
+  "clientGrant": "not recorded",
+  "phase": "B",
+  "step": "B7",
+  "codeRevision": "03e290d",
+  "signIn": "GitHub sign-in 2, about 16:18",
+  "consentPolicy": "GitHub asks for every scope it lacks",
+  "scopesExpected": [
+   "read:user",
+   "repo",
+   "read:org",
+   "gist",
+   "workflow"
+  ],
+  "scopesRecorded": [
+   "read:user",
+   "repo",
+   "read:org",
+   "gist",
+   "workflow"
+  ],
+  "cardRows": [
+   "profiles",
+   "gists"
+  ],
+  "observed": "GitHub asked for gists (read and write), read:org and workflow beside the read:user and repo already granted; Fabric then showed Full access.",
+  "settings": "not recorded",
+  "notices": "none shown",
+  "auditTypes": "not recorded"
+ },
+ "partial-grant-add-access": {
+  "passed": true,
+  "date": "2026-10-29",
+  "runtime": "npm start, single owner",
+  "folder": "live session 1 parent folder",
+  "clientGrant": "not recorded",
+  "phase": "A then B",
+  "step": "A6, B2, B7",
+  "codeRevision": "54c85bd then 03e290d",
+  "signIn": "GitHub sign-ins 1 and 2",
+  "observed": "After sign-in 1 the account read \"Partial access (3 permissions not granted)\" under version 2; Add on \"Access gists\" opened one box listing the profiles and gists rows; after authorizing, Full access, and the delete row read \"22 of 28 work\".",
+  "openQuestion": "docs/F10.7-BUILD-MAP.md asks whether a GitHub account made before step 7, followed by Add, counts as the partial grant. Sami to confirm; until then this record rests on that reading.",
+  "settings": "not recorded",
+  "notices": "not recorded",
+  "auditTypes": "not recorded"
+ },
+ "scope-check": {
+  "passed": true,
+  "date": "2026-10-29",
+  "runtime": "npm start, single owner",
+  "folder": "live session 1 parent folder",
+  "clientGrant": "not recorded",
+  "phase": "B",
+  "step": "B7",
+  "codeRevision": "03e290d",
+  "signIn": "GitHub sign-in 2",
+  "scopesExpected": [
+   "read:user",
+   "repo",
+   "read:org",
+   "gist",
+   "workflow"
+  ],
+  "scopesRecorded": [
+   "read:user",
+   "repo",
+   "read:org",
+   "gist",
+   "workflow"
+  ],
+  "observed": "The recorded scopes were exactly the five; no organization access was asked for."
+ },
+ "signIns": {
+  "count": 2,
+  "times": [
+   "Phase A, time not recorded",
+   "about 16:18"
+  ],
+  "mostInAnHour": 2
+ }
+}

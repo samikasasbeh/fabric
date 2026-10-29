@@ -1,0 +1,386 @@
+{
+ "schemaVersion": 2,
+ "appId": "notion",
+ "reviewed": "2026-10-12: drafted from official machine-readable API descriptions, corrected by an independent critic; see docs/UI-0-SCREEN-CONTRACTS.md section 9",
+ "groups": [
+  {
+   "id": "notion.content.read",
+   "label": "Access pages and databases",
+   "effect": "read",
+   "defaultMode": "allow",
+   "requests": [
+    "GET /v1/pages/{page_id}",
+    "GET /v1/pages/{page_id}/properties/{property_id}",
+    "GET /v1/pages/{page_id}/markdown",
+    "GET /v1/blocks/{block_id}",
+    "GET /v1/blocks/{block_id}/children",
+    "GET /v1/databases/{database_id}",
+    "GET /v1/data_sources/{data_source_id}",
+    "POST /v1/data_sources/{data_source_id}/query",
+    "GET /v1/data_sources/{data_source_id}/templates",
+    "GET /v1/views",
+    "GET /v1/views/{view_id}",
+    "POST /v1/views/{view_id}/queries",
+    "GET /v1/views/{view_id}/queries/{query_id}",
+    "GET /v1/async_tasks/{task_id}",
+    "GET /v1/custom_emojis",
+    "POST /v1/blocks/meeting_notes/query",
+    "GET /v1/ai/plugins",
+    "GET /v1/ai/plugins/{id}",
+    "GET /v1/ai/skills/{id}",
+    "GET /v1/file_uploads",
+    "GET /v1/file_uploads/{file_upload_id}"
+   ],
+   "reviewedReads": [
+    "POST /v1/data_sources/{data_source_id}/query",
+    "POST /v1/blocks/meeting_notes/query"
+   ],
+   "scopeSets": [
+    []
+   ],
+   "conditions": {
+    "POST /v1/blocks/meeting_notes/query": [
+     "plan-dependent"
+    ]
+   }
+  },
+  {
+   "id": "notion.search.read",
+   "label": "Search pages and databases",
+   "effect": "read",
+   "defaultMode": "allow",
+   "requests": [
+    "POST /v1/search"
+   ],
+   "reviewedReads": [
+    "POST /v1/search"
+   ],
+   "scopeSets": [
+    []
+   ]
+  },
+  {
+   "id": "notion.users.read",
+   "label": "Access people in the workspace",
+   "effect": "read",
+   "defaultMode": "allow",
+   "requests": [
+    "GET /v1/users/me",
+    "GET /v1/users/{user_id}",
+    "GET /v1/users"
+   ],
+   "scopeSets": [
+    []
+   ]
+  },
+  {
+   "id": "notion.comments.read",
+   "label": "Access comments",
+   "effect": "read",
+   "defaultMode": "allow",
+   "requests": [
+    "GET /v1/comments",
+    "GET /v1/comments/{comment_id}"
+   ],
+   "scopeSets": [
+    []
+   ]
+  },
+  {
+   "id": "notion.agents.read",
+   "label": "Access Notion agents and their chats",
+   "effect": "read",
+   "defaultMode": "allow",
+   "requests": [
+    "POST /v1/agents/query",
+    "GET /v1/agents/{agent_id}",
+    "GET /v1/agents/{agent_id}/insights",
+    "GET /v1/sessions/{session_id}",
+    "POST /v1/sessions/query",
+    "POST /v1/sessions/{session_id}/events/query"
+   ],
+   "reviewedReads": [
+    "POST /v1/agents/query",
+    "POST /v1/sessions/query",
+    "POST /v1/sessions/{session_id}/events/query"
+   ],
+   "scopeSets": [
+    []
+   ],
+   "conditions": {
+    "POST /v1/agents/query": [
+     "beta",
+     "plan-dependent"
+    ],
+    "GET /v1/agents/{agent_id}": [
+     "beta",
+     "plan-dependent"
+    ],
+    "GET /v1/agents/{agent_id}/insights": [
+     "beta",
+     "plan-dependent"
+    ],
+    "GET /v1/sessions/{session_id}": [
+     "beta",
+     "plan-dependent"
+    ],
+    "POST /v1/sessions/query": [
+     "beta",
+     "plan-dependent"
+    ],
+    "POST /v1/sessions/{session_id}/events/query": [
+     "beta",
+     "plan-dependent"
+    ]
+   }
+  },
+  {
+   "id": "notion.content.create",
+   "label": "Create pages and databases",
+   "effect": "write",
+   "defaultMode": "ask",
+   "requests": [
+    "POST /v1/pages",
+    "POST /v1/databases",
+    "POST /v1/data_sources",
+    "POST /v1/blocks/meeting_notes",
+    "POST /v1/file_uploads",
+    "POST /v1/file_uploads/{file_upload_id}/send",
+    "POST /v1/file_uploads/{file_upload_id}/complete"
+   ],
+   "scopeSets": [
+    []
+   ],
+   "conditions": {
+    "POST /v1/blocks/meeting_notes": [
+     "plan-dependent"
+    ]
+   }
+  },
+  {
+   "id": "notion.content.edit",
+   "label": "Edit pages and databases",
+   "effect": "write",
+   "defaultMode": "ask",
+   "audience": true,
+   "requests": [
+    "PATCH /v1/pages/{page_id}",
+    "PATCH /v1/pages/{page_id}/markdown",
+    "POST /v1/pages/{page_id}/move",
+    "PATCH /v1/blocks/{block_id}",
+    "PATCH /v1/databases/{database_id}",
+    "PATCH /v1/data_sources/{data_source_id}",
+    "POST /v1/views",
+    "PATCH /v1/views/{view_id}",
+    "PATCH /v1/blocks/{block_id}/children"
+   ],
+   "scopeSets": [
+    []
+   ],
+   "bodyRoutes": [
+    {
+     "member": "PATCH /v1/pages/{page_id}/markdown",
+     "pointer": "/type",
+     "equals": "replace_content",
+     "to": "notion.content.trash"
+    },
+    {
+     "member": "PATCH /v1/pages/{page_id}",
+     "pointer": "/in_trash",
+     "present": true,
+     "to": "notion.content.trash"
+    },
+    {
+     "member": "PATCH /v1/pages/{page_id}",
+     "pointer": "/archived",
+     "present": true,
+     "to": "notion.content.trash"
+    },
+    {
+     "member": "PATCH /v1/pages/{page_id}/markdown",
+     "pointer": "/in_trash",
+     "present": true,
+     "to": "notion.content.trash"
+    },
+    {
+     "member": "PATCH /v1/pages/{page_id}/markdown",
+     "pointer": "/archived",
+     "present": true,
+     "to": "notion.content.trash"
+    },
+    {
+     "member": "PATCH /v1/blocks/{block_id}",
+     "pointer": "/in_trash",
+     "present": true,
+     "to": "notion.content.trash"
+    },
+    {
+     "member": "PATCH /v1/blocks/{block_id}",
+     "pointer": "/archived",
+     "present": true,
+     "to": "notion.content.trash"
+    },
+    {
+     "member": "PATCH /v1/databases/{database_id}",
+     "pointer": "/in_trash",
+     "present": true,
+     "to": "notion.content.trash"
+    },
+    {
+     "member": "PATCH /v1/databases/{database_id}",
+     "pointer": "/archived",
+     "present": true,
+     "to": "notion.content.trash"
+    },
+    {
+     "member": "PATCH /v1/data_sources/{data_source_id}",
+     "pointer": "/in_trash",
+     "present": true,
+     "to": "notion.content.trash"
+    },
+    {
+     "member": "PATCH /v1/data_sources/{data_source_id}",
+     "pointer": "/archived",
+     "present": true,
+     "to": "notion.content.trash"
+    },
+    {
+     "member": "PATCH /v1/views/{view_id}",
+     "pointer": "/in_trash",
+     "present": true,
+     "to": "notion.content.trash"
+    },
+    {
+     "member": "PATCH /v1/views/{view_id}",
+     "pointer": "/archived",
+     "present": true,
+     "to": "notion.content.trash"
+    },
+    {
+     "member": "PATCH /v1/blocks/{block_id}/children",
+     "pointer": "/in_trash",
+     "present": true,
+     "to": "notion.content.trash"
+    },
+    {
+     "member": "PATCH /v1/blocks/{block_id}/children",
+     "pointer": "/archived",
+     "present": true,
+     "to": "notion.content.trash"
+    }
+   ]
+  },
+  {
+   "id": "notion.comments.write",
+   "label": "Comment on pages",
+   "effect": "write",
+   "defaultMode": "ask",
+   "audience": true,
+   "requests": [
+    "POST /v1/comments",
+    "PATCH /v1/comments/{comment_id}"
+   ],
+   "scopeSets": [
+    []
+   ]
+  },
+  {
+   "id": "notion.content.trash",
+   "label": "Trash or restore pages, or replace content",
+   "effect": "delete",
+   "defaultMode": "ask",
+   "requests": [
+    "DELETE /v1/blocks/{block_id}"
+   ],
+   "scopeSets": [
+    []
+   ]
+  },
+  {
+   "id": "notion.permanent.delete",
+   "label": "Permanently delete comments and views",
+   "effect": "delete",
+   "defaultMode": "deny",
+   "requests": [
+    "DELETE /v1/comments/{comment_id}",
+    "DELETE /v1/views/{view_id}",
+    "DELETE /v1/views/{view_id}/queries/{query_id}"
+   ],
+   "scopeSets": [
+    []
+   ]
+  },
+  {
+   "id": "notion.agents.chat",
+   "label": "Chat with Notion agents",
+   "effect": "write",
+   "defaultMode": "ask",
+   "requests": [
+    "POST /v1/sessions",
+    "POST /v1/sessions/{session_id}/cancel"
+   ],
+   "scopeSets": [
+    []
+   ],
+   "conditions": {
+    "POST /v1/sessions": [
+     "beta",
+     "plan-dependent"
+    ],
+    "POST /v1/sessions/{session_id}/cancel": [
+     "beta",
+     "plan-dependent"
+    ]
+   }
+  },
+  {
+   "id": "notion.agents.manage",
+   "label": "Manage Notion agents",
+   "effect": "write",
+   "defaultMode": "ask",
+   "requests": [
+    "PATCH /v1/agents/{agent_id}/status",
+    "PATCH /v1/agents/{agent_id}/credit_limit",
+    "POST /v1/agents/batch",
+    "DELETE /v1/agents/{agent_id}"
+   ],
+   "scopeSets": [
+    []
+   ],
+   "conditions": {
+    "PATCH /v1/agents/{agent_id}/status": [
+     "beta",
+     "plan-dependent"
+    ],
+    "PATCH /v1/agents/{agent_id}/credit_limit": [
+     "beta",
+     "plan-dependent"
+    ],
+    "POST /v1/agents/batch": [
+     "beta",
+     "plan-dependent"
+    ],
+    "DELETE /v1/agents/{agent_id}": [
+     "beta",
+     "plan-dependent"
+    ]
+   }
+  },
+  {
+   "id": "notion.connection.manage",
+   "label": "Change this connection's sign-in",
+   "effect": "write",
+   "defaultMode": "deny",
+   "requests": [
+    "POST /v1/oauth/token",
+    "POST /v1/oauth/revoke",
+    "POST /v1/oauth/introspect"
+   ],
+   "unavailable": {
+    "POST /v1/oauth/token": "client-credentials-only",
+    "POST /v1/oauth/revoke": "client-credentials-only",
+    "POST /v1/oauth/introspect": "client-credentials-only"
+   }
+  }
+ ]
+}

@@ -1,0 +1,74 @@
+{
+ "schemaVersion": 2,
+ "appId": "fixture",
+ "reviewed": "F10.9 part a: the rows of the fixture app the action format tests use (docs/F10.9-BUILD-MAP.md part a). Not a real provider.",
+ "groups": [
+  {
+   "id": "fixture.items.read",
+   "label": "Access items",
+   "effect": "read",
+   "defaultMode": "allow",
+   "operations": ["fixture.items.list"],
+   "requests": ["GET /accounts/{account}/profile", "GET /items/{item_id}", "GET /items/{item_id}/history", "GET /labels", "GET /labels/{label_id}", "GET /drafts/{draft_id}", "GET /events/{event_id}", "GET /files/{+path}", "POST /items/search", "POST /items/export"],
+   "reviewedReads": ["POST /items/search"],
+   "unavailable": {"GET /items/{item_id}/history": "not-requested"}
+  },
+  {
+   "id": "fixture.keys.read",
+   "label": "Access keys",
+   "effect": "read",
+   "defaultMode": "ask",
+   "requests": ["GET /keys", "GET /keys/{key_id}"],
+   "sensitive": {"GET /keys/{key_id}": "secrets"}
+  },
+  {
+   "id": "fixture.labels.write",
+   "label": "Manage labels",
+   "effect": "write",
+   "defaultMode": "allow",
+   "stayInAccount": true,
+   "requests": ["POST /labels", "PATCH /labels/{label_id}"]
+  },
+  {
+   "id": "fixture.items.edit",
+   "label": "Edit items",
+   "effect": "write",
+   "defaultMode": "ask",
+   "requests": ["POST /items", "PATCH /items/{item_id}"],
+   "bodyRoutes": [
+    {"member": "PATCH /items/{item_id}", "pointer": "/in_trash", "present": true, "to": "fixture.items.delete"},
+    {"member": "PATCH /items/{item_id}", "pointer": "/labels", "contains": "TRASH", "to": "fixture.items.delete"},
+    {"member": "PATCH /items/{item_id}", "pointer": "/share/to", "present": true, "to": "fixture.access.grant"}
+   ]
+  },
+  {
+   "id": "fixture.messages.send",
+   "label": "Send messages and change shared files",
+   "effect": "write",
+   "defaultMode": "ask",
+   "audience": true,
+   "requests": ["POST /drafts/{draft_id}/send", "PUT /files/{+path}", "PATCH /events/{event_id}", "POST /messages"],
+   "bindContent": {
+    "POST /drafts/{draft_id}/send": {"kind": "resend", "at": "body:/raw"},
+    "PUT /files/{+path}": {"kind": "sha", "at": "body:/sha"},
+    "PATCH /events/{event_id}": {"kind": "etag", "at": "header:If-Match"}
+   },
+   "conditionalScopes": {"files.workflow": "Needed only to change workflow files."}
+  },
+  {
+   "id": "fixture.items.delete",
+   "label": "Delete items",
+   "effect": "delete",
+   "defaultMode": "ask",
+   "requests": ["DELETE /items/{item_id}", "DELETE /items/{item_id}/labels/{name}"]
+  },
+  {
+   "id": "fixture.access.grant",
+   "label": "Give access to other people or services",
+   "effect": "write",
+   "defaultMode": "deny",
+   "locked": "fabric",
+   "requests": ["PUT /items/{item_id}/share", "POST /hooks", "DELETE /hooks/{hook_id}"]
+  }
+ ]
+}

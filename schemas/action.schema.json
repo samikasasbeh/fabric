@@ -1,0 +1,370 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:fabric:action:1",
+  "title": "Fabric action file 1",
+  "description": "The action format of docs/F10.9-BUILD-MAP.md part f (spec section F10.9): one app's reviewed actions as data, in catalog/actions/<appId>.json. It documents the file shape for editors and reviewers. validateActionFile() in lib/actions.mjs is the authority: it adds the expression grammar's scopes, types and provenance (lib/action-expressions.mjs), step placement on reviewed rows (lib/action-placement.mjs), the data-flow, header, body, binding, verification and bound rules, the choice and resource-dependent input rules, the poll block rules and the id hash. No app ships an action file in F10.9, and nothing runs an action before F10.11.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "appId", "specVersion", "reviewStatus", "pinnedParameters", "actions"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "appId": { "type": "string", "pattern": "^[a-z][a-z0-9-]{0,63}$" },
+    "specVersion": { "const": "fabric/0.2" },
+    "reviewStatus": { "enum": ["reviewed", "candidate"] },
+    "pinnedParameters": {
+      "type": "object", "propertyNames": { "pattern": "^[A-Za-z][A-Za-z0-9_]{0,63}$" },
+      "additionalProperties": { "type": "string", "pattern": "^[A-Za-z0-9._~-]{1,200}$" }
+    },
+    "superseded": {
+      "type": "array", "minItems": 1, "maxItems": 100,
+      "description": "Old ids no longer in actions (R9): lifecycle data, not hashed.",
+      "items": {
+        "type": "object", "additionalProperties": false, "required": ["id", "replacedBy", "reason", "stopsAfter"],
+        "properties": {
+          "id": { "$ref": "#/$defs/actionId" },
+          "replacedBy": { "type": "object", "additionalProperties": false, "required": ["key", "version"], "properties": { "key": { "$ref": "#/$defs/key" }, "version": { "$ref": "#/$defs/version" } } },
+          "reason": { "enum": ["safety", "change"] },
+          "stopsAfter": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" }
+        }
+      }
+    },
+    "actions": { "type": "array", "minItems": 1, "maxItems": 100, "items": { "$ref": "#/$defs/action" } }
+  },
+  "$defs": {
+    "key": { "type": "string", "pattern": "^[a-z][a-z0-9-]{0,47}$" },
+    "version": { "type": "integer", "minimum": 1, "maximum": 9999 },
+    "actionId": { "type": "string", "pattern": "^[a-z][a-z0-9-]{0,63}\\.action\\.[a-z][a-z0-9-]{0,47}\\.v[1-9][0-9]{0,3}\\.[a-f0-9]{24}$" },
+    "stepId": { "type": "string", "pattern": "^[a-z][A-Za-z0-9]{0,31}$" },
+    "name": { "type": "string", "pattern": "^[a-z][A-Za-z0-9]{0,31}$" },
+    "keyName": { "type": "string", "pattern": "^[a-z][A-Za-z0-9-]{0,63}$" },
+    "pointer": { "type": "string", "maxLength": 1000, "pattern": "^(/[^/]+)*$" },
+    "inputPointer": { "type": "string", "maxLength": 1000, "pattern": "^(/[^/]+)+$" },
+    "transformId": { "type": "string", "pattern": "^[a-z][a-z0-9]*\\.[a-z][A-Za-z0-9]*@[1-9][0-9]*$" },
+    "queryName": { "type": "string", "pattern": "^[\\w.~:\\[\\]-]{1,128}$" },
+    "codes": { "type": "array", "minItems": 1, "maxItems": 16, "uniqueItems": true, "items": { "type": "integer", "minimum": 100, "maximum": 599 } },
+    "closedObject": {
+      "type": "object", "required": ["type", "properties", "additionalProperties"],
+      "description": "A closed object schema in the compiler's subset (lib/compiler.mjs checkSchema): listed properties, nothing else.",
+      "properties": { "type": { "const": "object" }, "properties": { "type": "object" }, "additionalProperties": { "const": false } }
+    },
+    "expr": {
+      "description": "One node of the closed expression grammar of lib/action-expressions.mjs (part d): one grammar key and its named fields. The trigger registration names (receiver, secret, kept, subscriptionKey) are refused in an action.",
+      "oneOf": [
+        { "type": "object", "additionalProperties": false, "required": ["const"], "properties": { "const": true } },
+        { "type": "object", "additionalProperties": false, "required": ["input"], "properties": { "input": { "$ref": "#/$defs/inputPointer" } } },
+        { "type": "object", "additionalProperties": false, "required": ["step", "pointer"], "properties": { "step": { "$ref": "#/$defs/stepId" }, "pointer": { "$ref": "#/$defs/pointer" } } },
+        { "type": "object", "additionalProperties": false, "required": ["step", "header"], "properties": { "step": { "$ref": "#/$defs/stepId" }, "header": { "enum": ["etag", "last-modified", "link", "location", "retry-after"] } } },
+        { "type": "object", "additionalProperties": false, "required": ["item"], "properties": { "item": { "$ref": "#/$defs/pointer" } } },
+        { "type": "object", "additionalProperties": false, "required": ["pick", "pointer"], "properties": { "pick": { "$ref": "#/$defs/expr" }, "pointer": { "$ref": "#/$defs/inputPointer" } } },
+        {
+          "type": "object", "additionalProperties": false, "required": ["each", "as", "do", "max"],
+          "properties": { "each": { "$ref": "#/$defs/expr" }, "as": { "$ref": "#/$defs/name" }, "do": { "$ref": "#/$defs/expr" }, "max": { "type": "integer", "minimum": 1, "maximum": 100 } }
+        },
+        { "type": "object", "additionalProperties": false, "required": ["var"], "properties": { "var": { "$ref": "#/$defs/name" } } },
+        { "type": "object", "additionalProperties": false, "required": ["account"], "properties": { "account": { "enum": ["id", "email", "workspaceId", "userId"] } } },
+        { "type": "object", "additionalProperties": false, "required": ["transform", "args"], "properties": { "transform": { "$ref": "#/$defs/transformId" }, "args": { "$ref": "#/$defs/exprMap" } } },
+        { "type": "object", "additionalProperties": false, "required": ["object"], "properties": { "object": { "$ref": "#/$defs/exprMap" } } },
+        { "type": "object", "additionalProperties": false, "required": ["array"], "properties": { "array": { "type": "array", "items": { "$ref": "#/$defs/expr" } } } },
+        {
+          "type": "object", "additionalProperties": false, "required": ["concat", "max"],
+          "properties": { "concat": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/expr" } }, "max": { "type": "integer", "minimum": 1, "maximum": 65536 } }
+        },
+        { "type": "object", "additionalProperties": false, "required": ["when", "then"], "properties": { "when": { "$ref": "#/$defs/test" }, "then": { "$ref": "#/$defs/expr" } } },
+        { "type": "object", "additionalProperties": false, "required": ["either"], "properties": { "either": { "type": "array", "minItems": 2, "maxItems": 2, "items": { "$ref": "#/$defs/expr" } } } },
+        { "type": "object", "additionalProperties": false, "required": ["now"], "properties": { "now": { "type": "object", "maxProperties": 0 } } },
+        { "type": "object", "additionalProperties": false, "required": ["jobKey"], "properties": { "jobKey": { "$ref": "#/$defs/keyName" } } },
+        { "type": "object", "additionalProperties": false, "required": ["cursor"], "properties": { "cursor": { "$ref": "#/$defs/name" } } },
+        { "type": "object", "additionalProperties": false, "required": ["resolved"], "properties": { "resolved": { "type": "string", "minLength": 1 } } }
+      ]
+    },
+    "exprMap": { "type": "object", "additionalProperties": { "$ref": "#/$defs/expr" } },
+    "constNode": { "type": "object", "additionalProperties": false, "required": ["const"], "properties": { "const": true } },
+    "test": {
+      "description": "A test of the grammar (part d), nested at most 2 deep.",
+      "oneOf": [
+        { "type": "object", "additionalProperties": false, "required": ["present"], "properties": { "present": { "$ref": "#/$defs/expr" } } },
+        { "type": "object", "additionalProperties": false, "required": ["absent"], "properties": { "absent": { "$ref": "#/$defs/expr" } } },
+        { "type": "object", "additionalProperties": false, "required": ["nonEmpty"], "properties": { "nonEmpty": { "$ref": "#/$defs/expr" } } },
+        {
+          "type": "object", "additionalProperties": false, "required": ["equals"],
+          "properties": { "equals": { "type": "array", "prefixItems": [{ "$ref": "#/$defs/expr" }, { "$ref": "#/$defs/constNode" }], "minItems": 2, "items": false } }
+        },
+        {
+          "type": "object", "additionalProperties": false, "required": ["status"],
+          "properties": { "status": { "type": "object", "additionalProperties": false, "required": ["step", "in"], "properties": { "step": { "$ref": "#/$defs/stepId" }, "in": { "$ref": "#/$defs/codes" } } } }
+        },
+        { "type": "object", "additionalProperties": false, "required": ["anyOf"], "properties": { "anyOf": { "type": "array", "minItems": 1, "maxItems": 8, "items": { "$ref": "#/$defs/test" } } } }
+      ]
+    },
+    "listCheck": {
+      "type": "object", "additionalProperties": false, "required": ["list", "where"],
+      "description": "listHas and listLacks: a list in the answer (absent is empty) has, or lacks, an item whose fields meet every condition.",
+      "properties": {
+        "list": { "$ref": "#/$defs/pointer" },
+        "where": {
+          "type": "array", "minItems": 1, "maxItems": 3,
+          "items": {
+            "oneOf": [
+              { "type": "object", "additionalProperties": false, "required": ["field", "equals"], "properties": { "field": { "$ref": "#/$defs/pointer" }, "equals": { "$ref": "#/$defs/expr" } } },
+              { "type": "object", "additionalProperties": false, "required": ["field", "contains"], "properties": { "field": { "$ref": "#/$defs/pointer" }, "contains": { "$ref": "#/$defs/expr" } } }
+            ]
+          }
+        }
+      }
+    },
+    "pointerValue": { "type": "object", "additionalProperties": false, "required": ["pointer", "value"], "properties": { "pointer": { "$ref": "#/$defs/pointer" }, "value": { "$ref": "#/$defs/expr" } } },
+    "pointerOnly": { "type": "object", "additionalProperties": false, "required": ["pointer"], "properties": { "pointer": { "$ref": "#/$defs/pointer" } } },
+    "assertion": {
+      "description": "One closed assertion over a step's answer. In expect.require it reads the step's own answer and names no step; in verify.assert it names the step it reads and may carry a when of the action's path input; inside anyOf it carries no when and never nests another anyOf (the validator holds these).",
+      "oneOf": [
+        { "type": "object", "additionalProperties": false, "required": ["equals"], "properties": { "equals": { "$ref": "#/$defs/pointerValue" }, "step": { "$ref": "#/$defs/stepId" }, "when": { "$ref": "#/$defs/test" } } },
+        { "type": "object", "additionalProperties": false, "required": ["contains"], "properties": { "contains": { "$ref": "#/$defs/pointerValue" }, "step": { "$ref": "#/$defs/stepId" }, "when": { "$ref": "#/$defs/test" } } },
+        { "type": "object", "additionalProperties": false, "required": ["present"], "properties": { "present": { "$ref": "#/$defs/pointerOnly" }, "step": { "$ref": "#/$defs/stepId" }, "when": { "$ref": "#/$defs/test" } } },
+        { "type": "object", "additionalProperties": false, "required": ["absent"], "properties": { "absent": { "$ref": "#/$defs/pointerOnly" }, "step": { "$ref": "#/$defs/stepId" }, "when": { "$ref": "#/$defs/test" } } },
+        { "type": "object", "additionalProperties": false, "required": ["statusIn"], "properties": { "statusIn": { "$ref": "#/$defs/codes" }, "step": { "$ref": "#/$defs/stepId" }, "when": { "$ref": "#/$defs/test" } } },
+        { "type": "object", "additionalProperties": false, "required": ["listHas"], "properties": { "listHas": { "$ref": "#/$defs/listCheck" }, "step": { "$ref": "#/$defs/stepId" }, "when": { "$ref": "#/$defs/test" } } },
+        { "type": "object", "additionalProperties": false, "required": ["listLacks"], "properties": { "listLacks": { "$ref": "#/$defs/listCheck" }, "step": { "$ref": "#/$defs/stepId" }, "when": { "$ref": "#/$defs/test" } } },
+        {
+          "type": "object", "additionalProperties": false, "required": ["anyOf"],
+          "properties": { "anyOf": { "type": "array", "minItems": 2, "maxItems": 4, "items": { "$ref": "#/$defs/assertion" } }, "when": { "$ref": "#/$defs/test" } }
+        }
+      ]
+    },
+    "page": {
+      "type": "object", "additionalProperties": false, "required": ["next", "into", "items", "max"],
+      "description": "Bounded paging on a read step. A paged step's data is the lists at items joined in order (open point Important 5).",
+      "properties": {
+        "next": {
+          "oneOf": [
+            { "type": "object", "additionalProperties": false, "required": ["pointer"], "properties": { "pointer": { "$ref": "#/$defs/pointer" } } },
+            { "type": "object", "additionalProperties": false, "required": ["link", "param"], "properties": { "link": { "const": "next" }, "param": { "$ref": "#/$defs/queryName" } } }
+          ]
+        },
+        "into": {
+          "oneOf": [
+            { "type": "object", "additionalProperties": false, "required": ["query"], "properties": { "query": { "$ref": "#/$defs/queryName" } } },
+            { "type": "object", "additionalProperties": false, "required": ["body"], "properties": { "body": { "$ref": "#/$defs/pointer" } } }
+          ]
+        },
+        "items": { "$ref": "#/$defs/pointer" },
+        "while": { "$ref": "#/$defs/pointer" },
+        "max": { "type": "integer", "minimum": 1, "maximum": 10 }
+      }
+    },
+    "step": {
+      "type": "object", "additionalProperties": false, "required": ["id", "method", "path", "expect"],
+      "description": "One request on a reviewed member of a reviewed, unlocked row. Its path is relative to the proxy's apiBase, never a URL.",
+      "properties": {
+        "id": { "$ref": "#/$defs/stepId" },
+        "method": { "enum": ["GET", "POST", "PUT", "PATCH", "DELETE"] },
+        "path": { "type": "string", "minLength": 1, "maxLength": 500, "pattern": "^/" },
+        "params": { "$ref": "#/$defs/exprMap" },
+        "query": { "type": "object", "propertyNames": { "$ref": "#/$defs/queryName" }, "additionalProperties": { "$ref": "#/$defs/expr" } },
+        "headers": {
+          "type": "object", "propertyNames": { "enum": ["Accept", "If-Match", "If-None-Match", "If-Modified-Since", "If-Unmodified-Since"] },
+          "additionalProperties": { "$ref": "#/$defs/expr" }
+        },
+        "body": { "$ref": "#/$defs/expr" },
+        "when": { "$ref": "#/$defs/test" },
+        "forEach": {
+          "type": "object", "additionalProperties": false, "required": ["over", "max"],
+          "properties": { "over": { "$ref": "#/$defs/expr" }, "max": { "type": "integer", "minimum": 1, "maximum": 25 } }
+        },
+        "page": { "$ref": "#/$defs/page" },
+        "optional": { "const": true },
+        "fallbackFor": { "$ref": "#/$defs/stepId" },
+        "resolves": { "const": true },
+        "maxResponseBytes": { "type": "integer", "minimum": 1, "maximum": 2097152 },
+        "requiresScope": {
+          "type": "object", "additionalProperties": false, "required": ["scope", "when"],
+          "properties": { "scope": { "type": "string", "minLength": 1 }, "when": { "$ref": "#/$defs/test" } }
+        },
+        "bindContent": { "enum": ["etag", "sha", "resend"] },
+        "expect": {
+          "type": "object", "additionalProperties": false, "required": ["status", "require"],
+          "properties": { "status": { "$ref": "#/$defs/codes" }, "require": { "type": "array", "maxItems": 8, "items": { "$ref": "#/$defs/assertion" } } }
+        }
+      }
+    },
+    "identity": {
+      "description": "How a write is read back (spec line 748): a readback pointer equal to what a perform step sent or answered, the address itself (a delete or a REMOVALS member), or membership in a list the readback holds.",
+      "oneOf": [
+        {
+          "type": "object", "additionalProperties": false, "required": ["kind", "step", "pointer", "equals"],
+          "properties": { "kind": { "const": "readback" }, "step": { "$ref": "#/$defs/stepId" }, "pointer": { "$ref": "#/$defs/pointer" }, "equals": { "$ref": "#/$defs/expr" } }
+        },
+        {
+          "type": "object", "additionalProperties": false, "required": ["kind", "step", "of"],
+          "properties": { "kind": { "const": "address" }, "step": { "$ref": "#/$defs/stepId" }, "of": { "$ref": "#/$defs/stepId" } }
+        },
+        {
+          "type": "object", "additionalProperties": false, "required": ["kind", "step", "listHas"],
+          "properties": { "kind": { "const": "membership" }, "step": { "$ref": "#/$defs/stepId" }, "listHas": { "$ref": "#/$defs/listCheck" }, "forEach": { "$ref": "#/$defs/stepId" } }
+        },
+        {
+          "type": "object", "additionalProperties": false, "required": ["kind", "step", "listLacks"],
+          "properties": { "kind": { "const": "membership" }, "step": { "$ref": "#/$defs/stepId" }, "listLacks": { "$ref": "#/$defs/listCheck" }, "forEach": { "$ref": "#/$defs/stepId" } }
+        }
+      ]
+    },
+    "cursor": {
+      "type": "object", "additionalProperties": false, "required": ["name", "kind"],
+      "properties": {
+        "name": { "$ref": "#/$defs/name" },
+        "kind": { "enum": ["history-id@1", "sync-token@1", "high-water-time@1", "high-water-ts@1", "etag@1", "last-modified@1", "snapshot@1"] },
+        "next": {
+          "oneOf": [
+            { "type": "object", "additionalProperties": false, "required": ["step", "pointer"], "properties": { "step": { "$ref": "#/$defs/stepId" }, "pointer": { "$ref": "#/$defs/pointer" } } },
+            { "type": "object", "additionalProperties": false, "required": ["step", "header"], "properties": { "step": { "$ref": "#/$defs/stepId" }, "header": { "enum": ["etag", "last-modified"] } } },
+            { "type": "object", "additionalProperties": false, "required": ["max"], "properties": { "max": { "const": "itemTime" } } }
+          ]
+        },
+        "compare": { "$ref": "#/$defs/transformId" },
+        "lastPageOnly": { "const": true },
+        "overlapSeconds": { "type": "integer", "minimum": 1, "maximum": 3600 },
+        "excludes": { "type": "array", "minItems": 1, "maxItems": 32, "uniqueItems": true, "items": { "$ref": "#/$defs/queryName" } }
+      }
+    },
+    "poll": {
+      "type": "object", "additionalProperties": false,
+      "required": ["step", "items", "itemId", "itemVersion", "order", "cursors", "resync", "resourceKey", "filterInputs", "minIntervalSeconds"],
+      "description": "Section 8 and part h: what a polling trigger reads from a read action. Validated with the action, kept out of its id and definition hash; its poll hash binds it.",
+      "properties": {
+        "step": { "$ref": "#/$defs/stepId" },
+        "items": { "$ref": "#/$defs/inputPointer" },
+        "itemId": { "$ref": "#/$defs/expr" },
+        "itemVersion": { "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/pointer" }] },
+        "itemTime": {
+          "type": "object", "additionalProperties": false, "required": ["pointer", "format"],
+          "properties": { "pointer": { "$ref": "#/$defs/pointer" }, "format": { "enum": ["rfc3339", "epoch-ms-string", "epoch-seconds", "slack-ts"] } }
+        },
+        "order": { "enum": ["asc", "desc", "unordered"] },
+        "cursors": { "type": "array", "minItems": 1, "maxItems": 4, "items": { "$ref": "#/$defs/cursor" } },
+        "resync": {
+          "type": "object", "additionalProperties": false, "required": ["statusIn"],
+          "properties": { "statusIn": { "type": "array", "maxItems": 2, "uniqueItems": true, "items": { "enum": [404, 410] } } }
+        },
+        "resourceKey": { "type": "array", "uniqueItems": true, "items": { "type": "string" } },
+        "filterInputs": { "type": "array", "uniqueItems": true, "items": { "type": "string" } },
+        "minIntervalSeconds": { "type": "integer", "minimum": 30, "maximum": 86400 }
+      }
+    },
+    "action": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "key", "version", "name", "description", "effect", "row", "hints", "inputSchema", "outputSchema", "guards", "prepare", "perform", "output", "preview", "definitive"],
+      "properties": {
+        "id": { "$ref": "#/$defs/actionId" },
+        "key": { "$ref": "#/$defs/key" },
+        "version": { "$ref": "#/$defs/version" },
+        "name": { "type": "string", "minLength": 1, "maxLength": 100, "pattern": "^[^\\u0000-\\u001f\\u007f]*$" },
+        "description": { "type": "string", "minLength": 1, "maxLength": 1000, "pattern": "^[^\\u0000-\\u001f\\u007f]*$" },
+        "effect": { "enum": ["read", "write", "delete"] },
+        "row": { "type": "string", "minLength": 1 },
+        "hints": {
+          "type": "object", "additionalProperties": false, "required": ["readOnly", "destructive", "idempotent", "openWorld"],
+          "properties": { "readOnly": { "type": "boolean" }, "destructive": { "type": "boolean" }, "idempotent": { "type": "boolean" }, "openWorld": { "const": true } }
+        },
+        "inputSchema": { "$ref": "#/$defs/closedObject" },
+        "outputSchema": { "$ref": "#/$defs/closedObject" },
+        "choices": {
+          "type": "array", "maxItems": 32,
+          "description": "Section 9: where an input's choices come from, a choice source of the app or a version 1 option source by id.",
+          "items": {
+            "type": "object", "additionalProperties": false, "required": ["input", "source"],
+            "properties": {
+              "input": { "type": "string", "minLength": 1 },
+              "source": { "type": "string", "minLength": 1 },
+              "dependsOn": { "type": "array", "minItems": 1, "maxItems": 3, "uniqueItems": true, "items": { "type": "string" } },
+              "args": {
+                "type": "object",
+                "additionalProperties": {
+                  "oneOf": [
+                    { "type": "object", "additionalProperties": false, "required": ["input"], "properties": { "input": { "$ref": "#/$defs/inputPointer" } } },
+                    { "type": "object", "additionalProperties": false, "required": ["const"], "properties": { "const": { "oneOf": [{ "type": "string" }, { "type": "number" }, { "type": "boolean" }] } } }
+                  ]
+                }
+              },
+              "lookup": { "type": "string", "minLength": 1 }
+            }
+          }
+        },
+        "resolvedInputs": {
+          "type": "array", "maxItems": 4,
+          "description": "Section 9 (R14): inputs whose fields come from the chosen resource, closed at run time by a derived schema.",
+          "items": {
+            "type": "object", "additionalProperties": false, "required": ["input", "dependsOn", "schema", "maxProperties"],
+            "properties": {
+              "input": { "type": "string", "minLength": 1 },
+              "dependsOn": { "type": "array", "minItems": 1, "maxItems": 3, "uniqueItems": true, "items": { "type": "string" } },
+              "schema": {
+                "type": "object", "additionalProperties": false, "required": ["steps", "derive"],
+                "properties": {
+                  "steps": { "type": "array", "minItems": 1, "maxItems": 2, "items": { "$ref": "#/$defs/step" } },
+                  "derive": { "type": "object", "additionalProperties": false, "required": ["transform", "args"], "properties": { "transform": { "$ref": "#/$defs/transformId" }, "args": { "$ref": "#/$defs/exprMap" } } }
+                }
+              },
+              "maxProperties": { "type": "integer", "minimum": 1, "maximum": 100 }
+            }
+          }
+        },
+        "guards": {
+          "type": "array",
+          "items": {
+            "type": "object", "additionalProperties": false, "required": ["transform", "args", "refuse"],
+            "properties": {
+              "transform": { "$ref": "#/$defs/transformId" },
+              "args": { "$ref": "#/$defs/exprMap" },
+              "refuse": { "enum": ["wrong_kind", "wrong_state", "time_window"] },
+              "after": { "$ref": "#/$defs/stepId" }
+            }
+          }
+        },
+        "prepare": { "type": "array", "maxItems": 8, "items": { "$ref": "#/$defs/step" } },
+        "perform": { "type": "array", "minItems": 1, "maxItems": 8, "items": { "$ref": "#/$defs/step" } },
+        "verify": {
+          "type": "object", "additionalProperties": false, "required": ["requests", "identity", "assert"],
+          "properties": {
+            "requests": { "type": "array", "minItems": 1, "maxItems": 8, "items": { "$ref": "#/$defs/step" } },
+            "identity": { "type": "array", "minItems": 1, "maxItems": 4, "items": { "$ref": "#/$defs/identity" } },
+            "assert": { "type": "array", "maxItems": 16, "items": { "$ref": "#/$defs/assertion" } }
+          }
+        },
+        "askUnless": {
+          "type": "object", "additionalProperties": false, "required": ["createdByFabric"],
+          "properties": {
+            "createdByFabric": {
+              "type": "object", "additionalProperties": false, "required": ["kind", "input"],
+              "properties": { "kind": { "type": "string", "pattern": "^[a-z][a-z0-9-]{0,31}$" }, "input": { "type": "string", "minLength": 1 } }
+            }
+          }
+        },
+        "records": {
+          "type": "object", "additionalProperties": false, "required": ["kind", "pointer"],
+          "properties": { "kind": { "type": "string", "pattern": "^[a-z][a-z0-9-]{0,31}$" }, "pointer": { "$ref": "#/$defs/pointer" } }
+        },
+        "output": { "$ref": "#/$defs/exprMap" },
+        "preview": {
+          "type": "array",
+          "items": {
+            "type": "object", "additionalProperties": false, "required": ["label", "expr"],
+            "properties": { "label": { "type": "string", "minLength": 1, "maxLength": 80, "pattern": "^[^\\u0000-\\u001f\\u007f]*$" }, "expr": { "$ref": "#/$defs/expr" }, "truncate": { "type": "integer", "minimum": 1, "maximum": 10000 } }
+          }
+        },
+        "definitive": {
+          "type": "array", "uniqueItems": true,
+          "items": { "enum": [400, 401, 403, 404, 405, 406, 409, 410, 411, 412, 413, 414, 415, 416, 417, 422, 428, 429, 431] }
+        },
+        "poll": { "$ref": "#/$defs/poll" },
+        "servesSource": { "type": "string", "minLength": 1 },
+        "certified": {
+          "type": "object", "additionalProperties": false, "required": ["evidence", "definitionHash"],
+          "description": "Lifecycle data, not hashed into the id.",
+          "properties": {
+            "evidence": { "type": "string", "pattern": "^docs/live-evidence/[a-z][a-z0-9-]{0,63}/actions\\.json$" },
+            "definitionHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+          }
+        }
+      }
+    }
+  }
+}

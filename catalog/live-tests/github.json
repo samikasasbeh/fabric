@@ -1,0 +1,190 @@
+{
+ "schemaVersion": 1,
+ "appId": "github",
+ "note": "GitHub's live write tests H0 to H11 (spec section 5.3, step 18) in the private sandbox repository samikasasbeh/fabric-sandbox-test, on one sign-in. Every write runs one at a time and at least 1 second apart, on this run's own branches fabric/test-<runId> and fabric/test-<runId>-<suffix> ($branch), with synthetic text, and every change is undone. Checked offline by node scripts/live-certify.mjs github --check.",
+ "recorded": {
+  "issueA": "The number of issue A in the sandbox, which H1 reads and H2 comments on.",
+  "issueB": "The number of issue B, whose title starts with [SYNTHETIC]: H3 renames it and its undo restores the title.",
+  "issueBTitle": "Issue B's title before the run, exactly as GitHub shows it: H3's undo restores it byte for byte.",
+  "issueC": "The number of issue C, with no labels and open, which H4 labels and H5 closes and reopens."
+ },
+ "readRows": ["github.repos.read", "github.issues.read", "github.gists.read", "github.profile.read"],
+ "tests": [
+  {
+   "id": "H0",
+   "name": "The sign-in: full access with the five scopes and no notice",
+   "steps": [
+    {"owner": {"words": "Open the GitHub app page in Fabric. It should show full access with read:user, repo, read:org, gist and workflow, and no notice. If it does, press Enter; if not, stop the run with Ctrl+C."}},
+    {"read": {"path": "/user", "checks": [{"status": 200}, {"pointer": "/login", "present": true}]}}
+   ]
+  },
+  {
+   "id": "H1",
+   "name": "Read pass: list the repositories, find the synthetic issues, read issue A and the readme",
+   "steps": [
+    {"call": {"action": "list-repos@1", "args": {}, "checks": [{"pointer": "/repositories", "present": true}]}},
+    {"read": {"path": "/repos/samikasasbeh/fabric-sandbox-test/issues/{n}", "params": {"n": {"$recorded": "issueA"}}, "save": {"numberA": "/number"}, "checks": [{"status": 200}]}},
+    {"read": {"path": "/repos/samikasasbeh/fabric-sandbox-test/issues/{n}", "params": {"n": {"$recorded": "issueB"}}, "save": {"numberB": "/number"},
+     "checks": [{"status": 200}, {"pointer": "/title", "equals": {"$recorded": "issueBTitle"}}]}},
+    {"read": {"path": "/repos/samikasasbeh/fabric-sandbox-test/issues/{n}", "params": {"n": {"$recorded": "issueC"}}, "save": {"numberC": "/number"}, "checks": [{"status": 200}, {"pointer": "/labels", "count": 0}]}},
+    {"call": {"action": "find-issues@1", "args": {"type": "issue", "repository": "samikasasbeh/fabric-sandbox-test", "text": "[SYNTHETIC]"}, "checks": [{"pointer": "/items", "present": true}]}},
+    {"call": {"action": "read-conversation@1", "args": {"repository": "samikasasbeh/fabric-sandbox-test", "number": {"$saved": "numberA"}}, "checks": [{"pointer": "/number", "equals": {"$saved": "numberA"}}]}},
+    {"call": {"action": "read-file@1", "args": {"repository": "samikasasbeh/fabric-sandbox-test", "path": "README.md"}, "checks": [{"pointer": "/path", "equals": "README.md"}, {"pointer": "/text", "present": true}]}}
+   ]
+  },
+  {
+   "id": "H2",
+   "name": "Comment on issue A",
+   "steps": [
+    {"call": {"action": "comment@1", "args": {"repository": "samikasasbeh/fabric-sandbox-test", "number": {"$saved": "numberA"}, "body": {"$text": "comment"}}, "save": {"comment": "/id"}}},
+    {"read": {"path": "/repos/samikasasbeh/fabric-sandbox-test/issues/comments/{id}", "params": {"id": {"$saved": "comment"}},
+     "checks": [{"status": 200}, {"pointer": "/id", "equals": {"$saved": "comment"}}, {"pointer": "/body", "equals": {"$text": "comment"}}]}}
+   ],
+   "undo": {"test": "H2-undo"}
+  },
+  {
+   "id": "H3",
+   "name": "Rename issue B, then restore its title byte for byte",
+   "steps": [
+    {"call": {"action": "update-issue@1", "args": {"repository": "samikasasbeh/fabric-sandbox-test", "number": {"$saved": "numberB"}, "title": {"$text": "renamed"}}, "checks": [{"pointer": "/title", "equals": {"$text": "renamed"}}]}},
+    {"read": {"path": "/repos/samikasasbeh/fabric-sandbox-test/issues/{n}", "params": {"n": {"$saved": "numberB"}}, "checks": [{"status": 200}, {"pointer": "/title", "equals": {"$text": "renamed"}}]}}
+   ],
+   "undo": {"steps": [
+    {"call": {"action": "update-issue@1", "args": {"repository": "samikasasbeh/fabric-sandbox-test", "number": {"$saved": "numberB"}, "title": {"$recorded": "issueBTitle"}}, "checks": [{"pointer": "/title", "equals": {"$recorded": "issueBTitle"}}]}},
+    {"read": {"path": "/repos/samikasasbeh/fabric-sandbox-test/issues/{n}", "params": {"n": {"$saved": "numberB"}}, "checks": [{"pointer": "/title", "equals": {"$recorded": "issueBTitle"}}]}}
+   ]}
+  },
+  {
+   "id": "H4",
+   "name": "Add the label fabric-test to issue C; the removal is the undo",
+   "steps": [
+    {"call": {"action": "update-labels@1", "args": {"repository": "samikasasbeh/fabric-sandbox-test", "number": {"$saved": "numberC"}, "add": ["fabric-test"], "remove": []}, "checks": [{"pointer": "/labels", "count": 1}]}},
+    {"read": {"path": "/repos/samikasasbeh/fabric-sandbox-test/issues/{n}", "params": {"n": {"$saved": "numberC"}}, "checks": [{"pointer": "/labels", "where": {"/name": "fabric-test"}, "field": "/name", "equals": "fabric-test"}]}}
+   ],
+   "undo": {"steps": [
+    {"call": {"action": "update-labels@1", "args": {"repository": "samikasasbeh/fabric-sandbox-test", "number": {"$saved": "numberC"}, "add": [], "remove": ["fabric-test"]}, "checks": [{"pointer": "/labels", "count": 0}]}},
+    {"read": {"path": "/repos/samikasasbeh/fabric-sandbox-test/issues/{n}", "params": {"n": {"$saved": "numberC"}}, "checks": [{"pointer": "/labels", "count": 0}]}}
+   ]}
+  },
+  {
+   "id": "H5",
+   "name": "Close issue C as not planned, then reopen it",
+   "steps": [
+    {"call": {"action": "update-issue@1", "args": {"repository": "samikasasbeh/fabric-sandbox-test", "number": {"$saved": "numberC"}, "state": "closed", "closeAs": "not_planned"},
+     "checks": [{"pointer": "/state", "equals": "closed"}, {"pointer": "/stateReason", "equals": "not_planned"}]}},
+    {"read": {"path": "/repos/samikasasbeh/fabric-sandbox-test/issues/{n}", "params": {"n": {"$saved": "numberC"}}, "checks": [{"pointer": "/state", "equals": "closed"}, {"pointer": "/state_reason", "equals": "not_planned"}]}}
+   ],
+   "undo": {"steps": [
+    {"call": {"action": "update-issue@1", "args": {"repository": "samikasasbeh/fabric-sandbox-test", "number": {"$saved": "numberC"}, "state": "open"}, "checks": [{"pointer": "/state", "equals": "open"}]}}
+   ]}
+  },
+  {
+   "id": "H6",
+   "name": "Create an issue, read it back by its number, then close it as not planned",
+   "steps": [
+    {"call": {"action": "create-issue@1", "args": {"repository": "samikasasbeh/fabric-sandbox-test", "title": {"$text": "issue"}}, "save": {"created": "/number"}, "checks": [{"pointer": "/title", "equals": {"$text": "issue"}}]}},
+    {"read": {"path": "/repos/samikasasbeh/fabric-sandbox-test/issues/{n}", "params": {"n": {"$saved": "created"}}, "checks": [{"status": 200}, {"pointer": "/number", "equals": {"$saved": "created"}}]}}
+   ],
+   "undo": {"steps": [
+    {"call": {"action": "update-issue@1", "args": {"repository": "samikasasbeh/fabric-sandbox-test", "number": {"$saved": "created"}, "state": "closed", "closeAs": "not_planned"}, "checks": [{"pointer": "/state", "equals": "closed"}]}}
+   ]}
+  },
+  {
+   "id": "H7",
+   "name": "Create this run's branch from main, write a file on it and open a draft pull request into main",
+   "steps": [
+    {"call": {"action": "create-branch@1", "args": {"repository": "samikasasbeh/fabric-sandbox-test", "name": {"$branch": ""}, "from": "main"}, "save": {"h7Commit": "/sha"}, "checks": [{"pointer": "/sha", "present": true}]}},
+    {"read": {"path": "/repos/samikasasbeh/fabric-sandbox-test/git/ref/heads/{+branch}", "params": {"branch": {"$branch": ""}}, "checks": [{"status": 200}, {"pointer": "/object/sha", "equals": {"$saved": "h7Commit"}}]}},
+    {"call": {"action": "put-file@1", "args": {"repository": "samikasasbeh/fabric-sandbox-test", "path": "fabric-live/h7.md", "branch": {"$branch": ""}, "message": {"$text": "add a file"}, "content": {"$text": "file"}},
+     "save": {"h7File": "/sha"}}},
+    {"call": {"action": "read-file@1", "args": {"repository": "samikasasbeh/fabric-sandbox-test", "path": "fabric-live/h7.md", "ref": {"$branch": ""}},
+     "checks": [{"pointer": "/text", "equals": {"$text": "file"}}, {"pointer": "/sha", "equals": {"$saved": "h7File"}}]}},
+    {"call": {"action": "open-pull@1", "args": {"repository": "samikasasbeh/fabric-sandbox-test", "title": {"$text": "draft"}, "head": {"$branch": ""}, "base": "main", "draft": true},
+     "save": {"h7Pull": "/number"}, "checks": [{"pointer": "/draft", "equals": true}]}},
+    {"read": {"path": "/repos/samikasasbeh/fabric-sandbox-test/pulls/{n}", "params": {"n": {"$saved": "h7Pull"}}, "checks": [{"status": 200}, {"pointer": "/number", "equals": {"$saved": "h7Pull"}}, {"pointer": "/draft", "equals": true}]}}
+   ],
+   "undo": {"test": "H7-undo"}
+  },
+  {
+   "id": "H8",
+   "name": "Review H7's pull request and its checks, then submit a COMMENT review pinned to its head",
+   "steps": [
+    {"call": {"action": "review-pull@1", "args": {"repository": "samikasasbeh/fabric-sandbox-test", "number": {"$saved": "h7Pull"}}, "save": {"h7Head": "/head/sha"}, "checks": [{"pointer": "/files", "count": 1}]}},
+    {"call": {"action": "submit-review@1", "args": {"repository": "samikasasbeh/fabric-sandbox-test", "number": {"$saved": "h7Pull"}, "event": "COMMENT", "body": {"$text": "review"}},
+     "checks": [{"pointer": "/state", "equals": "COMMENTED"}, {"pointer": "/commitId", "equals": {"$saved": "h7Head"}}]}}
+   ],
+   "undo": {"none": "A submitted review cannot be deleted; it stays on H7's pull request, which H7-undo closes."}
+  },
+  {
+   "id": "H11",
+   "name": "Scope proofs before H7's cleanup: your secret gists, your organizations, and a workflow file on this run's branch",
+   "steps": [
+    {"read": {"path": "/gists", "checks": [{"status": 200}]}},
+    {"read": {"path": "/user/orgs", "checks": [{"status": 200}]}},
+    {"call": {"action": "put-file@1", "args": {"repository": "samikasasbeh/fabric-sandbox-test", "path": ".github/workflows/fabric-h11.yml", "branch": {"$branch": ""}, "message": {"$text": "add a workflow"},
+     "content": "name: Fabric H11\non:\n  workflow_dispatch:\njobs:\n  echo:\n    runs-on: ubuntu-latest\n    steps:\n      - run: echo synthetic\n"}, "checks": [{"pointer": "/path", "equals": ".github/workflows/fabric-h11.yml"}]}}
+   ],
+   "undo": {"test": "H12"}
+  },
+  {
+   "id": "H7-undo",
+   "name": "Close H7's pull request",
+   "steps": [
+    {"call": {"action": "update-issue@1", "args": {"repository": "samikasasbeh/fabric-sandbox-test", "number": {"$saved": "h7Pull"}, "state": "closed"}, "checks": [{"pointer": "/state", "equals": "closed"}]}}
+   ],
+   "undo": {"test": "H12"}
+  },
+  {
+   "id": "H9",
+   "name": "Merge between two of this run's branches, bound to the head: a file race, a wrong head refused with 409, then the merge",
+   "steps": [
+    {"call": {"action": "create-branch@1", "args": {"repository": "samikasasbeh/fabric-sandbox-test", "name": {"$branch": "base"}, "from": "main"}, "checks": [{"pointer": "/sha", "present": true}]}},
+    {"call": {"action": "create-branch@1", "args": {"repository": "samikasasbeh/fabric-sandbox-test", "name": {"$branch": "head"}, "from": "main"}, "checks": [{"pointer": "/sha", "present": true}]}},
+    {"call": {"action": "put-file@1", "args": {"repository": "samikasasbeh/fabric-sandbox-test", "path": "fabric-live/h9.md", "branch": {"$branch": "head"}, "message": {"$text": "add a file"}, "content": {"$text": "first"}}}},
+    {"call": {"action": "open-pull@1", "args": {"repository": "samikasasbeh/fabric-sandbox-test", "title": {"$text": "merge"}, "head": {"$branch": "head"}, "base": {"$branch": "base"}, "draft": false},
+     "save": {"h9Pull": "/number"}}},
+    {"race": {"action": "put-file@1", "args": {"repository": "samikasasbeh/fabric-sandbox-test", "path": "fabric-live/h9.md", "branch": {"$branch": "head"}, "message": {"$text": "race"}, "content": {"$text": "race"}},
+     "status": 409, "readback": {"path": "/repos/samikasasbeh/fabric-sandbox-test/contents/{+path}", "params": {"path": "fabric-live/h9.md"}, "query": {"ref": {"$branch": "head"}}, "pointer": "/sha", "output": "/sha"}}},
+    {"owner": {"words": "Press Enter. When the next Merge card shows, first commit any change to fabric-live/h9.md on H9's head branch (the one ending in -head) on github.com, then approve the card: GitHub must refuse it with 409, and nothing merges."}},
+    {"call": {"action": "merge-pull@1", "args": {"repository": "samikasasbeh/fabric-sandbox-test", "number": {"$saved": "h9Pull"}, "method": "merge"}, "expect": {"failed": 409}}},
+    {"call": {"action": "merge-pull@1", "args": {"repository": "samikasasbeh/fabric-sandbox-test", "number": {"$saved": "h9Pull"}, "method": "merge"}, "checks": [{"pointer": "/merged", "equals": true}]}},
+    {"read": {"path": "/repos/samikasasbeh/fabric-sandbox-test/pulls/{n}", "params": {"n": {"$saved": "h9Pull"}}, "checks": [{"pointer": "/merged", "equals": true}, {"pointer": "/merge_commit_sha", "present": true}]}}
+   ],
+   "undo": {"test": "H12"}
+  },
+  {
+   "id": "H10",
+   "name": "Run fabric-synthetic.yml on main and find the run",
+   "steps": [
+    {"call": {"action": "run-workflow@1", "args": {"repository": "samikasasbeh/fabric-sandbox-test", "workflow": "fabric-synthetic.yml", "branch": "main", "inputs": []}, "checks": [{"pointer": "/branch", "equals": "main"}]}},
+    {"owner": {"words": "GitHub lists a dispatched run a moment later. Press Enter; the runner then reads the workflow's runs until it shows one.",
+     "until": {"path": "/repos/samikasasbeh/fabric-sandbox-test/actions/workflows/fabric-synthetic.yml/runs", "query": {"event": "workflow_dispatch", "branch": "main", "per_page": "10"},
+      "checks": [{"pointer": "/workflow_runs/0/event", "equals": "workflow_dispatch"}, {"pointer": "/workflow_runs/0/head_branch", "equals": "main"}]}}}
+   ],
+   "undo": {"none": "The workflow only echoes, and its run is GitHub's record."}
+  },
+  {
+   "id": "H2-undo",
+   "name": "Delete H2's comment through the one-time Ask on the Never row",
+   "cleanup": true,
+   "steps": [
+    {"oneTimeAsk": {"row": "github.permanent.delete", "requests": [{"method": "DELETE", "path": "/repos/samikasasbeh/fabric-sandbox-test/issues/comments/{id}", "params": {"id": {"$saved": "comment"}}}]}},
+    {"read": {"path": "/repos/samikasasbeh/fabric-sandbox-test/issues/comments/{id}", "params": {"id": {"$saved": "comment"}}, "checks": [{"gone": true}]}}
+   ],
+   "undo": {"none": "It is the undo of H2, and the row is Never again, which the run records."}
+  },
+  {
+   "id": "H12",
+   "name": "Delete this run's three branches on the Ask row: H7's, which also holds H11's workflow file, and H9's base and head",
+   "cleanup": true,
+   "steps": [
+    {"ask": {"row": "github.code.write", "requests": [
+     {"method": "DELETE", "path": "/repos/samikasasbeh/fabric-sandbox-test/git/refs/heads/{+branch}", "params": {"branch": {"$branch": ""}}},
+     {"method": "DELETE", "path": "/repos/samikasasbeh/fabric-sandbox-test/git/refs/heads/{+branch}", "params": {"branch": {"$branch": "base"}}},
+     {"method": "DELETE", "path": "/repos/samikasasbeh/fabric-sandbox-test/git/refs/heads/{+branch}", "params": {"branch": {"$branch": "head"}}}]}},
+    {"read": {"path": "/repos/samikasasbeh/fabric-sandbox-test/git/ref/heads/{+branch}", "params": {"branch": {"$branch": ""}}, "checks": [{"status": 404}]}}
+   ],
+   "undo": {"none": "It is the cleanup of H7, H9 and H11."}
+  }
+ ]
+}

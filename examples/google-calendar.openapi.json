@@ -1,0 +1,103 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Google Calendar — reviewed Fabric starter subset",
+    "version": "2026-09-30",
+    "description": "A hand-authored, restricted OpenAPI description of real documented endpoints, not a Google-published specification. Authentication, user consent, scopes, calendar permissions, pagination, and provider limits still apply. Timed events only in the write schema. No account is connected by importing this document."
+  },
+  "servers": [{ "url": "https://www.googleapis.com/calendar/v3" }],
+  "externalDocs": { "url": "https://developers.google.com/workspace/calendar/api/v3/reference" },
+  "components": {
+    "parameters": {
+      "calendarId": { "name": "calendarId", "in": "path", "required": true, "schema": { "type": "string", "minLength": 1, "maxLength": 512 }, "description": "Use primary for the authorized user's primary calendar, or a calendar ID from CalendarList." },
+      "eventId": { "name": "eventId", "in": "path", "required": true, "schema": { "type": "string", "minLength": 1, "maxLength": 1024 } },
+      "sendUpdates": { "name": "sendUpdates", "in": "query", "schema": { "type": "string", "enum": ["all", "externalOnly", "none"] }, "description": "Controls attendee update delivery; none does not guarantee every email is suppressed by Google. Attendee updates require explicit review." }
+    },
+    "schemas": {
+      "TimedEventTime": {
+        "type": "object", "additionalProperties": false,
+        "properties": { "dateTime": { "type": "string", "format": "date-time" }, "timeZone": { "type": "string", "minLength": 1, "maxLength": 100 } },
+        "required": ["dateTime"]
+      },
+      "Attendee": {
+        "type": "object", "additionalProperties": false,
+        "properties": { "email": { "type": "string", "format": "email" }, "displayName": { "type": "string", "maxLength": 256 }, "optional": { "type": "boolean" } },
+        "required": ["email"]
+      },
+      "NewTimedEvent": {
+        "type": "object", "additionalProperties": false,
+        "properties": {
+          "summary": { "type": "string", "minLength": 1, "maxLength": 1024 },
+          "description": { "type": "string", "maxLength": 8192 },
+          "location": { "type": "string", "maxLength": 2048 },
+          "start": { "$ref": "#/components/schemas/TimedEventTime" },
+          "end": { "$ref": "#/components/schemas/TimedEventTime" },
+          "attendees": { "type": "array", "maxItems": 100, "items": { "$ref": "#/components/schemas/Attendee" } }
+        },
+        "required": ["summary", "start", "end"]
+      },
+      "TimedEventPatch": {
+        "type": "object", "additionalProperties": false,
+        "properties": {
+          "summary": { "type": "string", "minLength": 1, "maxLength": 1024 },
+          "description": { "type": "string", "maxLength": 8192 },
+          "location": { "type": "string", "maxLength": 2048 },
+          "start": { "$ref": "#/components/schemas/TimedEventTime" },
+          "end": { "$ref": "#/components/schemas/TimedEventTime" }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/users/me/calendarList": {
+      "get": {
+        "operationId": "list-calendars", "summary": "List authorized calendars",
+        "description": "Read one page of calendars accessible to the authorized account. Follow nextPageToken explicitly; one page is not an entire-account snapshot.",
+        "parameters": [
+          { "name": "maxResults", "in": "query", "schema": { "type": "integer", "minimum": 1, "maximum": 250 } },
+          { "name": "pageToken", "in": "query", "schema": { "type": "string", "maxLength": 2048 } }
+        ],
+        "responses": { "200": { "description": "Calendar list page" } }
+      }
+    },
+    "/calendars/{calendarId}/events": {
+      "parameters": [{ "$ref": "#/components/parameters/calendarId" }],
+      "get": {
+        "operationId": "list-events", "summary": "List calendar events",
+        "description": "Read one event page from the chosen calendar. Use timeMin/timeMax and maxResults to limit personal-data access. Does not automatically ingest all account data.",
+        "parameters": [
+          { "name": "timeMin", "in": "query", "schema": { "type": "string", "format": "date-time" } },
+          { "name": "timeMax", "in": "query", "schema": { "type": "string", "format": "date-time" } },
+          { "name": "maxResults", "in": "query", "schema": { "type": "integer", "minimum": 1, "maximum": 2500 } },
+          { "name": "singleEvents", "in": "query", "schema": { "type": "boolean" } },
+          { "name": "orderBy", "in": "query", "schema": { "type": "string", "enum": ["startTime", "updated"] } },
+          { "name": "pageToken", "in": "query", "schema": { "type": "string", "maxLength": 2048 } },
+          { "name": "q", "in": "query", "schema": { "type": "string", "maxLength": 1024 } }
+        ],
+        "responses": { "200": { "description": "Event list page, possibly with nextPageToken" } }
+      },
+      "post": {
+        "operationId": "insert-event", "summary": "Create a timed calendar event",
+        "description": "A real Calendar API write that can create attendee invitations. The runtime must require exact-action approval. This generic import supplies no independent outcome verifier and therefore cannot report verified write success.",
+        "parameters": [{ "$ref": "#/components/parameters/sendUpdates" }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/NewTimedEvent" } } } },
+        "responses": { "200": { "description": "Provider returns an Event; a separate GET is needed to verify persisted state" } }
+      }
+    },
+    "/calendars/{calendarId}/events/{eventId}": {
+      "parameters": [{ "$ref": "#/components/parameters/calendarId" }, { "$ref": "#/components/parameters/eventId" }],
+      "get": {
+        "operationId": "get-event", "summary": "Read a calendar event",
+        "description": "Read one event by its provider ID from the selected calendar.",
+        "responses": { "200": { "description": "Event resource" } }
+      },
+      "patch": {
+        "operationId": "patch-event", "summary": "Update a timed calendar event",
+        "description": "A real mutation. Rescheduling or changing an already-sent meeting must receive explicit approval. The generic import has response-only verification and must not claim a verified final state.",
+        "parameters": [{ "$ref": "#/components/parameters/sendUpdates" }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/TimedEventPatch" } } } },
+        "responses": { "200": { "description": "Updated Event response, not independent persistence evidence" } }
+      }
+    }
+  }
+}

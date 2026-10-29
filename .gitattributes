@@ -1,0 +1,4 @@
+relay/index.html text eol=lf
+relay/_headers text eol=lf
+relay/_redirects text eol=lf
+lib/transforms/** text eol=lf

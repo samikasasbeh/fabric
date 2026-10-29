@@ -1,0 +1,32 @@
+{
+ "schemaVersion": 1,
+ "appId": "slack",
+ "apiBase": "https://slack.com/api",
+ "style": "rpc",
+ "pathPrefixes": [
+  "/"
+ ],
+ "acceptTypes": [
+  "application/json"
+ ],
+ "reservedParameters": [
+  "token"
+ ],
+ "reservedBodyFields": [
+  "token"
+ ],
+ "arrayParameters": [],
+ "aliases": [],
+ "inheritFamilies": [
+  "admin",
+  "oauth",
+  "openid",
+  "apps",
+  "auth"
+ ],
+ "documentedRoutes": null,
+ "proxyAllowable": [
+  "slack.conversations.mark"
+ ],
+ "typedOnly": []
+}

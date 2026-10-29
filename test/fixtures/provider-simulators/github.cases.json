@@ -1,0 +1,23 @@
+{
+ "schemaVersion": 1,
+ "appId": "github",
+ "simulator": "test/fixtures/provider-simulators/github.mjs",
+ "tests": ["test/actions-github.test.mjs"],
+ "cases": {
+  "list-repos v1": ["succeeds", "refused", "provider-refusal"],
+  "find-issues v1": ["succeeds", "refused", "provider-refusal"],
+  "read-conversation v1": ["succeeds", "refused", "provider-refusal"],
+  "create-issue v1": ["succeeds", "refused", "provider-refusal", "unverified", "lost-answer"],
+  "update-issue v1": ["succeeds", "refused", "provider-refusal", "unverified", "lost-answer"],
+  "update-labels v1": ["succeeds", "refused", "provider-refusal", "unverified", "lost-answer"],
+  "comment v1": ["succeeds", "refused", "provider-refusal", "unverified", "lost-answer"],
+  "read-file v1": ["succeeds", "refused", "provider-refusal"],
+  "put-file v1": ["succeeds", "refused", "provider-refusal", "unverified", "lost-answer"],
+  "create-branch v1": ["succeeds", "refused", "provider-refusal", "unverified", "lost-answer"],
+  "open-pull v1": ["succeeds", "refused", "provider-refusal", "unverified", "lost-answer"],
+  "review-pull v1": ["succeeds", "refused", "provider-refusal"],
+  "submit-review v1": ["succeeds", "refused", "provider-refusal", "unverified", "lost-answer"],
+  "merge-pull v1": ["succeeds", "refused", "provider-refusal", "unverified", "lost-answer"],
+  "run-workflow v1": ["succeeds", "refused", "provider-refusal", "unverified", "lost-answer"]
+ }
+}

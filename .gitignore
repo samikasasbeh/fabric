@@ -1,0 +1,21 @@
+.fabric/
+.env
+node_modules
+test-results/
+.gstack/
+.DS_Store
+*.sqlite
+*.sqlite-*
+*.key
+__pycache__/
+
+# Design notes, plans and business files are kept in a separate private repository.
+/docs/*
+!/docs/live-evidence/
+!/docs/F10.7-DEFAULTS-REVIEW.md
+/plan/
+/IMPLEMENTATION.md
+/artifacts/
+/examples/connect-broker/
+/test/connect-broker-*
+pricing.xlsx

@@ -1,0 +1,401 @@
+{
+ "schemaVersion": 1,
+ "appId": "slack",
+ "specVersion": "fabric/0.2",
+ "reviewStatus": "reviewed",
+ "pinnedParameters": {},
+ "actions": [
+  {
+   "id": "slack.action.list-conversations.v1.3bd654b27e887e8f02049ce0",
+   "key": "list-conversations",
+   "version": 1,
+   "name": "List channels and DMs",
+   "description": "Lists the channels, private channels, group DMs and direct messages you are in (archived ones left out), 100 a page, each with its id, which the other Slack actions take. A direct message gives the id of the person it is with: Find a person by user names them.",
+   "effect": "read",
+   "row": "slack.channels.read",
+   "hints": {"readOnly":true,"destructive":false,"idempotent":true,"openWorld":true},
+   "inputSchema": {"type":"object","properties":{"cursor":{"type":"string","minLength":1,"maxLength":1000,"description":"nextCursor from the page before, for the next page."}},"required":[],"additionalProperties":false},
+   "outputSchema": {"type":"object","properties":{"channels":{"type":"array","maxItems":100,"items":{"type":"object","properties":{"id":{"type":"string","maxLength":21},"name":{"type":"string","maxLength":256},"isPrivate":{"type":"boolean"},"isIm":{"type":"boolean"},"isMpim":{"type":"boolean"},"user":{"type":"string","maxLength":21}},"required":["id"],"additionalProperties":false}},"nextCursor":{"type":"string","maxLength":1000}},"required":["channels"],"additionalProperties":false},
+   "guards": [],
+   "prepare": [],
+   "perform": [
+    {"id":"list","method":"GET","path":"/users.conversations","query":{"types":{"const":"public_channel,private_channel,mpim,im"},"exclude_archived":{"const":true},"limit":{"const":100},"cursor":{"when":{"present":{"input":"/cursor"}},"then":{"input":"/cursor"}}},"maxResponseBytes":1048576,"expect":{"status":[200],"require":[{"equals":{"pointer":"/ok","value":{"const":true}}}]}}
+   ],
+   "output": {"channels":{"each":{"step":"list","pointer":"/channels"},"as":"channel","max":100,"do":{"object":{"id":{"pick":{"var":"channel"},"pointer":"/id"},"name":{"pick":{"var":"channel"},"pointer":"/name"},"isPrivate":{"pick":{"var":"channel"},"pointer":"/is_private"},"isIm":{"pick":{"var":"channel"},"pointer":"/is_im"},"isMpim":{"pick":{"var":"channel"},"pointer":"/is_mpim"},"user":{"pick":{"var":"channel"},"pointer":"/user"}}}},"nextCursor":{"when":{"nonEmpty":{"step":"list","pointer":"/response_metadata/next_cursor"}},"then":{"step":"list","pointer":"/response_metadata/next_cursor"}}},
+   "preview": [],
+   "definitive": [429]
+  },
+  {
+   "id": "slack.action.read-messages.v1.fcd94a219f61d0bc555b1284",
+   "key": "read-messages",
+   "version": 1,
+   "name": "Read recent messages",
+   "description": "Reads the newest messages of a channel or DM, 15 a page, newest first, each with its ts (Slack's timestamp string), its time in UTC, its author and its text (cut at 4,000 characters). A thread's replies stay out: Read a thread reads them.",
+   "effect": "read",
+   "row": "slack.messages.read",
+   "hints": {"readOnly":true,"destructive":false,"idempotent":true,"openWorld":true},
+   "inputSchema": {"type":"object","properties":{"channel":{"type":"string","minLength":9,"maxLength":21,"description":"A channel id from List channels and DMs, such as C0123ABCD."},"cursor":{"type":"string","minLength":1,"maxLength":1000,"description":"nextCursor from the page before, for the next page."}},"required":["channel"],"additionalProperties":false},
+   "outputSchema": {"type":"object","properties":{"messages":{"type":"array","maxItems":15,"items":{"type":"object","properties":{"ts":{"type":"string","maxLength":17},"time":{"type":"string","maxLength":27},"user":{"type":"string","maxLength":64},"text":{"type":"string","maxLength":4000},"truncated":{"type":"boolean"},"threadTs":{"type":"string","maxLength":17},"replyCount":{"type":"integer","minimum":0,"maximum":1000000}},"required":["ts","time"],"additionalProperties":false}},"hasMore":{"type":"boolean"},"nextCursor":{"type":"string","maxLength":1000}},"required":["messages"],"additionalProperties":false},
+   "guards": [],
+   "prepare": [],
+   "perform": [
+    {"id":"history","method":"GET","path":"/conversations.history","query":{"channel":{"input":"/channel"},"limit":{"const":15},"cursor":{"when":{"present":{"input":"/cursor"}},"then":{"input":"/cursor"}}},"maxResponseBytes":1048576,"expect":{"status":[200],"require":[{"equals":{"pointer":"/ok","value":{"const":true}}}]}}
+   ],
+   "output": {"messages":{"each":{"step":"history","pointer":"/messages"},"as":"message","max":15,"do":{"object":{"ts":{"pick":{"var":"message"},"pointer":"/ts"},"time":{"pick":{"transform":"time.slackTs@1","args":{"ts":{"pick":{"var":"message"},"pointer":"/ts"}}},"pointer":"/time"},"user":{"pick":{"var":"message"},"pointer":"/user"},"text":{"when":{"present":{"pick":{"var":"message"},"pointer":"/text"}},"then":{"pick":{"transform":"text.truncate@1","args":{"text":{"pick":{"var":"message"},"pointer":"/text"},"max":{"const":4000}}},"pointer":"/text"}},"truncated":{"when":{"present":{"pick":{"var":"message"},"pointer":"/text"}},"then":{"pick":{"transform":"text.truncate@1","args":{"text":{"pick":{"var":"message"},"pointer":"/text"},"max":{"const":4000}}},"pointer":"/truncated"}},"threadTs":{"pick":{"var":"message"},"pointer":"/thread_ts"},"replyCount":{"pick":{"var":"message"},"pointer":"/reply_count"}}}},"hasMore":{"step":"history","pointer":"/has_more"},"nextCursor":{"when":{"nonEmpty":{"step":"history","pointer":"/response_metadata/next_cursor"}},"then":{"step":"history","pointer":"/response_metadata/next_cursor"}}},
+   "preview": [
+    {"label":"Channel","expr":{"input":"/channel"}}
+   ],
+   "definitive": [429]
+  },
+  {
+   "id": "slack.action.read-thread.v1.986986cb58fc26d9d30575dd",
+   "key": "read-thread",
+   "version": 1,
+   "name": "Read a thread",
+   "description": "Reads a thread, the parent message first and then its replies, 15 a page. Give a message link, or the channel and the ts of any message in the thread; a reply's link reads its parent's thread.",
+   "effect": "read",
+   "row": "slack.messages.read",
+   "hints": {"readOnly":true,"destructive":false,"idempotent":true,"openWorld":true},
+   "inputSchema": {"type":"object","properties":{"link":{"type":"string","minLength":1,"maxLength":2048,"description":"A message link, as Slack's Copy link gives it."},"channel":{"type":"string","minLength":9,"maxLength":21,"description":"A channel id from List channels and DMs, such as C0123ABCD."},"ts":{"type":"string","minLength":8,"maxLength":17,"description":"The message's ts, Slack's timestamp string such as 1729951200.000100, from Read recent messages or a send."},"cursor":{"type":"string","minLength":1,"maxLength":1000,"description":"nextCursor from the page before, for the next page."}},"required":[],"additionalProperties":false},
+   "outputSchema": {"type":"object","properties":{"messages":{"type":"array","maxItems":15,"items":{"type":"object","properties":{"ts":{"type":"string","maxLength":17},"time":{"type":"string","maxLength":27},"user":{"type":"string","maxLength":64},"text":{"type":"string","maxLength":4000},"truncated":{"type":"boolean"},"threadTs":{"type":"string","maxLength":17},"replyCount":{"type":"integer","minimum":0,"maximum":1000000}},"required":["ts","time"],"additionalProperties":false}},"hasMore":{"type":"boolean"},"nextCursor":{"type":"string","maxLength":1000}},"required":["messages"],"additionalProperties":false},
+   "guards": [
+    {"transform":"collections.oneOf@1","args":{"value":{"concat":[{"pick":{"transform":"text.joinList@1","args":{"items":{"array":[{"when":{"present":{"input":"/link"}},"then":{"const":"link"}},{"when":{"present":{"input":"/channel"}},"then":{"const":"channel"}},{"when":{"present":{"input":"/ts"}},"then":{"const":"ts"}}]}}},"pointer":"/text"}],"max":100},"set":{"const":["link","channel\nts"]},"fold":{"const":"none"}},"refuse":"wrong_kind"}
+   ],
+   "prepare": [],
+   "perform": [
+    {"id":"replies","method":"GET","path":"/conversations.replies","query":{"channel":{"item":"/channel"},"ts":{"item":"/thread"},"limit":{"const":15},"cursor":{"when":{"present":{"input":"/cursor"}},"then":{"input":"/cursor"}}},"forEach":{"over":{"array":[{"when":{"present":{"input":"/link"}},"then":{"transform":"ids.slackLink@1","args":{"link":{"input":"/link"}}}},{"when":{"present":{"input":"/channel"}},"then":{"object":{"channel":{"input":"/channel"},"thread":{"input":"/ts"}}}}]},"max":1},"maxResponseBytes":1048576,"expect":{"status":[200],"require":[{"equals":{"pointer":"/ok","value":{"const":true}}}]}}
+   ],
+   "output": {"messages":{"each":{"step":"replies","pointer":"/0/messages"},"as":"message","max":15,"do":{"object":{"ts":{"pick":{"var":"message"},"pointer":"/ts"},"time":{"pick":{"transform":"time.slackTs@1","args":{"ts":{"pick":{"var":"message"},"pointer":"/ts"}}},"pointer":"/time"},"user":{"pick":{"var":"message"},"pointer":"/user"},"text":{"when":{"present":{"pick":{"var":"message"},"pointer":"/text"}},"then":{"pick":{"transform":"text.truncate@1","args":{"text":{"pick":{"var":"message"},"pointer":"/text"},"max":{"const":4000}}},"pointer":"/text"}},"truncated":{"when":{"present":{"pick":{"var":"message"},"pointer":"/text"}},"then":{"pick":{"transform":"text.truncate@1","args":{"text":{"pick":{"var":"message"},"pointer":"/text"},"max":{"const":4000}}},"pointer":"/truncated"}},"threadTs":{"pick":{"var":"message"},"pointer":"/thread_ts"},"replyCount":{"pick":{"var":"message"},"pointer":"/reply_count"}}}},"hasMore":{"step":"replies","pointer":"/0/has_more"},"nextCursor":{"when":{"nonEmpty":{"step":"replies","pointer":"/0/response_metadata/next_cursor"}},"then":{"step":"replies","pointer":"/0/response_metadata/next_cursor"}}},
+   "preview": [
+    {"label":"Link","expr":{"input":"/link"}},
+    {"label":"Channel","expr":{"input":"/channel"}},
+    {"label":"Message","expr":{"input":"/ts"}}
+   ],
+   "definitive": [429]
+  },
+  {
+   "id": "slack.action.search-messages.v1.073fdd0c1514c9871858b292",
+   "key": "search-messages",
+   "version": 1,
+   "name": "Search messages",
+   "description": "Searches the messages you can read for words, kept together as one phrase, newest first, 20 a page. It can keep to one channel, one author, and messages after or before a day (the days themselves left out). Needs the search permission.",
+   "effect": "read",
+   "row": "slack.messages.search",
+   "hints": {"readOnly":true,"destructive":false,"idempotent":true,"openWorld":true},
+   "inputSchema": {"type":"object","properties":{"words":{"type":"string","minLength":1,"maxLength":1000,"description":"The words to find, kept together as one phrase."},"channel":{"type":"string","minLength":9,"maxLength":21,"description":"Only this channel: a C or G id."},"from":{"type":"string","minLength":9,"maxLength":21,"description":"Only messages by this person: a U or W id from Find a person."},"after":{"type":"string","format":"date","minLength":10,"maxLength":10,"description":"Only messages after this day, YYYY-MM-DD."},"before":{"type":"string","format":"date","minLength":10,"maxLength":10,"description":"Only messages before this day, YYYY-MM-DD."},"page":{"type":"integer","minimum":1,"maximum":100,"description":"The page, from 1."}},"required":["words"],"additionalProperties":false},
+   "outputSchema": {"type":"object","properties":{"matches":{"type":"array","maxItems":20,"items":{"type":"object","properties":{"channel":{"type":"string","maxLength":21},"channelName":{"type":"string","maxLength":256},"ts":{"type":"string","maxLength":17},"time":{"type":"string","maxLength":27},"user":{"type":"string","maxLength":64},"text":{"type":"string","maxLength":4000},"truncated":{"type":"boolean"},"permalink":{"type":"string","maxLength":2048}},"required":["ts","time"],"additionalProperties":false}},"page":{"type":"integer","minimum":0,"maximum":1000000},"pages":{"type":"integer","minimum":0,"maximum":1000000},"total":{"type":"integer","minimum":0,"maximum":1000000}},"required":["matches"],"additionalProperties":false},
+   "guards": [],
+   "prepare": [],
+   "perform": [
+    {"id":"search","method":"GET","path":"/search.messages","query":{"query":{"pick":{"transform":"text.slackQuery@1","args":{"words":{"input":"/words"},"channel":{"input":"/channel"},"from":{"input":"/from"},"after":{"input":"/after"},"before":{"input":"/before"}}},"pointer":"/query"},"count":{"const":20},"page":{"when":{"present":{"input":"/page"}},"then":{"input":"/page"}},"sort":{"const":"timestamp"},"sort_dir":{"const":"desc"},"highlight":{"const":false}},"maxResponseBytes":1048576,"expect":{"status":[200],"require":[{"equals":{"pointer":"/ok","value":{"const":true}}}]}}
+   ],
+   "output": {"matches":{"each":{"step":"search","pointer":"/messages/matches"},"as":"match","max":20,"do":{"object":{"channel":{"pick":{"var":"match"},"pointer":"/channel/id"},"channelName":{"pick":{"var":"match"},"pointer":"/channel/name"},"ts":{"pick":{"var":"match"},"pointer":"/ts"},"time":{"pick":{"transform":"time.slackTs@1","args":{"ts":{"pick":{"var":"match"},"pointer":"/ts"}}},"pointer":"/time"},"user":{"pick":{"var":"match"},"pointer":"/user"},"text":{"when":{"present":{"pick":{"var":"match"},"pointer":"/text"}},"then":{"pick":{"transform":"text.truncate@1","args":{"text":{"pick":{"var":"match"},"pointer":"/text"},"max":{"const":4000}}},"pointer":"/text"}},"truncated":{"when":{"present":{"pick":{"var":"match"},"pointer":"/text"}},"then":{"pick":{"transform":"text.truncate@1","args":{"text":{"pick":{"var":"match"},"pointer":"/text"},"max":{"const":4000}}},"pointer":"/truncated"}},"permalink":{"pick":{"var":"match"},"pointer":"/permalink"}}}},"page":{"step":"search","pointer":"/messages/paging/page"},"pages":{"step":"search","pointer":"/messages/paging/pages"},"total":{"step":"search","pointer":"/messages/paging/total"}},
+   "preview": [
+    {"label":"Search","expr":{"pick":{"transform":"text.slackQuery@1","args":{"words":{"input":"/words"},"channel":{"input":"/channel"},"from":{"input":"/from"},"after":{"input":"/after"},"before":{"input":"/before"}}},"pointer":"/query"}}
+   ],
+   "definitive": [429]
+  },
+  {
+   "id": "slack.action.find-person.v1.fb7d3ac1b446eb330ff1565a",
+   "key": "find-person",
+   "version": 1,
+   "name": "Find a person",
+   "description": "Finds people in the workspace by exactly one of: email (the address on their profile), name (their full name, any case) or user (an id). It never guesses: it returns everyone who matches, at most 25, or none. Without the permission to read email addresses Slack hides them, so a search by email finds nobody.",
+   "effect": "read",
+   "row": "slack.channels.read",
+   "hints": {"readOnly":true,"destructive":false,"idempotent":true,"openWorld":true},
+   "inputSchema": {"type":"object","properties":{"email":{"type":"string","format":"email","minLength":3,"maxLength":254,"description":"An email address."},"name":{"type":"string","minLength":1,"maxLength":250,"description":"A full name, as Slack shows it."},"user":{"type":"string","minLength":9,"maxLength":21,"description":"A U or W id."}},"required":[],"additionalProperties":false},
+   "outputSchema": {"type":"object","properties":{"people":{"type":"array","maxItems":25,"items":{"type":"object","properties":{"id":{"type":"string","maxLength":21},"name":{"type":"string","maxLength":256},"displayName":{"type":"string","maxLength":256},"isBot":{"type":"boolean"},"deleted":{"type":"boolean"}},"required":["id"],"additionalProperties":false}}},"required":["people"],"additionalProperties":false},
+   "guards": [
+    {"transform":"collections.oneOf@1","args":{"value":{"concat":[{"pick":{"transform":"text.joinList@1","args":{"items":{"array":[{"when":{"present":{"input":"/email"}},"then":{"const":"email"}},{"when":{"present":{"input":"/name"}},"then":{"const":"name"}},{"when":{"present":{"input":"/user"}},"then":{"const":"user"}}]}}},"pointer":"/text"}],"max":100},"set":{"const":["email","name","user"]},"fold":{"const":"none"}},"refuse":"wrong_kind"}
+   ],
+   "prepare": [
+    {"id":"lookup","method":"GET","path":"/users.lookupByEmail","query":{"email":{"input":"/email"}},"when":{"present":{"input":"/email"}},"optional":true,"maxResponseBytes":65536,"expect":{"status":[200],"require":[{"anyOf":[{"equals":{"pointer":"/ok","value":{"const":true}}},{"equals":{"pointer":"/error","value":{"const":"users_not_found"}}}]}]}},
+    {"id":"emailList","method":"GET","path":"/users.list","query":{"limit":{"const":100}},"fallbackFor":"lookup","when":{"present":{"input":"/email"}},"page":{"next":{"pointer":"/response_metadata/next_cursor"},"into":{"query":"cursor"},"items":"/members","max":5},"maxResponseBytes":409600,"expect":{"status":[200],"require":[{"equals":{"pointer":"/ok","value":{"const":true}}}]}},
+    {"id":"nameList","method":"GET","path":"/users.list","query":{"limit":{"const":100}},"when":{"present":{"input":"/name"}},"page":{"next":{"pointer":"/response_metadata/next_cursor"},"into":{"query":"cursor"},"items":"/members","max":5},"maxResponseBytes":409600,"expect":{"status":[200],"require":[{"equals":{"pointer":"/ok","value":{"const":true}}}]}}
+   ],
+   "perform": [
+    {"id":"byEmail","method":"GET","path":"/users.info","query":{"user":{"item":"/id"}},"when":{"present":{"step":"emailList","pointer":""}},"forEach":{"over":{"pick":{"transform":"collections.findBy@1","args":{"list":{"step":"emailList","pointer":""},"items":{"const":""},"field":{"const":"/profile/email"},"id":{"const":"/id"},"value":{"input":"/email"},"fold":{"const":"ascii"},"require":{"const":"any"}}},"pointer":"/matches"},"max":25},"maxResponseBytes":65536,"expect":{"status":[200],"require":[{"equals":{"pointer":"/ok","value":{"const":true}}}]}},
+    {"id":"byName","method":"GET","path":"/users.info","query":{"user":{"item":"/id"}},"when":{"present":{"step":"nameList","pointer":""}},"forEach":{"over":{"pick":{"transform":"collections.findBy@1","args":{"list":{"step":"nameList","pointer":""},"items":{"const":""},"field":{"const":"/real_name"},"id":{"const":"/id"},"value":{"input":"/name"},"fold":{"const":"ascii"},"require":{"const":"any"}}},"pointer":"/matches"},"max":25},"maxResponseBytes":65536,"expect":{"status":[200],"require":[{"equals":{"pointer":"/ok","value":{"const":true}}}]}},
+    {"id":"byId","method":"GET","path":"/users.info","query":{"user":{"input":"/user"}},"when":{"present":{"input":"/user"}},"maxResponseBytes":65536,"expect":{"status":[200],"require":[{"anyOf":[{"equals":{"pointer":"/ok","value":{"const":true}}},{"equals":{"pointer":"/error","value":{"const":"user_not_found"}}}]}]}}
+   ],
+   "output": {"people":{"each":{"either":[{"step":"byEmail","pointer":""},{"either":[{"step":"byName","pointer":""},{"array":[{"when":{"present":{"step":"lookup","pointer":"/user/id"}},"then":{"step":"lookup","pointer":""}},{"when":{"present":{"step":"byId","pointer":"/user/id"}},"then":{"step":"byId","pointer":""}}]}]}]},"as":"answer","max":25,"do":{"object":{"id":{"pick":{"var":"answer"},"pointer":"/user/id"},"name":{"pick":{"var":"answer"},"pointer":"/user/real_name"},"displayName":{"pick":{"var":"answer"},"pointer":"/user/profile/display_name"},"isBot":{"pick":{"var":"answer"},"pointer":"/user/is_bot"},"deleted":{"pick":{"var":"answer"},"pointer":"/user/deleted"}}}}},
+   "preview": [
+    {"label":"Email","expr":{"input":"/email"}},
+    {"label":"Name","expr":{"input":"/name"}},
+    {"label":"User","expr":{"input":"/user"}}
+   ],
+   "definitive": [429]
+  },
+  {
+   "id": "slack.action.send-message.v1.eaa928f7ae007a2602946485",
+   "key": "send-message",
+   "version": 1,
+   "name": "Send to a channel",
+   "description": "Posts a message to a channel you are in, as you. The text is sent exactly as given: mentions such as <!channel> are escaped and links get no preview, so Slack pings nobody and adds nothing you did not see. A direct message is another kind: use Send a direct message.",
+   "effect": "write",
+   "row": "slack.messages.send",
+   "hints": {"readOnly":false,"destructive":false,"idempotent":false,"openWorld":true},
+   "inputSchema": {"type":"object","properties":{"channel":{"type":"string","minLength":9,"maxLength":21,"description":"A channel id from List channels and DMs, such as C0123ABCD."},"text":{"type":"string","minLength":1,"maxLength":40000,"description":"The message, at most 40,000 characters once escaped."}},"required":["channel","text"],"additionalProperties":false},
+   "outputSchema": {"type":"object","properties":{"channel":{"type":"string","maxLength":21},"ts":{"type":"string","maxLength":17},"permalink":{"type":"string","maxLength":2048}},"required":["channel","ts"],"additionalProperties":false},
+   "guards": [
+    {"transform":"collections.oneOf@1","args":{"value":{"concat":[{"pick":{"transform":"text.joinList@1","args":{"items":{"array":[{"when":{"equals":[{"step":"channel","pointer":"/channel/is_im"},{"const":false}]},"then":{"const":"channel"}},{"when":{"equals":[{"step":"channel","pointer":"/channel/is_im"},{"const":true}]},"then":{"const":"direct message"}}]}}},"pointer":"/text"}],"max":100},"set":{"const":["channel"]},"fold":{"const":"none"}},"refuse":"wrong_kind","after":"channel"}
+   ],
+   "prepare": [
+    {"id":"channel","method":"GET","path":"/conversations.info","query":{"channel":{"input":"/channel"},"include_num_members":{"const":true}},"maxResponseBytes":65536,"expect":{"status":[200],"require":[{"equals":{"pointer":"/ok","value":{"const":true}}}]}}
+   ],
+   "perform": [
+    {"id":"post","method":"POST","path":"/chat.postMessage","body":{"object":{"channel":{"input":"/channel"},"text":{"pick":{"transform":"text.slackEscape@1","args":{"text":{"input":"/text"}}},"pointer":"/text"},"parse":{"const":"none"},"link_names":{"const":false},"unfurl_links":{"const":false},"unfurl_media":{"const":false}}},"expect":{"status":[200],"require":[{"equals":{"pointer":"/ok","value":{"const":true}}}]}}
+   ],
+   "verify": {
+    "requests": [{"id":"read","method":"GET","path":"/conversations.replies","query":{"channel":{"input":"/channel"},"ts":{"step":"post","pointer":"/ts"},"oldest":{"step":"post","pointer":"/ts"},"latest":{"step":"post","pointer":"/ts"},"inclusive":{"const":true},"limit":{"const":2}},"maxResponseBytes":262144,"expect":{"status":[200],"require":[{"equals":{"pointer":"/ok","value":{"const":true}}}]}},{"id":"permalink","method":"GET","path":"/chat.getPermalink","query":{"channel":{"input":"/channel"},"message_ts":{"step":"post","pointer":"/ts"}},"maxResponseBytes":65536,"expect":{"status":[200],"require":[{"equals":{"pointer":"/ok","value":{"const":true}}}]}}],
+    "identity": [{"kind":"membership","step":"read","listHas":{"list":"/messages","where":[{"field":"/ts","equals":{"step":"post","pointer":"/ts"}},{"field":"/text","equals":{"pick":{"transform":"text.slackEscape@1","args":{"text":{"input":"/text"}}},"pointer":"/text"}}]}}],
+    "assert": []
+   },
+   "output": {"channel":{"step":"post","pointer":"/channel"},"ts":{"step":"post","pointer":"/ts"},"permalink":{"step":"permalink","pointer":"/permalink"}},
+   "preview": [
+    {"label":"Channel","expr":{"concat":[{"const":"#"},{"step":"channel","pointer":"/channel/name"},{"const":" ("},{"step":"channel","pointer":"/channel/id"},{"const":")"}],"max":300}},
+    {"label":"People in the channel","expr":{"step":"channel","pointer":"/channel/num_members"}},
+    {"label":"Message","expr":{"pick":{"transform":"text.slackEscape@1","args":{"text":{"input":"/text"}}},"pointer":"/text"},"truncate":2000}
+   ],
+   "definitive": [429]
+  },
+  {
+   "id": "slack.action.reply-thread.v1.8792aff99ccad81b9e5abc8c",
+   "key": "reply-thread",
+   "version": 1,
+   "name": "Reply in a thread",
+   "description": "Replies in a thread of a channel you are in, as you, without sending the reply to the channel. Give a message link, or the channel and the ts of any message in the thread: a reply goes to its thread's parent. The text is escaped and links get no preview, as Send to a channel sends it.",
+   "effect": "write",
+   "row": "slack.messages.send",
+   "hints": {"readOnly":false,"destructive":false,"idempotent":false,"openWorld":true},
+   "inputSchema": {"type":"object","properties":{"link":{"type":"string","minLength":1,"maxLength":2048,"description":"A message link, as Slack's Copy link gives it."},"channel":{"type":"string","minLength":9,"maxLength":21,"description":"A channel id from List channels and DMs, such as C0123ABCD."},"ts":{"type":"string","minLength":8,"maxLength":17,"description":"The message's ts, Slack's timestamp string such as 1729951200.000100, from Read recent messages or a send."},"text":{"type":"string","minLength":1,"maxLength":40000,"description":"The reply, at most 40,000 characters once escaped."}},"required":["text"],"additionalProperties":false},
+   "outputSchema": {"type":"object","properties":{"channel":{"type":"string","maxLength":21},"ts":{"type":"string","maxLength":17},"threadTs":{"type":"string","maxLength":17},"permalink":{"type":"string","maxLength":2048}},"required":["channel","ts"],"additionalProperties":false},
+   "guards": [
+    {"transform":"collections.oneOf@1","args":{"value":{"concat":[{"pick":{"transform":"text.joinList@1","args":{"items":{"array":[{"when":{"present":{"input":"/link"}},"then":{"const":"link"}},{"when":{"present":{"input":"/channel"}},"then":{"const":"channel"}},{"when":{"present":{"input":"/ts"}},"then":{"const":"ts"}}]}}},"pointer":"/text"}],"max":100},"set":{"const":["link","channel\nts"]},"fold":{"const":"none"}},"refuse":"wrong_kind"},
+    {"transform":"collections.oneOf@1","args":{"value":{"concat":[{"pick":{"transform":"text.joinList@1","args":{"items":{"array":[{"when":{"equals":[{"either":[{"step":"channelByLink","pointer":"/channel/is_im"},{"step":"channelById","pointer":"/channel/is_im"}]},{"const":false}]},"then":{"const":"channel"}},{"when":{"equals":[{"either":[{"step":"channelByLink","pointer":"/channel/is_im"},{"step":"channelById","pointer":"/channel/is_im"}]},{"const":true}]},"then":{"const":"direct message"}}]}}},"pointer":"/text"}],"max":100},"set":{"const":["channel"]},"fold":{"const":"none"}},"refuse":"wrong_kind","after":"channelById"}
+   ],
+   "prepare": [
+    {"id":"channelByLink","method":"GET","path":"/conversations.info","query":{"channel":{"pick":{"transform":"ids.slackLink@1","args":{"link":{"input":"/link"}}},"pointer":"/channel"},"include_num_members":{"const":true}},"when":{"present":{"input":"/link"}},"maxResponseBytes":65536,"expect":{"status":[200],"require":[{"equals":{"pointer":"/ok","value":{"const":true}}}]}},
+    {"id":"channelById","method":"GET","path":"/conversations.info","query":{"channel":{"input":"/channel"},"include_num_members":{"const":true}},"when":{"present":{"input":"/channel"}},"maxResponseBytes":65536,"expect":{"status":[200],"require":[{"equals":{"pointer":"/ok","value":{"const":true}}}]}},
+    {"id":"parentByLink","method":"GET","path":"/conversations.replies","query":{"channel":{"pick":{"transform":"ids.slackLink@1","args":{"link":{"input":"/link"}}},"pointer":"/channel"},"ts":{"pick":{"transform":"ids.slackLink@1","args":{"link":{"input":"/link"}}},"pointer":"/thread"},"limit":{"const":1}},"when":{"present":{"input":"/link"}},"maxResponseBytes":262144,"expect":{"status":[200],"require":[{"equals":{"pointer":"/ok","value":{"const":true}}}]}},
+    {"id":"parentById","method":"GET","path":"/conversations.replies","query":{"channel":{"input":"/channel"},"ts":{"input":"/ts"},"limit":{"const":1}},"when":{"present":{"input":"/channel"}},"maxResponseBytes":262144,"expect":{"status":[200],"require":[{"equals":{"pointer":"/ok","value":{"const":true}}}]}}
+   ],
+   "perform": [
+    {"id":"post","method":"POST","path":"/chat.postMessage","body":{"object":{"channel":{"either":[{"step":"channelByLink","pointer":"/channel/id"},{"step":"channelById","pointer":"/channel/id"}]},"thread_ts":{"either":[{"step":"parentByLink","pointer":"/messages/0/ts"},{"step":"parentById","pointer":"/messages/0/ts"}]},"text":{"pick":{"transform":"text.slackEscape@1","args":{"text":{"input":"/text"}}},"pointer":"/text"},"parse":{"const":"none"},"link_names":{"const":false},"unfurl_links":{"const":false},"unfurl_media":{"const":false},"reply_broadcast":{"const":false}}},"expect":{"status":[200],"require":[{"equals":{"pointer":"/ok","value":{"const":true}}}]}}
+   ],
+   "verify": {
+    "requests": [{"id":"read","method":"GET","path":"/conversations.replies","query":{"channel":{"step":"post","pointer":"/channel"},"ts":{"step":"post","pointer":"/ts"},"oldest":{"step":"post","pointer":"/ts"},"latest":{"step":"post","pointer":"/ts"},"inclusive":{"const":true},"limit":{"const":2}},"maxResponseBytes":262144,"expect":{"status":[200],"require":[{"equals":{"pointer":"/ok","value":{"const":true}}}]}},{"id":"permalink","method":"GET","path":"/chat.getPermalink","query":{"channel":{"step":"post","pointer":"/channel"},"message_ts":{"step":"post","pointer":"/ts"}},"maxResponseBytes":65536,"expect":{"status":[200],"require":[{"equals":{"pointer":"/ok","value":{"const":true}}}]}}],
+    "identity": [{"kind":"membership","step":"read","listHas":{"list":"/messages","where":[{"field":"/ts","equals":{"step":"post","pointer":"/ts"}},{"field":"/text","equals":{"pick":{"transform":"text.slackEscape@1","args":{"text":{"input":"/text"}}},"pointer":"/text"}},{"field":"/thread_ts","equals":{"either":[{"step":"parentByLink","pointer":"/messages/0/ts"},{"step":"parentById","pointer":"/messages/0/ts"}]}}]}}],
+    "assert": []
+   },
+   "output": {"channel":{"step":"post","pointer":"/channel"},"ts":{"step":"post","pointer":"/ts"},"permalink":{"step":"permalink","pointer":"/permalink"},"threadTs":{"either":[{"step":"parentByLink","pointer":"/messages/0/ts"},{"step":"parentById","pointer":"/messages/0/ts"}]}},
+   "preview": [
+    {"label":"Channel","expr":{"concat":[{"const":"#"},{"either":[{"step":"channelByLink","pointer":"/channel/name"},{"step":"channelById","pointer":"/channel/name"}]},{"const":" ("},{"either":[{"step":"channelByLink","pointer":"/channel/id"},{"step":"channelById","pointer":"/channel/id"}]},{"const":")"}],"max":300}},
+    {"label":"Replying to","expr":{"either":[{"step":"parentByLink","pointer":"/messages/0/text"},{"step":"parentById","pointer":"/messages/0/text"}]},"truncate":2000},
+    {"label":"Message","expr":{"pick":{"transform":"text.slackEscape@1","args":{"text":{"input":"/text"}}},"pointer":"/text"},"truncate":2000}
+   ],
+   "definitive": [429]
+  },
+  {
+   "id": "slack.action.send-dm.v1.39a8de318324a5d1e923b128",
+   "key": "send-dm",
+   "version": 1,
+   "name": "Send a direct message",
+   "description": "Sends a direct message to one person, as you: it opens your direct message with them (the same one every time), then posts there. The person is a user id from Find a person; your own id messages yourself. The text is escaped and links get no preview, as Send to a channel sends it.",
+   "effect": "write",
+   "row": "slack.messages.send",
+   "hints": {"readOnly":false,"destructive":false,"idempotent":false,"openWorld":true},
+   "inputSchema": {"type":"object","properties":{"user":{"type":"string","minLength":9,"maxLength":21,"description":"The person: a U or W id from Find a person."},"text":{"type":"string","minLength":1,"maxLength":40000,"description":"The message, at most 40,000 characters once escaped."}},"required":["user","text"],"additionalProperties":false},
+   "outputSchema": {"type":"object","properties":{"channel":{"type":"string","maxLength":21},"ts":{"type":"string","maxLength":17},"permalink":{"type":"string","maxLength":2048}},"required":["channel","ts"],"additionalProperties":false},
+   "guards": [],
+   "prepare": [
+    {"id":"person","method":"GET","path":"/users.info","query":{"user":{"input":"/user"}},"maxResponseBytes":65536,"expect":{"status":[200],"require":[{"equals":{"pointer":"/ok","value":{"const":true}}}]}}
+   ],
+   "perform": [
+    {"id":"open","method":"POST","path":"/conversations.open","body":{"object":{"users":{"input":"/user"}}},"resolves":true,"expect":{"status":[200],"require":[{"equals":{"pointer":"/ok","value":{"const":true}}},{"present":{"pointer":"/channel/id"}}]}},
+    {"id":"post","method":"POST","path":"/chat.postMessage","body":{"object":{"channel":{"step":"open","pointer":"/channel/id"},"text":{"pick":{"transform":"text.slackEscape@1","args":{"text":{"input":"/text"}}},"pointer":"/text"},"parse":{"const":"none"},"link_names":{"const":false},"unfurl_links":{"const":false},"unfurl_media":{"const":false}}},"expect":{"status":[200],"require":[{"equals":{"pointer":"/ok","value":{"const":true}}}]}}
+   ],
+   "verify": {
+    "requests": [{"id":"read","method":"GET","path":"/conversations.replies","query":{"channel":{"step":"open","pointer":"/channel/id"},"ts":{"step":"post","pointer":"/ts"},"oldest":{"step":"post","pointer":"/ts"},"latest":{"step":"post","pointer":"/ts"},"inclusive":{"const":true},"limit":{"const":2}},"maxResponseBytes":262144,"expect":{"status":[200],"require":[{"equals":{"pointer":"/ok","value":{"const":true}}}]}},{"id":"permalink","method":"GET","path":"/chat.getPermalink","query":{"channel":{"step":"open","pointer":"/channel/id"},"message_ts":{"step":"post","pointer":"/ts"}},"maxResponseBytes":65536,"expect":{"status":[200],"require":[{"equals":{"pointer":"/ok","value":{"const":true}}}]}}],
+    "identity": [{"kind":"membership","step":"read","listHas":{"list":"/messages","where":[{"field":"/ts","equals":{"step":"post","pointer":"/ts"}},{"field":"/text","equals":{"pick":{"transform":"text.slackEscape@1","args":{"text":{"input":"/text"}}},"pointer":"/text"}}]}}],
+    "assert": []
+   },
+   "output": {"channel":{"step":"post","pointer":"/channel"},"ts":{"step":"post","pointer":"/ts"},"permalink":{"step":"permalink","pointer":"/permalink"}},
+   "preview": [
+    {"label":"To","expr":{"concat":[{"step":"person","pointer":"/user/real_name"},{"const":" ("},{"step":"person","pointer":"/user/profile/display_name"},{"const":") "},{"step":"person","pointer":"/user/id"}],"max":600}},
+    {"label":"Message","expr":{"pick":{"transform":"text.slackEscape@1","args":{"text":{"input":"/text"}}},"pointer":"/text"},"truncate":2000}
+   ],
+   "definitive": [429]
+  },
+  {
+   "id": "slack.action.edit-message.v1.c56852b009ce9307b5b8b34a",
+   "key": "edit-message",
+   "version": 1,
+   "name": "Edit my message",
+   "description": "Replaces the text of one of your own messages in a channel; anyone else's message is refused before anything is sent. It replaces the whole text and removes its attachments, so nothing old stays unseen. The text is escaped, as Send to a channel sends it, at most 4,000 characters.",
+   "effect": "write",
+   "row": "slack.messages.send",
+   "hints": {"readOnly":false,"destructive":false,"idempotent":false,"openWorld":true},
+   "inputSchema": {"type":"object","properties":{"channel":{"type":"string","minLength":9,"maxLength":21,"description":"A channel id from List channels and DMs, such as C0123ABCD."},"ts":{"type":"string","minLength":8,"maxLength":17,"description":"The message's ts, Slack's timestamp string such as 1729951200.000100, from Read recent messages or a send."},"text":{"type":"string","minLength":1,"maxLength":4000,"description":"The new text, at most 4,000 characters once escaped."}},"required":["channel","ts","text"],"additionalProperties":false},
+   "outputSchema": {"type":"object","properties":{"channel":{"type":"string","maxLength":21},"ts":{"type":"string","maxLength":17}},"required":["channel","ts"],"additionalProperties":false},
+   "guards": [
+    {"transform":"collections.oneOf@1","args":{"value":{"concat":[{"pick":{"transform":"text.joinList@1","args":{"items":{"array":[{"when":{"equals":[{"step":"channel","pointer":"/channel/is_im"},{"const":false}]},"then":{"const":"channel"}},{"when":{"equals":[{"step":"channel","pointer":"/channel/is_im"},{"const":true}]},"then":{"const":"direct message"}}]}}},"pointer":"/text"}],"max":100},"set":{"const":["channel"]},"fold":{"const":"none"}},"refuse":"wrong_kind","after":"channel"},
+    {"transform":"collections.oneOf@1","args":{"value":{"pick":{"transform":"collections.findBy@1","args":{"list":{"step":"old","pointer":""},"items":{"const":"/messages"},"field":{"const":"/ts"},"id":{"const":"/user"},"label":{"const":"/text"},"value":{"input":"/ts"},"fold":{"const":"none"},"require":{"const":"one"}}},"pointer":"/matches/0/id"},"set":{"array":[{"account":"userId"}]},"fold":{"const":"none"}},"refuse":"wrong_kind","after":"old"}
+   ],
+   "prepare": [
+    {"id":"channel","method":"GET","path":"/conversations.info","query":{"channel":{"input":"/channel"},"include_num_members":{"const":true}},"maxResponseBytes":65536,"expect":{"status":[200],"require":[{"equals":{"pointer":"/ok","value":{"const":true}}}]}},
+    {"id":"old","method":"GET","path":"/conversations.replies","query":{"channel":{"input":"/channel"},"ts":{"input":"/ts"},"oldest":{"input":"/ts"},"latest":{"input":"/ts"},"inclusive":{"const":true},"limit":{"const":2}},"maxResponseBytes":262144,"expect":{"status":[200],"require":[{"equals":{"pointer":"/ok","value":{"const":true}}}]}}
+   ],
+   "perform": [
+    {"id":"update","method":"POST","path":"/chat.update","body":{"object":{"channel":{"input":"/channel"},"ts":{"input":"/ts"},"text":{"pick":{"transform":"text.slackEscape@1","args":{"text":{"input":"/text"}}},"pointer":"/text"},"attachments":{"const":[]},"parse":{"const":"none"},"link_names":{"const":false}}},"expect":{"status":[200],"require":[{"equals":{"pointer":"/ok","value":{"const":true}}}]}}
+   ],
+   "verify": {
+    "requests": [{"id":"read","method":"GET","path":"/conversations.replies","query":{"channel":{"input":"/channel"},"ts":{"input":"/ts"},"oldest":{"input":"/ts"},"latest":{"input":"/ts"},"inclusive":{"const":true},"limit":{"const":2}},"maxResponseBytes":262144,"expect":{"status":[200],"require":[{"equals":{"pointer":"/ok","value":{"const":true}}}]}}],
+    "identity": [{"kind":"membership","step":"read","listHas":{"list":"/messages","where":[{"field":"/ts","equals":{"input":"/ts"}},{"field":"/text","equals":{"pick":{"transform":"text.slackEscape@1","args":{"text":{"input":"/text"}}},"pointer":"/text"}}]}}],
+    "assert": []
+   },
+   "output": {"channel":{"step":"update","pointer":"/channel"},"ts":{"step":"update","pointer":"/ts"}},
+   "preview": [
+    {"label":"Channel","expr":{"concat":[{"const":"#"},{"step":"channel","pointer":"/channel/name"},{"const":" ("},{"step":"channel","pointer":"/channel/id"},{"const":")"}],"max":300}},
+    {"label":"Old text","expr":{"pick":{"transform":"collections.findBy@1","args":{"list":{"step":"old","pointer":""},"items":{"const":"/messages"},"field":{"const":"/ts"},"id":{"const":"/user"},"label":{"const":"/text"},"value":{"input":"/ts"},"fold":{"const":"none"},"require":{"const":"one"}}},"pointer":"/matches/0/label"},"truncate":2000},
+    {"label":"New text","expr":{"pick":{"transform":"text.slackEscape@1","args":{"text":{"input":"/text"}}},"pointer":"/text"},"truncate":2000}
+   ],
+   "definitive": [429]
+  },
+  {
+   "id": "slack.action.react.v1.51dadb0cf06436289616cc87",
+   "key": "react",
+   "version": 1,
+   "name": "React",
+   "description": "Adds or removes your reaction to a message in a channel, by emoji name such as white_check_mark or :thumbsup: (a skin tone such as ::skin-tone-2 may follow); a pasted emoji character is refused. Adding a reaction you already have, or removing one you do not, changes nothing and succeeds.",
+   "effect": "write",
+   "row": "slack.messages.send",
+   "hints": {"readOnly":false,"destructive":false,"idempotent":false,"openWorld":true},
+   "inputSchema": {"type":"object","properties":{"do":{"type":"string","enum":["add","remove"],"description":"add or remove your reaction."},"channel":{"type":"string","minLength":9,"maxLength":21,"description":"A channel id from List channels and DMs, such as C0123ABCD."},"ts":{"type":"string","minLength":8,"maxLength":17,"description":"The message's ts, Slack's timestamp string such as 1729951200.000100, from Read recent messages or a send."},"emoji":{"type":"string","minLength":1,"maxLength":300,"description":"The emoji's name, such as white_check_mark or :white_check_mark:."}},"required":["do","channel","ts","emoji"],"additionalProperties":false},
+   "outputSchema": {"type":"object","properties":{"channel":{"type":"string","maxLength":21},"ts":{"type":"string","maxLength":17},"emoji":{"type":"string","maxLength":116}},"required":["channel","ts","emoji"],"additionalProperties":false},
+   "guards": [
+    {"transform":"collections.oneOf@1","args":{"value":{"concat":[{"pick":{"transform":"text.joinList@1","args":{"items":{"array":[{"when":{"equals":[{"step":"channel","pointer":"/channel/is_im"},{"const":false}]},"then":{"const":"channel"}},{"when":{"equals":[{"step":"channel","pointer":"/channel/is_im"},{"const":true}]},"then":{"const":"direct message"}}]}}},"pointer":"/text"}],"max":100},"set":{"const":["channel"]},"fold":{"const":"none"}},"refuse":"wrong_kind","after":"channel"}
+   ],
+   "prepare": [
+    {"id":"channel","method":"GET","path":"/conversations.info","query":{"channel":{"input":"/channel"},"include_num_members":{"const":true}},"maxResponseBytes":65536,"expect":{"status":[200],"require":[{"equals":{"pointer":"/ok","value":{"const":true}}}]}}
+   ],
+   "perform": [
+    {"id":"add","method":"POST","path":"/reactions.add","body":{"object":{"channel":{"input":"/channel"},"timestamp":{"input":"/ts"},"name":{"pick":{"transform":"ids.slackEmoji@1","args":{"name":{"input":"/emoji"}}},"pointer":"/name"}}},"when":{"equals":[{"input":"/do"},{"const":"add"}]},"expect":{"status":[200],"require":[{"anyOf":[{"equals":{"pointer":"/ok","value":{"const":true}}},{"equals":{"pointer":"/error","value":{"const":"already_reacted"}}}]}]}},
+    {"id":"remove","method":"POST","path":"/reactions.remove","body":{"object":{"channel":{"input":"/channel"},"timestamp":{"input":"/ts"},"name":{"pick":{"transform":"ids.slackEmoji@1","args":{"name":{"input":"/emoji"}}},"pointer":"/name"}}},"when":{"equals":[{"input":"/do"},{"const":"remove"}]},"expect":{"status":[200],"require":[{"anyOf":[{"equals":{"pointer":"/ok","value":{"const":true}}},{"equals":{"pointer":"/error","value":{"const":"no_reaction"}}}]}]}}
+   ],
+   "verify": {
+    "requests": [{"id":"reactions","method":"GET","path":"/reactions.get","query":{"channel":{"input":"/channel"},"timestamp":{"input":"/ts"},"full":{"const":true}},"maxResponseBytes":262144,"expect":{"status":[200],"require":[{"equals":{"pointer":"/ok","value":{"const":true}}}]}}],
+    "identity": [{"kind":"readback","step":"reactions","pointer":"/message/ts","equals":{"input":"/ts"}}],
+    "assert": [{"step":"reactions","listHas":{"list":"/message/reactions","where":[{"field":"/name","equals":{"pick":{"transform":"ids.slackEmoji@1","args":{"name":{"input":"/emoji"}}},"pointer":"/name"}},{"field":"/users","contains":{"account":"userId"}}]},"when":{"equals":[{"input":"/do"},{"const":"add"}]}},{"step":"reactions","listLacks":{"list":"/message/reactions","where":[{"field":"/name","equals":{"pick":{"transform":"ids.slackEmoji@1","args":{"name":{"input":"/emoji"}}},"pointer":"/name"}},{"field":"/users","contains":{"account":"userId"}}]},"when":{"equals":[{"input":"/do"},{"const":"remove"}]}}]
+   },
+   "output": {"channel":{"input":"/channel"},"ts":{"input":"/ts"},"emoji":{"pick":{"transform":"ids.slackEmoji@1","args":{"name":{"input":"/emoji"}}},"pointer":"/name"}},
+   "preview": [
+    {"label":"Channel","expr":{"concat":[{"const":"#"},{"step":"channel","pointer":"/channel/name"},{"const":" ("},{"step":"channel","pointer":"/channel/id"},{"const":")"}],"max":300}},
+    {"label":"Message","expr":{"input":"/ts"}},
+    {"label":"Emoji","expr":{"pick":{"transform":"ids.slackEmoji@1","args":{"name":{"input":"/emoji"}}},"pointer":"/code"}},
+    {"label":"Change","expr":{"input":"/do"}}
+   ],
+   "definitive": [429]
+  },
+  {
+   "id": "slack.action.schedule-message.v1.ef88e4feb030e7d9e2bf7fd2",
+   "key": "schedule-message",
+   "version": 1,
+   "name": "Schedule or cancel a message",
+   "description": "Schedules a message to a channel you are in, posted as you at an instant at most 120 days ahead, or cancels one you scheduled there. Cancelling takes the scheduled message's id and its text, as Schedule gave them, and checks Slack still lists that message before it asks. The text is escaped and links get no preview, as Send to a channel sends it.",
+   "effect": "write",
+   "row": "slack.messages.send",
+   "hints": {"readOnly":false,"destructive":false,"idempotent":false,"openWorld":true},
+   "inputSchema": {"type":"object","properties":{"do":{"type":"string","enum":["schedule","cancel"],"description":"schedule takes text and at; cancel takes text and scheduledMessageId."},"channel":{"type":"string","minLength":9,"maxLength":21,"description":"A channel id from List channels and DMs, such as C0123ABCD."},"text":{"type":"string","minLength":1,"maxLength":40000,"description":"The message, at most 40,000 characters once escaped."},"at":{"type":"string","format":"date-time","minLength":20,"maxLength":35,"description":"When Slack posts it: an RFC 3339 instant with its offset, such as 2026-11-02T09:00:00-05:00."},"scheduledMessageId":{"type":"string","minLength":1,"maxLength":64,"description":"The id Schedule gave, to cancel it."}},"required":["do","channel","text"],"additionalProperties":false},
+   "outputSchema": {"type":"object","properties":{"channel":{"type":"string","maxLength":21},"scheduledMessageId":{"type":"string","maxLength":64},"postAt":{"type":"integer","minimum":0,"maximum":99999999999}},"required":["channel","scheduledMessageId"],"additionalProperties":false},
+   "guards": [
+    {"transform":"collections.oneOf@1","args":{"value":{"concat":[{"pick":{"transform":"text.joinList@1","args":{"items":{"array":[{"when":{"equals":[{"input":"/do"},{"const":"schedule"}]},"then":{"const":"schedule"}},{"when":{"equals":[{"input":"/do"},{"const":"cancel"}]},"then":{"const":"cancel"}},{"when":{"present":{"input":"/text"}},"then":{"const":"text"}},{"when":{"present":{"input":"/at"}},"then":{"const":"at"}},{"when":{"present":{"input":"/scheduledMessageId"}},"then":{"const":"scheduledMessageId"}}]}}},"pointer":"/text"}],"max":100},"set":{"const":["schedule\ntext\nat","cancel\ntext\nscheduledMessageId"]},"fold":{"const":"none"}},"refuse":"wrong_kind"},
+    {"transform":"time.window@1","args":{"instant":{"input":"/at"},"maxDays":{"const":120},"now":{"now":{}}},"refuse":"time_window"},
+    {"transform":"collections.oneOf@1","args":{"value":{"concat":[{"pick":{"transform":"text.joinList@1","args":{"items":{"array":[{"when":{"equals":[{"step":"channel","pointer":"/channel/is_im"},{"const":false}]},"then":{"const":"channel"}},{"when":{"equals":[{"step":"channel","pointer":"/channel/is_im"},{"const":true}]},"then":{"const":"direct message"}}]}}},"pointer":"/text"}],"max":100},"set":{"const":["channel"]},"fold":{"const":"none"}},"refuse":"wrong_kind","after":"channel"}
+   ],
+   "prepare": [
+    {"id":"channel","method":"GET","path":"/conversations.info","query":{"channel":{"input":"/channel"},"include_num_members":{"const":true}},"maxResponseBytes":65536,"expect":{"status":[200],"require":[{"equals":{"pointer":"/ok","value":{"const":true}}}]}},
+    {"id":"scheduled","method":"GET","path":"/chat.scheduledMessages.list","query":{"channel":{"input":"/channel"}},"when":{"equals":[{"input":"/do"},{"const":"cancel"}]},"maxResponseBytes":1048576,"expect":{"status":[200],"require":[{"equals":{"pointer":"/ok","value":{"const":true}}},{"listHas":{"list":"/scheduled_messages","where":[{"field":"/id","equals":{"input":"/scheduledMessageId"}},{"field":"/text","equals":{"pick":{"transform":"text.slackEscape@1","args":{"text":{"input":"/text"}}},"pointer":"/text"}}]}}]}}
+   ],
+   "perform": [
+    {"id":"schedule","method":"POST","path":"/chat.scheduleMessage","body":{"object":{"channel":{"input":"/channel"},"text":{"pick":{"transform":"text.slackEscape@1","args":{"text":{"input":"/text"}}},"pointer":"/text"},"post_at":{"pick":{"transform":"time.rfc3339ToEpochSeconds@1","args":{"time":{"input":"/at"}}},"pointer":"/seconds"},"parse":{"const":"none"},"link_names":{"const":false},"unfurl_links":{"const":false},"unfurl_media":{"const":false}}},"when":{"equals":[{"input":"/do"},{"const":"schedule"}]},"expect":{"status":[200],"require":[{"equals":{"pointer":"/ok","value":{"const":true}}}]}},
+    {"id":"cancel","method":"POST","path":"/chat.deleteScheduledMessage","body":{"object":{"channel":{"input":"/channel"},"scheduled_message_id":{"input":"/scheduledMessageId"}}},"when":{"equals":[{"input":"/do"},{"const":"cancel"}]},"expect":{"status":[200],"require":[{"equals":{"pointer":"/ok","value":{"const":true}}}]}}
+   ],
+   "verify": {
+    "requests": [{"id":"list","method":"GET","path":"/chat.scheduledMessages.list","query":{"channel":{"input":"/channel"}},"maxResponseBytes":1048576,"expect":{"status":[200],"require":[{"equals":{"pointer":"/ok","value":{"const":true}}}]}}],
+    "identity": [{"kind":"membership","step":"list","listLacks":{"list":"/scheduled_messages","where":[{"field":"/id","equals":{"input":"/scheduledMessageId"}}]}}],
+    "assert": [{"step":"list","listHas":{"list":"/scheduled_messages","where":[{"field":"/id","equals":{"step":"schedule","pointer":"/scheduled_message_id"}},{"field":"/post_at","equals":{"pick":{"transform":"time.rfc3339ToEpochSeconds@1","args":{"time":{"input":"/at"}}},"pointer":"/seconds"}},{"field":"/text","equals":{"pick":{"transform":"text.slackEscape@1","args":{"text":{"input":"/text"}}},"pointer":"/text"}}]},"when":{"equals":[{"input":"/do"},{"const":"schedule"}]}}]
+   },
+   "output": {"channel":{"input":"/channel"},"scheduledMessageId":{"either":[{"step":"schedule","pointer":"/scheduled_message_id"},{"input":"/scheduledMessageId"}]},"postAt":{"step":"schedule","pointer":"/post_at"}},
+   "preview": [
+    {"label":"Channel","expr":{"concat":[{"const":"#"},{"step":"channel","pointer":"/channel/name"},{"const":" ("},{"step":"channel","pointer":"/channel/id"},{"const":")"}],"max":300}},
+    {"label":"Change","expr":{"input":"/do"}},
+    {"label":"Posts at","expr":{"input":"/at"}},
+    {"label":"Scheduled message","expr":{"input":"/scheduledMessageId"}},
+    {"label":"Message","expr":{"pick":{"transform":"text.slackEscape@1","args":{"text":{"input":"/text"}}},"pointer":"/text"},"truncate":2000}
+   ],
+   "definitive": [429]
+  },
+  {
+   "id": "slack.action.set-status.v1.82c2bbfe6214cec2b9d6edbd",
+   "key": "set-status",
+   "version": 1,
+   "name": "Set my status",
+   "description": "Sets your Slack status, its text and emoji, until an instant at most 30 days ahead, after which Slack clears it; or clears it now. A status always clears: there is no status without an end. It changes only your own status.",
+   "effect": "write",
+   "row": "slack.profile.write",
+   "hints": {"readOnly":false,"destructive":false,"idempotent":false,"openWorld":true},
+   "inputSchema": {"type":"object","properties":{"do":{"type":"string","enum":["set","clear"],"description":"set takes text, emoji and until; clear takes nothing else."},"text":{"type":"string","minLength":1,"maxLength":100,"description":"The status text, at most 100 characters, sent as given."},"emoji":{"type":"string","minLength":1,"maxLength":300,"description":"The status emoji's name, such as calendar or :calendar:."},"until":{"type":"string","format":"date-time","minLength":20,"maxLength":35,"description":"When Slack clears it: an RFC 3339 instant with its offset, at most 30 days ahead."}},"required":["do"],"additionalProperties":false},
+   "outputSchema": {"type":"object","properties":{"statusText":{"type":"string","maxLength":100},"statusEmoji":{"type":"string","maxLength":118},"statusExpiration":{"type":"integer","minimum":0,"maximum":99999999999}},"required":["statusText","statusEmoji","statusExpiration"],"additionalProperties":false},
+   "guards": [
+    {"transform":"collections.oneOf@1","args":{"value":{"concat":[{"pick":{"transform":"text.joinList@1","args":{"items":{"array":[{"when":{"equals":[{"input":"/do"},{"const":"set"}]},"then":{"const":"set"}},{"when":{"equals":[{"input":"/do"},{"const":"clear"}]},"then":{"const":"clear"}},{"when":{"present":{"input":"/text"}},"then":{"const":"text"}},{"when":{"present":{"input":"/emoji"}},"then":{"const":"emoji"}},{"when":{"present":{"input":"/until"}},"then":{"const":"until"}}]}}},"pointer":"/text"}],"max":100},"set":{"const":["set\ntext\nemoji\nuntil","clear"]},"fold":{"const":"none"}},"refuse":"wrong_kind"},
+    {"transform":"time.window@1","args":{"instant":{"input":"/until"},"maxDays":{"const":30},"now":{"now":{}}},"refuse":"time_window"}
+   ],
+   "prepare": [
+    {"id":"now","method":"GET","path":"/users.profile.get","maxResponseBytes":65536,"expect":{"status":[200],"require":[{"equals":{"pointer":"/ok","value":{"const":true}}}]}}
+   ],
+   "perform": [
+    {"id":"set","method":"POST","path":"/users.profile.set","body":{"object":{"profile":{"object":{"status_text":{"input":"/text"},"status_emoji":{"pick":{"transform":"ids.slackEmoji@1","args":{"name":{"input":"/emoji"}}},"pointer":"/code"},"status_expiration":{"pick":{"transform":"time.rfc3339ToEpochSeconds@1","args":{"time":{"input":"/until"}}},"pointer":"/seconds"}}}}},"when":{"equals":[{"input":"/do"},{"const":"set"}]},"expect":{"status":[200],"require":[{"equals":{"pointer":"/ok","value":{"const":true}}}]}},
+    {"id":"clear","method":"POST","path":"/users.profile.set","body":{"object":{"profile":{"const":{"status_text":"","status_emoji":"","status_expiration":0}}}},"when":{"equals":[{"input":"/do"},{"const":"clear"}]},"expect":{"status":[200],"require":[{"equals":{"pointer":"/ok","value":{"const":true}}}]}}
+   ],
+   "verify": {
+    "requests": [{"id":"check","method":"GET","path":"/users.profile.get","maxResponseBytes":65536,"expect":{"status":[200],"require":[{"equals":{"pointer":"/ok","value":{"const":true}}}]}}],
+    "identity": [{"kind":"readback","step":"check","pointer":"/profile/status_text","equals":{"either":[{"step":"set","pointer":"/profile/status_text"},{"step":"clear","pointer":"/profile/status_text"}]}}],
+    "assert": [{"step":"check","equals":{"pointer":"/profile/status_text","value":{"input":"/text"}},"when":{"equals":[{"input":"/do"},{"const":"set"}]}},{"step":"check","equals":{"pointer":"/profile/status_emoji","value":{"pick":{"transform":"ids.slackEmoji@1","args":{"name":{"input":"/emoji"}}},"pointer":"/code"}},"when":{"equals":[{"input":"/do"},{"const":"set"}]}},{"step":"check","equals":{"pointer":"/profile/status_expiration","value":{"pick":{"transform":"time.rfc3339ToEpochSeconds@1","args":{"time":{"input":"/until"}}},"pointer":"/seconds"}},"when":{"equals":[{"input":"/do"},{"const":"set"}]}},{"step":"check","equals":{"pointer":"/profile/status_text","value":{"const":""}},"when":{"equals":[{"input":"/do"},{"const":"clear"}]}},{"step":"check","equals":{"pointer":"/profile/status_emoji","value":{"const":""}},"when":{"equals":[{"input":"/do"},{"const":"clear"}]}},{"step":"check","equals":{"pointer":"/profile/status_expiration","value":{"const":0}},"when":{"equals":[{"input":"/do"},{"const":"clear"}]}}]
+   },
+   "output": {"statusText":{"either":[{"step":"set","pointer":"/profile/status_text"},{"step":"clear","pointer":"/profile/status_text"}]},"statusEmoji":{"either":[{"step":"set","pointer":"/profile/status_emoji"},{"step":"clear","pointer":"/profile/status_emoji"}]},"statusExpiration":{"either":[{"step":"set","pointer":"/profile/status_expiration"},{"step":"clear","pointer":"/profile/status_expiration"}]}},
+   "preview": [
+    {"label":"Status now","expr":{"step":"now","pointer":"/profile/status_text"}},
+    {"label":"Emoji now","expr":{"step":"now","pointer":"/profile/status_emoji"}},
+    {"label":"Change","expr":{"input":"/do"}},
+    {"label":"New status","expr":{"input":"/text"}},
+    {"label":"Emoji","expr":{"input":"/emoji"}},
+    {"label":"Clears at","expr":{"input":"/until"}}
+   ],
+   "definitive": [429]
+  },
+  {
+   "id": "slack.action.read-canvas.v1.b924a5e71b76478a426be295",
+   "key": "read-canvas",
+   "version": 1,
+   "name": "Read a canvas",
+   "description": "Reads a canvas as Markdown, cut at 50,000 characters with a marker when it is longer. Needs the permission to read canvases.",
+   "effect": "read",
+   "row": "slack.files.read",
+   "hints": {"readOnly":true,"destructive":false,"idempotent":true,"openWorld":true},
+   "inputSchema": {"type":"object","properties":{"canvas":{"type":"string","minLength":9,"maxLength":21,"description":"The canvas id, such as F0123ABCD."}},"required":["canvas"],"additionalProperties":false},
+   "outputSchema": {"type":"object","properties":{"canvas":{"type":"string","maxLength":21},"content":{"type":"string","maxLength":50000},"truncated":{"type":"boolean"}},"required":["canvas"],"additionalProperties":false},
+   "guards": [],
+   "prepare": [],
+   "perform": [
+    {"id":"content","method":"POST","path":"/canvases.getContent","body":{"object":{"canvas_id":{"input":"/canvas"},"content_type":{"const":"markdown"}}},"maxResponseBytes":2097152,"expect":{"status":[200],"require":[{"equals":{"pointer":"/ok","value":{"const":true}}}]}}
+   ],
+   "output": {"canvas":{"input":"/canvas"},"content":{"when":{"present":{"step":"content","pointer":"/content"}},"then":{"pick":{"transform":"text.truncate@1","args":{"text":{"step":"content","pointer":"/content"},"max":{"const":50000}}},"pointer":"/text"}},"truncated":{"when":{"present":{"step":"content","pointer":"/content"}},"then":{"pick":{"transform":"text.truncate@1","args":{"text":{"step":"content","pointer":"/content"},"max":{"const":50000}}},"pointer":"/truncated"}}},
+   "preview": [
+    {"label":"Canvas","expr":{"input":"/canvas"}}
+   ],
+   "definitive": [429]
+  }
+ ]
+}

@@ -1,0 +1,912 @@
+{
+ "source": "Notion and Slack API documentation and Gmail search operators; size limits and refusals are Fabric adversarial",
+ "cases": [
+  {
+   "name": "chunking keeps an emoji at the 2,000 boundary whole",
+   "source": "Notion API, request limits: rich text content of at most 2,000 characters, at most 100 blocks",
+   "transform": "text.chunk@1",
+   "input": {
+    "text": {
+     "$concat": [
+      {
+       "$repeat": [
+        "a",
+        1999
+       ]
+      },
+      "😀"
+     ]
+    }
+   },
+   "output": {
+    "chunks": [
+     {
+      "$repeat": [
+       "a",
+       1999
+      ]
+     },
+     "😀"
+    ]
+   }
+  },
+  {
+   "name": "exactly 2,000 code units is one chunk",
+   "source": "Notion API, request limits: rich text content of at most 2,000 characters, at most 100 blocks",
+   "transform": "text.chunk@1",
+   "input": {
+    "text": {
+     "$repeat": [
+      "a",
+      2000
+     ]
+    }
+   },
+   "output": {
+    "chunks": [
+     {
+      "$repeat": [
+       "a",
+       2000
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "name": "2,000 accented letters are one chunk",
+   "source": "Notion API, request limits: rich text content of at most 2,000 characters, at most 100 blocks",
+   "transform": "text.chunk@1",
+   "input": {
+    "text": {
+     "$repeat": [
+      "é",
+      2000
+     ]
+    }
+   },
+   "output": {
+    "chunks": [
+     {
+      "$repeat": [
+       "é",
+       2000
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "name": "100 chunks pass",
+   "source": "Notion API, request limits: rich text content of at most 2,000 characters, at most 100 blocks",
+   "transform": "text.chunk@1",
+   "input": {
+    "text": {
+     "$repeat": [
+      "a",
+      200000
+     ]
+    }
+   },
+   "expect": {
+    "/chunks/0": {
+     "$repeat": [
+      "a",
+      2000
+     ]
+    },
+    "/chunks/99": {
+     "$repeat": [
+      "a",
+      2000
+     ]
+    },
+    "/chunks/100": {
+     "$absent": true
+    }
+   }
+  },
+  {
+   "name": "a 101st chunk refuses and is never dropped",
+   "source": "Notion API, request limits: rich text content of at most 2,000 characters, at most 100 blocks",
+   "transform": "text.chunk@1",
+   "input": {
+    "text": {
+     "$repeat": [
+      "a",
+      200001
+     ]
+    }
+   },
+   "refuses": "too_many_chunks"
+  },
+  {
+   "name": "<!channel> is neutralised",
+   "source": "Slack API, formatting text: escape &, < and >",
+   "transform": "text.slackEscape@1",
+   "input": {
+    "text": "<!channel> please"
+   },
+   "output": {
+    "text": "&lt;!channel&gt; please"
+   }
+  },
+  {
+   "name": "mentions and channel links are neutralised",
+   "source": "Slack API, formatting text: escape &, < and >",
+   "transform": "text.slackEscape@1",
+   "input": {
+    "text": "<@U123> and <#C1> & <!here>"
+   },
+   "output": {
+    "text": "&lt;@U123&gt; and &lt;#C1&gt; &amp; &lt;!here&gt;"
+   }
+  },
+  {
+   "name": "an ampersand is escaped before the brackets",
+   "source": "Slack API, formatting text: escape &, < and >",
+   "transform": "text.slackEscape@1",
+   "input": {
+    "text": "&lt;"
+   },
+   "output": {
+    "text": "&amp;lt;"
+   }
+  },
+  {
+   "name": "escaped text of exactly 40,000 characters passes",
+   "source": "Fabric adversarial",
+   "transform": "text.slackEscape@1",
+   "input": {
+    "text": {
+     "$repeat": [
+      "&",
+      8000
+     ]
+    }
+   },
+   "output": {
+    "text": {
+     "$repeat": [
+      "&amp;",
+      8000
+     ]
+    }
+   }
+  },
+  {
+   "name": "escaped text over 40,000 characters refuses",
+   "source": "Fabric adversarial",
+   "transform": "text.slackEscape@1",
+   "input": {
+    "text": {
+     "$repeat": [
+      "&",
+      8001
+     ]
+    }
+   },
+   "refuses": "text_too_long"
+  },
+  {
+   "name": "Gmail refuses a double quote inside a value",
+   "source": "Gmail search operators",
+   "transform": "text.gmailQuery@1",
+   "input": {
+    "subject": "say \"hi\""
+   },
+   "refuses": "query_value_invalid"
+  },
+  {
+   "name": "Gmail refuses a control character inside a value",
+   "source": "Fabric adversarial",
+   "transform": "text.gmailQuery@1",
+   "input": {
+    "from": "a\u0000b@example.com"
+   },
+   "refuses": "query_value_invalid"
+  },
+  {
+   "name": "Gmail refuses a direction override inside a value",
+   "source": "Fabric adversarial",
+   "transform": "text.gmailQuery@1",
+   "input": {
+    "words": "invoice ‮fdp.exe"
+   },
+   "refuses": "query_value_invalid"
+  },
+  {
+   "name": "Gmail writes every plain field as its quoted operator, in a fixed order",
+   "source": "Gmail help, search operators you can use with Gmail",
+   "transform": "text.gmailQuery@1",
+   "input": {
+    "words": "budget draft",
+    "before": 1792591200,
+    "from": "ann@example.com",
+    "to": "bob@example.com",
+    "subject": "Quarterly report",
+    "label": "Work/Reports",
+    "hasAttachment": true,
+    "after": 1792504800
+   },
+   "output": {
+    "q": "from:\"ann@example.com\" to:\"bob@example.com\" subject:\"Quarterly report\" label:\"Work/Reports\" has:attachment \"budget draft\" after:1792504800 before:1792591200"
+   }
+  },
+  {
+   "name": "Gmail keeps x OR in:trash in the subject one quoted phrase",
+   "source": "Gmail help, search operators you can use with Gmail",
+   "transform": "text.gmailQuery@1",
+   "input": {
+    "subject": "x OR in:trash"
+   },
+   "output": {
+    "q": "subject:\"x OR in:trash\""
+   }
+  },
+  {
+   "name": "Gmail writes hasAttachment false as -has:attachment",
+   "source": "Gmail help, search operators you can use with Gmail",
+   "transform": "text.gmailQuery@1",
+   "input": {
+    "hasAttachment": false
+   },
+   "output": {
+    "q": "-has:attachment"
+   }
+  },
+  {
+   "name": "Gmail with no field is an empty query",
+   "source": "Fabric adversarial",
+   "transform": "text.gmailQuery@1",
+   "input": {},
+   "output": {
+    "q": ""
+   }
+  },
+  {
+   "name": "Gmail refuses a backslash inside a value",
+   "source": "Fabric adversarial",
+   "transform": "text.gmailQuery@1",
+   "input": {
+    "words": "a\\b"
+   },
+   "refuses": "query_value_invalid"
+  },
+  {
+   "name": "Gmail refuses a tab inside a value",
+   "source": "Fabric adversarial",
+   "transform": "text.gmailQuery@1",
+   "input": {
+    "label": "a\tb"
+   },
+   "refuses": "query_value_invalid"
+  },
+  {
+   "name": "Gmail refuses a lone surrogate inside a value",
+   "source": "Fabric adversarial",
+   "transform": "text.gmailQuery@1",
+   "input": {
+    "to": "a\ud800b"
+   },
+   "refuses": "query_value_invalid"
+  },
+  {
+   "name": "Gmail refuses an after before 1970",
+   "source": "Fabric adversarial",
+   "transform": "text.gmailQuery@1",
+   "input": {
+    "after": -1
+   },
+   "refuses": "query_value_invalid"
+  },
+  {
+   "name": "Gmail takes the last second of year 9999",
+   "source": "Fabric adversarial",
+   "transform": "text.gmailQuery@1",
+   "input": {
+    "before": 253402387139
+   },
+   "output": {
+    "q": "before:253402387139"
+   }
+  },
+  {
+   "name": "GitHub refuses a double quote that would close the quote and add a qualifier (open point Important 5)",
+   "source": "Fabric adversarial",
+   "transform": "text.githubQuery@1",
+   "input": {
+    "type": "issue",
+    "scope": "author",
+    "text": "foo\" repo:x/y \"bar"
+   },
+   "refuses": "query_value_invalid"
+  },
+  {
+   "name": "GitHub refuses a backslash in user text",
+   "source": "Fabric adversarial",
+   "transform": "text.githubQuery@1",
+   "input": {
+    "type": "issue",
+    "scope": "author",
+    "text": "a\\b"
+   },
+   "refuses": "query_value_invalid"
+  },
+  {
+   "name": "GitHub refuses a line feed in user text",
+   "source": "Fabric adversarial",
+   "transform": "text.githubQuery@1",
+   "input": {
+    "type": "issue",
+    "scope": "author",
+    "text": "a\nrepo:x/y"
+   },
+   "refuses": "query_value_invalid"
+  },
+  {
+   "name": "GitHub refuses a zero-width space in user text",
+   "source": "Fabric adversarial",
+   "transform": "text.githubQuery@1",
+   "input": {
+    "type": "issue",
+    "scope": "author",
+    "text": "a​b"
+   },
+   "refuses": "query_value_invalid"
+  },
+  {
+   "name": "GitHub with a repository adds repo: and quotes each word",
+   "source": "GitHub docs, searching issues and pull requests, and understanding the search syntax",
+   "transform": "text.githubQuery@1",
+   "input": {
+    "type": "issue",
+    "repo": {
+     "owner": "octo",
+     "name": "hello-world"
+    },
+    "text": "login  bug"
+   },
+   "output": {
+    "q": "is:issue repo:octo/hello-world \"login\" \"bug\""
+   }
+  },
+  {
+   "name": "GitHub finds my open pull requests across repositories",
+   "source": "GitHub docs, searching issues and pull requests, and understanding the search syntax",
+   "transform": "text.githubQuery@1",
+   "input": {
+    "type": "pull-request",
+    "scope": "author",
+    "state": "open"
+   },
+   "output": {
+    "q": "is:pull-request author:@me is:open"
+   }
+  },
+  {
+   "name": "GitHub keeps a user's qualifiers quoted",
+   "source": "GitHub docs, searching issues and pull requests, and understanding the search syntax",
+   "transform": "text.githubQuery@1",
+   "input": {
+    "type": "issue",
+    "scope": "involves",
+    "text": "is:closed type:pr repo:x/y org:acme"
+   },
+   "output": {
+    "q": "is:issue involves:@me \"is:closed\" \"type:pr\" \"repo:x/y\" \"org:acme\""
+   }
+  },
+  {
+   "name": "GitHub refuses a query with neither repository nor scope",
+   "source": "Fabric adversarial",
+   "transform": "text.githubQuery@1",
+   "input": {
+    "type": "issue",
+    "text": "bug"
+   },
+   "refuses": "query_scope_missing"
+  },
+  {
+   "name": "GitHub takes 256 characters of user text",
+   "source": "GitHub docs, searching issues and pull requests, and understanding the search syntax",
+   "transform": "text.githubQuery@1",
+   "input": {
+    "type": "issue",
+    "scope": "author",
+    "text": {
+     "$repeat": [
+      "a",
+      256
+     ]
+    }
+   },
+   "output": {
+    "q": {
+     "$concat": [
+      "is:issue author:@me \"",
+      {
+       "$repeat": [
+        "a",
+        256
+       ]
+      },
+      "\""
+     ]
+    }
+   }
+  },
+  {
+   "name": "GitHub refuses 257 characters of user text",
+   "source": "GitHub docs, searching issues and pull requests, and understanding the search syntax",
+   "transform": "text.githubQuery@1",
+   "input": {
+    "type": "issue",
+    "scope": "author",
+    "text": {
+     "$repeat": [
+      "a",
+      257
+     ]
+    }
+   },
+   "refuses": "query_too_long"
+  },
+  {
+   "name": "GitHub takes five AND, OR or NOT",
+   "source": "GitHub docs, searching issues and pull requests, and understanding the search syntax",
+   "transform": "text.githubQuery@1",
+   "input": {
+    "type": "issue",
+    "scope": "author",
+    "text": "a AND b OR c NOT d AND e OR f"
+   },
+   "output": {
+    "q": "is:issue author:@me \"a\" \"AND\" \"b\" \"OR\" \"c\" \"NOT\" \"d\" \"AND\" \"e\" \"OR\" \"f\""
+   }
+  },
+  {
+   "name": "GitHub refuses six AND, OR or NOT",
+   "source": "GitHub docs, searching issues and pull requests, and understanding the search syntax",
+   "transform": "text.githubQuery@1",
+   "input": {
+    "type": "issue",
+    "scope": "author",
+    "text": "a AND b OR c NOT d AND e OR f NOT g"
+   },
+   "refuses": "too_many_operators"
+  },
+  {
+   "name": "GitHub refuses an owner with a leading hyphen",
+   "source": "Fabric adversarial",
+   "transform": "text.githubQuery@1",
+   "input": {
+    "type": "issue",
+    "repo": {
+     "owner": "-a",
+     "name": "b"
+    }
+   },
+   "refuses": "repo_invalid"
+  },
+  {
+   "name": "GitHub refuses .. as a repository",
+   "source": "Fabric adversarial",
+   "transform": "text.githubQuery@1",
+   "input": {
+    "type": "issue",
+    "repo": {
+     "owner": "a",
+     "name": ".."
+    }
+   },
+   "refuses": "repo_invalid"
+  },
+  {
+   "name": "truncate keeps short text whole",
+   "source": "Slack API, canvases.getContent; the marker is Fabric's",
+   "transform": "text.truncate@1",
+   "input": {
+    "text": "hello",
+    "max": 100
+   },
+   "output": {
+    "text": "hello"
+   }
+  },
+  {
+   "name": "truncate keeps text of exactly max code points whole",
+   "source": "Fabric adversarial",
+   "transform": "text.truncate@1",
+   "input": {
+    "text": {
+     "$repeat": [
+      "a",
+      100
+     ]
+    },
+    "max": 100
+   },
+   "output": {
+    "text": {
+     "$repeat": [
+      "a",
+      100
+     ]
+    }
+   }
+  },
+  {
+   "name": "truncate cuts one code point more and appends its marker within max",
+   "source": "Fabric adversarial",
+   "transform": "text.truncate@1",
+   "input": {
+    "text": {
+     "$repeat": [
+      "a",
+      101
+     ]
+    },
+    "max": 100
+   },
+   "output": {
+    "text": {
+     "$concat": [
+      {
+       "$repeat": [
+        "a",
+        88
+       ]
+      },
+      "\n[truncated]"
+     ]
+    },
+    "truncated": true
+   }
+  },
+  {
+   "name": "truncate never splits an emoji",
+   "source": "Fabric adversarial",
+   "transform": "text.truncate@1",
+   "input": {
+    "text": {
+     "$concat": [
+      {
+       "$repeat": [
+        "a",
+        87
+       ]
+      },
+      "😀",
+      {
+       "$repeat": [
+        "b",
+        20
+       ]
+      }
+     ]
+    },
+    "max": 100
+   },
+   "output": {
+    "text": {
+     "$concat": [
+      {
+       "$repeat": [
+        "a",
+        87
+       ]
+      },
+      "😀",
+      "\n[truncated]"
+     ]
+    },
+    "truncated": true
+   }
+  },
+  {
+   "name": "joinList puts each item on its own line",
+   "source": "Fabric: card lists reach a preview as one string (open point Important 4)",
+   "transform": "text.joinList@1",
+   "input": {
+    "items": [
+     "Receipts",
+     "Work"
+    ]
+   },
+   "output": {
+    "text": "Receipts\nWork",
+    "count": 2
+   }
+  },
+  {
+   "name": "joinList shows mailboxes by address only, never by display name",
+   "source": "Fabric: card lists reach a preview as one string (open point Important 4)",
+   "transform": "text.joinList@1",
+   "input": {
+    "mailboxes": [
+     {
+      "address": "x@evil.example",
+      "name": "Your bank"
+     },
+     {
+      "address": "bob@example.com"
+     }
+    ]
+   },
+   "output": {
+    "text": "x@evil.example\nbob@example.com",
+    "count": 2
+   }
+  },
+  {
+   "name": "joinList of an empty list is empty",
+   "source": "Fabric adversarial",
+   "transform": "text.joinList@1",
+   "input": {
+    "items": []
+   },
+   "output": {
+    "text": "",
+    "count": 0
+   }
+  },
+  {
+   "name": "joinList refuses items and mailboxes together",
+   "source": "Fabric adversarial",
+   "transform": "text.joinList@1",
+   "input": {
+    "items": [
+     "a"
+    ],
+    "mailboxes": [
+     {
+      "address": "a@example.com"
+     }
+    ]
+   },
+   "refuses": "input_invalid"
+  },
+  {
+   "name": "joinList refuses neither items nor mailboxes",
+   "source": "Fabric adversarial",
+   "transform": "text.joinList@1",
+   "input": {},
+   "refuses": "input_invalid"
+  },
+  {
+   "name": "joinList refuses an item that holds a line feed, which would read as two items",
+   "source": "Fabric adversarial",
+   "transform": "text.joinList@1",
+   "input": {
+    "items": [
+     "Work\nTRASH"
+    ]
+   },
+   "refuses": "input_invalid"
+  },
+  {
+   "name": "joinList refuses an item that holds a carriage return",
+   "source": "Fabric adversarial",
+   "transform": "text.joinList@1",
+   "input": {
+    "items": [
+     "Work\rTRASH"
+    ]
+   },
+   "refuses": "input_invalid"
+  },
+  {
+   "name": "joinList refuses joined text over 50,000 characters",
+   "source": "Fabric adversarial",
+   "transform": "text.joinList@1",
+   "input": {
+    "items": {
+     "$list": [
+      51,
+      {
+       "$repeat": [
+        "a",
+        1000
+       ]
+      }
+     ]
+    }
+   },
+   "refuses": "text_too_long"
+  },
+  {
+   "name": "slackQuery quotes the words as one phrase",
+   "source": "Slack search help (search modifiers); quoting and refusals are Fabric adversarial",
+   "transform": "text.slackQuery@1",
+   "input": {
+    "words": "release notes"
+   },
+   "output": {
+    "query": "\"release notes\""
+   }
+  },
+  {
+   "name": "slackQuery keeps a modifier inside the words quoted",
+   "source": "Slack search help (search modifiers); quoting and refusals are Fabric adversarial",
+   "transform": "text.slackQuery@1",
+   "input": {
+    "words": "x in:#secret from:@boss"
+   },
+   "output": {
+    "query": "\"x in:#secret from:@boss\""
+   }
+  },
+  {
+   "name": "slackQuery writes channel, person and days in a fixed order",
+   "source": "Slack search help (search modifiers); quoting and refusals are Fabric adversarial",
+   "transform": "text.slackQuery@1",
+   "input": {
+    "words": "[SYNTHETIC]",
+    "before": "2026-10-31",
+    "from": "U0ADA0001",
+    "after": "2026-10-01",
+    "channel": "C0FABTEST1"
+   },
+   "output": {
+    "query": "\"[SYNTHETIC]\" in:<#C0FABTEST1> from:<@U0ADA0001> after:2026-10-01 before:2026-10-31"
+   }
+  },
+  {
+   "name": "slackQuery takes a private channel id",
+   "source": "Slack search help (search modifiers); quoting and refusals are Fabric adversarial",
+   "transform": "text.slackQuery@1",
+   "input": {
+    "words": "a",
+    "channel": "G0PRIVATE1"
+   },
+   "output": {
+    "query": "\"a\" in:<#G0PRIVATE1>"
+   }
+  },
+  {
+   "name": "slackQuery refuses a double quote in the words",
+   "source": "Fabric adversarial",
+   "transform": "text.slackQuery@1",
+   "input": {
+    "words": "a\" in:<#C0OTHERS01> \"b"
+   },
+   "refuses": "query_value_invalid"
+  },
+  {
+   "name": "slackQuery refuses a line feed in the words",
+   "source": "Fabric adversarial",
+   "transform": "text.slackQuery@1",
+   "input": {
+    "words": "a\nb"
+   },
+   "refuses": "query_value_invalid"
+  },
+  {
+   "name": "slackQuery refuses 1,001 characters of words",
+   "source": "Fabric adversarial",
+   "transform": "text.slackQuery@1",
+   "input": {
+    "words": {
+     "$repeat": [
+      "a",
+      1001
+     ]
+    }
+   },
+   "refuses": "query_too_long"
+  },
+  {
+   "name": "slackQuery takes 1,000 characters of words",
+   "source": "Fabric adversarial",
+   "transform": "text.slackQuery@1",
+   "input": {
+    "words": {
+     "$repeat": [
+      "a",
+      1000
+     ]
+    }
+   },
+   "expect": {}
+  },
+  {
+   "name": "slackQuery refuses a channel that is no id",
+   "source": "Fabric adversarial",
+   "transform": "text.slackQuery@1",
+   "input": {
+    "words": "a",
+    "channel": "general"
+   },
+   "refuses": "query_value_invalid"
+  },
+  {
+   "name": "slackQuery refuses a direct message as the channel",
+   "source": "Slack search help (search modifiers); quoting and refusals are Fabric adversarial",
+   "transform": "text.slackQuery@1",
+   "input": {
+    "words": "a",
+    "channel": "D0ADA0001"
+   },
+   "refuses": "query_value_invalid"
+  },
+  {
+   "name": "slackQuery refuses a person that is no id",
+   "source": "Fabric adversarial",
+   "transform": "text.slackQuery@1",
+   "input": {
+    "words": "a",
+    "from": "@ada"
+   },
+   "refuses": "query_value_invalid"
+  },
+  {
+   "name": "slackQuery refuses a day that is no date",
+   "source": "Fabric adversarial",
+   "transform": "text.slackQuery@1",
+   "input": {
+    "words": "a",
+    "after": "2026-02-30"
+   },
+   "refuses": "query_value_invalid"
+  },
+  {
+   "name": "mentions: a person and a team, once each, in order",
+   "source": "GitHub Docs, about notifications (@mentions of people and teams)",
+   "transform": "text.mentions@1",
+   "input": {
+    "text": "@octo-a and @org/team, thanks @OCTO-A"
+   },
+   "output": {
+    "mentions": [
+     "@octo-a",
+     "@org/team"
+    ]
+   }
+  },
+  {
+   "name": "mentions: an email address is no mention",
+   "source": "Fabric adversarial",
+   "transform": "text.mentions@1",
+   "input": {
+    "text": "write to a@b.com"
+   },
+   "output": {
+    "mentions": []
+   }
+  },
+  {
+   "name": "mentions: absent text gives none",
+   "source": "Fabric adversarial",
+   "transform": "text.mentions@1",
+   "input": {},
+   "output": {
+    "mentions": []
+   }
+  },
+  {
+   "name": "mentions: past 50 says more",
+   "source": "Fabric adversarial",
+   "transform": "text.mentions@1",
+   "input": {
+    "text": {
+     "$concat": [
+      {
+       "$list": [
+        51,
+        "@u{n} "
+       ]
+      }
+     ]
+    }
+   },
+   "expect": {
+    "/more": true,
+    "/mentions/49": "@u49",
+    "/mentions/50": {
+     "$absent": true
+    }
+   }
+  }
+ ]
+}

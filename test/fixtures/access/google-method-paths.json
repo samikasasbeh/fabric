@@ -1,0 +1,485 @@
+{
+ "note": "The HTTP method and path Google documents for each reviewed Gmail and Calendar method, recorded from the public Discovery documents by node scripts/google-method-paths.mjs --record. Facts only; not the documents themselves. The scope facts stay in google-method-scopes.json.",
+ "apps": {
+  "gmail": {
+   "source": "https://gmail.googleapis.com/$discovery/rest?version=v1",
+   "revision": "20261019",
+   "methods": {
+    "gmail.users.drafts.create": {
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/drafts"
+    },
+    "gmail.users.drafts.delete": {
+     "method": "DELETE",
+     "path": "/gmail/v1/users/{userId}/drafts/{id}"
+    },
+    "gmail.users.drafts.get": {
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/drafts/{id}"
+    },
+    "gmail.users.drafts.list": {
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/drafts"
+    },
+    "gmail.users.drafts.send": {
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/drafts/send"
+    },
+    "gmail.users.drafts.update": {
+     "method": "PUT",
+     "path": "/gmail/v1/users/{userId}/drafts/{id}"
+    },
+    "gmail.users.getProfile": {
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/profile"
+    },
+    "gmail.users.history.list": {
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/history"
+    },
+    "gmail.users.labels.create": {
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/labels"
+    },
+    "gmail.users.labels.delete": {
+     "method": "DELETE",
+     "path": "/gmail/v1/users/{userId}/labels/{id}"
+    },
+    "gmail.users.labels.get": {
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/labels/{id}"
+    },
+    "gmail.users.labels.list": {
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/labels"
+    },
+    "gmail.users.labels.patch": {
+     "method": "PATCH",
+     "path": "/gmail/v1/users/{userId}/labels/{id}"
+    },
+    "gmail.users.labels.update": {
+     "method": "PUT",
+     "path": "/gmail/v1/users/{userId}/labels/{id}"
+    },
+    "gmail.users.messages.attachments.get": {
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/messages/{messageId}/attachments/{id}"
+    },
+    "gmail.users.messages.batchDelete": {
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/messages/batchDelete"
+    },
+    "gmail.users.messages.batchModify": {
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/messages/batchModify"
+    },
+    "gmail.users.messages.delete": {
+     "method": "DELETE",
+     "path": "/gmail/v1/users/{userId}/messages/{id}"
+    },
+    "gmail.users.messages.get": {
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/messages/{id}"
+    },
+    "gmail.users.messages.import": {
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/messages/import"
+    },
+    "gmail.users.messages.insert": {
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/messages"
+    },
+    "gmail.users.messages.list": {
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/messages"
+    },
+    "gmail.users.messages.modify": {
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/messages/{id}/modify"
+    },
+    "gmail.users.messages.send": {
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/messages/send"
+    },
+    "gmail.users.messages.trash": {
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/messages/{id}/trash"
+    },
+    "gmail.users.messages.untrash": {
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/messages/{id}/untrash"
+    },
+    "gmail.users.settings.cse.identities.create": {
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/cse/identities"
+    },
+    "gmail.users.settings.cse.identities.delete": {
+     "method": "DELETE",
+     "path": "/gmail/v1/users/{userId}/settings/cse/identities/{cseEmailAddress}"
+    },
+    "gmail.users.settings.cse.identities.get": {
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/settings/cse/identities/{cseEmailAddress}"
+    },
+    "gmail.users.settings.cse.identities.list": {
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/settings/cse/identities"
+    },
+    "gmail.users.settings.cse.identities.patch": {
+     "method": "PATCH",
+     "path": "/gmail/v1/users/{userId}/settings/cse/identities/{emailAddress}"
+    },
+    "gmail.users.settings.cse.keypairs.create": {
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/cse/keypairs"
+    },
+    "gmail.users.settings.cse.keypairs.disable": {
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/cse/keypairs/{keyPairId}:disable"
+    },
+    "gmail.users.settings.cse.keypairs.enable": {
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/cse/keypairs/{keyPairId}:enable"
+    },
+    "gmail.users.settings.cse.keypairs.get": {
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/settings/cse/keypairs/{keyPairId}"
+    },
+    "gmail.users.settings.cse.keypairs.list": {
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/settings/cse/keypairs"
+    },
+    "gmail.users.settings.cse.keypairs.obliterate": {
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/cse/keypairs/{keyPairId}:obliterate"
+    },
+    "gmail.users.settings.delegates.create": {
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/delegates"
+    },
+    "gmail.users.settings.delegates.delete": {
+     "method": "DELETE",
+     "path": "/gmail/v1/users/{userId}/settings/delegates/{delegateEmail}"
+    },
+    "gmail.users.settings.delegates.get": {
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/settings/delegates/{delegateEmail}"
+    },
+    "gmail.users.settings.delegates.list": {
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/settings/delegates"
+    },
+    "gmail.users.settings.filters.create": {
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/filters"
+    },
+    "gmail.users.settings.filters.delete": {
+     "method": "DELETE",
+     "path": "/gmail/v1/users/{userId}/settings/filters/{id}"
+    },
+    "gmail.users.settings.filters.get": {
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/settings/filters/{id}"
+    },
+    "gmail.users.settings.filters.list": {
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/settings/filters"
+    },
+    "gmail.users.settings.forwardingAddresses.create": {
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/forwardingAddresses"
+    },
+    "gmail.users.settings.forwardingAddresses.delete": {
+     "method": "DELETE",
+     "path": "/gmail/v1/users/{userId}/settings/forwardingAddresses/{forwardingEmail}"
+    },
+    "gmail.users.settings.forwardingAddresses.get": {
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/settings/forwardingAddresses/{forwardingEmail}"
+    },
+    "gmail.users.settings.forwardingAddresses.list": {
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/settings/forwardingAddresses"
+    },
+    "gmail.users.settings.getAutoForwarding": {
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/settings/autoForwarding"
+    },
+    "gmail.users.settings.getImap": {
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/settings/imap"
+    },
+    "gmail.users.settings.getLanguage": {
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/settings/language"
+    },
+    "gmail.users.settings.getPop": {
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/settings/pop"
+    },
+    "gmail.users.settings.getVacation": {
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/settings/vacation"
+    },
+    "gmail.users.settings.sendAs.create": {
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/sendAs"
+    },
+    "gmail.users.settings.sendAs.delete": {
+     "method": "DELETE",
+     "path": "/gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}"
+    },
+    "gmail.users.settings.sendAs.get": {
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}"
+    },
+    "gmail.users.settings.sendAs.list": {
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/settings/sendAs"
+    },
+    "gmail.users.settings.sendAs.patch": {
+     "method": "PATCH",
+     "path": "/gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}"
+    },
+    "gmail.users.settings.sendAs.smimeInfo.delete": {
+     "method": "DELETE",
+     "path": "/gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/smimeInfo/{id}"
+    },
+    "gmail.users.settings.sendAs.smimeInfo.get": {
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/smimeInfo/{id}"
+    },
+    "gmail.users.settings.sendAs.smimeInfo.insert": {
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/smimeInfo"
+    },
+    "gmail.users.settings.sendAs.smimeInfo.list": {
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/smimeInfo"
+    },
+    "gmail.users.settings.sendAs.smimeInfo.setDefault": {
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/smimeInfo/{id}/setDefault"
+    },
+    "gmail.users.settings.sendAs.update": {
+     "method": "PUT",
+     "path": "/gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}"
+    },
+    "gmail.users.settings.sendAs.verify": {
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/verify"
+    },
+    "gmail.users.settings.updateAutoForwarding": {
+     "method": "PUT",
+     "path": "/gmail/v1/users/{userId}/settings/autoForwarding"
+    },
+    "gmail.users.settings.updateImap": {
+     "method": "PUT",
+     "path": "/gmail/v1/users/{userId}/settings/imap"
+    },
+    "gmail.users.settings.updateLanguage": {
+     "method": "PUT",
+     "path": "/gmail/v1/users/{userId}/settings/language"
+    },
+    "gmail.users.settings.updatePop": {
+     "method": "PUT",
+     "path": "/gmail/v1/users/{userId}/settings/pop"
+    },
+    "gmail.users.settings.updateVacation": {
+     "method": "PUT",
+     "path": "/gmail/v1/users/{userId}/settings/vacation"
+    },
+    "gmail.users.stop": {
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/stop"
+    },
+    "gmail.users.threads.delete": {
+     "method": "DELETE",
+     "path": "/gmail/v1/users/{userId}/threads/{id}"
+    },
+    "gmail.users.threads.get": {
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/threads/{id}"
+    },
+    "gmail.users.threads.list": {
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/threads"
+    },
+    "gmail.users.threads.modify": {
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/threads/{id}/modify"
+    },
+    "gmail.users.threads.trash": {
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/threads/{id}/trash"
+    },
+    "gmail.users.threads.untrash": {
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/threads/{id}/untrash"
+    },
+    "gmail.users.watch": {
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/watch"
+    }
+   }
+  },
+  "google-calendar": {
+   "source": "https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest",
+   "revision": "20261021",
+   "methods": {
+    "calendar.acl.delete": {
+     "method": "DELETE",
+     "path": "/calendars/{calendarId}/acl/{ruleId}"
+    },
+    "calendar.acl.get": {
+     "method": "GET",
+     "path": "/calendars/{calendarId}/acl/{ruleId}"
+    },
+    "calendar.acl.insert": {
+     "method": "POST",
+     "path": "/calendars/{calendarId}/acl"
+    },
+    "calendar.acl.list": {
+     "method": "GET",
+     "path": "/calendars/{calendarId}/acl"
+    },
+    "calendar.acl.patch": {
+     "method": "PATCH",
+     "path": "/calendars/{calendarId}/acl/{ruleId}"
+    },
+    "calendar.acl.update": {
+     "method": "PUT",
+     "path": "/calendars/{calendarId}/acl/{ruleId}"
+    },
+    "calendar.acl.watch": {
+     "method": "POST",
+     "path": "/calendars/{calendarId}/acl/watch"
+    },
+    "calendar.calendarList.delete": {
+     "method": "DELETE",
+     "path": "/users/me/calendarList/{calendarId}"
+    },
+    "calendar.calendarList.get": {
+     "method": "GET",
+     "path": "/users/me/calendarList/{calendarId}"
+    },
+    "calendar.calendarList.insert": {
+     "method": "POST",
+     "path": "/users/me/calendarList"
+    },
+    "calendar.calendarList.list": {
+     "method": "GET",
+     "path": "/users/me/calendarList"
+    },
+    "calendar.calendarList.patch": {
+     "method": "PATCH",
+     "path": "/users/me/calendarList/{calendarId}"
+    },
+    "calendar.calendarList.update": {
+     "method": "PUT",
+     "path": "/users/me/calendarList/{calendarId}"
+    },
+    "calendar.calendarList.watch": {
+     "method": "POST",
+     "path": "/users/me/calendarList/watch"
+    },
+    "calendar.calendars.clear": {
+     "method": "POST",
+     "path": "/calendars/{calendarId}/clear"
+    },
+    "calendar.calendars.delete": {
+     "method": "DELETE",
+     "path": "/calendars/{calendarId}"
+    },
+    "calendar.calendars.get": {
+     "method": "GET",
+     "path": "/calendars/{calendarId}"
+    },
+    "calendar.calendars.insert": {
+     "method": "POST",
+     "path": "/calendars"
+    },
+    "calendar.calendars.patch": {
+     "method": "PATCH",
+     "path": "/calendars/{calendarId}"
+    },
+    "calendar.calendars.transferOwnership": {
+     "method": "POST",
+     "path": "/calendars/{calendarId}/transferOwnership"
+    },
+    "calendar.calendars.update": {
+     "method": "PUT",
+     "path": "/calendars/{calendarId}"
+    },
+    "calendar.channels.stop": {
+     "method": "POST",
+     "path": "/channels/stop"
+    },
+    "calendar.colors.get": {
+     "method": "GET",
+     "path": "/colors"
+    },
+    "calendar.events.delete": {
+     "method": "DELETE",
+     "path": "/calendars/{calendarId}/events/{eventId}"
+    },
+    "calendar.events.get": {
+     "method": "GET",
+     "path": "/calendars/{calendarId}/events/{eventId}"
+    },
+    "calendar.events.import": {
+     "method": "POST",
+     "path": "/calendars/{calendarId}/events/import"
+    },
+    "calendar.events.insert": {
+     "method": "POST",
+     "path": "/calendars/{calendarId}/events"
+    },
+    "calendar.events.instances": {
+     "method": "GET",
+     "path": "/calendars/{calendarId}/events/{eventId}/instances"
+    },
+    "calendar.events.list": {
+     "method": "GET",
+     "path": "/calendars/{calendarId}/events"
+    },
+    "calendar.events.move": {
+     "method": "POST",
+     "path": "/calendars/{calendarId}/events/{eventId}/move"
+    },
+    "calendar.events.patch": {
+     "method": "PATCH",
+     "path": "/calendars/{calendarId}/events/{eventId}"
+    },
+    "calendar.events.quickAdd": {
+     "method": "POST",
+     "path": "/calendars/{calendarId}/events/quickAdd"
+    },
+    "calendar.events.update": {
+     "method": "PUT",
+     "path": "/calendars/{calendarId}/events/{eventId}"
+    },
+    "calendar.events.watch": {
+     "method": "POST",
+     "path": "/calendars/{calendarId}/events/watch"
+    },
+    "calendar.freebusy.query": {
+     "method": "POST",
+     "path": "/freeBusy"
+    },
+    "calendar.settings.get": {
+     "method": "GET",
+     "path": "/users/me/settings/{setting}"
+    },
+    "calendar.settings.list": {
+     "method": "GET",
+     "path": "/users/me/settings"
+    },
+    "calendar.settings.watch": {
+     "method": "POST",
+     "path": "/users/me/settings/watch"
+    }
+   }
+  }
+ }
+}

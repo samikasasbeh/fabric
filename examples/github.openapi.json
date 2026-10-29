@@ -1,0 +1,53 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "GitHub — reviewed Fabric starter subset", "version": "2026-09-30",
+    "description": "Hand-authored restricted description of real documented GitHub endpoints, not an official GitHub specification. Import creates candidates, not a live connection. The connection's token scopes and resource access determine what can actually run."
+  },
+  "servers": [{ "url": "https://api.github.com" }],
+  "externalDocs": { "url": "https://docs.github.com/en/rest" },
+  "components": {
+    "parameters": {
+      "owner": { "name": "owner", "in": "path", "required": true, "schema": { "type": "string", "minLength": 1, "maxLength": 100 } },
+      "repo": { "name": "repo", "in": "path", "required": true, "schema": { "type": "string", "minLength": 1, "maxLength": 100 } }
+    }
+  },
+  "paths": {
+    "/user": {
+      "get": { "operationId": "get-user", "summary": "Read authenticated GitHub profile", "responses": { "200": { "description": "Authenticated account profile" } } }
+    },
+    "/user/repos": {
+      "get": {
+        "operationId": "list-repositories", "summary": "List accessible repositories",
+        "description": "Read a bounded page of repositories accessible with the authorized credential; not all private repositories unless that credential permits them.",
+        "parameters": [
+          { "name": "per_page", "in": "query", "schema": { "type": "integer", "minimum": 1, "maximum": 100 } },
+          { "name": "page", "in": "query", "schema": { "type": "integer", "minimum": 1 } }
+        ],
+        "responses": { "200": { "description": "Repository page" } }
+      }
+    },
+    "/repos/{owner}/{repo}/issues": {
+      "parameters": [{ "$ref": "#/components/parameters/owner" }, { "$ref": "#/components/parameters/repo" }],
+      "get": {
+        "operationId": "list-issues", "summary": "List repository issues",
+        "parameters": [
+          { "name": "state", "in": "query", "schema": { "type": "string", "enum": ["open", "closed", "all"] } },
+          { "name": "per_page", "in": "query", "schema": { "type": "integer", "minimum": 1, "maximum": 100 } },
+          { "name": "page", "in": "query", "schema": { "type": "integer", "minimum": 1 } }
+        ],
+        "responses": { "200": { "description": "Issues page; GitHub may include pull requests in this endpoint" } }
+      },
+      "post": {
+        "operationId": "create-issue", "summary": "Create a repository issue",
+        "description": "Publishes a real issue in the selected repository. Requires explicit approval and issue write permission. Generic response-only verification does not claim independently confirmed success.",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": {
+          "type": "object", "additionalProperties": false,
+          "properties": { "title": { "type": "string", "minLength": 1, "maxLength": 256 }, "body": { "type": "string", "maxLength": 20000 } },
+          "required": ["title"]
+        } } } },
+        "responses": { "201": { "description": "Created issue response" } }
+      }
+    }
+  }
+}

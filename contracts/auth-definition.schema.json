@@ -1,0 +1,972 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fabric.invalid/contracts/auth-definition.schema.json",
+  "title": "Fabric provider auth definition",
+  "description": "Structural interchange schema. contracts/auth-definition.mts adds semantic checks (public HTTPS endpoints, reserved names, cross-field rules) and is authoritative.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "providerId",
+    "displayName",
+    "reviewStatus",
+    "credentialEnvironment",
+    "authorization",
+    "token",
+    "refresh",
+    "revocation",
+    "apiHeaders",
+    "identity",
+    "apps"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "enum": [
+        1,
+        2
+      ]
+    },
+    "providerId": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{1,39}$"
+    },
+    "displayName": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9 .&'-]{0,59}$"
+    },
+    "reviewStatus": {
+      "enum": [
+        "candidate",
+        "reviewed"
+      ]
+    },
+    "credentialEnvironment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "clientId",
+        "clientSecret"
+      ],
+      "properties": {
+        "clientId": {
+          "$ref": "#/$defs/env"
+        },
+        "clientSecret": {
+          "$ref": "#/$defs/env"
+        }
+      }
+    },
+    "authorization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "url",
+        "pkce",
+        "scopeParameter",
+        "userScopeParameter",
+        "loopbackRedirect",
+        "scopeSeparator",
+        "identityScopes",
+        "extraParameters"
+      ],
+      "properties": {
+        "url": {
+          "$ref": "#/$defs/https"
+        },
+        "pkce": {
+          "enum": [
+            "S256",
+            "none"
+          ]
+        },
+        "scopeParameter": {
+          "const": "scope"
+        },
+        "userScopeParameter": {
+          "enum": [
+            "user_scope",
+            null
+          ]
+        },
+        "scopeSeparator": {
+          "$ref": "#/$defs/separator"
+        },
+        "identityScopes": {
+          "$ref": "#/$defs/scopes8"
+        },
+        "extraParameters": {
+          "$ref": "#/$defs/stringMap"
+        },
+        "loopbackRedirect": {
+          "enum": [
+            "allowed",
+            "unverified",
+            "https-required"
+          ]
+        }
+      }
+    },
+    "token": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "url",
+        "encoding",
+        "clientAuthentication",
+        "responseFormat",
+        "scopeSeparator",
+        "acceptedTokenTypes",
+        "reconnectErrors",
+        "requireExpiry",
+        "maxLifetimeSeconds",
+        "quirks"
+      ],
+      "properties": {
+        "url": {
+          "$ref": "#/$defs/https"
+        },
+        "encoding": {
+          "enum": [
+            "form",
+            "json"
+          ]
+        },
+        "clientAuthentication": {
+          "enum": [
+            "body",
+            "basic"
+          ]
+        },
+        "responseFormat": {
+          "enum": [
+            "oauth2",
+            "slack-v2"
+          ]
+        },
+        "scopeSeparator": {
+          "$ref": "#/$defs/separator"
+        },
+        "acceptedTokenTypes": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z_-]{0,19}$"
+          }
+        },
+        "reconnectErrors": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 12,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]{0,63}$"
+          }
+        },
+        "requireExpiry": {
+          "type": "boolean"
+        },
+        "maxLifetimeSeconds": {
+          "type": "integer",
+          "minimum": 60,
+          "maximum": 31536000
+        },
+        "quirks": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "errorInSuccessBody",
+            "errorCodeField",
+            "nullRefreshMeansNone",
+            "basicEncoding"
+          ],
+          "properties": {
+            "errorInSuccessBody": {
+              "type": "boolean"
+            },
+            "errorCodeField": {
+              "enum": [
+                "error",
+                "error-or-code"
+              ]
+            },
+            "nullRefreshMeansNone": {
+              "type": "boolean"
+            },
+            "basicEncoding": {
+              "enum": [
+                "raw",
+                "form-urlencoded"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "refresh": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "supported",
+        "keepPreviousWhenOmitted"
+      ],
+      "properties": {
+        "supported": {
+          "type": "boolean"
+        },
+        "keepPreviousWhenOmitted": {
+          "type": "boolean"
+        }
+      }
+    },
+    "revocation": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "url",
+            "method",
+            "encoding",
+            "clientAuthentication",
+            "tokenParameter",
+            "preferredToken",
+            "successStatuses",
+            "successRequire",
+            "covers"
+          ],
+          "properties": {
+            "url": {
+              "type": "string",
+              "maxLength": 500,
+              "pattern": "^https://[^/?#@:]+(/[^?#@]*)?$"
+            },
+            "method": {
+              "enum": [
+                "POST",
+                "DELETE"
+              ]
+            },
+            "encoding": {
+              "enum": [
+                "form",
+                "json"
+              ]
+            },
+            "clientAuthentication": {
+              "enum": [
+                "none",
+                "body",
+                "basic"
+              ]
+            },
+            "tokenParameter": {
+              "enum": [
+                "token",
+                "access_token"
+              ]
+            },
+            "preferredToken": {
+              "enum": [
+                "refresh",
+                "access"
+              ]
+            },
+            "successStatuses": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 4,
+              "uniqueItems": true,
+              "items": {
+                "type": "integer",
+                "minimum": 200,
+                "maximum": 299
+              }
+            },
+            "successRequire": {
+              "$ref": "#/$defs/requirements"
+            },
+            "covers": {
+              "enum": [
+                "grant",
+                "token"
+              ]
+            },
+            "settingsUrl": {
+              "type": "string",
+              "maxLength": 200,
+              "pattern": "^https://[^/?#@:]+(/[^?#@]*)?$"
+            }
+          }
+        }
+      ]
+    },
+    "apiHeaders": {
+      "$ref": "#/$defs/stringMap"
+    },
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "request",
+        "require",
+        "requireFailure",
+        "id",
+        "alternateId",
+        "displayName",
+        "email",
+        "attributes"
+      ],
+      "properties": {
+        "request": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "url",
+            "method",
+            "headers",
+            "body"
+          ],
+          "properties": {
+            "url": {
+              "$ref": "#/$defs/https"
+            },
+            "method": {
+              "enum": [
+                "GET",
+                "POST"
+              ]
+            },
+            "headers": {
+              "$ref": "#/$defs/stringMap"
+            },
+            "body": {
+              "enum": [
+                "none",
+                "empty-form"
+              ]
+            }
+          }
+        },
+        "require": {
+          "$ref": "#/$defs/requirements"
+        },
+        "requireFailure": {
+          "enum": [
+            "unverifiable",
+            "reconnect_required"
+          ]
+        },
+        "id": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "pointers",
+            "separator",
+            "allowNumbers"
+          ],
+          "properties": {
+            "pointers": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 3,
+              "uniqueItems": true,
+              "items": {
+                "$ref": "#/$defs/pointer"
+              }
+            },
+            "separator": {
+              "type": "string",
+              "pattern": "^[:|/@-]?$"
+            },
+            "allowNumbers": {
+              "type": "boolean"
+            }
+          }
+        },
+        "displayName": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "pointers",
+            "fallback"
+          ],
+          "properties": {
+            "pointers": {
+              "type": "array",
+              "maxItems": 4,
+              "uniqueItems": true,
+              "items": {
+                "$ref": "#/$defs/pointer"
+              }
+            },
+            "fallback": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            }
+          }
+        },
+        "email": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/pointer"
+            }
+          ]
+        },
+        "attributes": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "workspaceId": {
+              "$ref": "#/$defs/pointer"
+            },
+            "workspaceName": {
+              "$ref": "#/$defs/pointer"
+            },
+            "userId": {
+              "$ref": "#/$defs/pointer"
+            }
+          }
+        },
+        "alternateId": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "pointers",
+                "separator"
+              ],
+              "properties": {
+                "pointers": {
+                  "type": "array",
+                  "minItems": 1,
+                  "maxItems": 3,
+                  "uniqueItems": true,
+                  "items": {
+                    "$ref": "#/$defs/pointer"
+                  }
+                },
+                "separator": {
+                  "type": "string",
+                  "pattern": "^[:|/@-]?$"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "apps": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 16,
+      "items": {
+        "oneOf": [
+          {
+            "$ref": "#/$defs/appV1"
+          },
+          {
+            "$ref": "#/$defs/appV2"
+          }
+        ]
+      }
+    },
+    "scopeImplications": {
+      "type": "object",
+      "maxProperties": 16,
+      "propertyNames": {
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/+-]{0,255}$"
+      },
+      "additionalProperties": {
+        "type": "array",
+        "minItems": 1,
+        "maxItems": 8,
+        "uniqueItems": true,
+        "items": {
+          "$ref": "#/$defs/scope"
+        }
+      }
+    },
+    "consentPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "testing",
+        "production"
+      ],
+      "properties": {
+        "testing": {
+          "$ref": "#/$defs/consentMode"
+        },
+        "production": {
+          "$ref": "#/$defs/consentMode"
+        }
+      }
+    },
+    "apiSuccessRequire": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 4,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "pointer",
+          "equals"
+        ],
+        "properties": {
+          "pointer": {
+            "$ref": "#/$defs/pointer"
+          },
+          "equals": {
+            "oneOf": [
+              {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "grantHeader": {
+      "type": "string",
+      "pattern": "^x-[a-z0-9-]{1,62}$"
+    }
+  },
+  "$defs": {
+    "env": {
+      "type": "string",
+      "pattern": "^FABRIC_[A-Z0-9_]{1,60}$"
+    },
+    "https": {
+      "type": "string",
+      "maxLength": 500,
+      "pattern": "^https://[^/?#@:]+(/[^?#@]*)?$"
+    },
+    "separator": {
+      "enum": [
+        " ",
+        ","
+      ]
+    },
+    "scope": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/+-]{0,255}$"
+    },
+    "scopes8": {
+      "type": "array",
+      "maxItems": 8,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/scope"
+      }
+    },
+    "scopePair": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "read",
+        "write"
+      ],
+      "properties": {
+        "read": {
+          "type": "array",
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/scope"
+          }
+        },
+        "write": {
+          "type": "array",
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/scope"
+          }
+        }
+      }
+    },
+    "requirements": {
+      "type": "array",
+      "maxItems": 4,
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "pointer",
+              "equals"
+            ],
+            "properties": {
+              "pointer": {
+                "$ref": "#/$defs/pointer"
+              },
+              "equals": {
+                "oneOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "boolean"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "pointer",
+              "present"
+            ],
+            "properties": {
+              "pointer": {
+                "$ref": "#/$defs/pointer"
+              },
+              "present": {
+                "const": true
+              }
+            }
+          }
+        ]
+      }
+    },
+    "pointer": {
+      "type": "string",
+      "pattern": "^(?:/(?!(?:__proto__|prototype|constructor)(?:/|$))[A-Za-z0-9_.-]{1,64}){1,6}$"
+    },
+    "stringMap": {
+      "type": "object",
+      "maxProperties": 8,
+      "additionalProperties": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 200
+      }
+    },
+    "scopes64": {
+      "type": "array",
+      "maxItems": 64,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/scope"
+      }
+    },
+    "appV1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "appId",
+        "scopes",
+        "userScopes",
+        "upgradeScopes",
+        "accessProbe"
+      ],
+      "properties": {
+        "appId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]{0,63}$"
+        },
+        "scopes": {
+          "$ref": "#/$defs/scopePair"
+        },
+        "userScopes": {
+          "$ref": "#/$defs/scopePair"
+        },
+        "upgradeScopes": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "prefixes",
+            "exact"
+          ],
+          "properties": {
+            "prefixes": {
+              "type": "array",
+              "maxItems": 8,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "minLength": 8,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/+-]{0,255}$"
+              }
+            },
+            "exact": {
+              "type": "array",
+              "maxItems": 16,
+              "uniqueItems": true,
+              "items": {
+                "$ref": "#/$defs/scope"
+              }
+            }
+          }
+        },
+        "accessProbe": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "url",
+                "method"
+              ],
+              "properties": {
+                "url": {
+                  "type": "string",
+                  "pattern": "^https://[^/?#@:]+/[^#@]*$",
+                  "maxLength": 500
+                },
+                "method": {
+                  "const": "GET"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "appV2": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "appId",
+        "accessProbe",
+        "access",
+        "neverRequest"
+      ],
+      "properties": {
+        "appId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]{0,63}$"
+        },
+        "accessProbe": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "url",
+                "method"
+              ],
+              "properties": {
+                "url": {
+                  "type": "string",
+                  "pattern": "^https://[^/?#@:]+/[^#@]*$",
+                  "maxLength": 500
+                },
+                "method": {
+                  "const": "GET"
+                }
+              }
+            }
+          ]
+        },
+        "access": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "default",
+            "grant",
+            "levels"
+          ],
+          "properties": {
+            "default": {
+              "const": "full"
+            },
+            "grant": {
+              "enum": [
+                "scope",
+                "user_scope",
+                "pages"
+              ]
+            },
+            "levels": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "full",
+                "read"
+              ],
+              "properties": {
+                "full": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "required",
+                    "optional",
+                    "inContext"
+                  ],
+                  "properties": {
+                    "required": {
+                      "$ref": "#/$defs/scopes64"
+                    },
+                    "optional": {
+                      "$ref": "#/$defs/scopes64"
+                    },
+                    "inContext": {
+                      "type": "array",
+                      "maxItems": 64,
+                      "uniqueItems": true,
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "scope",
+                          "rows"
+                        ],
+                        "properties": {
+                          "scope": {
+                            "$ref": "#/$defs/scope"
+                          },
+                          "rows": {
+                            "type": "array",
+                            "minItems": 1,
+                            "maxItems": 16,
+                            "uniqueItems": true,
+                            "items": {
+                              "type": "string",
+                              "pattern": "^[a-z][a-z0-9-]*(?:\\.[a-z0-9][a-z0-9-]*){1,4}$"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "read": {
+                  "oneOf": [
+                    {
+                      "type": "null"
+                    },
+                    {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "required",
+                        "optional"
+                      ],
+                      "properties": {
+                        "required": {
+                          "$ref": "#/$defs/scopes64"
+                        },
+                        "optional": {
+                          "$ref": "#/$defs/scopes64"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "neverRequest": {
+          "$ref": "#/$defs/scopes64"
+        },
+        "attestedCapabilities": {
+          "type": "array",
+          "maxItems": 8,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z_]{0,39}$"
+          }
+        }
+      }
+    },
+    "consentMode": {
+      "enum": [
+        "full",
+        "required"
+      ]
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "schemaVersion": {
+            "const": 2
+          }
+        },
+        "required": [
+          "schemaVersion"
+        ]
+      },
+      "then": {
+        "required": [
+          "scopeImplications",
+          "consentPolicy"
+        ],
+        "properties": {
+          "scopeImplications": {
+            "$ref": "#/properties/scopeImplications"
+          },
+          "consentPolicy": {
+            "$ref": "#/properties/consentPolicy"
+          },
+          "apiSuccessRequire": {
+            "$ref": "#/properties/apiSuccessRequire"
+          },
+          "apps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/appV2"
+            }
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "scopeImplications": false,
+          "consentPolicy": false,
+          "apiSuccessRequire": false,
+          "grantHeader": false,
+          "apps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/appV1"
+            }
+          }
+        }
+      }
+    }
+  ]
+}

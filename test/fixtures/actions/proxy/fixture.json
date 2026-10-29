@@ -1,0 +1,16 @@
+{
+ "schemaVersion": 1,
+ "appId": "fixture",
+ "apiBase": "https://api.fixture.test",
+ "style": "rest",
+ "pathPrefixes": ["/"],
+ "acceptTypes": ["application/json", "application/vnd.fixture.raw+json"],
+ "reservedParameters": ["key", "quotaUser", "userIp"],
+ "reservedBodyFields": ["erase_content"],
+ "arrayParameters": ["labelIds"],
+ "aliases": [],
+ "inheritFamilies": [],
+ "documentedRoutes": null,
+ "proxyAllowable": ["fixture.labels.write"],
+ "typedOnly": []
+}

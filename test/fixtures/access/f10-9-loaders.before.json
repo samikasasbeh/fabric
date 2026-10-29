@@ -1,0 +1,3364 @@
+{
+ "note": "F10.9 part a (docs/F10.9-BUILD-MAP.md): recorded at F10.9's base (268360e), before part b, by a one-off script that imported the shipped loaders and wrote what they return for the five apps. permissionGroups is PERMISSION_GROUPS, optionSources is OPTION_SOURCES (the version 1 files), and proxyConfigs is PROXY_CONFIGS with each documented route list given as its count and canonicalHash. test/f10-9-churn.test.mjs rebuilds the same projection and compares it exactly: F10.9 adds row fields and loaders, but no shipped file declares them, so nothing here moves.",
+ "permissionGroups": {
+  "github": {
+   "schemaVersion": 2,
+   "appId": "github",
+   "groups": [
+    {
+     "id": "github.profile.read",
+     "label": "Access profiles, activity and notifications",
+     "effect": "read",
+     "defaultMode": "allow",
+     "stayInAccount": false,
+     "operations": [],
+     "requests": [
+      "GET /user",
+      "GET /user/{account_id}",
+      "GET /users",
+      "GET /users/{username}",
+      "GET /user/followers",
+      "GET /user/following",
+      "GET /user/following/{username}",
+      "GET /users/{username}/followers",
+      "GET /users/{username}/following",
+      "GET /users/{username}/following/{target_user}",
+      "GET /user/social_accounts",
+      "GET /users/{username}/social_accounts",
+      "GET /events",
+      "GET /feeds",
+      "GET /orgs/{org}/events",
+      "GET /users/{username}/events",
+      "GET /users/{username}/events/public",
+      "GET /users/{username}/received_events",
+      "GET /users/{username}/received_events/public",
+      "GET /user/starred",
+      "GET /user/starred/{owner}/{repo}",
+      "GET /users/{username}/starred",
+      "GET /user/subscriptions",
+      "GET /users/{username}/subscriptions",
+      "GET /search/users",
+      "GET /notifications",
+      "GET /notifications/threads/{thread_id}",
+      "GET /notifications/threads/{thread_id}/subscription",
+      "GET /repos/{owner}/{repo}/notifications",
+      "GET /repos/{owner}/{repo}/subscription",
+      "GET /user/orgs",
+      "GET /users/{username}/orgs",
+      "GET /user/memberships/orgs",
+      "GET /user/memberships/orgs/{org}",
+      "GET /rate_limit"
+     ],
+     "reviewedReads": [],
+     "scopeSets": [
+      [
+       "read:user"
+      ]
+     ],
+     "memberScopeSets": {
+      "GET /user/orgs": [
+       [
+        "read:org"
+       ]
+      ],
+      "GET /user/memberships/orgs": [
+       [
+        "read:org"
+       ]
+      ],
+      "GET /user/memberships/orgs/{org}": [
+       [
+        "read:org"
+       ]
+      ],
+      "GET /notifications": [
+       [
+        "notifications"
+       ],
+       [
+        "repo"
+       ]
+      ],
+      "GET /notifications/threads/{thread_id}": [
+       [
+        "notifications"
+       ],
+       [
+        "repo"
+       ]
+      ],
+      "GET /notifications/threads/{thread_id}/subscription": [
+       [
+        "notifications"
+       ],
+       [
+        "repo"
+       ]
+      ],
+      "GET /repos/{owner}/{repo}/notifications": [
+       [
+        "notifications"
+       ],
+       [
+        "repo"
+       ]
+      ],
+      "GET /repos/{owner}/{repo}/subscription": [
+       [
+        "notifications"
+       ],
+       [
+        "repo"
+       ]
+      ]
+     }
+    },
+    {
+     "id": "github.repos.read",
+     "label": "Access repositories and code",
+     "effect": "read",
+     "defaultMode": "allow",
+     "stayInAccount": false,
+     "operations": [],
+     "requests": [
+      "GET /user/repos",
+      "GET /users/{username}/repos",
+      "GET /orgs/{org}/repos",
+      "GET /repositories",
+      "GET /repos/{owner}/{repo}",
+      "GET /repos/{owner}/{repo}/activity",
+      "GET /repos/{owner}/{repo}/contributors",
+      "GET /repos/{owner}/{repo}/languages",
+      "GET /repos/{owner}/{repo}/tags",
+      "GET /repos/{owner}/{repo}/topics",
+      "GET /repos/{owner}/{repo}/forks",
+      "GET /repos/{owner}/{repo}/readme",
+      "GET /repos/{owner}/{repo}/readme/{+dir}",
+      "GET /repos/{owner}/{repo}/contents/{+path}",
+      "GET /repos/{owner}/{repo}/tarball/{+ref}",
+      "GET /repos/{owner}/{repo}/zipball/{+ref}",
+      "GET /repos/{owner}/{repo}/codeowners/errors",
+      "GET /repos/{owner}/{repo}/hash-algorithm",
+      "GET /repos/{owner}/{repo}/branches",
+      "GET /repos/{owner}/{repo}/branches/{branch}",
+      "GET /repos/{owner}/{repo}/rules/branches/{branch}",
+      "GET /repos/{owner}/{repo}/commits",
+      "GET /repos/{owner}/{repo}/commits/{ref}",
+      "GET /repos/{owner}/{repo}/commits/{commit_sha}/branches-where-head",
+      "GET /repos/{owner}/{repo}/commits/{commit_sha}/pulls",
+      "GET /repos/{owner}/{repo}/compare/{+basehead}",
+      "GET /repos/{owner}/{repo}/commits/{ref}/status",
+      "GET /repos/{owner}/{repo}/commits/{ref}/statuses",
+      "GET /repos/{owner}/{repo}/comments",
+      "GET /repos/{owner}/{repo}/comments/{comment_id}",
+      "GET /repos/{owner}/{repo}/commits/{commit_sha}/comments",
+      "GET /repos/{owner}/{repo}/comments/{comment_id}/reactions",
+      "GET /repos/{owner}/{repo}/git/blobs/{file_sha}",
+      "GET /repos/{owner}/{repo}/git/commits/{commit_sha}",
+      "GET /repos/{owner}/{repo}/git/matching-refs/{+ref}",
+      "GET /repos/{owner}/{repo}/git/ref/{+ref}",
+      "GET /repos/{owner}/{repo}/git/tags/{tag_sha}",
+      "GET /repos/{owner}/{repo}/git/trees/{+tree_sha}",
+      "GET /repos/{owner}/{repo}/releases",
+      "GET /repos/{owner}/{repo}/releases/latest",
+      "GET /repos/{owner}/{repo}/releases/tags/{+tag}",
+      "GET /repos/{owner}/{repo}/releases/{release_id}",
+      "GET /repos/{owner}/{repo}/releases/{release_id}/assets",
+      "GET /repos/{owner}/{repo}/releases/assets/{asset_id}",
+      "POST /repos/{owner}/{repo}/releases/generate-notes",
+      "GET /repos/{owner}/{repo}/releases/{release_id}/reactions",
+      "GET /repos/{owner}/{repo}/collaborators",
+      "GET /repos/{owner}/{repo}/collaborators/{username}",
+      "GET /repos/{owner}/{repo}/collaborators/{username}/permission",
+      "GET /repos/{owner}/{repo}/stargazers",
+      "GET /repos/{owner}/{repo}/stargazers/count",
+      "GET /repos/{owner}/{repo}/stargazers/history",
+      "GET /repos/{owner}/{repo}/subscribers",
+      "GET /repos/{owner}/{repo}/events",
+      "GET /networks/{owner}/{repo}/events",
+      "GET /repos/{owner}/{repo}/check-runs/{check_run_id}",
+      "GET /repos/{owner}/{repo}/check-runs/{check_run_id}/annotations",
+      "GET /repos/{owner}/{repo}/check-suites/{check_suite_id}",
+      "GET /repos/{owner}/{repo}/check-suites/{check_suite_id}/check-runs",
+      "GET /repos/{owner}/{repo}/commits/{ref}/check-runs",
+      "GET /repos/{owner}/{repo}/commits/{ref}/check-suites",
+      "GET /repos/{owner}/{repo}/actions/workflows",
+      "GET /repos/{owner}/{repo}/actions/workflows/{workflow_id}",
+      "GET /repos/{owner}/{repo}/actions/workflows/{workflow_id}/runs",
+      "GET /repos/{owner}/{repo}/actions/workflows/{workflow_id}/timing",
+      "GET /repos/{owner}/{repo}/actions/runs",
+      "GET /repos/{owner}/{repo}/actions/runs/{run_id}",
+      "GET /repos/{owner}/{repo}/actions/runs/{run_id}/approvals",
+      "GET /repos/{owner}/{repo}/actions/runs/{run_id}/attempts/{attempt_number}",
+      "GET /repos/{owner}/{repo}/actions/runs/{run_id}/attempts/{attempt_number}/jobs",
+      "GET /repos/{owner}/{repo}/actions/runs/{run_id}/attempts/{attempt_number}/logs",
+      "GET /repos/{owner}/{repo}/actions/runs/{run_id}/jobs",
+      "GET /repos/{owner}/{repo}/actions/runs/{run_id}/logs",
+      "GET /repos/{owner}/{repo}/actions/runs/{run_id}/pending_deployments",
+      "GET /repos/{owner}/{repo}/actions/runs/{run_id}/timing",
+      "GET /repos/{owner}/{repo}/actions/runs/{run_id}/concurrency_groups",
+      "GET /repos/{owner}/{repo}/actions/concurrency_groups",
+      "GET /repos/{owner}/{repo}/actions/concurrency_groups/{concurrency_group_name}",
+      "GET /repos/{owner}/{repo}/actions/jobs/{job_id}",
+      "GET /repos/{owner}/{repo}/actions/jobs/{job_id}/logs",
+      "GET /repos/{owner}/{repo}/actions/jobs/{job_id}/steps/{step_number}/logs",
+      "GET /repos/{owner}/{repo}/actions/artifacts",
+      "GET /repos/{owner}/{repo}/actions/artifacts/{artifact_id}",
+      "GET /repos/{owner}/{repo}/actions/artifacts/{artifact_id}/{archive_format}",
+      "GET /repos/{owner}/{repo}/actions/runs/{run_id}/artifacts",
+      "GET /repos/{owner}/{repo}/actions/caches",
+      "GET /repos/{owner}/{repo}/actions/cache/usage",
+      "GET /search/code",
+      "GET /search/commits",
+      "GET /search/repositories",
+      "GET /search/topics",
+      "GET /repos/{owner}/{repo}/license",
+      "GET /repos/{owner}/{repo}/community/profile",
+      "GET /repos/{owner}/{repo}/stats/code_frequency",
+      "GET /repos/{owner}/{repo}/stats/commit_activity",
+      "GET /repos/{owner}/{repo}/stats/contributors",
+      "GET /repos/{owner}/{repo}/stats/participation",
+      "GET /repos/{owner}/{repo}/stats/punch_card",
+      "GET /repos/{owner}/{repo}/deployments",
+      "GET /repos/{owner}/{repo}/deployments/{deployment_id}",
+      "GET /repos/{owner}/{repo}/deployments/{deployment_id}/statuses",
+      "GET /repos/{owner}/{repo}/deployments/{deployment_id}/statuses/{status_id}"
+     ],
+     "reviewedReads": [
+      "POST /repos/{owner}/{repo}/releases/generate-notes"
+     ],
+     "scopeSets": [
+      [
+       "repo"
+      ]
+     ]
+    },
+    {
+     "id": "github.issues.read",
+     "label": "Access issues and pull requests",
+     "effect": "read",
+     "defaultMode": "allow",
+     "stayInAccount": false,
+     "operations": [],
+     "requests": [
+      "GET /issues",
+      "GET /user/issues",
+      "GET /orgs/{org}/issues",
+      "GET /repos/{owner}/{repo}/issues",
+      "GET /repos/{owner}/{repo}/issues/{issue_number}",
+      "GET /repos/{owner}/{repo}/issues/comments",
+      "GET /repos/{owner}/{repo}/issues/comments/{comment_id}",
+      "GET /repos/{owner}/{repo}/issues/{issue_number}/comments",
+      "GET /repos/{owner}/{repo}/issues/events",
+      "GET /repos/{owner}/{repo}/issues/events/{event_id}",
+      "GET /repos/{owner}/{repo}/issues/{issue_number}/events",
+      "GET /repos/{owner}/{repo}/issues/{issue_number}/timeline",
+      "GET /repos/{owner}/{repo}/issues/{issue_number}/labels",
+      "GET /repos/{owner}/{repo}/labels",
+      "GET /repos/{owner}/{repo}/labels/{name}",
+      "GET /repos/{owner}/{repo}/milestones",
+      "GET /repos/{owner}/{repo}/milestones/{milestone_number}",
+      "GET /repos/{owner}/{repo}/milestones/{milestone_number}/labels",
+      "GET /repos/{owner}/{repo}/assignees",
+      "GET /repos/{owner}/{repo}/assignees/{assignee}",
+      "GET /repos/{owner}/{repo}/issues/{issue_number}/assignees/{assignee}",
+      "GET /repos/{owner}/{repo}/issues/{issue_number}/sub_issues",
+      "GET /repos/{owner}/{repo}/issues/{issue_number}/parent",
+      "GET /repos/{owner}/{repo}/issues/{issue_number}/dependencies/blocked_by",
+      "GET /repos/{owner}/{repo}/issues/{issue_number}/dependencies/blocking",
+      "GET /repos/{owner}/{repo}/issues/{issue_number}/relates_to",
+      "GET /repos/{owner}/{repo}/issues/{issue_number}/issue-field-values",
+      "GET /repos/{owner}/{repo}/issues/{issue_number}/suggestions",
+      "GET /repos/{owner}/{repo}/issue-types",
+      "GET /repos/{owner}/{repo}/issues/{issue_number}/reactions",
+      "GET /repos/{owner}/{repo}/issues/comments/{comment_id}/reactions",
+      "GET /repos/{owner}/{repo}/pulls",
+      "GET /repos/{owner}/{repo}/pulls/{pull_number}",
+      "GET /repos/{owner}/{repo}/pulls/{pull_number}/files",
+      "GET /repos/{owner}/{repo}/pulls/{pull_number}/commits",
+      "GET /repos/{owner}/{repo}/pulls/{pull_number}/merge",
+      "GET /repos/{owner}/{repo}/pulls/{pull_number}/merge-async/{uuid}",
+      "GET /repos/{owner}/{repo}/pulls/{pull_number}/requested_reviewers",
+      "GET /repos/{owner}/{repo}/pulls/{pull_number}/reviews",
+      "GET /repos/{owner}/{repo}/pulls/{pull_number}/reviews/{review_id}",
+      "GET /repos/{owner}/{repo}/pulls/{pull_number}/reviews/{review_id}/comments",
+      "GET /repos/{owner}/{repo}/pulls/comments",
+      "GET /repos/{owner}/{repo}/pulls/comments/{comment_id}",
+      "GET /repos/{owner}/{repo}/pulls/{pull_number}/comments",
+      "GET /repos/{owner}/{repo}/pulls/comments/{comment_id}/reactions",
+      "GET /repos/{owner}/{repo}/stacks",
+      "GET /repos/{owner}/{repo}/stacks/{stack_number}",
+      "GET /search/issues",
+      "GET /search/labels"
+     ],
+     "reviewedReads": [],
+     "scopeSets": [
+      [
+       "repo"
+      ]
+     ]
+    },
+    {
+     "id": "github.gists.read",
+     "label": "Access gists",
+     "effect": "read",
+     "defaultMode": "allow",
+     "stayInAccount": false,
+     "operations": [],
+     "requests": [
+      "GET /gists",
+      "GET /gists/public",
+      "GET /gists/starred",
+      "GET /gists/{gist_id}",
+      "GET /gists/{gist_id}/comments",
+      "GET /gists/{gist_id}/comments/{comment_id}",
+      "GET /gists/{gist_id}/commits",
+      "GET /gists/{gist_id}/forks",
+      "GET /gists/{gist_id}/star",
+      "GET /gists/{gist_id}/{sha}",
+      "GET /users/{username}/gists"
+     ],
+     "reviewedReads": [],
+     "scopeSets": [
+      [
+       "gist"
+      ]
+     ]
+    },
+    {
+     "id": "github.notifications.manage",
+     "label": "Mark notifications as read or done",
+     "effect": "write",
+     "defaultMode": "allow",
+     "stayInAccount": true,
+     "operations": [],
+     "requests": [
+      "PUT /notifications",
+      "PATCH /notifications/threads/{thread_id}",
+      "DELETE /notifications/threads/{thread_id}",
+      "PUT /notifications/threads/{thread_id}/subscription",
+      "DELETE /notifications/threads/{thread_id}/subscription",
+      "PUT /repos/{owner}/{repo}/notifications"
+     ],
+     "reviewedReads": [],
+     "scopeSets": [
+      [
+       "notifications"
+      ],
+      [
+       "repo"
+      ]
+     ]
+    },
+    {
+     "id": "github.issues.write",
+     "label": "Create and edit issues",
+     "effect": "write",
+     "defaultMode": "ask",
+     "stayInAccount": false,
+     "operations": [],
+     "requests": [
+      "POST /repos/{owner}/{repo}/issues",
+      "PATCH /repos/{owner}/{repo}/issues/{issue_number}",
+      "POST /repos/{owner}/{repo}/issues/{issue_number}/assignees",
+      "DELETE /repos/{owner}/{repo}/issues/{issue_number}/assignees",
+      "POST /repos/{owner}/{repo}/issues/{issue_number}/labels",
+      "PUT /repos/{owner}/{repo}/issues/{issue_number}/labels",
+      "DELETE /repos/{owner}/{repo}/issues/{issue_number}/labels",
+      "DELETE /repos/{owner}/{repo}/issues/{issue_number}/labels/{name}",
+      "PUT /repos/{owner}/{repo}/issues/{issue_number}/lock",
+      "DELETE /repos/{owner}/{repo}/issues/{issue_number}/lock",
+      "POST /repos/{owner}/{repo}/issues/{issue_number}/sub_issues",
+      "DELETE /repos/{owner}/{repo}/issues/{issue_number}/sub_issue",
+      "PATCH /repos/{owner}/{repo}/issues/{issue_number}/sub_issues/priority",
+      "POST /repos/{owner}/{repo}/issues/{issue_number}/dependencies/blocked_by",
+      "DELETE /repos/{owner}/{repo}/issues/{issue_number}/dependencies/blocked_by/{issue_id}",
+      "POST /repos/{owner}/{repo}/issues/{issue_number}/relates_to",
+      "DELETE /repos/{owner}/{repo}/issues/{issue_number}/relates_to/{issue_id}",
+      "POST /repos/{owner}/{repo}/issues/{issue_number}/issue-field-values",
+      "PUT /repos/{owner}/{repo}/issues/{issue_number}/issue-field-values",
+      "DELETE /repos/{owner}/{repo}/issues/{issue_number}/issue-field-values/{issue_field_id}",
+      "POST /repos/{owner}/{repo}/issues/{issue_number}/suggestions/{suggestion_id}/approve",
+      "POST /repos/{owner}/{repo}/issues/{issue_number}/suggestions/{suggestion_id}/dismiss",
+      "POST /repos/{owner}/{repo}/labels",
+      "PATCH /repos/{owner}/{repo}/labels/{name}",
+      "POST /repos/{owner}/{repo}/milestones",
+      "PATCH /repos/{owner}/{repo}/milestones/{milestone_number}"
+     ],
+     "reviewedReads": [],
+     "scopeSets": [
+      [
+       "repo"
+      ]
+     ]
+    },
+    {
+     "id": "github.comments.write",
+     "label": "Comment and review",
+     "effect": "write",
+     "defaultMode": "ask",
+     "stayInAccount": false,
+     "operations": [],
+     "requests": [
+      "POST /repos/{owner}/{repo}/issues/{issue_number}/comments",
+      "PATCH /repos/{owner}/{repo}/issues/comments/{comment_id}",
+      "PUT /repos/{owner}/{repo}/issues/comments/{comment_id}/pin",
+      "DELETE /repos/{owner}/{repo}/issues/comments/{comment_id}/pin",
+      "POST /repos/{owner}/{repo}/commits/{commit_sha}/comments",
+      "PATCH /repos/{owner}/{repo}/comments/{comment_id}",
+      "POST /repos/{owner}/{repo}/pulls/{pull_number}/comments",
+      "POST /repos/{owner}/{repo}/pulls/{pull_number}/comments/{comment_id}/replies",
+      "PATCH /repos/{owner}/{repo}/pulls/comments/{comment_id}",
+      "POST /repos/{owner}/{repo}/pulls/{pull_number}/reviews",
+      "PUT /repos/{owner}/{repo}/pulls/{pull_number}/reviews/{review_id}",
+      "POST /repos/{owner}/{repo}/pulls/{pull_number}/reviews/{review_id}/events",
+      "PUT /repos/{owner}/{repo}/pulls/{pull_number}/reviews/{review_id}/dismissals",
+      "POST /repos/{owner}/{repo}/issues/{issue_number}/reactions",
+      "DELETE /repos/{owner}/{repo}/issues/{issue_number}/reactions/{reaction_id}",
+      "POST /repos/{owner}/{repo}/issues/comments/{comment_id}/reactions",
+      "DELETE /repos/{owner}/{repo}/issues/comments/{comment_id}/reactions/{reaction_id}",
+      "POST /repos/{owner}/{repo}/pulls/comments/{comment_id}/reactions",
+      "DELETE /repos/{owner}/{repo}/pulls/comments/{comment_id}/reactions/{reaction_id}",
+      "POST /repos/{owner}/{repo}/comments/{comment_id}/reactions",
+      "DELETE /repos/{owner}/{repo}/comments/{comment_id}/reactions/{reaction_id}",
+      "POST /repos/{owner}/{repo}/releases/{release_id}/reactions",
+      "DELETE /repos/{owner}/{repo}/releases/{release_id}/reactions/{reaction_id}"
+     ],
+     "reviewedReads": [],
+     "audience": true,
+     "scopeSets": [
+      [
+       "repo"
+      ]
+     ]
+    },
+    {
+     "id": "github.pulls.write",
+     "label": "Open and merge pull requests",
+     "effect": "write",
+     "defaultMode": "ask",
+     "stayInAccount": false,
+     "operations": [],
+     "requests": [
+      "POST /repos/{owner}/{repo}/pulls",
+      "PATCH /repos/{owner}/{repo}/pulls/{pull_number}",
+      "PUT /repos/{owner}/{repo}/pulls/{pull_number}/merge",
+      "PUT /repos/{owner}/{repo}/pulls/{pull_number}/merge-async",
+      "PUT /repos/{owner}/{repo}/pulls/{pull_number}/update-branch",
+      "POST /repos/{owner}/{repo}/pulls/{pull_number}/requested_reviewers",
+      "DELETE /repos/{owner}/{repo}/pulls/{pull_number}/requested_reviewers",
+      "POST /repos/{owner}/{repo}/pulls/{pull_number}/requested_reviewers/rerequest",
+      "POST /repos/{owner}/{repo}/stacks",
+      "POST /repos/{owner}/{repo}/stacks/{stack_number}/add",
+      "POST /repos/{owner}/{repo}/stacks/{stack_number}/unstack"
+     ],
+     "reviewedReads": [],
+     "scopeSets": [
+      [
+       "repo"
+      ]
+     ]
+    },
+    {
+     "id": "github.code.write",
+     "label": "Push code and manage repositories",
+     "effect": "write",
+     "defaultMode": "ask",
+     "stayInAccount": false,
+     "operations": [],
+     "requests": [
+      "PUT /repos/{owner}/{repo}/contents/{+path}",
+      "DELETE /repos/{owner}/{repo}/contents/{+path}",
+      "POST /repos/{owner}/{repo}/git/blobs",
+      "POST /repos/{owner}/{repo}/git/trees",
+      "POST /repos/{owner}/{repo}/git/commits",
+      "POST /repos/{owner}/{repo}/git/tags",
+      "POST /repos/{owner}/{repo}/git/refs",
+      "PATCH /repos/{owner}/{repo}/git/refs/{+ref}",
+      "DELETE /repos/{owner}/{repo}/git/refs/{+ref}",
+      "POST /repos/{owner}/{repo}/merges",
+      "POST /repos/{owner}/{repo}/merge-upstream",
+      "POST /repos/{owner}/{repo}/branches/{branch}/rename",
+      "POST /repos/{owner}/{repo}/releases",
+      "PATCH /repos/{owner}/{repo}/releases/{release_id}",
+      "PATCH /repos/{owner}/{repo}/releases/assets/{asset_id}",
+      "POST /repos/{owner}/{repo}/releases/{release_id}/assets",
+      "POST /user/repos",
+      "POST /orgs/{org}/repos",
+      "POST /repos/{owner}/{repo}/forks",
+      "POST /repos/{template_owner}/{template_repo}/generate",
+      "POST /repositories/{repository_id}/generate",
+      "PATCH /repos/{owner}/{repo}",
+      "PUT /repos/{owner}/{repo}/topics"
+     ],
+     "reviewedReads": [],
+     "scopeSets": [
+      [
+       "repo"
+      ]
+     ],
+     "conditionalScopes": {
+      "workflow": "Needed only to change files under .github/workflows/."
+     },
+     "bodyRoutes": [
+      {
+       "member": "PATCH /repos/{owner}/{repo}",
+       "pointer": "/visibility",
+       "present": true,
+       "to": "github.access.grant"
+      },
+      {
+       "member": "PATCH /repos/{owner}/{repo}",
+       "pointer": "/private",
+       "present": true,
+       "to": "github.access.grant"
+      },
+      {
+       "member": "POST /repos/{owner}/{repo}/forks",
+       "pointer": "/organization",
+       "present": true,
+       "to": "github.access.grant"
+      },
+      {
+       "member": "POST /repos/{template_owner}/{template_repo}/generate",
+       "pointer": "/owner",
+       "present": true,
+       "to": "github.access.grant"
+      },
+      {
+       "member": "POST /repositories/{repository_id}/generate",
+       "pointer": "/owner",
+       "present": true,
+       "to": "github.access.grant"
+      }
+     ]
+    },
+    {
+     "id": "github.actions.run",
+     "label": "Run workflows",
+     "effect": "write",
+     "defaultMode": "ask",
+     "stayInAccount": false,
+     "operations": [],
+     "requests": [
+      "POST /repos/{owner}/{repo}/actions/workflows/{workflow_id}/dispatches",
+      "PUT /repos/{owner}/{repo}/actions/workflows/{workflow_id}/enable",
+      "PUT /repos/{owner}/{repo}/actions/workflows/{workflow_id}/disable",
+      "POST /repos/{owner}/{repo}/dispatches",
+      "POST /repos/{owner}/{repo}/actions/runs/{run_id}/rerun",
+      "POST /repos/{owner}/{repo}/actions/runs/{run_id}/rerun-failed-jobs",
+      "POST /repos/{owner}/{repo}/actions/jobs/{job_id}/rerun",
+      "POST /repos/{owner}/{repo}/actions/runs/{run_id}/cancel",
+      "POST /repos/{owner}/{repo}/actions/runs/{run_id}/force-cancel",
+      "POST /repos/{owner}/{repo}/actions/runs/{run_id}/approve"
+     ],
+     "reviewedReads": [],
+     "scopeSets": [
+      [
+       "repo"
+      ]
+     ]
+    },
+    {
+     "id": "github.gists.write",
+     "label": "Create and edit gists",
+     "effect": "write",
+     "defaultMode": "ask",
+     "stayInAccount": false,
+     "operations": [],
+     "requests": [
+      "POST /gists",
+      "PATCH /gists/{gist_id}",
+      "POST /gists/{gist_id}/forks",
+      "POST /gists/{gist_id}/comments",
+      "PATCH /gists/{gist_id}/comments/{comment_id}"
+     ],
+     "reviewedReads": [],
+     "scopeSets": [
+      [
+       "gist"
+      ]
+     ]
+    },
+    {
+     "id": "github.permanent.delete",
+     "label": "Permanently delete repos, comments, releases and gists",
+     "effect": "delete",
+     "defaultMode": "deny",
+     "stayInAccount": false,
+     "operations": [],
+     "requests": [
+      "DELETE /repos/{owner}/{repo}",
+      "DELETE /repos/{owner}/{repo}/issues/comments/{comment_id}",
+      "DELETE /repos/{owner}/{repo}/pulls/comments/{comment_id}",
+      "DELETE /repos/{owner}/{repo}/comments/{comment_id}",
+      "DELETE /repos/{owner}/{repo}/pulls/{pull_number}/reviews/{review_id}",
+      "DELETE /repos/{owner}/{repo}/labels/{name}",
+      "DELETE /repos/{owner}/{repo}/milestones/{milestone_number}",
+      "DELETE /repos/{owner}/{repo}/releases/{release_id}",
+      "DELETE /repos/{owner}/{repo}/releases/assets/{asset_id}",
+      "DELETE /repos/{owner}/{repo}/actions/runs/{run_id}",
+      "DELETE /repos/{owner}/{repo}/actions/runs/{run_id}/logs",
+      "DELETE /repos/{owner}/{repo}/actions/artifacts/{artifact_id}",
+      "DELETE /repos/{owner}/{repo}/actions/caches",
+      "DELETE /repos/{owner}/{repo}/actions/caches/{cache_id}",
+      "DELETE /gists/{gist_id}",
+      "DELETE /gists/{gist_id}/comments/{comment_id}",
+      "DELETE /repos/{owner}/{repo}/actions/secrets/{secret_name}",
+      "DELETE /repos/{owner}/{repo}/environments/{environment_name}/secrets/{secret_name}",
+      "DELETE /repos/{owner}/{repo}/actions/variables/{name}",
+      "DELETE /repos/{owner}/{repo}/environments/{environment_name}/variables/{name}",
+      "DELETE /repos/{owner}/{repo}/rulesets/{ruleset_id}",
+      "DELETE /repos/{owner}/{repo}/autolinks/{autolink_id}",
+      "DELETE /repos/{owner}/{repo}/actions/runners/{runner_id}",
+      "DELETE /user/keys/{key_id}",
+      "DELETE /user/gpg_keys/{gpg_key_id}",
+      "DELETE /user/ssh_signing_keys/{ssh_signing_key_id}",
+      "DELETE /users/{username}/attestations/digest/{+subject_digest}",
+      "DELETE /users/{username}/attestations/{attestation_id}"
+     ],
+     "reviewedReads": [],
+     "scopeSets": [
+      [
+       "repo"
+      ]
+     ],
+     "memberScopeSets": {
+      "DELETE /gists/{gist_id}": [
+       [
+        "gist"
+       ]
+      ],
+      "DELETE /gists/{gist_id}/comments/{comment_id}": [
+       [
+        "gist"
+       ]
+      ]
+     },
+     "unavailable": {
+      "DELETE /repos/{owner}/{repo}": "not-requested",
+      "DELETE /user/keys/{key_id}": "not-requested",
+      "DELETE /user/gpg_keys/{gpg_key_id}": "not-requested",
+      "DELETE /user/ssh_signing_keys/{ssh_signing_key_id}": "not-requested",
+      "DELETE /users/{username}/attestations/digest/{subject_digest}": "no-oauth-scope",
+      "DELETE /users/{username}/attestations/{attestation_id}": "no-oauth-scope"
+     }
+    },
+    {
+     "id": "github.access.grant",
+     "label": "Give access to other people or services",
+     "effect": "write",
+     "defaultMode": "deny",
+     "stayInAccount": false,
+     "operations": [],
+     "requests": [
+      "POST /repos/{owner}/{repo}/hooks",
+      "PATCH /repos/{owner}/{repo}/hooks/{hook_id}",
+      "DELETE /repos/{owner}/{repo}/hooks/{hook_id}",
+      "PATCH /repos/{owner}/{repo}/hooks/{hook_id}/config",
+      "POST /repos/{owner}/{repo}/hooks/{hook_id}/pings",
+      "POST /repos/{owner}/{repo}/hooks/{hook_id}/tests",
+      "POST /repos/{owner}/{repo}/hooks/{hook_id}/deliveries/{delivery_id}/attempts",
+      "POST /orgs/{org}/hooks",
+      "PATCH /orgs/{org}/hooks/{hook_id}",
+      "DELETE /orgs/{org}/hooks/{hook_id}",
+      "PATCH /orgs/{org}/hooks/{hook_id}/config",
+      "POST /orgs/{org}/hooks/{hook_id}/pings",
+      "POST /orgs/{org}/hooks/{hook_id}/deliveries/{delivery_id}/attempts",
+      "PUT /repos/{owner}/{repo}/collaborators/{username}",
+      "PATCH /repos/{owner}/{repo}/invitations/{invitation_id}",
+      "POST /orgs/{org}/invitations",
+      "PUT /orgs/{org}/memberships/{username}",
+      "POST /repos/{owner}/{repo}/keys",
+      "DELETE /repos/{owner}/{repo}/keys/{key_id}",
+      "POST /user/keys",
+      "PUT /repos/{owner}/{repo}/actions/secrets/{secret_name}",
+      "PUT /repos/{owner}/{repo}/dependabot/secrets/{secret_name}",
+      "PUT /repos/{owner}/{repo}/codespaces/secrets/{secret_name}",
+      "PUT /repos/{owner}/{repo}/environments/{environment_name}/secrets/{secret_name}",
+      "PUT /orgs/{org}/actions/secrets/{secret_name}",
+      "PUT /orgs/{org}/dependabot/secrets/{secret_name}",
+      "PUT /orgs/{org}/codespaces/secrets/{secret_name}",
+      "PUT /user/codespaces/secrets/{secret_name}",
+      "PUT /repos/{owner}/{repo}/environments/{environment_name}",
+      "POST /repos/{owner}/{repo}/transfer",
+      "PUT /orgs/{org}/teams/{team_slug}/repos/{owner}/{repo}",
+      "PUT /teams/{team_id}/repos/{owner}/{repo}",
+      "PUT /orgs/{org}/teams/{team_slug}/memberships/{username}",
+      "PUT /teams/{team_id}/memberships/{username}",
+      "PUT /user/installations/{installation_id}/repositories/{repository_id}",
+      "POST /repos/{owner}/{repo}/actions/runners/registration-token",
+      "POST /repos/{owner}/{repo}/actions/runners/generate-jitconfig",
+      "POST /orgs/{org}/actions/runners/registration-token",
+      "POST /orgs/{org}/actions/runners/generate-jitconfig",
+      "POST /organizations/{organization_id}/hooks",
+      "PATCH /organizations/{organization_id}/hooks/{hook_id}",
+      "DELETE /organizations/{organization_id}/hooks/{hook_id}",
+      "PATCH /organizations/{organization_id}/hooks/{hook_id}/config",
+      "POST /organizations/{organization_id}/hooks/{hook_id}/pings",
+      "POST /organizations/{organization_id}/hooks/{hook_id}/deliveries/{delivery_id}/attempts",
+      "POST /organizations/{organization_id}/invitations",
+      "PUT /organizations/{organization_id}/memberships/{username}",
+      "PUT /organizations/{organization_id}/actions/secrets/{secret_name}",
+      "PUT /organizations/{organization_id}/dependabot/secrets/{secret_name}",
+      "PUT /organizations/{organization_id}/codespaces/secrets/{secret_name}",
+      "PUT /organizations/{organization_id}/teams/{team_slug}/repos/{owner}/{repo}",
+      "PUT /organizations/{organization_id}/teams/{team_slug}/memberships/{username}",
+      "POST /organizations/{organization_id}/actions/runners/registration-token",
+      "POST /organizations/{organization_id}/actions/runners/generate-jitconfig",
+      "PUT /organizations/{organization_id}/team/{team_id}/repos/{owner}/{repo}",
+      "PUT /organizations/{organization_id}/team/{team_id}/memberships/{username}",
+      "PUT /teams/{team_id}/members/{username}",
+      "PUT /repos/{owner}/{repo}/agents/secrets/{secret_name}",
+      "PUT /orgs/{org}/agents/secrets/{secret_name}",
+      "PUT /orgs/{org}/actions/secrets/{secret_name}/repositories",
+      "PUT /orgs/{org}/actions/secrets/{secret_name}/repositories/{repository_id}",
+      "PUT /orgs/{org}/dependabot/secrets/{secret_name}/repositories",
+      "PUT /orgs/{org}/dependabot/secrets/{secret_name}/repositories/{repository_id}",
+      "PUT /orgs/{org}/codespaces/secrets/{secret_name}/repositories",
+      "PUT /orgs/{org}/codespaces/secrets/{secret_name}/repositories/{repository_id}",
+      "PUT /orgs/{org}/agents/secrets/{secret_name}/repositories",
+      "PUT /orgs/{org}/agents/secrets/{secret_name}/repositories/{repository_id}",
+      "PUT /user/codespaces/secrets/{secret_name}/repositories",
+      "PUT /user/codespaces/secrets/{secret_name}/repositories/{repository_id}",
+      "PUT /orgs/{org}/organization-roles/teams/{team_slug}/{role_id}",
+      "PUT /orgs/{org}/organization-roles/users/{username}/{role_id}",
+      "PUT /orgs/{org}/security-managers/teams/{team_slug}",
+      "POST /orgs/{org}/copilot-spaces/{space_number}/collaborators",
+      "PUT /orgs/{org}/copilot-spaces/{space_number}/collaborators/{actor_type}/{actor_identifier}",
+      "POST /users/{username}/copilot-spaces/{space_number}/collaborators",
+      "PUT /users/{username}/copilot-spaces/{space_number}/collaborators/{actor_type}/{actor_identifier}",
+      "PUT /repos/{owner}/{repo}/actions/permissions/access",
+      "POST /orgs/{org}/private-registries",
+      "PATCH /orgs/{org}/private-registries/{secret_name}",
+      "PUT /organizations/{organization_id}/agents/secrets/{secret_name}",
+      "PUT /organizations/{organization_id}/actions/secrets/{secret_name}/repositories",
+      "PUT /organizations/{organization_id}/actions/secrets/{secret_name}/repositories/{repository_id}",
+      "PUT /organizations/{organization_id}/dependabot/secrets/{secret_name}/repositories",
+      "PUT /organizations/{organization_id}/dependabot/secrets/{secret_name}/repositories/{repository_id}",
+      "PUT /organizations/{organization_id}/codespaces/secrets/{secret_name}/repositories",
+      "PUT /organizations/{organization_id}/codespaces/secrets/{secret_name}/repositories/{repository_id}",
+      "PUT /organizations/{organization_id}/agents/secrets/{secret_name}/repositories",
+      "PUT /organizations/{organization_id}/agents/secrets/{secret_name}/repositories/{repository_id}",
+      "PUT /organizations/{organization_id}/organization-roles/teams/{team_slug}/{role_id}",
+      "PUT /organizations/{organization_id}/organization-roles/users/{username}/{role_id}",
+      "PUT /organizations/{organization_id}/security-managers/teams/{team_slug}",
+      "POST /organizations/{organization_id}/copilot-spaces/{space_number}/collaborators",
+      "PUT /organizations/{organization_id}/copilot-spaces/{space_number}/collaborators/{actor_type}/{actor_identifier}",
+      "POST /organizations/{organization_id}/private-registries",
+      "PATCH /organizations/{organization_id}/private-registries/{secret_name}"
+     ],
+     "reviewedReads": [],
+     "locked": "fabric",
+     "memberScopeSets": {
+      "POST /repos/{owner}/{repo}/hooks": [
+       [
+        "admin:repo_hook"
+       ],
+       [
+        "repo"
+       ]
+      ],
+      "PATCH /repos/{owner}/{repo}/hooks/{hook_id}": [
+       [
+        "admin:repo_hook"
+       ],
+       [
+        "repo"
+       ]
+      ],
+      "DELETE /repos/{owner}/{repo}/hooks/{hook_id}": [
+       [
+        "admin:repo_hook"
+       ],
+       [
+        "repo"
+       ]
+      ],
+      "PATCH /repos/{owner}/{repo}/hooks/{hook_id}/config": [
+       [
+        "admin:repo_hook"
+       ],
+       [
+        "repo"
+       ]
+      ],
+      "POST /repos/{owner}/{repo}/hooks/{hook_id}/pings": [
+       [
+        "admin:repo_hook"
+       ],
+       [
+        "repo"
+       ]
+      ],
+      "POST /repos/{owner}/{repo}/hooks/{hook_id}/tests": [
+       [
+        "admin:repo_hook"
+       ],
+       [
+        "repo"
+       ]
+      ],
+      "POST /repos/{owner}/{repo}/hooks/{hook_id}/deliveries/{delivery_id}/attempts": [
+       [
+        "admin:repo_hook"
+       ],
+       [
+        "repo"
+       ]
+      ],
+      "PUT /repos/{owner}/{repo}/collaborators/{username}": [
+       [
+        "repo"
+       ]
+      ],
+      "PATCH /repos/{owner}/{repo}/invitations/{invitation_id}": [
+       [
+        "repo"
+       ]
+      ],
+      "POST /orgs/{org}/invitations": [
+       [
+        "admin:org"
+       ],
+       [
+        "repo"
+       ]
+      ],
+      "POST /repos/{owner}/{repo}/keys": [
+       [
+        "repo"
+       ]
+      ],
+      "DELETE /repos/{owner}/{repo}/keys/{key_id}": [
+       [
+        "repo"
+       ]
+      ],
+      "PUT /repos/{owner}/{repo}/actions/secrets/{secret_name}": [
+       [
+        "repo"
+       ]
+      ],
+      "PUT /repos/{owner}/{repo}/dependabot/secrets/{secret_name}": [
+       [
+        "repo"
+       ]
+      ],
+      "PUT /repos/{owner}/{repo}/codespaces/secrets/{secret_name}": [
+       [
+        "repo"
+       ]
+      ],
+      "PUT /repos/{owner}/{repo}/environments/{environment_name}/secrets/{secret_name}": [
+       [
+        "repo"
+       ]
+      ],
+      "PUT /repos/{owner}/{repo}/environments/{environment_name}": [
+       [
+        "repo"
+       ]
+      ],
+      "POST /repos/{owner}/{repo}/transfer": [
+       [
+        "repo"
+       ]
+      ],
+      "PUT /orgs/{org}/teams/{team_slug}/repos/{owner}/{repo}": [
+       [
+        "read:org"
+       ]
+      ],
+      "PUT /teams/{team_id}/repos/{owner}/{repo}": [
+       [
+        "read:org"
+       ]
+      ],
+      "PUT /orgs/{org}/teams/{team_slug}/memberships/{username}": [
+       [
+        "read:org"
+       ]
+      ],
+      "PUT /teams/{team_id}/memberships/{username}": [
+       [
+        "read:org"
+       ]
+      ],
+      "PUT /user/installations/{installation_id}/repositories/{repository_id}": [
+       [
+        "repo"
+       ]
+      ],
+      "POST /repos/{owner}/{repo}/actions/runners/registration-token": [
+       [
+        "repo"
+       ]
+      ],
+      "POST /repos/{owner}/{repo}/actions/runners/generate-jitconfig": [
+       [
+        "repo"
+       ]
+      ],
+      "POST /organizations/{organization_id}/invitations": [
+       [
+        "admin:org"
+       ],
+       [
+        "repo"
+       ]
+      ],
+      "PUT /organizations/{organization_id}/teams/{team_slug}/repos/{owner}/{repo}": [
+       [
+        "read:org"
+       ]
+      ],
+      "PUT /organizations/{organization_id}/teams/{team_slug}/memberships/{username}": [
+       [
+        "read:org"
+       ]
+      ],
+      "PUT /organizations/{organization_id}/team/{team_id}/repos/{owner}/{repo}": [
+       [
+        "read:org"
+       ]
+      ],
+      "PUT /organizations/{organization_id}/team/{team_id}/memberships/{username}": [
+       [
+        "read:org"
+       ]
+      ],
+      "PUT /teams/{team_id}/members/{username}": [
+       [
+        "read:org"
+       ]
+      ],
+      "PUT /repos/{owner}/{repo}/agents/secrets/{secret_name}": [
+       [
+        "repo"
+       ]
+      ],
+      "PUT /repos/{owner}/{repo}/actions/permissions/access": [
+       [
+        "repo"
+       ]
+      ]
+     },
+     "unavailable": {
+      "POST /orgs/{org}/hooks": "not-requested",
+      "PATCH /orgs/{org}/hooks/{hook_id}": "not-requested",
+      "DELETE /orgs/{org}/hooks/{hook_id}": "not-requested",
+      "PATCH /orgs/{org}/hooks/{hook_id}/config": "not-requested",
+      "POST /orgs/{org}/hooks/{hook_id}/pings": "not-requested",
+      "POST /orgs/{org}/hooks/{hook_id}/deliveries/{delivery_id}/attempts": "not-requested",
+      "PUT /orgs/{org}/memberships/{username}": "not-requested",
+      "POST /user/keys": "not-requested",
+      "PUT /orgs/{org}/actions/secrets/{secret_name}": "not-requested",
+      "PUT /orgs/{org}/dependabot/secrets/{secret_name}": "not-requested",
+      "PUT /orgs/{org}/codespaces/secrets/{secret_name}": "not-requested",
+      "PUT /user/codespaces/secrets/{secret_name}": "not-requested",
+      "POST /orgs/{org}/actions/runners/registration-token": "not-requested",
+      "POST /orgs/{org}/actions/runners/generate-jitconfig": "not-requested",
+      "POST /organizations/{organization_id}/hooks": "not-requested",
+      "PATCH /organizations/{organization_id}/hooks/{hook_id}": "not-requested",
+      "DELETE /organizations/{organization_id}/hooks/{hook_id}": "not-requested",
+      "PATCH /organizations/{organization_id}/hooks/{hook_id}/config": "not-requested",
+      "POST /organizations/{organization_id}/hooks/{hook_id}/pings": "not-requested",
+      "POST /organizations/{organization_id}/hooks/{hook_id}/deliveries/{delivery_id}/attempts": "not-requested",
+      "PUT /organizations/{organization_id}/memberships/{username}": "not-requested",
+      "PUT /organizations/{organization_id}/actions/secrets/{secret_name}": "not-requested",
+      "PUT /organizations/{organization_id}/dependabot/secrets/{secret_name}": "not-requested",
+      "PUT /organizations/{organization_id}/codespaces/secrets/{secret_name}": "not-requested",
+      "POST /organizations/{organization_id}/actions/runners/registration-token": "not-requested",
+      "POST /organizations/{organization_id}/actions/runners/generate-jitconfig": "not-requested",
+      "PUT /orgs/{org}/agents/secrets/{secret_name}": "not-requested",
+      "PUT /orgs/{org}/actions/secrets/{secret_name}/repositories": "not-requested",
+      "PUT /orgs/{org}/actions/secrets/{secret_name}/repositories/{repository_id}": "not-requested",
+      "PUT /orgs/{org}/dependabot/secrets/{secret_name}/repositories": "not-requested",
+      "PUT /orgs/{org}/dependabot/secrets/{secret_name}/repositories/{repository_id}": "not-requested",
+      "PUT /orgs/{org}/codespaces/secrets/{secret_name}/repositories": "not-requested",
+      "PUT /orgs/{org}/codespaces/secrets/{secret_name}/repositories/{repository_id}": "not-requested",
+      "PUT /orgs/{org}/agents/secrets/{secret_name}/repositories": "not-requested",
+      "PUT /orgs/{org}/agents/secrets/{secret_name}/repositories/{repository_id}": "not-requested",
+      "PUT /user/codespaces/secrets/{secret_name}/repositories": "not-requested",
+      "PUT /user/codespaces/secrets/{secret_name}/repositories/{repository_id}": "not-requested",
+      "PUT /orgs/{org}/organization-roles/teams/{team_slug}/{role_id}": "not-requested",
+      "PUT /orgs/{org}/organization-roles/users/{username}/{role_id}": "not-requested",
+      "PUT /orgs/{org}/security-managers/teams/{team_slug}": "not-requested",
+      "POST /orgs/{org}/copilot-spaces/{space_number}/collaborators": "not-requested",
+      "PUT /orgs/{org}/copilot-spaces/{space_number}/collaborators/{actor_type}/{actor_identifier}": "not-requested",
+      "POST /users/{username}/copilot-spaces/{space_number}/collaborators": "not-requested",
+      "PUT /users/{username}/copilot-spaces/{space_number}/collaborators/{actor_type}/{actor_identifier}": "not-requested",
+      "POST /orgs/{org}/private-registries": "not-requested",
+      "PATCH /orgs/{org}/private-registries/{secret_name}": "not-requested",
+      "PUT /organizations/{organization_id}/agents/secrets/{secret_name}": "not-requested",
+      "PUT /organizations/{organization_id}/actions/secrets/{secret_name}/repositories": "not-requested",
+      "PUT /organizations/{organization_id}/actions/secrets/{secret_name}/repositories/{repository_id}": "not-requested",
+      "PUT /organizations/{organization_id}/dependabot/secrets/{secret_name}/repositories": "not-requested",
+      "PUT /organizations/{organization_id}/dependabot/secrets/{secret_name}/repositories/{repository_id}": "not-requested",
+      "PUT /organizations/{organization_id}/codespaces/secrets/{secret_name}/repositories": "not-requested",
+      "PUT /organizations/{organization_id}/codespaces/secrets/{secret_name}/repositories/{repository_id}": "not-requested",
+      "PUT /organizations/{organization_id}/agents/secrets/{secret_name}/repositories": "not-requested",
+      "PUT /organizations/{organization_id}/agents/secrets/{secret_name}/repositories/{repository_id}": "not-requested",
+      "PUT /organizations/{organization_id}/organization-roles/teams/{team_slug}/{role_id}": "not-requested",
+      "PUT /organizations/{organization_id}/organization-roles/users/{username}/{role_id}": "not-requested",
+      "PUT /organizations/{organization_id}/security-managers/teams/{team_slug}": "not-requested",
+      "POST /organizations/{organization_id}/copilot-spaces/{space_number}/collaborators": "not-requested",
+      "PUT /organizations/{organization_id}/copilot-spaces/{space_number}/collaborators/{actor_type}/{actor_identifier}": "not-requested",
+      "POST /organizations/{organization_id}/private-registries": "not-requested",
+      "PATCH /organizations/{organization_id}/private-registries/{secret_name}": "not-requested"
+     }
+    }
+   ]
+  },
+  "gmail": {
+   "schemaVersion": 2,
+   "appId": "gmail",
+   "groups": [
+    {
+     "id": "gmail.drafts.read",
+     "label": "Access drafts",
+     "effect": "read",
+     "defaultMode": "allow",
+     "stayInAccount": false,
+     "operations": [
+      "gmail.users.drafts.get",
+      "gmail.users.drafts.list"
+     ],
+     "requests": [],
+     "reviewedReads": [],
+     "scopeSets": [
+      [
+       "https://www.googleapis.com/auth/gmail.modify"
+      ],
+      [
+       "https://www.googleapis.com/auth/gmail.readonly"
+      ]
+     ]
+    },
+    {
+     "id": "gmail.labels.read",
+     "label": "Access labels, filters and settings",
+     "effect": "read",
+     "defaultMode": "allow",
+     "stayInAccount": false,
+     "operations": [
+      "gmail.users.labels.get",
+      "gmail.users.labels.list",
+      "gmail.users.settings.filters.get",
+      "gmail.users.settings.filters.list",
+      "gmail.users.settings.getAutoForwarding",
+      "gmail.users.settings.getImap",
+      "gmail.users.settings.getLanguage",
+      "gmail.users.settings.getPop",
+      "gmail.users.settings.getVacation",
+      "gmail.users.settings.sendAs.get",
+      "gmail.users.settings.sendAs.list",
+      "gmail.users.settings.sendAs.smimeInfo.get",
+      "gmail.users.settings.sendAs.smimeInfo.list",
+      "gmail.users.settings.forwardingAddresses.get",
+      "gmail.users.settings.forwardingAddresses.list",
+      "gmail.users.settings.delegates.get",
+      "gmail.users.settings.delegates.list",
+      "gmail.users.settings.cse.identities.get",
+      "gmail.users.settings.cse.identities.list",
+      "gmail.users.settings.cse.keypairs.get",
+      "gmail.users.settings.cse.keypairs.list"
+     ],
+     "requests": [],
+     "reviewedReads": [],
+     "scopeSets": [
+      [
+       "https://www.googleapis.com/auth/gmail.modify"
+      ],
+      [
+       "https://www.googleapis.com/auth/gmail.readonly"
+      ]
+     ],
+     "unavailable": {
+      "gmail.users.settings.delegates.get": "service-account-only",
+      "gmail.users.settings.delegates.list": "service-account-only",
+      "gmail.users.settings.cse.identities.get": "workspace-cse-only",
+      "gmail.users.settings.cse.identities.list": "workspace-cse-only",
+      "gmail.users.settings.cse.keypairs.get": "workspace-cse-only",
+      "gmail.users.settings.cse.keypairs.list": "workspace-cse-only"
+     }
+    },
+    {
+     "id": "gmail.messages.read",
+     "label": "Access emails",
+     "effect": "read",
+     "defaultMode": "allow",
+     "stayInAccount": false,
+     "operations": [
+      "gmail.users.messages.get",
+      "gmail.users.messages.attachments.get",
+      "gmail.users.threads.get",
+      "gmail.users.history.list",
+      "gmail.users.getProfile"
+     ],
+     "requests": [],
+     "reviewedReads": [],
+     "scopeSets": [
+      [
+       "https://www.googleapis.com/auth/gmail.modify"
+      ],
+      [
+       "https://www.googleapis.com/auth/gmail.readonly"
+      ]
+     ]
+    },
+    {
+     "id": "gmail.messages.search",
+     "label": "Search emails",
+     "effect": "read",
+     "defaultMode": "allow",
+     "stayInAccount": false,
+     "operations": [
+      "gmail.users.messages.list",
+      "gmail.users.threads.list"
+     ],
+     "requests": [],
+     "reviewedReads": [],
+     "scopeSets": [
+      [
+       "https://www.googleapis.com/auth/gmail.modify"
+      ],
+      [
+       "https://www.googleapis.com/auth/gmail.readonly"
+      ]
+     ]
+    },
+    {
+     "id": "gmail.drafts.write",
+     "label": "Draft emails",
+     "effect": "write",
+     "defaultMode": "allow",
+     "stayInAccount": true,
+     "operations": [
+      "gmail.users.drafts.create",
+      "gmail.users.drafts.update"
+     ],
+     "requests": [],
+     "reviewedReads": [],
+     "scopeSets": [
+      [
+       "https://www.googleapis.com/auth/gmail.modify"
+      ]
+     ]
+    },
+    {
+     "id": "gmail.messages.send",
+     "label": "Send emails",
+     "effect": "write",
+     "defaultMode": "ask",
+     "stayInAccount": false,
+     "operations": [
+      "gmail.users.messages.send",
+      "gmail.users.drafts.send"
+     ],
+     "requests": [],
+     "reviewedReads": [],
+     "audience": true,
+     "scopeSets": [
+      [
+       "https://www.googleapis.com/auth/gmail.modify"
+      ]
+     ]
+    },
+    {
+     "id": "gmail.labels.manage",
+     "label": "Manage labels",
+     "effect": "write",
+     "defaultMode": "allow",
+     "stayInAccount": true,
+     "operations": [
+      "gmail.users.labels.create",
+      "gmail.users.labels.update",
+      "gmail.users.labels.patch"
+     ],
+     "requests": [],
+     "reviewedReads": [],
+     "scopeSets": [
+      [
+       "https://www.googleapis.com/auth/gmail.modify"
+      ]
+     ]
+    },
+    {
+     "id": "gmail.messages.mark",
+     "label": "Mark as read or unread, archive or label emails",
+     "effect": "write",
+     "defaultMode": "ask",
+     "stayInAccount": false,
+     "operations": [
+      "gmail.users.messages.modify",
+      "gmail.users.threads.modify",
+      "gmail.users.messages.batchModify"
+     ],
+     "requests": [],
+     "reviewedReads": [],
+     "scopeSets": [
+      [
+       "https://www.googleapis.com/auth/gmail.modify"
+      ]
+     ],
+     "bodyRoutes": [
+      {
+       "member": "gmail.users.messages.modify",
+       "pointer": "/addLabelIds",
+       "contains": "TRASH",
+       "to": "gmail.messages.trash"
+      },
+      {
+       "member": "gmail.users.messages.modify",
+       "pointer": "/addLabelIds",
+       "contains": "SPAM",
+       "to": "gmail.messages.trash"
+      },
+      {
+       "member": "gmail.users.messages.modify",
+       "pointer": "/removeLabelIds",
+       "contains": "TRASH",
+       "to": "gmail.messages.trash"
+      },
+      {
+       "member": "gmail.users.messages.modify",
+       "pointer": "/removeLabelIds",
+       "contains": "SPAM",
+       "to": "gmail.messages.trash"
+      },
+      {
+       "member": "gmail.users.threads.modify",
+       "pointer": "/addLabelIds",
+       "contains": "TRASH",
+       "to": "gmail.messages.trash"
+      },
+      {
+       "member": "gmail.users.threads.modify",
+       "pointer": "/addLabelIds",
+       "contains": "SPAM",
+       "to": "gmail.messages.trash"
+      },
+      {
+       "member": "gmail.users.threads.modify",
+       "pointer": "/removeLabelIds",
+       "contains": "TRASH",
+       "to": "gmail.messages.trash"
+      },
+      {
+       "member": "gmail.users.threads.modify",
+       "pointer": "/removeLabelIds",
+       "contains": "SPAM",
+       "to": "gmail.messages.trash"
+      },
+      {
+       "member": "gmail.users.messages.batchModify",
+       "pointer": "/addLabelIds",
+       "contains": "TRASH",
+       "to": "gmail.messages.trash"
+      },
+      {
+       "member": "gmail.users.messages.batchModify",
+       "pointer": "/addLabelIds",
+       "contains": "SPAM",
+       "to": "gmail.messages.trash"
+      },
+      {
+       "member": "gmail.users.messages.batchModify",
+       "pointer": "/removeLabelIds",
+       "contains": "TRASH",
+       "to": "gmail.messages.trash"
+      },
+      {
+       "member": "gmail.users.messages.batchModify",
+       "pointer": "/removeLabelIds",
+       "contains": "SPAM",
+       "to": "gmail.messages.trash"
+      }
+     ]
+    },
+    {
+     "id": "gmail.messages.import",
+     "label": "Import emails",
+     "effect": "write",
+     "defaultMode": "ask",
+     "stayInAccount": false,
+     "operations": [
+      "gmail.users.messages.import",
+      "gmail.users.messages.insert"
+     ],
+     "requests": [],
+     "reviewedReads": [],
+     "scopeSets": [
+      [
+       "https://www.googleapis.com/auth/gmail.modify"
+      ]
+     ]
+    },
+    {
+     "id": "gmail.messages.trash",
+     "label": "Move emails to or from trash",
+     "effect": "delete",
+     "defaultMode": "ask",
+     "stayInAccount": false,
+     "operations": [
+      "gmail.users.messages.trash",
+      "gmail.users.messages.untrash",
+      "gmail.users.threads.trash",
+      "gmail.users.threads.untrash"
+     ],
+     "requests": [],
+     "reviewedReads": [],
+     "scopeSets": [
+      [
+       "https://www.googleapis.com/auth/gmail.modify"
+      ]
+     ]
+    },
+    {
+     "id": "gmail.settings.write",
+     "label": "Change mail settings, filters and vacation reply",
+     "effect": "write",
+     "defaultMode": "ask",
+     "stayInAccount": false,
+     "operations": [
+      "gmail.users.settings.filters.create",
+      "gmail.users.settings.updateVacation",
+      "gmail.users.settings.updateImap",
+      "gmail.users.settings.updatePop",
+      "gmail.users.settings.updateLanguage",
+      "gmail.users.settings.sendAs.smimeInfo.insert",
+      "gmail.users.settings.sendAs.smimeInfo.delete",
+      "gmail.users.settings.sendAs.smimeInfo.setDefault",
+      "gmail.users.settings.cse.identities.create",
+      "gmail.users.settings.cse.identities.delete",
+      "gmail.users.settings.cse.identities.patch",
+      "gmail.users.settings.cse.keypairs.create",
+      "gmail.users.settings.cse.keypairs.disable",
+      "gmail.users.settings.cse.keypairs.enable"
+     ],
+     "requests": [],
+     "reviewedReads": [],
+     "scopeSets": [
+      [
+       "https://www.googleapis.com/auth/gmail.settings.basic"
+      ]
+     ],
+     "unavailable": {
+      "gmail.users.settings.cse.identities.create": "workspace-cse-only",
+      "gmail.users.settings.cse.identities.delete": "workspace-cse-only",
+      "gmail.users.settings.cse.identities.patch": "workspace-cse-only",
+      "gmail.users.settings.cse.keypairs.create": "workspace-cse-only",
+      "gmail.users.settings.cse.keypairs.disable": "workspace-cse-only",
+      "gmail.users.settings.cse.keypairs.enable": "workspace-cse-only"
+     },
+     "bodyRoutes": [
+      {
+       "member": "gmail.users.settings.filters.create",
+       "pointer": "/action/forward",
+       "present": true,
+       "to": "gmail.access.grant"
+      },
+      {
+       "member": "gmail.users.settings.filters.create",
+       "pointer": "/action/addLabelIds",
+       "contains": "TRASH",
+       "to": "gmail.messages.trash"
+      },
+      {
+       "member": "gmail.users.settings.filters.create",
+       "pointer": "/action/addLabelIds",
+       "contains": "SPAM",
+       "to": "gmail.messages.trash"
+      }
+     ]
+    },
+    {
+     "id": "gmail.items.delete",
+     "label": "Delete drafts, labels or filters",
+     "effect": "delete",
+     "defaultMode": "ask",
+     "stayInAccount": false,
+     "operations": [
+      "gmail.users.drafts.delete",
+      "gmail.users.labels.delete",
+      "gmail.users.settings.filters.delete"
+     ],
+     "requests": [],
+     "reviewedReads": [],
+     "scopeSets": [
+      [
+       "https://www.googleapis.com/auth/gmail.modify"
+      ]
+     ],
+     "memberScopeSets": {
+      "gmail.users.settings.filters.delete": [
+       [
+        "https://www.googleapis.com/auth/gmail.settings.basic"
+       ]
+      ]
+     }
+    },
+    {
+     "id": "gmail.permanent.delete",
+     "label": "Permanently delete emails",
+     "effect": "delete",
+     "defaultMode": "deny",
+     "stayInAccount": false,
+     "operations": [
+      "gmail.users.messages.delete",
+      "gmail.users.messages.batchDelete",
+      "gmail.users.threads.delete",
+      "gmail.users.settings.cse.keypairs.obliterate"
+     ],
+     "requests": [],
+     "reviewedReads": [],
+     "unavailable": {
+      "gmail.users.messages.delete": "not-requested",
+      "gmail.users.messages.batchDelete": "not-requested",
+      "gmail.users.threads.delete": "not-requested",
+      "gmail.users.settings.cse.keypairs.obliterate": "workspace-cse-only"
+     }
+    },
+    {
+     "id": "gmail.access.grant",
+     "label": "Give access to other people or services",
+     "effect": "write",
+     "defaultMode": "deny",
+     "stayInAccount": false,
+     "operations": [
+      "gmail.users.watch",
+      "gmail.users.stop",
+      "gmail.users.settings.sendAs.patch",
+      "gmail.users.settings.sendAs.update",
+      "gmail.users.settings.sendAs.create",
+      "gmail.users.settings.sendAs.delete",
+      "gmail.users.settings.sendAs.verify",
+      "gmail.users.settings.updateAutoForwarding",
+      "gmail.users.settings.forwardingAddresses.create",
+      "gmail.users.settings.forwardingAddresses.delete",
+      "gmail.users.settings.delegates.create",
+      "gmail.users.settings.delegates.delete"
+     ],
+     "requests": [],
+     "reviewedReads": [],
+     "locked": "fabric",
+     "unavailable": {
+      "gmail.users.settings.sendAs.create": "service-account-only",
+      "gmail.users.settings.sendAs.delete": "service-account-only",
+      "gmail.users.settings.sendAs.verify": "service-account-only",
+      "gmail.users.settings.updateAutoForwarding": "service-account-only",
+      "gmail.users.settings.forwardingAddresses.create": "service-account-only",
+      "gmail.users.settings.forwardingAddresses.delete": "service-account-only",
+      "gmail.users.settings.delegates.create": "service-account-only",
+      "gmail.users.settings.delegates.delete": "service-account-only"
+     }
+    }
+   ]
+  },
+  "google-calendar": {
+   "schemaVersion": 2,
+   "appId": "google-calendar",
+   "groups": [
+    {
+     "id": "google-calendar.calendars.read",
+     "label": "Access your calendars",
+     "effect": "read",
+     "defaultMode": "allow",
+     "stayInAccount": false,
+     "operations": [
+      "calendar.calendarList.list",
+      "calendar.calendarList.get",
+      "calendar.colors.get"
+     ],
+     "requests": [],
+     "reviewedReads": []
+    },
+    {
+     "id": "google-calendar.events.read",
+     "label": "Access events",
+     "effect": "read",
+     "defaultMode": "allow",
+     "stayInAccount": false,
+     "operations": [
+      "calendar.events.list",
+      "calendar.events.get",
+      "calendar.events.instances"
+     ],
+     "requests": [],
+     "reviewedReads": []
+    },
+    {
+     "id": "google-calendar.availability.read",
+     "label": "Check your availability",
+     "effect": "read",
+     "defaultMode": "allow",
+     "stayInAccount": false,
+     "operations": [
+      "calendar.freebusy.query"
+     ],
+     "requests": [],
+     "reviewedReads": [
+      "calendar.freebusy.query"
+     ]
+    },
+    {
+     "id": "google-calendar.settings.read",
+     "label": "Access settings and calendar sharing",
+     "effect": "read",
+     "defaultMode": "allow",
+     "stayInAccount": false,
+     "operations": [
+      "calendar.settings.list",
+      "calendar.settings.get",
+      "calendar.calendars.get",
+      "calendar.acl.list",
+      "calendar.acl.get"
+     ],
+     "requests": [],
+     "reviewedReads": []
+    },
+    {
+     "id": "google-calendar.events.write",
+     "label": "Create, edit and invite people to events",
+     "effect": "write",
+     "defaultMode": "ask",
+     "stayInAccount": false,
+     "operations": [
+      "calendar.events.insert",
+      "calendar.events.quickAdd",
+      "calendar.events.import",
+      "calendar.events.patch",
+      "calendar.events.update",
+      "calendar.events.move"
+     ],
+     "requests": [],
+     "reviewedReads": [],
+     "audience": true
+    },
+    {
+     "id": "google-calendar.events.delete",
+     "label": "Delete events",
+     "effect": "delete",
+     "defaultMode": "ask",
+     "stayInAccount": false,
+     "operations": [
+      "calendar.events.delete"
+     ],
+     "requests": [],
+     "reviewedReads": [],
+     "audience": true
+    },
+    {
+     "id": "google-calendar.calendarlist.write",
+     "label": "Organize your calendar list",
+     "effect": "write",
+     "defaultMode": "allow",
+     "stayInAccount": true,
+     "operations": [
+      "calendar.calendarList.insert",
+      "calendar.calendarList.patch",
+      "calendar.calendarList.update"
+     ],
+     "requests": [],
+     "reviewedReads": []
+    },
+    {
+     "id": "google-calendar.calendars.write",
+     "label": "Create and edit calendars",
+     "effect": "write",
+     "defaultMode": "ask",
+     "stayInAccount": false,
+     "operations": [
+      "calendar.calendars.insert",
+      "calendar.calendars.patch",
+      "calendar.calendars.update"
+     ],
+     "requests": [],
+     "reviewedReads": []
+    },
+    {
+     "id": "google-calendar.calendarlist.remove",
+     "label": "Remove calendars from your list",
+     "effect": "delete",
+     "defaultMode": "ask",
+     "stayInAccount": false,
+     "operations": [
+      "calendar.calendarList.delete"
+     ],
+     "requests": [],
+     "reviewedReads": []
+    },
+    {
+     "id": "google-calendar.sharing.write",
+     "label": "Stop sharing calendars",
+     "effect": "write",
+     "defaultMode": "ask",
+     "stayInAccount": false,
+     "operations": [
+      "calendar.acl.delete"
+     ],
+     "requests": [],
+     "reviewedReads": [],
+     "audience": true
+    },
+    {
+     "id": "google-calendar.permanent.delete",
+     "label": "Permanently delete calendars or clear all events",
+     "effect": "delete",
+     "defaultMode": "deny",
+     "stayInAccount": false,
+     "operations": [
+      "calendar.calendars.delete",
+      "calendar.calendars.clear"
+     ],
+     "requests": [],
+     "reviewedReads": []
+    },
+    {
+     "id": "google-calendar.access.grant",
+     "label": "Give access to other people or services",
+     "effect": "write",
+     "defaultMode": "deny",
+     "stayInAccount": false,
+     "operations": [
+      "calendar.calendarList.watch",
+      "calendar.events.watch",
+      "calendar.settings.watch",
+      "calendar.acl.watch",
+      "calendar.channels.stop",
+      "calendar.acl.insert",
+      "calendar.acl.patch",
+      "calendar.acl.update",
+      "calendar.calendars.transferOwnership"
+     ],
+     "requests": [],
+     "reviewedReads": [],
+     "locked": "fabric"
+    }
+   ]
+  },
+  "notion": {
+   "schemaVersion": 2,
+   "appId": "notion",
+   "groups": [
+    {
+     "id": "notion.content.read",
+     "label": "Access pages and databases",
+     "effect": "read",
+     "defaultMode": "allow",
+     "stayInAccount": false,
+     "operations": [],
+     "requests": [
+      "GET /v1/pages/{page_id}",
+      "GET /v1/pages/{page_id}/properties/{property_id}",
+      "GET /v1/pages/{page_id}/markdown",
+      "GET /v1/blocks/{block_id}",
+      "GET /v1/blocks/{block_id}/children",
+      "GET /v1/databases/{database_id}",
+      "GET /v1/data_sources/{data_source_id}",
+      "POST /v1/data_sources/{data_source_id}/query",
+      "GET /v1/data_sources/{data_source_id}/templates",
+      "GET /v1/views",
+      "GET /v1/views/{view_id}",
+      "POST /v1/views/{view_id}/queries",
+      "GET /v1/views/{view_id}/queries/{query_id}",
+      "GET /v1/async_tasks/{task_id}",
+      "GET /v1/custom_emojis",
+      "POST /v1/blocks/meeting_notes/query",
+      "GET /v1/ai/plugins",
+      "GET /v1/ai/plugins/{id}",
+      "GET /v1/ai/skills/{id}",
+      "GET /v1/file_uploads",
+      "GET /v1/file_uploads/{file_upload_id}"
+     ],
+     "reviewedReads": [
+      "POST /v1/data_sources/{data_source_id}/query",
+      "POST /v1/blocks/meeting_notes/query"
+     ],
+     "scopeSets": [
+      []
+     ],
+     "conditions": {
+      "POST /v1/blocks/meeting_notes/query": [
+       "plan-dependent"
+      ]
+     }
+    },
+    {
+     "id": "notion.search.read",
+     "label": "Search pages and databases",
+     "effect": "read",
+     "defaultMode": "allow",
+     "stayInAccount": false,
+     "operations": [],
+     "requests": [
+      "POST /v1/search"
+     ],
+     "reviewedReads": [
+      "POST /v1/search"
+     ],
+     "scopeSets": [
+      []
+     ]
+    },
+    {
+     "id": "notion.users.read",
+     "label": "Access people in the workspace",
+     "effect": "read",
+     "defaultMode": "allow",
+     "stayInAccount": false,
+     "operations": [],
+     "requests": [
+      "GET /v1/users/me",
+      "GET /v1/users/{user_id}",
+      "GET /v1/users"
+     ],
+     "reviewedReads": [],
+     "scopeSets": [
+      []
+     ]
+    },
+    {
+     "id": "notion.comments.read",
+     "label": "Access comments",
+     "effect": "read",
+     "defaultMode": "allow",
+     "stayInAccount": false,
+     "operations": [],
+     "requests": [
+      "GET /v1/comments",
+      "GET /v1/comments/{comment_id}"
+     ],
+     "reviewedReads": [],
+     "scopeSets": [
+      []
+     ]
+    },
+    {
+     "id": "notion.agents.read",
+     "label": "Access Notion agents and their chats",
+     "effect": "read",
+     "defaultMode": "allow",
+     "stayInAccount": false,
+     "operations": [],
+     "requests": [
+      "POST /v1/agents/query",
+      "GET /v1/agents/{agent_id}",
+      "GET /v1/agents/{agent_id}/insights",
+      "GET /v1/sessions/{session_id}",
+      "POST /v1/sessions/query",
+      "POST /v1/sessions/{session_id}/events/query"
+     ],
+     "reviewedReads": [
+      "POST /v1/agents/query",
+      "POST /v1/sessions/query",
+      "POST /v1/sessions/{session_id}/events/query"
+     ],
+     "scopeSets": [
+      []
+     ],
+     "conditions": {
+      "POST /v1/agents/query": [
+       "beta",
+       "plan-dependent"
+      ],
+      "GET /v1/agents/{agent_id}": [
+       "beta",
+       "plan-dependent"
+      ],
+      "GET /v1/agents/{agent_id}/insights": [
+       "beta",
+       "plan-dependent"
+      ],
+      "GET /v1/sessions/{session_id}": [
+       "beta",
+       "plan-dependent"
+      ],
+      "POST /v1/sessions/query": [
+       "beta",
+       "plan-dependent"
+      ],
+      "POST /v1/sessions/{session_id}/events/query": [
+       "beta",
+       "plan-dependent"
+      ]
+     }
+    },
+    {
+     "id": "notion.content.create",
+     "label": "Create pages and databases",
+     "effect": "write",
+     "defaultMode": "ask",
+     "stayInAccount": false,
+     "operations": [],
+     "requests": [
+      "POST /v1/pages",
+      "POST /v1/databases",
+      "POST /v1/data_sources",
+      "POST /v1/blocks/meeting_notes",
+      "POST /v1/file_uploads",
+      "POST /v1/file_uploads/{file_upload_id}/send",
+      "POST /v1/file_uploads/{file_upload_id}/complete"
+     ],
+     "reviewedReads": [],
+     "scopeSets": [
+      []
+     ],
+     "conditions": {
+      "POST /v1/blocks/meeting_notes": [
+       "plan-dependent"
+      ]
+     }
+    },
+    {
+     "id": "notion.content.edit",
+     "label": "Edit pages and databases",
+     "effect": "write",
+     "defaultMode": "ask",
+     "stayInAccount": false,
+     "operations": [],
+     "requests": [
+      "PATCH /v1/pages/{page_id}",
+      "PATCH /v1/pages/{page_id}/markdown",
+      "POST /v1/pages/{page_id}/move",
+      "PATCH /v1/blocks/{block_id}",
+      "PATCH /v1/databases/{database_id}",
+      "PATCH /v1/data_sources/{data_source_id}",
+      "POST /v1/views",
+      "PATCH /v1/views/{view_id}",
+      "PATCH /v1/blocks/{block_id}/children"
+     ],
+     "reviewedReads": [],
+     "audience": true,
+     "scopeSets": [
+      []
+     ],
+     "bodyRoutes": [
+      {
+       "member": "PATCH /v1/pages/{page_id}/markdown",
+       "pointer": "/type",
+       "equals": "replace_content",
+       "to": "notion.content.trash"
+      },
+      {
+       "member": "PATCH /v1/pages/{page_id}",
+       "pointer": "/in_trash",
+       "present": true,
+       "to": "notion.content.trash"
+      },
+      {
+       "member": "PATCH /v1/pages/{page_id}",
+       "pointer": "/archived",
+       "present": true,
+       "to": "notion.content.trash"
+      },
+      {
+       "member": "PATCH /v1/pages/{page_id}/markdown",
+       "pointer": "/in_trash",
+       "present": true,
+       "to": "notion.content.trash"
+      },
+      {
+       "member": "PATCH /v1/pages/{page_id}/markdown",
+       "pointer": "/archived",
+       "present": true,
+       "to": "notion.content.trash"
+      },
+      {
+       "member": "PATCH /v1/blocks/{block_id}",
+       "pointer": "/in_trash",
+       "present": true,
+       "to": "notion.content.trash"
+      },
+      {
+       "member": "PATCH /v1/blocks/{block_id}",
+       "pointer": "/archived",
+       "present": true,
+       "to": "notion.content.trash"
+      },
+      {
+       "member": "PATCH /v1/databases/{database_id}",
+       "pointer": "/in_trash",
+       "present": true,
+       "to": "notion.content.trash"
+      },
+      {
+       "member": "PATCH /v1/databases/{database_id}",
+       "pointer": "/archived",
+       "present": true,
+       "to": "notion.content.trash"
+      },
+      {
+       "member": "PATCH /v1/data_sources/{data_source_id}",
+       "pointer": "/in_trash",
+       "present": true,
+       "to": "notion.content.trash"
+      },
+      {
+       "member": "PATCH /v1/data_sources/{data_source_id}",
+       "pointer": "/archived",
+       "present": true,
+       "to": "notion.content.trash"
+      },
+      {
+       "member": "PATCH /v1/views/{view_id}",
+       "pointer": "/in_trash",
+       "present": true,
+       "to": "notion.content.trash"
+      },
+      {
+       "member": "PATCH /v1/views/{view_id}",
+       "pointer": "/archived",
+       "present": true,
+       "to": "notion.content.trash"
+      },
+      {
+       "member": "PATCH /v1/blocks/{block_id}/children",
+       "pointer": "/in_trash",
+       "present": true,
+       "to": "notion.content.trash"
+      },
+      {
+       "member": "PATCH /v1/blocks/{block_id}/children",
+       "pointer": "/archived",
+       "present": true,
+       "to": "notion.content.trash"
+      }
+     ]
+    },
+    {
+     "id": "notion.comments.write",
+     "label": "Comment on pages",
+     "effect": "write",
+     "defaultMode": "ask",
+     "stayInAccount": false,
+     "operations": [],
+     "requests": [
+      "POST /v1/comments",
+      "PATCH /v1/comments/{comment_id}"
+     ],
+     "reviewedReads": [],
+     "audience": true,
+     "scopeSets": [
+      []
+     ]
+    },
+    {
+     "id": "notion.content.trash",
+     "label": "Trash or restore pages, or replace content",
+     "effect": "delete",
+     "defaultMode": "ask",
+     "stayInAccount": false,
+     "operations": [],
+     "requests": [
+      "DELETE /v1/blocks/{block_id}"
+     ],
+     "reviewedReads": [],
+     "scopeSets": [
+      []
+     ]
+    },
+    {
+     "id": "notion.permanent.delete",
+     "label": "Permanently delete comments and views",
+     "effect": "delete",
+     "defaultMode": "deny",
+     "stayInAccount": false,
+     "operations": [],
+     "requests": [
+      "DELETE /v1/comments/{comment_id}",
+      "DELETE /v1/views/{view_id}",
+      "DELETE /v1/views/{view_id}/queries/{query_id}"
+     ],
+     "reviewedReads": [],
+     "scopeSets": [
+      []
+     ]
+    },
+    {
+     "id": "notion.agents.chat",
+     "label": "Chat with Notion agents",
+     "effect": "write",
+     "defaultMode": "ask",
+     "stayInAccount": false,
+     "operations": [],
+     "requests": [
+      "POST /v1/sessions",
+      "POST /v1/sessions/{session_id}/cancel"
+     ],
+     "reviewedReads": [],
+     "scopeSets": [
+      []
+     ],
+     "conditions": {
+      "POST /v1/sessions": [
+       "beta",
+       "plan-dependent"
+      ],
+      "POST /v1/sessions/{session_id}/cancel": [
+       "beta",
+       "plan-dependent"
+      ]
+     }
+    },
+    {
+     "id": "notion.agents.manage",
+     "label": "Manage Notion agents",
+     "effect": "write",
+     "defaultMode": "ask",
+     "stayInAccount": false,
+     "operations": [],
+     "requests": [
+      "PATCH /v1/agents/{agent_id}/status",
+      "PATCH /v1/agents/{agent_id}/credit_limit",
+      "POST /v1/agents/batch",
+      "DELETE /v1/agents/{agent_id}"
+     ],
+     "reviewedReads": [],
+     "scopeSets": [
+      []
+     ],
+     "conditions": {
+      "PATCH /v1/agents/{agent_id}/status": [
+       "beta",
+       "plan-dependent"
+      ],
+      "PATCH /v1/agents/{agent_id}/credit_limit": [
+       "beta",
+       "plan-dependent"
+      ],
+      "POST /v1/agents/batch": [
+       "beta",
+       "plan-dependent"
+      ],
+      "DELETE /v1/agents/{agent_id}": [
+       "beta",
+       "plan-dependent"
+      ]
+     }
+    },
+    {
+     "id": "notion.connection.manage",
+     "label": "Change this connection's sign-in",
+     "effect": "write",
+     "defaultMode": "deny",
+     "stayInAccount": false,
+     "operations": [],
+     "requests": [
+      "POST /v1/oauth/token",
+      "POST /v1/oauth/revoke",
+      "POST /v1/oauth/introspect"
+     ],
+     "reviewedReads": [],
+     "unavailable": {
+      "POST /v1/oauth/token": "client-credentials-only",
+      "POST /v1/oauth/revoke": "client-credentials-only",
+      "POST /v1/oauth/introspect": "client-credentials-only"
+     }
+    }
+   ]
+  },
+  "slack": {
+   "schemaVersion": 2,
+   "appId": "slack",
+   "groups": [
+    {
+     "id": "slack.channels.read",
+     "label": "Access channels and people",
+     "effect": "read",
+     "defaultMode": "allow",
+     "stayInAccount": false,
+     "operations": [],
+     "requests": [
+      "GET /conversations.list",
+      "GET /conversations.info",
+      "GET /conversations.members",
+      "GET /users.conversations",
+      "GET /users.list",
+      "GET /users.info",
+      "GET /users.getPresence",
+      "GET /bots.info"
+     ],
+     "reviewedReads": [],
+     "scopeSets": [
+      [
+       "users:read"
+      ]
+     ],
+     "memberScopeSets": {
+      "GET /conversations.list": [
+       [
+        "channels:read"
+       ],
+       [
+        "groups:read"
+       ],
+       [
+        "im:read"
+       ],
+       [
+        "mpim:read"
+       ]
+      ],
+      "GET /conversations.info": [
+       [
+        "channels:read"
+       ],
+       [
+        "groups:read"
+       ],
+       [
+        "im:read"
+       ],
+       [
+        "mpim:read"
+       ]
+      ],
+      "GET /conversations.members": [
+       [
+        "channels:read"
+       ],
+       [
+        "groups:read"
+       ],
+       [
+        "im:read"
+       ],
+       [
+        "mpim:read"
+       ]
+      ],
+      "GET /users.conversations": [
+       [
+        "channels:read"
+       ],
+       [
+        "groups:read"
+       ],
+       [
+        "im:read"
+       ],
+       [
+        "mpim:read"
+       ]
+      ]
+     }
+    },
+    {
+     "id": "slack.messages.read",
+     "label": "Access messages",
+     "effect": "read",
+     "defaultMode": "allow",
+     "stayInAccount": false,
+     "operations": [],
+     "requests": [
+      "GET /conversations.history",
+      "GET /conversations.replies",
+      "GET /chat.getPermalink",
+      "GET /chat.scheduledMessages.list"
+     ],
+     "reviewedReads": [],
+     "scopeSets": [
+      [
+       "channels:history"
+      ],
+      [
+       "groups:history"
+      ],
+      [
+       "im:history"
+      ],
+      [
+       "mpim:history"
+      ]
+     ],
+     "memberScopeSets": {
+      "GET /chat.getPermalink": [
+       []
+      ],
+      "GET /chat.scheduledMessages.list": [
+       [
+        "chat:write"
+       ]
+      ]
+     }
+    },
+    {
+     "id": "slack.messages.search",
+     "label": "Search messages and files",
+     "effect": "read",
+     "defaultMode": "allow",
+     "stayInAccount": false,
+     "operations": [],
+     "requests": [
+      "GET /search.messages",
+      "GET /search.all",
+      "GET /search.files",
+      "POST /assistant.search.context",
+      "POST /assistant.search.info"
+     ],
+     "reviewedReads": [
+      "POST /assistant.search.context",
+      "POST /assistant.search.info"
+     ],
+     "scopeSets": [
+      [
+       "search:read"
+      ]
+     ],
+     "unavailable": {
+      "POST /assistant.search.context": "not-requested",
+      "POST /assistant.search.info": "not-requested"
+     }
+    },
+    {
+     "id": "slack.files.read",
+     "label": "Access files, canvases, pins and reactions",
+     "effect": "read",
+     "defaultMode": "allow",
+     "stayInAccount": false,
+     "operations": [],
+     "requests": [
+      "GET /files.info",
+      "GET /files.list",
+      "POST /canvases.getContent",
+      "POST /canvases.sections.lookup",
+      "GET /pins.list",
+      "GET /reactions.get",
+      "GET /reactions.list",
+      "POST /bookmarks.list"
+     ],
+     "reviewedReads": [
+      "POST /canvases.getContent",
+      "POST /canvases.sections.lookup",
+      "POST /bookmarks.list"
+     ],
+     "memberScopeSets": {
+      "GET /files.info": [
+       [
+        "files:read"
+       ]
+      ],
+      "GET /files.list": [
+       [
+        "files:read"
+       ]
+      ],
+      "POST /canvases.getContent": [
+       [
+        "canvases:read"
+       ]
+      ],
+      "POST /canvases.sections.lookup": [
+       [
+        "canvases:read"
+       ]
+      ],
+      "GET /pins.list": [
+       [
+        "pins:read"
+       ]
+      ],
+      "GET /reactions.get": [
+       [
+        "reactions:read"
+       ]
+      ],
+      "GET /reactions.list": [
+       [
+        "reactions:read"
+       ]
+      ],
+      "POST /bookmarks.list": [
+       [
+        "bookmarks:read"
+       ]
+      ]
+     }
+    },
+    {
+     "id": "slack.workspace.read",
+     "label": "Access profiles, user groups and workspace details",
+     "effect": "read",
+     "defaultMode": "allow",
+     "stayInAccount": false,
+     "operations": [],
+     "requests": [
+      "GET /users.profile.get",
+      "GET /team.profile.get",
+      "GET /users.lookupByEmail",
+      "GET /usergroups.list",
+      "GET /usergroups.users.list",
+      "GET /team.info",
+      "GET /emoji.list",
+      "GET /dnd.info",
+      "GET /dnd.teamInfo"
+     ],
+     "reviewedReads": [],
+     "memberScopeSets": {
+      "GET /users.profile.get": [
+       [
+        "users.profile:read"
+       ]
+      ],
+      "GET /team.profile.get": [
+       [
+        "users.profile:read"
+       ]
+      ],
+      "GET /users.lookupByEmail": [
+       [
+        "users:read.email"
+       ]
+      ],
+      "GET /usergroups.list": [
+       [
+        "usergroups:read"
+       ]
+      ],
+      "GET /usergroups.users.list": [
+       [
+        "usergroups:read"
+       ]
+      ],
+      "GET /team.info": [
+       [
+        "team:read"
+       ]
+      ],
+      "GET /emoji.list": [
+       [
+        "emoji:read"
+       ]
+      ],
+      "GET /dnd.info": [
+       [
+        "dnd:read"
+       ]
+      ],
+      "GET /dnd.teamInfo": [
+       [
+        "dnd:read"
+       ]
+      ]
+     }
+    },
+    {
+     "id": "slack.messages.send",
+     "label": "Send, edit and react to messages",
+     "effect": "write",
+     "defaultMode": "ask",
+     "stayInAccount": false,
+     "operations": [],
+     "requests": [
+      "POST /chat.postMessage",
+      "POST /chat.postEphemeral",
+      "POST /chat.meMessage",
+      "POST /chat.scheduleMessage",
+      "POST /chat.update",
+      "POST /reactions.add",
+      "POST /reactions.remove",
+      "POST /pins.add",
+      "POST /pins.remove",
+      "POST /chat.deleteScheduledMessage"
+     ],
+     "reviewedReads": [],
+     "audience": true,
+     "scopeSets": [
+      [
+       "chat:write"
+      ]
+     ],
+     "memberScopeSets": {
+      "POST /reactions.add": [
+       [
+        "reactions:write"
+       ]
+      ],
+      "POST /reactions.remove": [
+       [
+        "reactions:write"
+       ]
+      ],
+      "POST /pins.add": [
+       [
+        "pins:write"
+       ]
+      ],
+      "POST /pins.remove": [
+       [
+        "pins:write"
+       ]
+      ]
+     }
+    },
+    {
+     "id": "slack.files.write",
+     "label": "Upload and share files and canvases",
+     "effect": "write",
+     "defaultMode": "ask",
+     "stayInAccount": false,
+     "operations": [],
+     "requests": [
+      "POST /files.getUploadURLExternal",
+      "POST /files.completeUploadExternal",
+      "POST /files.sharedPublicURL",
+      "POST /files.revokePublicURL",
+      "POST /canvases.create",
+      "POST /canvases.edit",
+      "POST /conversations.canvases.create",
+      "POST /canvases.access.set",
+      "POST /canvases.access.delete"
+     ],
+     "reviewedReads": [],
+     "audience": true,
+     "scopeSets": [
+      [
+       "files:write"
+      ]
+     ],
+     "memberScopeSets": {
+      "POST /canvases.create": [
+       [
+        "canvases:write"
+       ]
+      ],
+      "POST /canvases.edit": [
+       [
+        "canvases:write"
+       ]
+      ],
+      "POST /conversations.canvases.create": [
+       [
+        "canvases:write"
+       ]
+      ],
+      "POST /canvases.access.set": [
+       [
+        "canvases:write"
+       ]
+      ],
+      "POST /canvases.access.delete": [
+       [
+        "canvases:write"
+       ]
+      ]
+     }
+    },
+    {
+     "id": "slack.channels.manage",
+     "label": "Manage channels and user groups",
+     "effect": "write",
+     "defaultMode": "ask",
+     "stayInAccount": false,
+     "operations": [],
+     "requests": [
+      "POST /conversations.create",
+      "POST /conversations.join",
+      "POST /conversations.leave",
+      "POST /conversations.invite",
+      "POST /conversations.kick",
+      "POST /conversations.rename",
+      "POST /conversations.setTopic",
+      "POST /conversations.setPurpose",
+      "POST /conversations.archive",
+      "POST /conversations.unarchive",
+      "POST /bookmarks.add",
+      "POST /bookmarks.edit",
+      "POST /bookmarks.remove",
+      "POST /usergroups.create",
+      "POST /usergroups.update",
+      "POST /usergroups.enable",
+      "POST /usergroups.disable",
+      "POST /usergroups.users.update"
+     ],
+     "reviewedReads": [],
+     "audience": true,
+     "scopeSets": [
+      [
+       "channels:write"
+      ],
+      [
+       "groups:write"
+      ],
+      [
+       "im:write"
+      ],
+      [
+       "mpim:write"
+      ]
+     ],
+     "memberScopeSets": {
+      "POST /conversations.create": [
+       [
+        "channels:write"
+       ],
+       [
+        "groups:write"
+       ]
+      ],
+      "POST /conversations.join": [
+       [
+        "channels:write"
+       ]
+      ],
+      "POST /bookmarks.add": [
+       [
+        "bookmarks:write"
+       ]
+      ],
+      "POST /bookmarks.edit": [
+       [
+        "bookmarks:write"
+       ]
+      ],
+      "POST /bookmarks.remove": [
+       [
+        "bookmarks:write"
+       ]
+      ],
+      "POST /usergroups.create": [
+       [
+        "usergroups:write"
+       ]
+      ],
+      "POST /usergroups.update": [
+       [
+        "usergroups:write"
+       ]
+      ],
+      "POST /usergroups.enable": [
+       [
+        "usergroups:write"
+       ]
+      ],
+      "POST /usergroups.disable": [
+       [
+        "usergroups:write"
+       ]
+      ],
+      "POST /usergroups.users.update": [
+       [
+        "usergroups:write"
+       ]
+      ]
+     }
+    },
+    {
+     "id": "slack.conversations.mark",
+     "label": "Mark as read and open direct messages",
+     "effect": "write",
+     "defaultMode": "allow",
+     "stayInAccount": true,
+     "operations": [],
+     "requests": [
+      "POST /conversations.mark",
+      "POST /conversations.open",
+      "POST /conversations.close"
+     ],
+     "reviewedReads": [],
+     "scopeSets": [
+      [
+       "channels:write"
+      ],
+      [
+       "groups:write"
+      ],
+      [
+       "im:write"
+      ],
+      [
+       "mpim:write"
+      ]
+     ],
+     "memberScopeSets": {
+      "POST /conversations.open": [
+       [
+        "im:write"
+       ],
+       [
+        "mpim:write"
+       ]
+      ]
+     }
+    },
+    {
+     "id": "slack.profile.write",
+     "label": "Update your profile, status and Do Not Disturb",
+     "effect": "write",
+     "defaultMode": "ask",
+     "stayInAccount": false,
+     "operations": [],
+     "requests": [
+      "POST /users.profile.set",
+      "POST /users.setPhoto",
+      "POST /users.setPresence",
+      "POST /dnd.setSnooze",
+      "POST /dnd.endSnooze",
+      "POST /dnd.endDnd",
+      "POST /users.deletePhoto"
+     ],
+     "reviewedReads": [],
+     "memberScopeSets": {
+      "POST /users.profile.set": [
+       [
+        "users.profile:write"
+       ]
+      ],
+      "POST /users.setPhoto": [
+       [
+        "users.profile:write"
+       ]
+      ],
+      "POST /users.deletePhoto": [
+       [
+        "users.profile:write"
+       ]
+      ],
+      "POST /users.setPresence": [
+       [
+        "users:write"
+       ]
+      ],
+      "POST /dnd.setSnooze": [
+       [
+        "dnd:write"
+       ]
+      ],
+      "POST /dnd.endSnooze": [
+       [
+        "dnd:write"
+       ]
+      ],
+      "POST /dnd.endDnd": [
+       [
+        "dnd:write"
+       ]
+      ]
+     }
+    },
+    {
+     "id": "slack.permanent.delete",
+     "label": "Permanently delete messages, files and canvases",
+     "effect": "delete",
+     "defaultMode": "deny",
+     "stayInAccount": false,
+     "operations": [],
+     "requests": [
+      "POST /chat.delete",
+      "POST /files.delete",
+      "POST /files.comments.delete",
+      "POST /canvases.delete"
+     ],
+     "reviewedReads": [],
+     "memberScopeSets": {
+      "POST /chat.delete": [
+       [
+        "chat:write"
+       ]
+      ],
+      "POST /files.delete": [
+       [
+        "files:write"
+       ]
+      ],
+      "POST /files.comments.delete": [
+       [
+        "files:write"
+       ]
+      ],
+      "POST /canvases.delete": [
+       [
+        "canvases:write"
+       ]
+      ]
+     }
+    },
+    {
+     "id": "slack.admin",
+     "label": "Workspace admin, app setup and retired methods",
+     "effect": "write",
+     "defaultMode": "deny",
+     "stayInAccount": false,
+     "operations": [],
+     "requests": [
+      "GET /admin.analytics.getFile",
+      "GET /admin.analytics.messages.activity",
+      "GET /admin.analytics.messages.metadata",
+      "POST /admin.apps.activities.list",
+      "POST /admin.apps.approve",
+      "GET /admin.apps.approved.list",
+      "POST /admin.apps.clearResolution",
+      "POST /admin.apps.config.lookup",
+      "POST /admin.apps.config.set",
+      "POST /admin.apps.mcp.servers.list",
+      "POST /admin.apps.mcp.servers.permissions.list",
+      "POST /admin.apps.mcp.servers.permissions.set",
+      "POST /admin.apps.permissions.add",
+      "POST /admin.apps.permissions.list",
+      "POST /admin.apps.permissions.remove",
+      "POST /admin.apps.permissions.set",
+      "POST /admin.apps.requests.cancel",
+      "GET /admin.apps.requests.list",
+      "POST /admin.apps.restrict",
+      "GET /admin.apps.restricted.list",
+      "POST /admin.apps.uninstall",
+      "POST /admin.audit.anomaly.allow.getItem",
+      "POST /admin.audit.anomaly.allow.updateItem",
+      "POST /admin.auth.policy.assignEntities",
+      "POST /admin.auth.policy.getEntities",
+      "POST /admin.auth.policy.removeEntities",
+      "POST /admin.barriers.create",
+      "POST /admin.barriers.delete",
+      "GET /admin.barriers.list",
+      "POST /admin.barriers.update",
+      "POST /admin.conversations.archive",
+      "POST /admin.conversations.bulkArchive",
+      "POST /admin.conversations.bulkDelete",
+      "POST /admin.conversations.bulkMove",
+      "GET /admin.conversations.bulkSetExcludeFromSlackAi",
+      "POST /admin.conversations.bulkSetProperties",
+      "POST /admin.conversations.convertToPrivate",
+      "POST /admin.conversations.convertToPublic",
+      "POST /admin.conversations.create",
+      "POST /admin.conversations.createForObjects",
+      "POST /admin.conversations.delete",
+      "POST /admin.conversations.disconnectShared",
+      "GET /admin.conversations.ekm.listOriginalConnectedChannelInfo",
+      "GET /admin.conversations.getConversationPrefs",
+      "POST /admin.conversations.getCustomRetention",
+      "GET /admin.conversations.getTeams",
+      "POST /admin.conversations.invite",
+      "POST /admin.conversations.linkObjects",
+      "POST /admin.conversations.lookup",
+      "POST /admin.conversations.removeCustomRetention",
+      "POST /admin.conversations.rename",
+      "POST /admin.conversations.restrictAccess.addGroup",
+      "GET /admin.conversations.restrictAccess.listGroups",
+      "POST /admin.conversations.restrictAccess.removeGroup",
+      "GET /admin.conversations.search",
+      "POST /admin.conversations.setConversationPrefs",
+      "POST /admin.conversations.setCustomRetention",
+      "POST /admin.conversations.setTeams",
+      "POST /admin.conversations.unarchive",
+      "POST /admin.conversations.unlinkObjects",
+      "POST /admin.emoji.add",
+      "POST /admin.emoji.addAlias",
+      "GET /admin.emoji.list",
+      "POST /admin.emoji.remove",
+      "POST /admin.emoji.rename",
+      "POST /admin.functions.list",
+      "POST /admin.functions.permissions.lookup",
+      "POST /admin.functions.permissions.set",
+      "POST /admin.inviteRequests.approve",
+      "GET /admin.inviteRequests.approved.list",
+      "GET /admin.inviteRequests.denied.list",
+      "POST /admin.inviteRequests.deny",
+      "GET /admin.inviteRequests.list",
+      "POST /admin.roles.addAssignments",
+      "GET /admin.roles.listAssignments",
+      "POST /admin.roles.removeAssignments",
+      "GET /admin.teams.admins.list",
+      "POST /admin.teams.create",
+      "GET /admin.teams.list",
+      "GET /admin.teams.owners.list",
+      "GET /admin.teams.settings.info",
+      "POST /admin.teams.settings.setDefaultChannels",
+      "POST /admin.teams.settings.setDescription",
+      "POST /admin.teams.settings.setDiscoverability",
+      "POST /admin.teams.settings.setIcon",
+      "POST /admin.teams.settings.setName",
+      "POST /admin.usergroups.addChannels",
+      "POST /admin.usergroups.addTeams",
+      "POST /admin.usergroups.addUsers",
+      "POST /admin.usergroups.create",
+      "POST /admin.usergroups.fetch",
+      "GET /admin.usergroups.listChannels",
+      "POST /admin.usergroups.removeChannels",
+      "POST /admin.usergroups.removeTeams",
+      "POST /admin.usergroups.removeUsers",
+      "POST /admin.usergroups.update",
+      "POST /admin.usergroups.uploadUsers",
+      "POST /admin.users.assign",
+      "GET /admin.users.getExpiration",
+      "POST /admin.users.invite",
+      "GET /admin.users.list",
+      "POST /admin.users.remove",
+      "POST /admin.users.session.clearSettings",
+      "POST /admin.users.session.getSettings",
+      "POST /admin.users.session.invalidate",
+      "POST /admin.users.session.list",
+      "POST /admin.users.session.reset",
+      "POST /admin.users.session.resetBulk",
+      "POST /admin.users.session.setSettings",
+      "POST /admin.users.setAdmin",
+      "POST /admin.users.setExpiration",
+      "POST /admin.users.setOwner",
+      "POST /admin.users.setRegular",
+      "POST /admin.users.unsupportedVersions.export",
+      "POST /admin.workflows.collaborators.add",
+      "POST /admin.workflows.collaborators.remove",
+      "POST /admin.workflows.permissions.lookup",
+      "POST /admin.workflows.search",
+      "POST /admin.workflows.triggers.types.permissions.lookup",
+      "POST /admin.workflows.triggers.types.permissions.set",
+      "POST /admin.workflows.unpublish",
+      "POST /apps.activities.list",
+      "POST /apps.auth.external.delete",
+      "POST /apps.auth.external.get",
+      "POST /apps.connections.open",
+      "POST /apps.datastore.bulkDelete",
+      "POST /apps.datastore.bulkGet",
+      "POST /apps.datastore.bulkPut",
+      "POST /apps.datastore.count",
+      "POST /apps.datastore.delete",
+      "POST /apps.datastore.get",
+      "POST /apps.datastore.put",
+      "POST /apps.datastore.query",
+      "POST /apps.datastore.update",
+      "GET /apps.event.authorizations.list",
+      "POST /apps.icon.set",
+      "POST /apps.managed.permissions.set",
+      "POST /apps.manifest.create",
+      "POST /apps.manifest.delete",
+      "POST /apps.manifest.export",
+      "POST /apps.manifest.update",
+      "POST /apps.manifest.validate",
+      "GET /apps.permissions.info",
+      "GET /apps.permissions.request",
+      "GET /apps.permissions.resources.list",
+      "GET /apps.permissions.scopes.list",
+      "GET /apps.permissions.users.list",
+      "GET /apps.permissions.users.request",
+      "GET /apps.uninstall",
+      "POST /apps.user.connection.update",
+      "GET /auth.revoke",
+      "GET /conversations.declineSharedInvite",
+      "GET /dialog.open",
+      "POST /files.remote.remove",
+      "GET /files.remote.share",
+      "POST /files.upload",
+      "POST /functions.completeError",
+      "POST /functions.completeSuccess",
+      "POST /functions.distributions.permissions.add",
+      "POST /functions.distributions.permissions.list",
+      "POST /functions.distributions.permissions.remove",
+      "POST /functions.distributions.permissions.set",
+      "POST /functions.workflows.steps.list",
+      "POST /functions.workflows.steps.responses.export",
+      "GET /migration.exchange",
+      "GET /oauth.access",
+      "GET /oauth.token",
+      "GET /oauth.v2.access",
+      "POST /oauth.v2.beginShortTokenRotation",
+      "POST /oauth.v2.completeShortTokenRotation",
+      "POST /oauth.v2.exchange",
+      "POST /oauth.v2.user.access",
+      "POST /openid.connect.token",
+      "POST /openid.connect.userInfo",
+      "POST /reminders.delete",
+      "GET /rtm.connect",
+      "GET /rtm.start",
+      "POST /slackLists.items.delete",
+      "POST /slackLists.items.deleteMultiple",
+      "POST /team.billing.info",
+      "POST /tooling.tokens.rotate",
+      "POST /users.discoverableContacts.lookup",
+      "GET /views.open",
+      "GET /views.publish",
+      "GET /views.push",
+      "GET /views.update",
+      "POST /workflows.featured.add",
+      "POST /workflows.featured.list",
+      "POST /workflows.featured.remove",
+      "POST /workflows.featured.set",
+      "GET /workflows.stepCompleted",
+      "GET /workflows.stepFailed",
+      "POST /workflows.triggers.permissions.add",
+      "POST /workflows.triggers.permissions.list",
+      "POST /workflows.triggers.permissions.remove",
+      "POST /workflows.triggers.permissions.set",
+      "GET /workflows.updateStep"
+     ],
+     "reviewedReads": [],
+     "memberScopeSets": {
+      "POST /apps.auth.external.delete": [
+       []
+      ],
+      "POST /apps.auth.external.get": [
+       []
+      ],
+      "POST /apps.user.connection.update": [
+       [
+        "users:write"
+       ]
+      ],
+      "GET /auth.revoke": [
+       []
+      ],
+      "GET /dialog.open": [
+       []
+      ],
+      "POST /functions.completeError": [
+       []
+      ],
+      "POST /functions.completeSuccess": [
+       []
+      ],
+      "POST /functions.workflows.steps.list": [
+       []
+      ],
+      "POST /functions.workflows.steps.responses.export": [
+       []
+      ],
+      "GET /views.open": [
+       []
+      ],
+      "GET /views.publish": [
+       []
+      ],
+      "GET /views.push": [
+       []
+      ],
+      "GET /views.update": [
+       []
+      ],
+      "POST /workflows.featured.add": [
+       [
+        "bookmarks:write"
+       ]
+      ],
+      "POST /workflows.featured.list": [
+       [
+        "bookmarks:read"
+       ]
+      ],
+      "POST /workflows.featured.remove": [
+       [
+        "bookmarks:write"
+       ]
+      ],
+      "POST /workflows.featured.set": [
+       [
+        "bookmarks:write"
+       ]
+      ]
+     },
+     "unavailable": {
+      "GET /admin.analytics.getFile": "not-requested",
+      "GET /admin.analytics.messages.activity": "not-requested",
+      "GET /admin.analytics.messages.metadata": "not-requested",
+      "POST /admin.apps.activities.list": "not-requested",
+      "POST /admin.apps.approve": "not-requested",
+      "GET /admin.apps.approved.list": "not-requested",
+      "POST /admin.apps.clearResolution": "not-requested",
+      "POST /admin.apps.config.lookup": "not-requested",
+      "POST /admin.apps.config.set": "not-requested",
+      "POST /admin.apps.mcp.servers.list": "not-requested",
+      "POST /admin.apps.mcp.servers.permissions.list": "not-requested",
+      "POST /admin.apps.mcp.servers.permissions.set": "not-requested",
+      "POST /admin.apps.permissions.add": "not-requested",
+      "POST /admin.apps.permissions.list": "not-requested",
+      "POST /admin.apps.permissions.remove": "not-requested",
+      "POST /admin.apps.permissions.set": "not-requested",
+      "POST /admin.apps.requests.cancel": "not-requested",
+      "GET /admin.apps.requests.list": "not-requested",
+      "POST /admin.apps.restrict": "not-requested",
+      "GET /admin.apps.restricted.list": "not-requested",
+      "POST /admin.apps.uninstall": "not-requested",
+      "POST /admin.audit.anomaly.allow.getItem": "not-requested",
+      "POST /admin.audit.anomaly.allow.updateItem": "not-requested",
+      "POST /admin.auth.policy.assignEntities": "not-requested",
+      "POST /admin.auth.policy.getEntities": "not-requested",
+      "POST /admin.auth.policy.removeEntities": "not-requested",
+      "POST /admin.barriers.create": "not-requested",
+      "POST /admin.barriers.delete": "not-requested",
+      "GET /admin.barriers.list": "not-requested",
+      "POST /admin.barriers.update": "not-requested",
+      "POST /admin.conversations.archive": "not-requested",
+      "POST /admin.conversations.bulkArchive": "not-requested",
+      "POST /admin.conversations.bulkDelete": "not-requested",
+      "POST /admin.conversations.bulkMove": "not-requested",
+      "GET /admin.conversations.bulkSetExcludeFromSlackAi": "not-requested",
+      "POST /admin.conversations.bulkSetProperties": "not-requested",
+      "POST /admin.conversations.convertToPrivate": "not-requested",
+      "POST /admin.conversations.convertToPublic": "not-requested",
+      "POST /admin.conversations.create": "not-requested",
+      "POST /admin.conversations.createForObjects": "not-requested",
+      "POST /admin.conversations.delete": "not-requested",
+      "POST /admin.conversations.disconnectShared": "not-requested",
+      "GET /admin.conversations.ekm.listOriginalConnectedChannelInfo": "not-requested",
+      "GET /admin.conversations.getConversationPrefs": "not-requested",
+      "POST /admin.conversations.getCustomRetention": "not-requested",
+      "GET /admin.conversations.getTeams": "not-requested",
+      "POST /admin.conversations.invite": "not-requested",
+      "POST /admin.conversations.linkObjects": "not-requested",
+      "POST /admin.conversations.lookup": "not-requested",
+      "POST /admin.conversations.removeCustomRetention": "not-requested",
+      "POST /admin.conversations.rename": "not-requested",
+      "POST /admin.conversations.restrictAccess.addGroup": "not-requested",
+      "GET /admin.conversations.restrictAccess.listGroups": "not-requested",
+      "POST /admin.conversations.restrictAccess.removeGroup": "not-requested",
+      "GET /admin.conversations.search": "not-requested",
+      "POST /admin.conversations.setConversationPrefs": "not-requested",
+      "POST /admin.conversations.setCustomRetention": "not-requested",
+      "POST /admin.conversations.setTeams": "not-requested",
+      "POST /admin.conversations.unarchive": "not-requested",
+      "POST /admin.conversations.unlinkObjects": "not-requested",
+      "POST /admin.emoji.add": "not-requested",
+      "POST /admin.emoji.addAlias": "not-requested",
+      "GET /admin.emoji.list": "not-requested",
+      "POST /admin.emoji.remove": "not-requested",
+      "POST /admin.emoji.rename": "not-requested",
+      "POST /admin.functions.list": "not-requested",
+      "POST /admin.functions.permissions.lookup": "not-requested",
+      "POST /admin.functions.permissions.set": "not-requested",
+      "POST /admin.inviteRequests.approve": "not-requested",
+      "GET /admin.inviteRequests.approved.list": "not-requested",
+      "GET /admin.inviteRequests.denied.list": "not-requested",
+      "POST /admin.inviteRequests.deny": "not-requested",
+      "GET /admin.inviteRequests.list": "not-requested",
+      "POST /admin.roles.addAssignments": "not-requested",
+      "GET /admin.roles.listAssignments": "not-requested",
+      "POST /admin.roles.removeAssignments": "not-requested",
+      "GET /admin.teams.admins.list": "not-requested",
+      "POST /admin.teams.create": "not-requested",
+      "GET /admin.teams.list": "not-requested",
+      "GET /admin.teams.owners.list": "not-requested",
+      "GET /admin.teams.settings.info": "not-requested",
+      "POST /admin.teams.settings.setDefaultChannels": "not-requested",
+      "POST /admin.teams.settings.setDescription": "not-requested",
+      "POST /admin.teams.settings.setDiscoverability": "not-requested",
+      "POST /admin.teams.settings.setIcon": "not-requested",
+      "POST /admin.teams.settings.setName": "not-requested",
+      "POST /admin.usergroups.addChannels": "not-requested",
+      "POST /admin.usergroups.addTeams": "not-requested",
+      "POST /admin.usergroups.addUsers": "not-requested",
+      "POST /admin.usergroups.create": "not-requested",
+      "POST /admin.usergroups.fetch": "not-requested",
+      "GET /admin.usergroups.listChannels": "not-requested",
+      "POST /admin.usergroups.removeChannels": "not-requested",
+      "POST /admin.usergroups.removeTeams": "not-requested",
+      "POST /admin.usergroups.removeUsers": "not-requested",
+      "POST /admin.usergroups.update": "not-requested",
+      "POST /admin.usergroups.uploadUsers": "not-requested",
+      "POST /admin.users.assign": "not-requested",
+      "GET /admin.users.getExpiration": "not-requested",
+      "POST /admin.users.invite": "not-requested",
+      "GET /admin.users.list": "not-requested",
+      "POST /admin.users.remove": "not-requested",
+      "POST /admin.users.session.clearSettings": "not-requested",
+      "POST /admin.users.session.getSettings": "not-requested",
+      "POST /admin.users.session.invalidate": "not-requested",
+      "POST /admin.users.session.list": "not-requested",
+      "POST /admin.users.session.reset": "not-requested",
+      "POST /admin.users.session.resetBulk": "not-requested",
+      "POST /admin.users.session.setSettings": "not-requested",
+      "POST /admin.users.setAdmin": "not-requested",
+      "POST /admin.users.setExpiration": "not-requested",
+      "POST /admin.users.setOwner": "not-requested",
+      "POST /admin.users.setRegular": "not-requested",
+      "POST /admin.users.unsupportedVersions.export": "not-requested",
+      "POST /admin.workflows.collaborators.add": "not-requested",
+      "POST /admin.workflows.collaborators.remove": "not-requested",
+      "POST /admin.workflows.permissions.lookup": "not-requested",
+      "POST /admin.workflows.search": "not-requested",
+      "POST /admin.workflows.triggers.types.permissions.lookup": "not-requested",
+      "POST /admin.workflows.triggers.types.permissions.set": "not-requested",
+      "POST /admin.workflows.unpublish": "not-requested",
+      "POST /apps.activities.list": "not-requested",
+      "POST /apps.connections.open": "client-credentials-only",
+      "POST /apps.datastore.bulkDelete": "bot-token-only",
+      "POST /apps.datastore.bulkGet": "bot-token-only",
+      "POST /apps.datastore.bulkPut": "bot-token-only",
+      "POST /apps.datastore.count": "bot-token-only",
+      "POST /apps.datastore.delete": "bot-token-only",
+      "POST /apps.datastore.get": "bot-token-only",
+      "POST /apps.datastore.put": "bot-token-only",
+      "POST /apps.datastore.query": "bot-token-only",
+      "POST /apps.datastore.update": "bot-token-only",
+      "GET /apps.event.authorizations.list": "client-credentials-only",
+      "POST /apps.icon.set": "not-requested",
+      "POST /apps.managed.permissions.set": "client-credentials-only",
+      "POST /apps.manifest.create": "client-credentials-only",
+      "POST /apps.manifest.delete": "client-credentials-only",
+      "POST /apps.manifest.export": "client-credentials-only",
+      "POST /apps.manifest.update": "client-credentials-only",
+      "POST /apps.manifest.validate": "client-credentials-only",
+      "GET /apps.permissions.info": "no-oauth-scope",
+      "GET /apps.permissions.request": "no-oauth-scope",
+      "GET /apps.permissions.resources.list": "no-oauth-scope",
+      "GET /apps.permissions.scopes.list": "no-oauth-scope",
+      "GET /apps.permissions.users.list": "no-oauth-scope",
+      "GET /apps.permissions.users.request": "no-oauth-scope",
+      "GET /apps.uninstall": "client-credentials-only",
+      "GET /conversations.declineSharedInvite": "bot-token-only",
+      "POST /files.remote.remove": "bot-token-only",
+      "GET /files.remote.share": "not-requested",
+      "POST /files.upload": "no-oauth-scope",
+      "POST /functions.distributions.permissions.add": "client-credentials-only",
+      "POST /functions.distributions.permissions.list": "client-credentials-only",
+      "POST /functions.distributions.permissions.remove": "client-credentials-only",
+      "POST /functions.distributions.permissions.set": "client-credentials-only",
+      "GET /migration.exchange": "not-requested",
+      "GET /oauth.access": "client-credentials-only",
+      "GET /oauth.token": "client-credentials-only",
+      "GET /oauth.v2.access": "client-credentials-only",
+      "POST /oauth.v2.beginShortTokenRotation": "client-credentials-only",
+      "POST /oauth.v2.completeShortTokenRotation": "client-credentials-only",
+      "POST /oauth.v2.exchange": "client-credentials-only",
+      "POST /oauth.v2.user.access": "client-credentials-only",
+      "POST /openid.connect.token": "client-credentials-only",
+      "POST /openid.connect.userInfo": "not-requested",
+      "POST /reminders.delete": "not-requested",
+      "GET /rtm.connect": "no-oauth-scope",
+      "GET /rtm.start": "no-oauth-scope",
+      "POST /slackLists.items.delete": "not-requested",
+      "POST /slackLists.items.deleteMultiple": "not-requested",
+      "POST /team.billing.info": "not-requested",
+      "POST /tooling.tokens.rotate": "client-credentials-only",
+      "POST /users.discoverableContacts.lookup": "bot-token-only",
+      "GET /workflows.stepCompleted": "no-oauth-scope",
+      "GET /workflows.stepFailed": "no-oauth-scope",
+      "POST /workflows.triggers.permissions.add": "bot-token-only",
+      "POST /workflows.triggers.permissions.list": "bot-token-only",
+      "POST /workflows.triggers.permissions.remove": "bot-token-only",
+      "POST /workflows.triggers.permissions.set": "bot-token-only",
+      "GET /workflows.updateStep": "no-oauth-scope"
+     }
+    }
+   ]
+  }
+ },
+ "optionSources": {
+  "gmail": [
+   {
+    "id": "labels",
+    "operation": "gmail.users.labels.list",
+    "row": "gmail.labels.read",
+    "serves": [
+     "labelIds",
+     "addLabelIds",
+     "removeLabelIds",
+     "labelId"
+    ],
+    "args": {
+     "userId": "me"
+    },
+    "items": "/labels",
+    "value": "/id",
+    "label": [
+     "/name"
+    ],
+    "pageToken": null,
+    "maxItems": 500
+   }
+  ],
+  "google-calendar": [
+   {
+    "id": "calendars",
+    "operation": "calendar.calendarList.list",
+    "row": "google-calendar.calendars.read",
+    "serves": [
+     "calendarId"
+    ],
+    "args": {},
+    "items": "/items",
+    "value": "/id",
+    "label": [
+     "/summaryOverride",
+     "/summary"
+    ],
+    "pageToken": {
+     "response": "/nextPageToken",
+     "parameter": "pageToken"
+    },
+    "maxItems": 250
+   }
+  ]
+ },
+ "proxyConfigs": {
+  "github": {
+   "schemaVersion": 1,
+   "appId": "github",
+   "apiBase": "https://api.github.com",
+   "style": "rest",
+   "pathPrefixes": [
+    "/"
+   ],
+   "acceptTypes": [
+    "application/json",
+    "application/vnd.github+json",
+    "application/vnd.github.raw+json"
+   ],
+   "reservedParameters": [],
+   "reservedBodyFields": [],
+   "arrayParameters": [],
+   "aliases": [
+    {
+     "from": "/repos/{owner}/{repo}",
+     "to": "/repositories/{repository_id}"
+    }
+   ],
+   "inheritFamilies": [],
+   "documentedRoutes": "github.routes.json",
+   "proxyAllowable": [
+    "github.notifications.manage"
+   ],
+   "typedOnly": [],
+   "documented": {
+    "count": 1232,
+    "hash": "648610649dd1db02df91b00e035ba0cebd73dac31844a7e8fca023f92f8d520d"
+   },
+   "configHash": "87769bb2f918e2758c568435b208792e931ed7b074b3c7b6cb730d6f0740eb27"
+  },
+  "gmail": {
+   "schemaVersion": 1,
+   "appId": "gmail",
+   "apiBase": "https://gmail.googleapis.com",
+   "style": "rest",
+   "pathPrefixes": [
+    "/gmail/v1/"
+   ],
+   "acceptTypes": [
+    "application/json"
+   ],
+   "reservedParameters": [
+    "key",
+    "quotaUser",
+    "userIp"
+   ],
+   "reservedBodyFields": [],
+   "arrayParameters": [
+    "labelIds",
+    "metadataHeaders"
+   ],
+   "aliases": [],
+   "inheritFamilies": [],
+   "documentedRoutes": null,
+   "proxyAllowable": [
+    "gmail.labels.manage"
+   ],
+   "typedOnly": [
+    "gmail.users.messages.send",
+    "gmail.users.drafts.send",
+    "gmail.users.messages.import",
+    "gmail.users.messages.insert"
+   ],
+   "documented": {
+    "count": 0,
+    "hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+   },
+   "configHash": "140c5dda828a09360cecbf02668ddf6b76efd8f0d6c120184813f7589c52c14b"
+  },
+  "google-calendar": {
+   "schemaVersion": 1,
+   "appId": "google-calendar",
+   "apiBase": "https://www.googleapis.com/calendar/v3",
+   "style": "rest",
+   "pathPrefixes": [
+    "/"
+   ],
+   "acceptTypes": [
+    "application/json"
+   ],
+   "reservedParameters": [
+    "key",
+    "quotaUser",
+    "userIp"
+   ],
+   "reservedBodyFields": [],
+   "arrayParameters": [
+    "eventTypes",
+    "privateExtendedProperty",
+    "sharedExtendedProperty"
+   ],
+   "aliases": [],
+   "inheritFamilies": [],
+   "documentedRoutes": null,
+   "proxyAllowable": [
+    "google-calendar.calendarlist.write"
+   ],
+   "typedOnly": [],
+   "documented": {
+    "count": 0,
+    "hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+   },
+   "configHash": "d7c58020583a0a359cdd3d2d4d1844dfbc80c6ee47016c1606403cedb38b8900"
+  },
+  "notion": {
+   "schemaVersion": 1,
+   "appId": "notion",
+   "apiBase": "https://api.notion.com",
+   "style": "rest",
+   "pathPrefixes": [
+    "/v1/"
+   ],
+   "acceptTypes": [
+    "application/json"
+   ],
+   "reservedParameters": [],
+   "reservedBodyFields": [
+    "in_trash",
+    "archived",
+    "is_archived",
+    "erase_content",
+    "is_locked",
+    "allow_deleting_content",
+    "display_name"
+   ],
+   "arrayParameters": [
+    "filter_properties"
+   ],
+   "aliases": [],
+   "inheritFamilies": [],
+   "documentedRoutes": null,
+   "proxyAllowable": [],
+   "typedOnly": [],
+   "documented": {
+    "count": 0,
+    "hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+   },
+   "configHash": "1eb9a30550d750dab9e49e7936cb1c1ceb4a29a071d6fb6e1d8b4f1f0cd4b3bc"
+  },
+  "slack": {
+   "schemaVersion": 1,
+   "appId": "slack",
+   "apiBase": "https://slack.com/api",
+   "style": "rpc",
+   "pathPrefixes": [
+    "/"
+   ],
+   "acceptTypes": [
+    "application/json"
+   ],
+   "reservedParameters": [
+    "token"
+   ],
+   "reservedBodyFields": [
+    "token"
+   ],
+   "arrayParameters": [],
+   "aliases": [],
+   "inheritFamilies": [
+    "admin",
+    "oauth",
+    "openid",
+    "apps",
+    "auth"
+   ],
+   "documentedRoutes": null,
+   "proxyAllowable": [
+    "slack.conversations.mark"
+   ],
+   "typedOnly": [],
+   "documented": {
+    "count": 0,
+    "hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+   },
+   "configHash": "35960156f76859cc2c4f60533c6569acbb6e93cc135b7926ba203bf69ec82d5f"
+  }
+ }
+}

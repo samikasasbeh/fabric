@@ -1,0 +1,29 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-uSLUNTQu2GdnNhkz+BBd6dEugzA/hp2OiFoF22adDGY='; base-uri 'none'; form-action 'none'">
+<title>Returning to Fabric</title>
+<p id="message">Returning to Fabric on this computer. If nothing happens, start the sign-in again from Fabric.</p>
+<noscript><p>This page needs JavaScript to return your sign-in to Fabric. Start the sign-in again from Fabric.</p></noscript>
+<script>
+  // Fabric callback relay (docs/AUTH-ENGINE.md). /oauth/<provider>/<port>/callback goes to
+  // http://127.0.0.1:<port>/api/oauth/<provider>/callback with only code, state, error and error_description.
+  // A developer's own app (F03.8, D2): /oauth/<provider>/apps/<pa_id>/callback goes to the developer runtime on appsPort.
+  // The lists must match Fabric's lib/oauth-relay.mjs; test/oauth-relay.test.mjs checks them.
+  const providers = ['notion', 'slack'], ports = ['4188', '4320'], appsPort = '4340';
+  const parts = location.pathname.split('/'), provider = parts[2], port = parts[3];
+  const keep = new URLSearchParams();
+  for (const [key, value] of new URLSearchParams(location.search)) {
+    if (['code', 'state', 'error', 'error_description'].includes(key) && !keep.has(key)) keep.set(key, value);
+  }
+  if (parts.length === 5 && parts[1] === 'oauth' && parts[4] === 'callback' && providers.includes(provider) && ports.includes(port)) {
+    location.replace('http://127.0.0.1:' + port + '/api/oauth/' + provider + '/callback?' + keep.toString());
+  } else if (parts.length === 6 && parts[1] === 'oauth' && providers.includes(provider) && parts[3] === 'apps' && /^pa_[a-z2-7]{26}$/.test(parts[4]) && parts[5] === 'callback') {
+    location.replace('http://127.0.0.1:' + appsPort + '/api/oauth/' + provider + '/apps/' + parts[4] + '/callback?' + keep.toString());
+  } else {
+    // Not a callback this page serves: take any code and state out of the address bar and history.
+    history.replaceState(null, '', '/');
+    document.getElementById('message').textContent = 'This is not a Fabric sign-in address. Start the sign-in again from Fabric.';
+  }
+</script>

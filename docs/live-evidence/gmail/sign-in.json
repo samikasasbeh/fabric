@@ -1,0 +1,113 @@
+{
+ "schemaVersion": 1,
+ "appId": "gmail",
+ "note": "Live sign-in evidence (exit gate check 7). Session 1 ran on 2026-10-29 (docs/MANUAL-TESTS.md, the S7.13 session): Sami signed in and the test operator recorded what each screen showed, from his reports and screenshots. Phase A ran version 1 code (54c85bd), Phase B the main line (03e290d). Corrected after the branch review of step 14: a record says passed only where the session notes show exactly the kind the exit gate names. Fields the notes did not record say so. No email, name, account id, login, page name or token is kept. The partial grant and the renewal for Gmail and Calendar ran on 2026-10-29 after the live passes, done by the test operator in the test Google account with Sami's OK; the renewal used the page's new Sign in again.",
+ "full-consent": {
+  "passed": true,
+  "date": "2026-10-29",
+  "runtime": "npm start, single owner",
+  "folder": "live session 1 parent folder",
+  "clientGrant": "not recorded",
+  "phase": "B",
+  "step": "B6",
+  "codeRevision": "03e290d",
+  "consentPolicy": "Google full level: gmail.modify and gmail.settings.basic",
+  "scopesExpected": [
+   "gmail.modify",
+   "gmail.settings.basic"
+  ],
+  "scopesRecorded": [
+   "gmail.modify",
+   "gmail.settings.basic"
+  ],
+  "cardRows": [
+   "Manage labels"
+  ],
+  "settingsBefore": {
+   "Send emails": "Allow",
+   "Search emails": "Never"
+  },
+  "settingsAfter": {
+   "Send emails": "Ask",
+   "Search emails": "Never"
+  },
+  "observed": "\"Upgrade to full access\" ended at Full access with no \"Needs more access\" row and the upgrade button gone. Google showed no boxes, since the scopes were already granted.",
+  "alsoSeen": "Later the same day the test operator connected Gmail in the live-test folder with Sami's OK: Fabric asked openid, email, gmail.modify and gmail.settings.basic, Google said Fabric (development) already had some access, and the account showed Full access. On the same day, after the access was removed, Google showed both Gmail boxes again at Add account.",
+  "notices": "none shown",
+  "auditTypes": "not recorded"
+ },
+ "partial-grant-add-access": {
+  "passed": true,
+  "date": "2026-10-29",
+  "phase": "Google sign-in session after the live passes",
+  "codeRevision": "28ff662",
+  "runtime": "node server.mjs, single owner",
+  "port": 4320,
+  "folder": "live session 1 parent folder",
+  "actor": "The test operator, in the test Google account, with Sami's OK",
+  "clientGrant": "not recorded",
+  "steps": [
+   "S5.3",
+   "S5.4"
+  ],
+  "setup": "Fabric (development)'s access was first removed in the test Google account (Linked apps, Delete all), so Google showed its boxes again.",
+  "consentPolicy": "Google boxes, one unticked",
+  "scopesExpected": [
+   "gmail.modify",
+   "gmail.settings.basic"
+  ],
+  "scopesRecorded": [
+   "gmail.modify"
+  ],
+  "observed": "Add account with only \"See, edit, create or change your email settings and filters\" unticked: a new account read \"Partial access (1 permission not granted)\", one notice named Change mail settings, filters and vacation reply; Delete drafts, labels or filters; Changes that return keys or secrets, and those three rows read \"Needs more access\" with Add. A cancel at Google changed nothing. Add on the mail settings row: Google asked for that one access only; afterwards Full access, no notice, no \"Needs more access\" row.",
+  "settingsBefore": {
+   "Search emails": "Never",
+   "Draft emails": "Never",
+   "Send emails": "Allow"
+  },
+  "settingsAfter": {
+   "Search emails": "Never",
+   "Draft emails": "Never",
+   "Send emails": "Ask"
+  },
+  "notices": "one not-granted notice, gone after Add",
+  "auditTypes": [
+   "connection.connected",
+   "oauth.failed (the cancel)",
+   "connection.upgraded"
+  ]
+ },
+ "renewal-kept-settings": {
+  "passed": true,
+  "date": "2026-10-29",
+  "phase": "Google sign-in session after the live passes",
+  "codeRevision": "28ff662",
+  "runtime": "node server.mjs, single owner",
+  "port": 4320,
+  "folder": "live session 1 parent folder",
+  "actor": "The test operator, in the test Google account, with Sami's OK",
+  "clientGrant": "not recorded",
+  "steps": [
+   "Sign in again (new on 28ff662)"
+  ],
+  "setup": "Fabric (development)'s access was first removed in the test Google account (Linked apps, Delete all), so Google showed its boxes again.",
+  "observed": "An older Gmail account read \"Reconnect needed\". \"Sign in again\" on it went to Google, which continued with no boxes; the same account was ready again, and all 16 of its settings were exactly as before, Search emails Never and Permanently delete emails Never included.",
+  "settingsBefore": "saved before, 16 rows",
+  "settingsAfter": "the same 16 rows, unchanged",
+  "auditTypes": [
+   "connection.reconsented"
+  ]
+ },
+ "here-only-disconnect": {
+  "passed": true,
+  "gates": false,
+  "date": "2026-10-29",
+  "runtime": "npm start, single owner",
+  "folder": "live session 1 parent folder",
+  "clientGrant": "not recorded",
+  "phase": "A",
+  "step": "A3, A4",
+  "codeRevision": "54c85bd",
+  "observed": "The confirm named Google Calendar and offered Cancel, Disconnect here only and Disconnect everywhere; after \"Disconnect here only\" Gmail read Not connected and Calendar's check still passed. The remote revoke was not exercised live."
+ }
+}

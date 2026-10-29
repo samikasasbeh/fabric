@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "target": "ES2023",
+    "lib": ["ES2023"],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "allowImportingTsExtensions": true,
+    "erasableSyntaxOnly": true,
+    "verbatimModuleSyntax": true,
+    "noEmit": true,
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "allowJs": true,
+    "checkJs": false,
+    "skipLibCheck": true,
+    "types": ["node"]
+  },
+  "include": ["contracts/**/*.mts", "lib/providers/**/*.mts", "lib/repositories/**/*.mts", "lib/local-authority.mts", "lib/mcp-adapter.mts", "mcp.mts", "migrations/**/*.mts", "test/types/**/*.mts"]
+}

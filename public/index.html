@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Fabric · Connectors</title>
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/connectors.css">
+  <script type="module" src="/app.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to workspace</a>
+  <div class="shell">
+    <aside class="sidebar" aria-label="Workspace navigation">
+      <a class="brand" href="#connectors"><span class="brand-mark" aria-hidden="true">F</span><span>fabric<span class="brand-caption">YOUR CONNECTED APPS</span></span></a>
+      <div class="workspace-label"><span class="status-dot"></span> Personal workspace <span class="version">0.3</span></div>
+      <nav id="navigation" aria-label="Main"></nav>
+      <div class="sidebar-note"><strong>You choose the access.</strong><p>Connect an account, choose what Fabric can do, and review its activity.</p></div>
+      <div class="server-state"><span id="server-dot" class="status-dot neutral"></span><span id="server-status">Connecting to runtime…</span></div>
+    </aside>
+    <div class="workspace">
+      <header class="topbar"><span class="breadcrumb">Settings <span>/</span> <strong id="breadcrumb-title">Connectors</strong></span><div class="top-actions"><span id="model-status" class="model-status" hidden>Checking model settings</span><button id="refresh" class="button small secondary" type="button">Refresh</button></div></header>
+      <div id="notification" class="notification" role="status" aria-live="polite" hidden></div>
+      <main id="main" tabindex="-1"><div class="empty initial"><h1>Opening your workspace</h1><p>Reading the local runtime. No account action is being performed.</p></div></main>
+    </div>
+  </div>
+  <dialog id="dialog" aria-labelledby="dialog-title" aria-describedby="dialog-description"><div id="dialog-content"></div></dialog>
+  <noscript><p>This local workspace requires JavaScript to communicate with the Fabric runtime.</p></noscript>
+</body>
+</html>

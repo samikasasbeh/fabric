@@ -1,0 +1,33 @@
+{
+ "note": "F10.9 part a: a GitHub-style answer to GET /user/repos, two repository objects that each carry temp_clone_token, written in the documented shape for the output, preview and pointer-argument tests (docs/F10.9-BUILD-MAP.md part a, R11). The token values are made up.",
+ "answer": [
+  {
+   "id": 1001,
+   "node_id": "R_fixture_1001",
+   "name": "fixture-one",
+   "full_name": "octo-fixture/fixture-one",
+   "private": false,
+   "owner": {"login": "octo-fixture", "id": 501, "type": "User"},
+   "html_url": "https://github.com/octo-fixture/fixture-one",
+   "description": "The first fixture repository.",
+   "default_branch": "main",
+   "temp_clone_token": "FIXTURE-TEMP-CLONE-ONE",
+   "permissions": {"admin": true, "push": true, "pull": true},
+   "updated_at": "2026-10-01T12:00:00Z"
+  },
+  {
+   "id": 1002,
+   "node_id": "R_fixture_1002",
+   "name": "fixture-two",
+   "full_name": "octo-fixture/fixture-two",
+   "private": true,
+   "owner": {"login": "octo-fixture", "id": 501, "type": "User"},
+   "html_url": "https://github.com/octo-fixture/fixture-two",
+   "description": null,
+   "default_branch": "trunk",
+   "temp_clone_token": "FIXTURE-TEMP-CLONE-TWO",
+   "permissions": {"admin": false, "push": true, "pull": true},
+   "updated_at": "2026-10-02T12:00:00Z"
+  }
+ ]
+}

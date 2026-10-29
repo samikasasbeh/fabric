@@ -1,0 +1,19 @@
+{
+ "schemaVersion": 1,
+ "appId": "fixture",
+ "reviewed": "F10.9 part a: the fixture app's version 1 option source, read through the typed list operation (docs/F10.9-BUILD-MAP.md part a). Not a real provider.",
+ "sources": [
+  {
+   "id": "items",
+   "operation": "fixture.items.list",
+   "row": "fixture.items.read",
+   "serves": ["itemId"],
+   "args": {},
+   "items": "/items",
+   "value": "/id",
+   "label": ["/name"],
+   "pageToken": {"response": "/nextPageToken", "parameter": "pageToken"},
+   "maxItems": 100
+  }
+ ]
+}

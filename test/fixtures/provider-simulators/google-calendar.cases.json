@@ -1,0 +1,21 @@
+{
+ "schemaVersion": 1,
+ "appId": "google-calendar",
+ "simulator": "test/fixtures/provider-simulators/google-calendar.mjs",
+ "tests": ["test/actions-google-calendar.test.mjs"],
+ "cases": {
+  "find-events v1": ["succeeds", "refused", "provider-refusal"],
+  "get-event v1": ["succeeds", "refused", "provider-refusal"],
+  "list-calendars v1": ["succeeds", "refused", "provider-refusal"],
+  "find-free-time v1": ["succeeds", "refused", "provider-refusal"],
+  "create-event v1": ["succeeds", "refused", "provider-refusal", "unverified", "lost-answer"],
+  "quick-add v1": ["succeeds", "refused", "provider-refusal", "unverified", "lost-answer"],
+  "update-event v1": ["succeeds", "refused", "provider-refusal", "unverified", "lost-answer"],
+  "update-guests v1": ["succeeds", "refused", "provider-refusal", "unverified", "lost-answer"],
+  "respond-event v1": ["succeeds", "refused", "provider-refusal", "unverified", "lost-answer"],
+  "delete-event v1": ["succeeds", "refused", "provider-refusal", "unverified", "lost-answer"],
+  "move-event v1": ["succeeds", "refused", "provider-refusal", "unverified", "lost-answer"],
+  "create-calendar v1": ["succeeds", "refused", "provider-refusal", "unverified", "lost-answer"],
+  "stop-sharing v1": ["succeeds", "refused", "provider-refusal", "unverified", "lost-answer"]
+ }
+}

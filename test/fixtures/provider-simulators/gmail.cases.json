@@ -1,0 +1,21 @@
+{
+ "schemaVersion": 1,
+ "appId": "gmail",
+ "simulator": "test/fixtures/provider-simulators/gmail.mjs",
+ "tests": ["test/actions-gmail.test.mjs"],
+ "cases": {
+  "find-emails v1": ["succeeds", "refused", "provider-refusal"],
+  "read-email v1": ["succeeds", "refused", "provider-refusal"],
+  "read-conversation v1": ["succeeds", "refused", "provider-refusal"],
+  "send-email v1": ["succeeds", "refused", "provider-refusal", "unverified", "lost-answer"],
+  "reply v1": ["succeeds", "refused", "provider-refusal", "unverified", "lost-answer"],
+  "create-draft v1": ["succeeds", "refused", "provider-refusal", "unverified", "lost-answer"],
+  "edit-draft v1": ["succeeds", "refused", "provider-refusal", "unverified", "lost-answer"],
+  "send-draft v1": ["succeeds", "refused", "provider-refusal", "unverified", "lost-answer"],
+  "organize-email v1": ["succeeds", "refused", "provider-refusal", "unverified", "lost-answer"],
+  "create-label v1": ["succeeds", "refused", "provider-refusal", "unverified", "lost-answer"],
+  "move-to-trash v1": ["succeeds", "refused", "provider-refusal", "unverified", "lost-answer"],
+  "set-out-of-office v1": ["succeeds", "refused", "provider-refusal", "unverified", "lost-answer"],
+  "auto-label v1": ["succeeds", "refused", "provider-refusal", "unverified", "lost-answer"]
+ }
+}

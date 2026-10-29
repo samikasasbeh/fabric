@@ -1,0 +1,655 @@
+{
+ "note": "Method ids and the OAuth scopes Google documents for each (any one scope is enough), extracted from Google's public Discovery documents for Fabric's access-closure tests. Facts only; not the documents themselves.",
+ "apps": {
+  "gmail": {
+   "source": "https://gmail.googleapis.com/$discovery/rest?version=v1",
+   "revision": "20261005",
+   "methods": {
+    "gmail.users.drafts.create": [
+     "https://mail.google.com/",
+     "https://www.googleapis.com/auth/gmail.addons.current.action.compose",
+     "https://www.googleapis.com/auth/gmail.compose",
+     "https://www.googleapis.com/auth/gmail.modify"
+    ],
+    "gmail.users.drafts.delete": [
+     "https://mail.google.com/",
+     "https://www.googleapis.com/auth/gmail.addons.current.action.compose",
+     "https://www.googleapis.com/auth/gmail.compose",
+     "https://www.googleapis.com/auth/gmail.modify"
+    ],
+    "gmail.users.drafts.get": [
+     "https://mail.google.com/",
+     "https://www.googleapis.com/auth/gmail.compose",
+     "https://www.googleapis.com/auth/gmail.modify",
+     "https://www.googleapis.com/auth/gmail.readonly"
+    ],
+    "gmail.users.drafts.list": [
+     "https://mail.google.com/",
+     "https://www.googleapis.com/auth/gmail.compose",
+     "https://www.googleapis.com/auth/gmail.modify",
+     "https://www.googleapis.com/auth/gmail.readonly"
+    ],
+    "gmail.users.drafts.send": [
+     "https://mail.google.com/",
+     "https://www.googleapis.com/auth/gmail.addons.current.action.compose",
+     "https://www.googleapis.com/auth/gmail.compose",
+     "https://www.googleapis.com/auth/gmail.modify"
+    ],
+    "gmail.users.drafts.update": [
+     "https://mail.google.com/",
+     "https://www.googleapis.com/auth/gmail.addons.current.action.compose",
+     "https://www.googleapis.com/auth/gmail.compose",
+     "https://www.googleapis.com/auth/gmail.modify"
+    ],
+    "gmail.users.getProfile": [
+     "https://mail.google.com/",
+     "https://www.googleapis.com/auth/gmail.compose",
+     "https://www.googleapis.com/auth/gmail.metadata",
+     "https://www.googleapis.com/auth/gmail.modify",
+     "https://www.googleapis.com/auth/gmail.readonly"
+    ],
+    "gmail.users.history.list": [
+     "https://mail.google.com/",
+     "https://www.googleapis.com/auth/gmail.metadata",
+     "https://www.googleapis.com/auth/gmail.modify",
+     "https://www.googleapis.com/auth/gmail.readonly"
+    ],
+    "gmail.users.labels.create": [
+     "https://mail.google.com/",
+     "https://www.googleapis.com/auth/gmail.labels",
+     "https://www.googleapis.com/auth/gmail.modify"
+    ],
+    "gmail.users.labels.delete": [
+     "https://mail.google.com/",
+     "https://www.googleapis.com/auth/gmail.labels",
+     "https://www.googleapis.com/auth/gmail.modify"
+    ],
+    "gmail.users.labels.get": [
+     "https://mail.google.com/",
+     "https://www.googleapis.com/auth/gmail.labels",
+     "https://www.googleapis.com/auth/gmail.metadata",
+     "https://www.googleapis.com/auth/gmail.modify",
+     "https://www.googleapis.com/auth/gmail.readonly"
+    ],
+    "gmail.users.labels.list": [
+     "https://mail.google.com/",
+     "https://www.googleapis.com/auth/gmail.labels",
+     "https://www.googleapis.com/auth/gmail.metadata",
+     "https://www.googleapis.com/auth/gmail.modify",
+     "https://www.googleapis.com/auth/gmail.readonly"
+    ],
+    "gmail.users.labels.patch": [
+     "https://mail.google.com/",
+     "https://www.googleapis.com/auth/gmail.labels",
+     "https://www.googleapis.com/auth/gmail.modify"
+    ],
+    "gmail.users.labels.update": [
+     "https://mail.google.com/",
+     "https://www.googleapis.com/auth/gmail.labels",
+     "https://www.googleapis.com/auth/gmail.modify"
+    ],
+    "gmail.users.messages.attachments.get": [
+     "https://mail.google.com/",
+     "https://www.googleapis.com/auth/gmail.addons.current.message.action",
+     "https://www.googleapis.com/auth/gmail.addons.current.message.readonly",
+     "https://www.googleapis.com/auth/gmail.modify",
+     "https://www.googleapis.com/auth/gmail.readonly"
+    ],
+    "gmail.users.messages.batchDelete": [
+     "https://mail.google.com/"
+    ],
+    "gmail.users.messages.batchModify": [
+     "https://mail.google.com/",
+     "https://www.googleapis.com/auth/gmail.modify"
+    ],
+    "gmail.users.messages.delete": [
+     "https://mail.google.com/"
+    ],
+    "gmail.users.messages.get": [
+     "https://mail.google.com/",
+     "https://www.googleapis.com/auth/gmail.addons.current.message.action",
+     "https://www.googleapis.com/auth/gmail.addons.current.message.metadata",
+     "https://www.googleapis.com/auth/gmail.addons.current.message.readonly",
+     "https://www.googleapis.com/auth/gmail.metadata",
+     "https://www.googleapis.com/auth/gmail.modify",
+     "https://www.googleapis.com/auth/gmail.readonly"
+    ],
+    "gmail.users.messages.import": [
+     "https://mail.google.com/",
+     "https://www.googleapis.com/auth/gmail.insert",
+     "https://www.googleapis.com/auth/gmail.modify"
+    ],
+    "gmail.users.messages.insert": [
+     "https://mail.google.com/",
+     "https://www.googleapis.com/auth/gmail.insert",
+     "https://www.googleapis.com/auth/gmail.modify"
+    ],
+    "gmail.users.messages.list": [
+     "https://mail.google.com/",
+     "https://www.googleapis.com/auth/gmail.metadata",
+     "https://www.googleapis.com/auth/gmail.modify",
+     "https://www.googleapis.com/auth/gmail.readonly"
+    ],
+    "gmail.users.messages.modify": [
+     "https://mail.google.com/",
+     "https://www.googleapis.com/auth/gmail.modify"
+    ],
+    "gmail.users.messages.send": [
+     "https://mail.google.com/",
+     "https://www.googleapis.com/auth/gmail.addons.current.action.compose",
+     "https://www.googleapis.com/auth/gmail.compose",
+     "https://www.googleapis.com/auth/gmail.modify",
+     "https://www.googleapis.com/auth/gmail.send"
+    ],
+    "gmail.users.messages.trash": [
+     "https://mail.google.com/",
+     "https://www.googleapis.com/auth/gmail.modify"
+    ],
+    "gmail.users.messages.untrash": [
+     "https://mail.google.com/",
+     "https://www.googleapis.com/auth/gmail.modify"
+    ],
+    "gmail.users.settings.cse.identities.create": [
+     "https://www.googleapis.com/auth/gmail.settings.basic",
+     "https://www.googleapis.com/auth/gmail.settings.sharing"
+    ],
+    "gmail.users.settings.cse.identities.delete": [
+     "https://www.googleapis.com/auth/gmail.settings.basic",
+     "https://www.googleapis.com/auth/gmail.settings.sharing"
+    ],
+    "gmail.users.settings.cse.identities.get": [
+     "https://mail.google.com/",
+     "https://www.googleapis.com/auth/gmail.modify",
+     "https://www.googleapis.com/auth/gmail.readonly",
+     "https://www.googleapis.com/auth/gmail.settings.basic",
+     "https://www.googleapis.com/auth/gmail.settings.sharing"
+    ],
+    "gmail.users.settings.cse.identities.list": [
+     "https://mail.google.com/",
+     "https://www.googleapis.com/auth/gmail.modify",
+     "https://www.googleapis.com/auth/gmail.readonly",
+     "https://www.googleapis.com/auth/gmail.settings.basic",
+     "https://www.googleapis.com/auth/gmail.settings.sharing"
+    ],
+    "gmail.users.settings.cse.identities.patch": [
+     "https://www.googleapis.com/auth/gmail.settings.basic",
+     "https://www.googleapis.com/auth/gmail.settings.sharing"
+    ],
+    "gmail.users.settings.cse.keypairs.create": [
+     "https://www.googleapis.com/auth/gmail.settings.basic",
+     "https://www.googleapis.com/auth/gmail.settings.sharing"
+    ],
+    "gmail.users.settings.cse.keypairs.disable": [
+     "https://www.googleapis.com/auth/gmail.settings.basic",
+     "https://www.googleapis.com/auth/gmail.settings.sharing"
+    ],
+    "gmail.users.settings.cse.keypairs.enable": [
+     "https://www.googleapis.com/auth/gmail.settings.basic",
+     "https://www.googleapis.com/auth/gmail.settings.sharing"
+    ],
+    "gmail.users.settings.cse.keypairs.get": [
+     "https://mail.google.com/",
+     "https://www.googleapis.com/auth/gmail.modify",
+     "https://www.googleapis.com/auth/gmail.readonly",
+     "https://www.googleapis.com/auth/gmail.settings.basic",
+     "https://www.googleapis.com/auth/gmail.settings.sharing"
+    ],
+    "gmail.users.settings.cse.keypairs.list": [
+     "https://mail.google.com/",
+     "https://www.googleapis.com/auth/gmail.modify",
+     "https://www.googleapis.com/auth/gmail.readonly",
+     "https://www.googleapis.com/auth/gmail.settings.basic",
+     "https://www.googleapis.com/auth/gmail.settings.sharing"
+    ],
+    "gmail.users.settings.cse.keypairs.obliterate": [
+     "https://www.googleapis.com/auth/gmail.settings.basic",
+     "https://www.googleapis.com/auth/gmail.settings.sharing"
+    ],
+    "gmail.users.settings.delegates.create": [
+     "https://www.googleapis.com/auth/gmail.settings.sharing"
+    ],
+    "gmail.users.settings.delegates.delete": [
+     "https://www.googleapis.com/auth/gmail.settings.sharing"
+    ],
+    "gmail.users.settings.delegates.get": [
+     "https://mail.google.com/",
+     "https://www.googleapis.com/auth/gmail.modify",
+     "https://www.googleapis.com/auth/gmail.readonly",
+     "https://www.googleapis.com/auth/gmail.settings.basic"
+    ],
+    "gmail.users.settings.delegates.list": [
+     "https://mail.google.com/",
+     "https://www.googleapis.com/auth/gmail.modify",
+     "https://www.googleapis.com/auth/gmail.readonly",
+     "https://www.googleapis.com/auth/gmail.settings.basic"
+    ],
+    "gmail.users.settings.filters.create": [
+     "https://www.googleapis.com/auth/gmail.settings.basic"
+    ],
+    "gmail.users.settings.filters.delete": [
+     "https://www.googleapis.com/auth/gmail.settings.basic"
+    ],
+    "gmail.users.settings.filters.get": [
+     "https://mail.google.com/",
+     "https://www.googleapis.com/auth/gmail.modify",
+     "https://www.googleapis.com/auth/gmail.readonly",
+     "https://www.googleapis.com/auth/gmail.settings.basic"
+    ],
+    "gmail.users.settings.filters.list": [
+     "https://mail.google.com/",
+     "https://www.googleapis.com/auth/gmail.modify",
+     "https://www.googleapis.com/auth/gmail.readonly",
+     "https://www.googleapis.com/auth/gmail.settings.basic"
+    ],
+    "gmail.users.settings.forwardingAddresses.create": [
+     "https://www.googleapis.com/auth/gmail.settings.sharing"
+    ],
+    "gmail.users.settings.forwardingAddresses.delete": [
+     "https://www.googleapis.com/auth/gmail.settings.sharing"
+    ],
+    "gmail.users.settings.forwardingAddresses.get": [
+     "https://mail.google.com/",
+     "https://www.googleapis.com/auth/gmail.modify",
+     "https://www.googleapis.com/auth/gmail.readonly",
+     "https://www.googleapis.com/auth/gmail.settings.basic"
+    ],
+    "gmail.users.settings.forwardingAddresses.list": [
+     "https://mail.google.com/",
+     "https://www.googleapis.com/auth/gmail.modify",
+     "https://www.googleapis.com/auth/gmail.readonly",
+     "https://www.googleapis.com/auth/gmail.settings.basic"
+    ],
+    "gmail.users.settings.getAutoForwarding": [
+     "https://mail.google.com/",
+     "https://www.googleapis.com/auth/gmail.modify",
+     "https://www.googleapis.com/auth/gmail.readonly",
+     "https://www.googleapis.com/auth/gmail.settings.basic"
+    ],
+    "gmail.users.settings.getImap": [
+     "https://mail.google.com/",
+     "https://www.googleapis.com/auth/gmail.modify",
+     "https://www.googleapis.com/auth/gmail.readonly",
+     "https://www.googleapis.com/auth/gmail.settings.basic"
+    ],
+    "gmail.users.settings.getLanguage": [
+     "https://mail.google.com/",
+     "https://www.googleapis.com/auth/gmail.modify",
+     "https://www.googleapis.com/auth/gmail.readonly",
+     "https://www.googleapis.com/auth/gmail.settings.basic"
+    ],
+    "gmail.users.settings.getPop": [
+     "https://mail.google.com/",
+     "https://www.googleapis.com/auth/gmail.modify",
+     "https://www.googleapis.com/auth/gmail.readonly",
+     "https://www.googleapis.com/auth/gmail.settings.basic"
+    ],
+    "gmail.users.settings.getVacation": [
+     "https://mail.google.com/",
+     "https://www.googleapis.com/auth/gmail.modify",
+     "https://www.googleapis.com/auth/gmail.readonly",
+     "https://www.googleapis.com/auth/gmail.settings.basic"
+    ],
+    "gmail.users.settings.sendAs.create": [
+     "https://www.googleapis.com/auth/gmail.settings.sharing"
+    ],
+    "gmail.users.settings.sendAs.delete": [
+     "https://www.googleapis.com/auth/gmail.settings.sharing"
+    ],
+    "gmail.users.settings.sendAs.get": [
+     "https://mail.google.com/",
+     "https://www.googleapis.com/auth/gmail.modify",
+     "https://www.googleapis.com/auth/gmail.readonly",
+     "https://www.googleapis.com/auth/gmail.settings.basic"
+    ],
+    "gmail.users.settings.sendAs.list": [
+     "https://mail.google.com/",
+     "https://www.googleapis.com/auth/gmail.modify",
+     "https://www.googleapis.com/auth/gmail.readonly",
+     "https://www.googleapis.com/auth/gmail.settings.basic"
+    ],
+    "gmail.users.settings.sendAs.patch": [
+     "https://www.googleapis.com/auth/gmail.settings.basic",
+     "https://www.googleapis.com/auth/gmail.settings.sharing"
+    ],
+    "gmail.users.settings.sendAs.smimeInfo.delete": [
+     "https://www.googleapis.com/auth/gmail.settings.basic",
+     "https://www.googleapis.com/auth/gmail.settings.sharing"
+    ],
+    "gmail.users.settings.sendAs.smimeInfo.get": [
+     "https://mail.google.com/",
+     "https://www.googleapis.com/auth/gmail.modify",
+     "https://www.googleapis.com/auth/gmail.readonly",
+     "https://www.googleapis.com/auth/gmail.settings.basic",
+     "https://www.googleapis.com/auth/gmail.settings.sharing"
+    ],
+    "gmail.users.settings.sendAs.smimeInfo.insert": [
+     "https://www.googleapis.com/auth/gmail.settings.basic",
+     "https://www.googleapis.com/auth/gmail.settings.sharing"
+    ],
+    "gmail.users.settings.sendAs.smimeInfo.list": [
+     "https://mail.google.com/",
+     "https://www.googleapis.com/auth/gmail.modify",
+     "https://www.googleapis.com/auth/gmail.readonly",
+     "https://www.googleapis.com/auth/gmail.settings.basic",
+     "https://www.googleapis.com/auth/gmail.settings.sharing"
+    ],
+    "gmail.users.settings.sendAs.smimeInfo.setDefault": [
+     "https://www.googleapis.com/auth/gmail.settings.basic",
+     "https://www.googleapis.com/auth/gmail.settings.sharing"
+    ],
+    "gmail.users.settings.sendAs.update": [
+     "https://www.googleapis.com/auth/gmail.settings.basic",
+     "https://www.googleapis.com/auth/gmail.settings.sharing"
+    ],
+    "gmail.users.settings.sendAs.verify": [
+     "https://www.googleapis.com/auth/gmail.settings.sharing"
+    ],
+    "gmail.users.settings.updateAutoForwarding": [
+     "https://www.googleapis.com/auth/gmail.settings.sharing"
+    ],
+    "gmail.users.settings.updateImap": [
+     "https://www.googleapis.com/auth/gmail.settings.basic"
+    ],
+    "gmail.users.settings.updateLanguage": [
+     "https://www.googleapis.com/auth/gmail.settings.basic"
+    ],
+    "gmail.users.settings.updatePop": [
+     "https://www.googleapis.com/auth/gmail.settings.basic"
+    ],
+    "gmail.users.settings.updateVacation": [
+     "https://www.googleapis.com/auth/gmail.settings.basic"
+    ],
+    "gmail.users.stop": [
+     "https://mail.google.com/",
+     "https://www.googleapis.com/auth/gmail.metadata",
+     "https://www.googleapis.com/auth/gmail.modify",
+     "https://www.googleapis.com/auth/gmail.readonly"
+    ],
+    "gmail.users.threads.delete": [
+     "https://mail.google.com/"
+    ],
+    "gmail.users.threads.get": [
+     "https://mail.google.com/",
+     "https://www.googleapis.com/auth/gmail.addons.current.message.action",
+     "https://www.googleapis.com/auth/gmail.addons.current.message.metadata",
+     "https://www.googleapis.com/auth/gmail.addons.current.message.readonly",
+     "https://www.googleapis.com/auth/gmail.metadata",
+     "https://www.googleapis.com/auth/gmail.modify",
+     "https://www.googleapis.com/auth/gmail.readonly"
+    ],
+    "gmail.users.threads.list": [
+     "https://mail.google.com/",
+     "https://www.googleapis.com/auth/gmail.metadata",
+     "https://www.googleapis.com/auth/gmail.modify",
+     "https://www.googleapis.com/auth/gmail.readonly"
+    ],
+    "gmail.users.threads.modify": [
+     "https://mail.google.com/",
+     "https://www.googleapis.com/auth/gmail.modify"
+    ],
+    "gmail.users.threads.trash": [
+     "https://mail.google.com/",
+     "https://www.googleapis.com/auth/gmail.modify"
+    ],
+    "gmail.users.threads.untrash": [
+     "https://mail.google.com/",
+     "https://www.googleapis.com/auth/gmail.modify"
+    ],
+    "gmail.users.watch": [
+     "https://mail.google.com/",
+     "https://www.googleapis.com/auth/gmail.metadata",
+     "https://www.googleapis.com/auth/gmail.modify",
+     "https://www.googleapis.com/auth/gmail.readonly"
+    ]
+   }
+  },
+  "google-calendar": {
+   "source": "https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest",
+   "revision": "20261005",
+   "methods": {
+    "calendar.acl.delete": [
+     "https://www.googleapis.com/auth/calendar",
+     "https://www.googleapis.com/auth/calendar.acls"
+    ],
+    "calendar.acl.get": [
+     "https://www.googleapis.com/auth/calendar",
+     "https://www.googleapis.com/auth/calendar.acls",
+     "https://www.googleapis.com/auth/calendar.acls.readonly",
+     "https://www.googleapis.com/auth/calendar.readonly"
+    ],
+    "calendar.acl.insert": [
+     "https://www.googleapis.com/auth/calendar",
+     "https://www.googleapis.com/auth/calendar.acls"
+    ],
+    "calendar.acl.list": [
+     "https://www.googleapis.com/auth/calendar",
+     "https://www.googleapis.com/auth/calendar.acls",
+     "https://www.googleapis.com/auth/calendar.acls.readonly"
+    ],
+    "calendar.acl.patch": [
+     "https://www.googleapis.com/auth/calendar",
+     "https://www.googleapis.com/auth/calendar.acls"
+    ],
+    "calendar.acl.update": [
+     "https://www.googleapis.com/auth/calendar",
+     "https://www.googleapis.com/auth/calendar.acls"
+    ],
+    "calendar.acl.watch": [
+     "https://www.googleapis.com/auth/calendar",
+     "https://www.googleapis.com/auth/calendar.acls",
+     "https://www.googleapis.com/auth/calendar.acls.readonly"
+    ],
+    "calendar.calendarList.delete": [
+     "https://www.googleapis.com/auth/calendar",
+     "https://www.googleapis.com/auth/calendar.app.created",
+     "https://www.googleapis.com/auth/calendar.calendarlist"
+    ],
+    "calendar.calendarList.get": [
+     "https://www.googleapis.com/auth/calendar",
+     "https://www.googleapis.com/auth/calendar.app.created",
+     "https://www.googleapis.com/auth/calendar.calendarlist",
+     "https://www.googleapis.com/auth/calendar.calendarlist.readonly",
+     "https://www.googleapis.com/auth/calendar.readonly"
+    ],
+    "calendar.calendarList.insert": [
+     "https://www.googleapis.com/auth/calendar",
+     "https://www.googleapis.com/auth/calendar.calendarlist"
+    ],
+    "calendar.calendarList.list": [
+     "https://www.googleapis.com/auth/calendar",
+     "https://www.googleapis.com/auth/calendar.calendarlist",
+     "https://www.googleapis.com/auth/calendar.calendarlist.readonly",
+     "https://www.googleapis.com/auth/calendar.readonly"
+    ],
+    "calendar.calendarList.patch": [
+     "https://www.googleapis.com/auth/calendar",
+     "https://www.googleapis.com/auth/calendar.app.created",
+     "https://www.googleapis.com/auth/calendar.calendarlist"
+    ],
+    "calendar.calendarList.update": [
+     "https://www.googleapis.com/auth/calendar",
+     "https://www.googleapis.com/auth/calendar.app.created",
+     "https://www.googleapis.com/auth/calendar.calendarlist"
+    ],
+    "calendar.calendarList.watch": [
+     "https://www.googleapis.com/auth/calendar",
+     "https://www.googleapis.com/auth/calendar.calendarlist",
+     "https://www.googleapis.com/auth/calendar.calendarlist.readonly",
+     "https://www.googleapis.com/auth/calendar.readonly"
+    ],
+    "calendar.calendars.clear": [
+     "https://www.googleapis.com/auth/calendar",
+     "https://www.googleapis.com/auth/calendar.calendars"
+    ],
+    "calendar.calendars.delete": [
+     "https://www.googleapis.com/auth/calendar",
+     "https://www.googleapis.com/auth/calendar.app.created",
+     "https://www.googleapis.com/auth/calendar.calendars"
+    ],
+    "calendar.calendars.get": [
+     "https://www.googleapis.com/auth/calendar",
+     "https://www.googleapis.com/auth/calendar.app.created",
+     "https://www.googleapis.com/auth/calendar.calendars",
+     "https://www.googleapis.com/auth/calendar.calendars.readonly",
+     "https://www.googleapis.com/auth/calendar.readonly"
+    ],
+    "calendar.calendars.insert": [
+     "https://www.googleapis.com/auth/calendar",
+     "https://www.googleapis.com/auth/calendar.app.created",
+     "https://www.googleapis.com/auth/calendar.calendars"
+    ],
+    "calendar.calendars.patch": [
+     "https://www.googleapis.com/auth/calendar",
+     "https://www.googleapis.com/auth/calendar.app.created",
+     "https://www.googleapis.com/auth/calendar.calendars"
+    ],
+    "calendar.calendars.transferOwnership": [
+     "https://www.googleapis.com/auth/calendar",
+     "https://www.googleapis.com/auth/calendar.calendars"
+    ],
+    "calendar.calendars.update": [
+     "https://www.googleapis.com/auth/calendar",
+     "https://www.googleapis.com/auth/calendar.app.created",
+     "https://www.googleapis.com/auth/calendar.calendars"
+    ],
+    "calendar.channels.stop": [
+     "https://www.googleapis.com/auth/calendar",
+     "https://www.googleapis.com/auth/calendar.acls",
+     "https://www.googleapis.com/auth/calendar.acls.readonly",
+     "https://www.googleapis.com/auth/calendar.app.created",
+     "https://www.googleapis.com/auth/calendar.calendarlist",
+     "https://www.googleapis.com/auth/calendar.calendarlist.readonly",
+     "https://www.googleapis.com/auth/calendar.events",
+     "https://www.googleapis.com/auth/calendar.events.freebusy",
+     "https://www.googleapis.com/auth/calendar.events.owned",
+     "https://www.googleapis.com/auth/calendar.events.owned.readonly",
+     "https://www.googleapis.com/auth/calendar.events.public.readonly",
+     "https://www.googleapis.com/auth/calendar.events.readonly",
+     "https://www.googleapis.com/auth/calendar.readonly",
+     "https://www.googleapis.com/auth/calendar.settings",
+     "https://www.googleapis.com/auth/calendar.settings.readonly"
+    ],
+    "calendar.colors.get": [
+     "https://www.googleapis.com/auth/calendar",
+     "https://www.googleapis.com/auth/calendar.app.created",
+     "https://www.googleapis.com/auth/calendar.calendarlist",
+     "https://www.googleapis.com/auth/calendar.calendarlist.readonly",
+     "https://www.googleapis.com/auth/calendar.events.freebusy",
+     "https://www.googleapis.com/auth/calendar.events.owned",
+     "https://www.googleapis.com/auth/calendar.events.owned.readonly",
+     "https://www.googleapis.com/auth/calendar.events.public.readonly",
+     "https://www.googleapis.com/auth/calendar.readonly"
+    ],
+    "calendar.events.delete": [
+     "https://www.googleapis.com/auth/calendar",
+     "https://www.googleapis.com/auth/calendar.app.created",
+     "https://www.googleapis.com/auth/calendar.events",
+     "https://www.googleapis.com/auth/calendar.events.owned"
+    ],
+    "calendar.events.get": [
+     "https://www.googleapis.com/auth/calendar",
+     "https://www.googleapis.com/auth/calendar.app.created",
+     "https://www.googleapis.com/auth/calendar.events",
+     "https://www.googleapis.com/auth/calendar.events.freebusy",
+     "https://www.googleapis.com/auth/calendar.events.owned",
+     "https://www.googleapis.com/auth/calendar.events.owned.readonly",
+     "https://www.googleapis.com/auth/calendar.events.public.readonly",
+     "https://www.googleapis.com/auth/calendar.events.readonly",
+     "https://www.googleapis.com/auth/calendar.readonly"
+    ],
+    "calendar.events.import": [
+     "https://www.googleapis.com/auth/calendar",
+     "https://www.googleapis.com/auth/calendar.app.created",
+     "https://www.googleapis.com/auth/calendar.events",
+     "https://www.googleapis.com/auth/calendar.events.owned"
+    ],
+    "calendar.events.insert": [
+     "https://www.googleapis.com/auth/calendar",
+     "https://www.googleapis.com/auth/calendar.app.created",
+     "https://www.googleapis.com/auth/calendar.events",
+     "https://www.googleapis.com/auth/calendar.events.owned"
+    ],
+    "calendar.events.instances": [
+     "https://www.googleapis.com/auth/calendar",
+     "https://www.googleapis.com/auth/calendar.app.created",
+     "https://www.googleapis.com/auth/calendar.events",
+     "https://www.googleapis.com/auth/calendar.events.freebusy",
+     "https://www.googleapis.com/auth/calendar.events.owned",
+     "https://www.googleapis.com/auth/calendar.events.owned.readonly",
+     "https://www.googleapis.com/auth/calendar.events.public.readonly",
+     "https://www.googleapis.com/auth/calendar.events.readonly",
+     "https://www.googleapis.com/auth/calendar.readonly"
+    ],
+    "calendar.events.list": [
+     "https://www.googleapis.com/auth/calendar",
+     "https://www.googleapis.com/auth/calendar.app.created",
+     "https://www.googleapis.com/auth/calendar.events",
+     "https://www.googleapis.com/auth/calendar.events.freebusy",
+     "https://www.googleapis.com/auth/calendar.events.owned",
+     "https://www.googleapis.com/auth/calendar.events.owned.readonly",
+     "https://www.googleapis.com/auth/calendar.events.public.readonly",
+     "https://www.googleapis.com/auth/calendar.events.readonly",
+     "https://www.googleapis.com/auth/calendar.readonly"
+    ],
+    "calendar.events.move": [
+     "https://www.googleapis.com/auth/calendar",
+     "https://www.googleapis.com/auth/calendar.events",
+     "https://www.googleapis.com/auth/calendar.events.owned"
+    ],
+    "calendar.events.patch": [
+     "https://www.googleapis.com/auth/calendar",
+     "https://www.googleapis.com/auth/calendar.app.created",
+     "https://www.googleapis.com/auth/calendar.events",
+     "https://www.googleapis.com/auth/calendar.events.owned"
+    ],
+    "calendar.events.quickAdd": [
+     "https://www.googleapis.com/auth/calendar",
+     "https://www.googleapis.com/auth/calendar.app.created",
+     "https://www.googleapis.com/auth/calendar.events",
+     "https://www.googleapis.com/auth/calendar.events.owned"
+    ],
+    "calendar.events.update": [
+     "https://www.googleapis.com/auth/calendar",
+     "https://www.googleapis.com/auth/calendar.app.created",
+     "https://www.googleapis.com/auth/calendar.events",
+     "https://www.googleapis.com/auth/calendar.events.owned"
+    ],
+    "calendar.events.watch": [
+     "https://www.googleapis.com/auth/calendar",
+     "https://www.googleapis.com/auth/calendar.app.created",
+     "https://www.googleapis.com/auth/calendar.events",
+     "https://www.googleapis.com/auth/calendar.events.freebusy",
+     "https://www.googleapis.com/auth/calendar.events.owned",
+     "https://www.googleapis.com/auth/calendar.events.owned.readonly",
+     "https://www.googleapis.com/auth/calendar.events.public.readonly",
+     "https://www.googleapis.com/auth/calendar.events.readonly",
+     "https://www.googleapis.com/auth/calendar.readonly"
+    ],
+    "calendar.freebusy.query": [
+     "https://www.googleapis.com/auth/calendar",
+     "https://www.googleapis.com/auth/calendar.events.freebusy",
+     "https://www.googleapis.com/auth/calendar.freebusy",
+     "https://www.googleapis.com/auth/calendar.readonly"
+    ],
+    "calendar.settings.get": [
+     "https://www.googleapis.com/auth/calendar",
+     "https://www.googleapis.com/auth/calendar.readonly",
+     "https://www.googleapis.com/auth/calendar.settings",
+     "https://www.googleapis.com/auth/calendar.settings.readonly"
+    ],
+    "calendar.settings.list": [
+     "https://www.googleapis.com/auth/calendar",
+     "https://www.googleapis.com/auth/calendar.readonly",
+     "https://www.googleapis.com/auth/calendar.settings",
+     "https://www.googleapis.com/auth/calendar.settings.readonly"
+    ],
+    "calendar.settings.watch": [
+     "https://www.googleapis.com/auth/calendar",
+     "https://www.googleapis.com/auth/calendar.readonly",
+     "https://www.googleapis.com/auth/calendar.settings",
+     "https://www.googleapis.com/auth/calendar.settings.readonly"
+    ]
+   }
+  }
+ }
+}

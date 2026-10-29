@@ -1,0 +1,34 @@
+{
+ "schemaVersion": 1,
+ "appId": "gmail",
+ "apiBase": "https://gmail.googleapis.com",
+ "style": "rest",
+ "pathPrefixes": [
+  "/gmail/v1/"
+ ],
+ "acceptTypes": [
+  "application/json"
+ ],
+ "reservedParameters": [
+  "key",
+  "quotaUser",
+  "userIp"
+ ],
+ "reservedBodyFields": [],
+ "arrayParameters": [
+  "labelIds",
+  "metadataHeaders"
+ ],
+ "aliases": [],
+ "inheritFamilies": [],
+ "documentedRoutes": null,
+ "proxyAllowable": [
+  "gmail.labels.manage"
+ ],
+ "typedOnly": [
+  "gmail.users.messages.send",
+  "gmail.users.drafts.send",
+  "gmail.users.messages.import",
+  "gmail.users.messages.insert"
+ ]
+}

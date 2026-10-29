@@ -1,0 +1,83 @@
+{
+ "schemaVersion": 1,
+ "appId": "github",
+ "specVersion": "fabric/0.2",
+ "reviewStatus": "candidate",
+ "pinnedParameters": {},
+ "triggers": [
+  {
+   "id": "github.trigger.issue-activity.v1.a6d2c18dd481d1a0e88e854b",
+   "key": "issue-activity",
+   "version": 1,
+   "name": "Issue or pull request activity in a repository",
+   "description": "Tells you when an issue or pull request in one repository is opened, changed or closed. It polls until Fabric is hosted.",
+   "delivery": {
+    "method": "webhook",
+    "registration": "api",
+    "fallback": "polling",
+    "register": {
+     "step": {"id": "hook", "method": "POST", "path": "/repos/{owner}/{repo}/hooks", "params": {"owner": {"input": "/owner"}, "repo": {"input": "/repo"}},
+      "body": {"object": {"name": {"const": "web"}, "active": {"const": true}, "events": {"const": ["issues", "issue_comment", "pull_request"]},
+       "config": {"object": {"url": {"receiver": "github"}, "content_type": {"const": "json"}, "insecure_ssl": {"const": "0"}, "secret": {"secret": "hook"}}}}},
+      "expect": {"status": [201], "require": []}},
+     "keep": {"hookId": "/id"}
+    },
+    "teardown": {
+     "step": {"id": "unhook", "method": "DELETE", "path": "/repos/{owner}/{repo}/hooks/{hook_id}",
+      "params": {"owner": {"input": "/owner"}, "repo": {"input": "/repo"}, "hook_id": {"kept": "hookId"}},
+      "expect": {"status": [204], "require": []}},
+     "onFailure": "record-leftover"
+    },
+    "admission": {"scheme": "hmac-sha256-header", "header": "x-hub-signature-256", "prefix": "sha256=", "secret": "hook",
+     "route": {"header": "x-github-hook-id", "equals": {"kept": "hookId"}}, "handshake": "github-ping", "collapse": {"header": "x-github-delivery"}, "trust": "doorbell"}
+   },
+   "inputSchema": {"type": "object", "properties": {
+     "owner": {"type": "string", "minLength": 1, "maxLength": 39}, "repo": {"type": "string", "minLength": 1, "maxLength": 100}
+    }, "required": ["owner", "repo"], "additionalProperties": false},
+   "resource": ["owner", "repo"],
+   "poll": {
+    "source": {"steps": [
+     {"id": "issues", "method": "GET", "path": "/repos/{owner}/{repo}/issues", "params": {"owner": {"input": "/owner"}, "repo": {"input": "/repo"}},
+      "query": {"state": {"const": "all"}, "sort": {"const": "updated"}, "direction": {"const": "asc"}, "since": {"cursor": "updated"}, "per_page": {"const": "100"}},
+      "headers": {"If-None-Match": {"cursor": "etag"}},
+      "page": {"next": {"link": "next", "param": "page"}, "into": {"query": "page"}, "items": "", "max": 10},
+      "expect": {"status": [200, 304], "require": []}}
+    ]},
+    "items": {"step": "issues", "pointer": ""},
+    "itemId": {"item": "/id"},
+    "itemVersion": "/updated_at",
+    "itemTime": {"pointer": "/updated_at", "format": "rfc3339"},
+    "order": "asc",
+    "cursors": [
+     {"name": "updated", "kind": "high-water-time@1", "next": {"max": "itemTime"}, "compare": "time.rfc3339ToEpochSeconds@1", "overlapSeconds": 60},
+     {"name": "etag", "kind": "etag@1", "next": {"step": "issues", "header": "etag"}}
+    ],
+    "resync": {"statusIn": []},
+    "minIntervalSeconds": 60
+   },
+   "dedupe": {"kind": "id+version"},
+   "event": {
+    "schema": {"type": "object", "properties": {
+      "repository": {"type": "string", "maxLength": 140}, "number": {"type": "integer", "minimum": 1}, "pullRequest": {"type": "boolean"},
+      "state": {"type": "string", "maxLength": 16}, "title": {"type": "string", "maxLength": 300}, "updatedAt": {"type": "string", "maxLength": 64}, "url": {"type": "string", "maxLength": 400}
+     }, "required": ["repository", "number", "state", "updatedAt"], "additionalProperties": false},
+    "id": {"concat": [{"item": "/id"}, {"const": ":"}, {"item": "/updated_at"}], "max": 200},
+    "occurredAt": {"item": "/updated_at"},
+    "fields": {
+     "repository": {"concat": [{"input": "/owner"}, {"const": "/"}, {"input": "/repo"}], "max": 140},
+     "number": {"item": "/number"},
+     "pullRequest": {"when": {"present": {"item": "/pull_request"}}, "then": {"const": true}},
+     "state": {"item": "/state"},
+     "title": {"pick": {"transform": "text.truncate@1", "args": {"text": {"item": "/title"}, "max": {"const": 300}}}, "pointer": "/text"},
+     "updatedAt": {"item": "/updated_at"},
+     "url": {"item": "/html_url"}
+    },
+    "summary": [{"label": "Title", "expr": {"item": "/title"}, "truncate": 120}, {"label": "State", "expr": {"item": "/state"}}]
+   },
+   "backfill": {"default": 0, "max": 25},
+   "retention": {"days": 7},
+   "bounds": {"pages": 10, "items": 500, "pollSeconds": 10},
+   "rows": ["github.issues.read"]
+  }
+ ]
+}

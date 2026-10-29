@@ -1,0 +1,65 @@
+{
+ "schemaVersion": 2,
+ "appId": "fixture",
+ "reviewed": "F10.9 part a: the fixture app's choice sources, in the options version 2 format of docs/F10.9-BUILD-MAP.md section 9. Not a real provider.",
+ "sources": [
+  {
+   "id": "items",
+   "kind": "directory",
+   "read": {"operation": "fixture.items.list"},
+   "row": "fixture.items.read",
+   "args": {},
+   "items": "/items",
+   "value": "/id",
+   "valueType": "string",
+   "label": ["/name"],
+   "detail": ["/kind"],
+   "page": {"next": {"pointer": "/nextPageToken"}, "into": {"query": "pageToken"}, "max": 5},
+   "search": {"mode": "local"},
+   "maxItems": 500
+  },
+  {
+   "id": "labels",
+   "kind": "directory",
+   "read": {"request": "GET /labels"},
+   "row": "fixture.items.read",
+   "args": {"type": {"const": "user"}},
+   "items": "/labels",
+   "value": "/id",
+   "valueType": "string",
+   "label": ["/name"],
+   "page": null,
+   "search": {"mode": "local"},
+   "exclude": ["TRASH", "SPAM", "SENT", "DRAFT"],
+   "maxItems": 500
+  },
+  {
+   "id": "label",
+   "kind": "lookup",
+   "read": {"request": "GET /labels/{label_id}"},
+   "row": "fixture.items.read",
+   "args": {"label_id": {"value": true}},
+   "items": "",
+   "value": "/id",
+   "valueType": "string",
+   "label": ["/name"],
+   "page": null,
+   "search": null,
+   "maxItems": 1
+  },
+  {
+   "id": "found",
+   "kind": "directory",
+   "read": {"request": "POST /items/search"},
+   "row": "fixture.items.read",
+   "args": {"kind": {"configured": "itemKind"}},
+   "items": "/results",
+   "value": "/id",
+   "valueType": "string",
+   "label": ["/title"],
+   "page": {"next": {"pointer": "/next_cursor"}, "into": {"body": "/start_cursor"}, "max": 3},
+   "search": {"mode": "provider", "into": {"body": "/query"}, "transform": "text.gmailQuery@1", "argument": "words", "pick": "/q"},
+   "maxItems": 300
+  }
+ ]
+}

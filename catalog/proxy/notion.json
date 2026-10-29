@@ -1,0 +1,30 @@
+{
+ "schemaVersion": 1,
+ "appId": "notion",
+ "apiBase": "https://api.notion.com",
+ "style": "rest",
+ "pathPrefixes": [
+  "/v1/"
+ ],
+ "acceptTypes": [
+  "application/json"
+ ],
+ "reservedParameters": [],
+ "reservedBodyFields": [
+  "in_trash",
+  "archived",
+  "is_archived",
+  "erase_content",
+  "is_locked",
+  "allow_deleting_content",
+  "display_name"
+ ],
+ "arrayParameters": [
+  "filter_properties"
+ ],
+ "aliases": [],
+ "inheritFamilies": [],
+ "documentedRoutes": null,
+ "proxyAllowable": [],
+ "typedOnly": []
+}

@@ -1,0 +1,736 @@
+{
+ "note": "F10.3 part a: ProxyPolicy.binding() of every row of the five apps, recorded before any F10.3 data change (rows files at schemaVersion 1, data as at f03d034), for one synthetic connection per app and synthetic Gmail and Calendar maps built from PERMISSION_GROUPS (GET for ids ending .list or .get, otherwise POST; the path is the id after the app prefix). test/f10-3-binding-churn.test.mjs rebuilds the same contexts from connections and maps and compares.",
+ "connections": {
+  "github": {
+   "id": "f10-3-github",
+   "appId": "github",
+   "authRevision": "f10-3-before",
+   "identity": {
+    "id": "f10-3"
+   },
+   "createdAt": "2026-10-17T00:00:00.000Z"
+  },
+  "gmail": {
+   "id": "f10-3-gmail",
+   "appId": "gmail",
+   "authRevision": "f10-3-before",
+   "identity": {
+    "id": "f10-3"
+   },
+   "createdAt": "2026-10-17T00:00:00.000Z"
+  },
+  "google-calendar": {
+   "id": "f10-3-google-calendar",
+   "appId": "google-calendar",
+   "authRevision": "f10-3-before",
+   "identity": {
+    "id": "f10-3"
+   },
+   "createdAt": "2026-10-17T00:00:00.000Z"
+  },
+  "notion": {
+   "id": "f10-3-notion",
+   "appId": "notion",
+   "authRevision": "f10-3-before",
+   "identity": {
+    "id": "f10-3"
+   },
+   "createdAt": "2026-10-17T00:00:00.000Z"
+  },
+  "slack": {
+   "id": "f10-3-slack",
+   "appId": "slack",
+   "authRevision": "f10-3-before",
+   "identity": {
+    "id": "f10-3"
+   },
+   "createdAt": "2026-10-17T00:00:00.000Z"
+  }
+ },
+ "maps": {
+  "gmail": {
+   "operations": [
+    {
+     "id": "gmail.users.drafts.get",
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/drafts/get"
+    },
+    {
+     "id": "gmail.users.drafts.list",
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/drafts/list"
+    },
+    {
+     "id": "gmail.users.labels.get",
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/labels/get"
+    },
+    {
+     "id": "gmail.users.labels.list",
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/labels/list"
+    },
+    {
+     "id": "gmail.users.settings.filters.get",
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/settings/filters/get"
+    },
+    {
+     "id": "gmail.users.settings.filters.list",
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/settings/filters/list"
+    },
+    {
+     "id": "gmail.users.settings.getAutoForwarding",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/getAutoForwarding"
+    },
+    {
+     "id": "gmail.users.settings.getImap",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/getImap"
+    },
+    {
+     "id": "gmail.users.settings.getLanguage",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/getLanguage"
+    },
+    {
+     "id": "gmail.users.settings.getPop",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/getPop"
+    },
+    {
+     "id": "gmail.users.settings.getVacation",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/getVacation"
+    },
+    {
+     "id": "gmail.users.settings.sendAs.get",
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/settings/sendAs/get"
+    },
+    {
+     "id": "gmail.users.settings.sendAs.list",
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/settings/sendAs/list"
+    },
+    {
+     "id": "gmail.users.settings.sendAs.smimeInfo.get",
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/settings/sendAs/smimeInfo/get"
+    },
+    {
+     "id": "gmail.users.settings.sendAs.smimeInfo.list",
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/settings/sendAs/smimeInfo/list"
+    },
+    {
+     "id": "gmail.users.settings.forwardingAddresses.get",
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/settings/forwardingAddresses/get"
+    },
+    {
+     "id": "gmail.users.settings.forwardingAddresses.list",
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/settings/forwardingAddresses/list"
+    },
+    {
+     "id": "gmail.users.settings.delegates.get",
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/settings/delegates/get"
+    },
+    {
+     "id": "gmail.users.settings.delegates.list",
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/settings/delegates/list"
+    },
+    {
+     "id": "gmail.users.settings.cse.identities.get",
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/settings/cse/identities/get"
+    },
+    {
+     "id": "gmail.users.settings.cse.identities.list",
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/settings/cse/identities/list"
+    },
+    {
+     "id": "gmail.users.settings.cse.keypairs.get",
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/settings/cse/keypairs/get"
+    },
+    {
+     "id": "gmail.users.settings.cse.keypairs.list",
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/settings/cse/keypairs/list"
+    },
+    {
+     "id": "gmail.users.messages.get",
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/messages/get"
+    },
+    {
+     "id": "gmail.users.messages.attachments.get",
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/messages/attachments/get"
+    },
+    {
+     "id": "gmail.users.threads.get",
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/threads/get"
+    },
+    {
+     "id": "gmail.users.history.list",
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/history/list"
+    },
+    {
+     "id": "gmail.users.getProfile",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/getProfile"
+    },
+    {
+     "id": "gmail.users.messages.list",
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/messages/list"
+    },
+    {
+     "id": "gmail.users.threads.list",
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/threads/list"
+    },
+    {
+     "id": "gmail.users.drafts.create",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/drafts/create"
+    },
+    {
+     "id": "gmail.users.drafts.update",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/drafts/update"
+    },
+    {
+     "id": "gmail.users.messages.send",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/messages/send"
+    },
+    {
+     "id": "gmail.users.drafts.send",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/drafts/send"
+    },
+    {
+     "id": "gmail.users.labels.create",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/labels/create"
+    },
+    {
+     "id": "gmail.users.labels.update",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/labels/update"
+    },
+    {
+     "id": "gmail.users.labels.patch",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/labels/patch"
+    },
+    {
+     "id": "gmail.users.messages.modify",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/messages/modify"
+    },
+    {
+     "id": "gmail.users.threads.modify",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/threads/modify"
+    },
+    {
+     "id": "gmail.users.messages.batchModify",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/messages/batchModify"
+    },
+    {
+     "id": "gmail.users.messages.import",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/messages/import"
+    },
+    {
+     "id": "gmail.users.messages.insert",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/messages/insert"
+    },
+    {
+     "id": "gmail.users.messages.trash",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/messages/trash"
+    },
+    {
+     "id": "gmail.users.messages.untrash",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/messages/untrash"
+    },
+    {
+     "id": "gmail.users.threads.trash",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/threads/trash"
+    },
+    {
+     "id": "gmail.users.threads.untrash",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/threads/untrash"
+    },
+    {
+     "id": "gmail.users.settings.filters.create",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/filters/create"
+    },
+    {
+     "id": "gmail.users.settings.updateVacation",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/updateVacation"
+    },
+    {
+     "id": "gmail.users.settings.updateImap",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/updateImap"
+    },
+    {
+     "id": "gmail.users.settings.updatePop",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/updatePop"
+    },
+    {
+     "id": "gmail.users.settings.updateLanguage",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/updateLanguage"
+    },
+    {
+     "id": "gmail.users.settings.updateAutoForwarding",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/updateAutoForwarding"
+    },
+    {
+     "id": "gmail.users.settings.forwardingAddresses.create",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/forwardingAddresses/create"
+    },
+    {
+     "id": "gmail.users.settings.forwardingAddresses.delete",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/forwardingAddresses/delete"
+    },
+    {
+     "id": "gmail.users.settings.sendAs.create",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/sendAs/create"
+    },
+    {
+     "id": "gmail.users.settings.sendAs.delete",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/sendAs/delete"
+    },
+    {
+     "id": "gmail.users.settings.sendAs.patch",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/sendAs/patch"
+    },
+    {
+     "id": "gmail.users.settings.sendAs.update",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/sendAs/update"
+    },
+    {
+     "id": "gmail.users.settings.sendAs.verify",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/sendAs/verify"
+    },
+    {
+     "id": "gmail.users.settings.sendAs.smimeInfo.insert",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/sendAs/smimeInfo/insert"
+    },
+    {
+     "id": "gmail.users.settings.sendAs.smimeInfo.delete",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/sendAs/smimeInfo/delete"
+    },
+    {
+     "id": "gmail.users.settings.sendAs.smimeInfo.setDefault",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/sendAs/smimeInfo/setDefault"
+    },
+    {
+     "id": "gmail.users.settings.delegates.create",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/delegates/create"
+    },
+    {
+     "id": "gmail.users.settings.delegates.delete",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/delegates/delete"
+    },
+    {
+     "id": "gmail.users.settings.cse.identities.create",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/cse/identities/create"
+    },
+    {
+     "id": "gmail.users.settings.cse.identities.delete",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/cse/identities/delete"
+    },
+    {
+     "id": "gmail.users.settings.cse.identities.patch",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/cse/identities/patch"
+    },
+    {
+     "id": "gmail.users.settings.cse.keypairs.create",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/cse/keypairs/create"
+    },
+    {
+     "id": "gmail.users.settings.cse.keypairs.disable",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/cse/keypairs/disable"
+    },
+    {
+     "id": "gmail.users.settings.cse.keypairs.enable",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/cse/keypairs/enable"
+    },
+    {
+     "id": "gmail.users.messages.delete",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/messages/delete"
+    },
+    {
+     "id": "gmail.users.messages.batchDelete",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/messages/batchDelete"
+    },
+    {
+     "id": "gmail.users.threads.delete",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/threads/delete"
+    },
+    {
+     "id": "gmail.users.drafts.delete",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/drafts/delete"
+    },
+    {
+     "id": "gmail.users.labels.delete",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/labels/delete"
+    },
+    {
+     "id": "gmail.users.settings.filters.delete",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/filters/delete"
+    },
+    {
+     "id": "gmail.users.settings.cse.keypairs.obliterate",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/cse/keypairs/obliterate"
+    },
+    {
+     "id": "gmail.users.watch",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/watch"
+    },
+    {
+     "id": "gmail.users.stop",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/stop"
+    }
+   ]
+  },
+  "google-calendar": {
+   "operations": [
+    {
+     "id": "calendar.calendarList.list",
+     "method": "GET",
+     "path": "/calendarList/list"
+    },
+    {
+     "id": "calendar.calendarList.get",
+     "method": "GET",
+     "path": "/calendarList/get"
+    },
+    {
+     "id": "calendar.colors.get",
+     "method": "GET",
+     "path": "/colors/get"
+    },
+    {
+     "id": "calendar.events.list",
+     "method": "GET",
+     "path": "/events/list"
+    },
+    {
+     "id": "calendar.events.get",
+     "method": "GET",
+     "path": "/events/get"
+    },
+    {
+     "id": "calendar.events.instances",
+     "method": "POST",
+     "path": "/events/instances"
+    },
+    {
+     "id": "calendar.freebusy.query",
+     "method": "POST",
+     "path": "/freebusy/query"
+    },
+    {
+     "id": "calendar.settings.list",
+     "method": "GET",
+     "path": "/settings/list"
+    },
+    {
+     "id": "calendar.settings.get",
+     "method": "GET",
+     "path": "/settings/get"
+    },
+    {
+     "id": "calendar.calendars.get",
+     "method": "GET",
+     "path": "/calendars/get"
+    },
+    {
+     "id": "calendar.acl.list",
+     "method": "GET",
+     "path": "/acl/list"
+    },
+    {
+     "id": "calendar.acl.get",
+     "method": "GET",
+     "path": "/acl/get"
+    },
+    {
+     "id": "calendar.events.insert",
+     "method": "POST",
+     "path": "/events/insert"
+    },
+    {
+     "id": "calendar.events.quickAdd",
+     "method": "POST",
+     "path": "/events/quickAdd"
+    },
+    {
+     "id": "calendar.events.import",
+     "method": "POST",
+     "path": "/events/import"
+    },
+    {
+     "id": "calendar.events.patch",
+     "method": "POST",
+     "path": "/events/patch"
+    },
+    {
+     "id": "calendar.events.update",
+     "method": "POST",
+     "path": "/events/update"
+    },
+    {
+     "id": "calendar.events.move",
+     "method": "POST",
+     "path": "/events/move"
+    },
+    {
+     "id": "calendar.events.delete",
+     "method": "POST",
+     "path": "/events/delete"
+    },
+    {
+     "id": "calendar.calendarList.insert",
+     "method": "POST",
+     "path": "/calendarList/insert"
+    },
+    {
+     "id": "calendar.calendarList.patch",
+     "method": "POST",
+     "path": "/calendarList/patch"
+    },
+    {
+     "id": "calendar.calendarList.update",
+     "method": "POST",
+     "path": "/calendarList/update"
+    },
+    {
+     "id": "calendar.calendars.insert",
+     "method": "POST",
+     "path": "/calendars/insert"
+    },
+    {
+     "id": "calendar.calendars.patch",
+     "method": "POST",
+     "path": "/calendars/patch"
+    },
+    {
+     "id": "calendar.calendars.update",
+     "method": "POST",
+     "path": "/calendars/update"
+    },
+    {
+     "id": "calendar.calendarList.delete",
+     "method": "POST",
+     "path": "/calendarList/delete"
+    },
+    {
+     "id": "calendar.acl.insert",
+     "method": "POST",
+     "path": "/acl/insert"
+    },
+    {
+     "id": "calendar.acl.patch",
+     "method": "POST",
+     "path": "/acl/patch"
+    },
+    {
+     "id": "calendar.acl.update",
+     "method": "POST",
+     "path": "/acl/update"
+    },
+    {
+     "id": "calendar.acl.delete",
+     "method": "POST",
+     "path": "/acl/delete"
+    },
+    {
+     "id": "calendar.calendars.transferOwnership",
+     "method": "POST",
+     "path": "/calendars/transferOwnership"
+    },
+    {
+     "id": "calendar.calendars.delete",
+     "method": "POST",
+     "path": "/calendars/delete"
+    },
+    {
+     "id": "calendar.calendars.clear",
+     "method": "POST",
+     "path": "/calendars/clear"
+    },
+    {
+     "id": "calendar.calendarList.watch",
+     "method": "POST",
+     "path": "/calendarList/watch"
+    },
+    {
+     "id": "calendar.events.watch",
+     "method": "POST",
+     "path": "/events/watch"
+    },
+    {
+     "id": "calendar.settings.watch",
+     "method": "POST",
+     "path": "/settings/watch"
+    },
+    {
+     "id": "calendar.acl.watch",
+     "method": "POST",
+     "path": "/acl/watch"
+    },
+    {
+     "id": "calendar.channels.stop",
+     "method": "POST",
+     "path": "/channels/stop"
+    }
+   ]
+  }
+ },
+ "bindings": {
+  "github": {
+   "group:github.profile.read": "8afda12fabb3c30ec7e0f4048526991404b5e5dd897b184400917ba0c2cc9715",
+   "group:github.repos.read": "b8e46d0c9dd99c797667e3c32c36198b27b33918a17f2dfbb4e0511a1c60444d",
+   "group:github.issues.read": "6a1301f6ce744b5b8df235aa8cc088f99181c1212f443b7de66c5f87d282a384",
+   "group:github.gists.read": "ccd5a3f9a839b1c2f6a2624ee67af822ee90343cfb70498880982daf465cbb17",
+   "group:github.notifications.manage": "b9c90f742c8647c93bd86938489ad56f3ecd8e729747453157028b3993a12f8b",
+   "group:github.issues.write": "d16d7fc0b80f4742c2661af1224d619217897feacda5b8c1758a185a92e641f8",
+   "group:github.comments.write": "f37fac8354e9eaf1463069e1e2baed3cdc00e19f525adaeb60bfa3701d0941a4",
+   "group:github.pulls.write": "05b657663236b5b1e42b4c8dc214156ee305123ea5dc025034181752937fda29",
+   "group:github.code.write": "149f8d45ae716607163fbacac558d2a6e4d0e904fdbeaefcfebbab8cf1982e61",
+   "group:github.actions.run": "604d3a3c4a43cca01189323a74ebdf41446256225f62bdbe9f64209b08785027",
+   "group:github.gists.write": "9d76975bf12a7e69b3057246db55f7a622fab8582e9532d20c29c51f33128bc7",
+   "group:github.permanent.delete": "f2b4c664ed14c9867b44cd78600bb29f696cd6a54094b58e327387fa3b94bbef",
+   "other-reads": "36fdee78aabd018def7fae121066d10bcdf4c74c6035a04772e0fcc2ec7b1670",
+   "other-changes": "74004325ff3838a39f7063a8b5c99ceddef1d4d12a91647f0b359a47654e9a07",
+   "other-deletes": "25cc79fb7104040e1266c6961461cbbb92527c7e72b10d48db98fd1eaef34137",
+   "graphql": "a76b8c06601468a7e307c80274d0f8e761e625b798fd5c2e397f54c979f462c5"
+  },
+  "gmail": {
+   "group:gmail.drafts.read": "7a720c7ed09c5e4e0154da2b0db1a630371a28651515064fc0ddcc3071f76f02",
+   "group:gmail.labels.read": "9a6fa08152788e38d365f21d4dc3c73eddb0212145d85947e531a0150e64ef7b",
+   "group:gmail.messages.read": "3bcd0de3912b379b167a540b387866254092bc9f9b4cae23c2190a1a67b06f54",
+   "group:gmail.messages.search": "e5a8feff9557401efec57540c40b4692ef30b2a8758b0fbf592138dc439d8073",
+   "group:gmail.drafts.write": "f964802df4402029a196cd120d9c1d1eb7ae12ac661b6e233456710f4b889777",
+   "group:gmail.messages.send": "da8a5f69e5e24de46f2d66b2232445017ff6f74cca23f5611fefd2c3b507229a",
+   "group:gmail.labels.manage": "5ba4199c08c1c1f4df66d8bef221e27afe6a25bca67f10ee8b84e43f7fa338e7",
+   "group:gmail.messages.mark": "3d45edfd8bf12a9721a594ca36b02c5ca92da6eedda5e89056ea246ebc7ffcb0",
+   "group:gmail.messages.import": "5a6faf89e8594cce555932d858d46ac95f347633d90989dd678eaac848e9ce44",
+   "group:gmail.messages.trash": "bd5fa661460932ddd6513e399b23910127832ac85d98c865a721bbd2b4ecee85",
+   "group:gmail.settings.write": "8c40575cccd239670aba98d1a2c151faad487c4da2255a99625cbcd0c915c3c8",
+   "group:gmail.permanent.delete": "a330fb1f50140f9ca153b284aae2fbeea122e1eb88e90fa5d8279e1dce4ac7e2",
+   "group:gmail.notifications.watch": "c114dbd27975ef96864d3f2d68c079238d89353bc7fd00ce2ed0ba102a14461b",
+   "other-reads": "4ab140e007ca591fc4be827b27cf20d29356f70834ff3b9c9a204481ddd39738",
+   "other-changes": "f330db97d16d5da2aa529bc25e36bedc989b45acb4d5cfcd01fb02baf3773c8a",
+   "other-deletes": "7e72445bbfbe30131dc622146c979b5a5ca9dba011797568f490bd4a2414ba45",
+   "graphql": "73a4c09a708b1d63bf53f74c11d509c7cfbc3660cd55593c2e03411246f71c4b"
+  },
+  "google-calendar": {
+   "group:google-calendar.calendars.read": "cc21597e9007a47c5012454b73141ad3a825d53e58072083984b603e2acb3098",
+   "group:google-calendar.events.read": "3a729e625e4c4c10b544e063a9487832faa08e7d27c37f3b777b1367f0aadade",
+   "group:google-calendar.availability.read": "f4734763577600cf6341b538a5fc51cfd2ab493e423fe8b4b9f7d38539e02980",
+   "group:google-calendar.settings.read": "8440eb29256dfe4946c7b8693f0963db0604a32ed9577506e8de2f8cd88e9bd6",
+   "group:google-calendar.events.write": "943ccb70342c68457c1949a03c5e54dfbac68cf63a783feeaa44f3625aa5f68e",
+   "group:google-calendar.events.delete": "9163ff09c4996d011934f8598fe0baa7c3d8a933e1e930ae3e2918c62473b440",
+   "group:google-calendar.calendarlist.write": "b07446f774984d1ec6fde8e1943ea36e1a1eeccc61d9881ee373e5f2c051bb2e",
+   "group:google-calendar.calendars.write": "79c9292eacd21510a109697d9319c26e84ce7fa6a7039b3d2ee3291c4b27e85e",
+   "group:google-calendar.calendarlist.remove": "bc0dc439f4995eb8c0f00692b563668799d15a07a36a7c303c93eecdd34045d4",
+   "group:google-calendar.sharing.write": "d5e290072bfe352b2758708183f8097ef057e8a11f127aeab19c0f432f5ad7fb",
+   "group:google-calendar.permanent.delete": "66cd9fc97703fd57b38e9f986c9dc968fa579cf50f26c35bc37f460945b3e659",
+   "group:google-calendar.notifications.watch": "315684d5ed44320a0c464bc634da555ba012ba4a4869e90caebb310b97703cb6",
+   "other-reads": "a6ee1e7c5e2ac2220618df8039ef3ce05c1363c7b74a37b237226b4b2c0d10a7",
+   "other-changes": "b7aab7558636da8c6253c8407cdfbac69b6e48e073d90650eaa61512294f5e2b",
+   "other-deletes": "e81784ae6cb2050784f37f0b2ff33ecf49e486f7d32161d100239659378125fc",
+   "graphql": "ddee65cd5ac488c69901147a4679b2c223e8b1fd4c50f1b266f79ccbef311e2d"
+  },
+  "notion": {
+   "group:notion.content.read": "82780e11decfbf69ed1c555bdf0f6ca7357ffcef9354ba7dc7ed3f388f86684f",
+   "group:notion.search.read": "e7a5adfcf8772903c13817348d71405a735f40f44d335e6ffb60d31b2efc3584",
+   "group:notion.users.read": "402d796fecbeab16a6b9733a818e8d359f071690ddf00f7a523d1735efbfa179",
+   "group:notion.comments.read": "84ddd9b060a3492a291cb296f0079623c668dd0d6f9c9c1e24ddda4dbc8ed942",
+   "group:notion.agents.read": "6d64ca444930d655bc1a2024462af8a0921520d2b4852d8e3dbe184431216bdc",
+   "group:notion.content.create": "703df624ef9ad40b18896319166802b5029b976941b5f29a1ba1f9df88bfd957",
+   "group:notion.content.edit": "9715c631710f9f729e04dbbb69601ffdcb636bad03b3b4fbbd429d81b224073d",
+   "group:notion.comments.write": "b5cfb30b21390a26f67ab89b826fc2bbd17ec423d190395ea2eed0b011ed8419",
+   "group:notion.content.trash": "5cf528d273b26a3dd53ecef510ef0bf6a1cee97e258aff2f33633949a577f0f8",
+   "group:notion.permanent.delete": "a922ea7efc0ec3bc6d44b8db6e8f2e3d15c1c86e633d8eb79fbada9cd6fa06d9",
+   "group:notion.agents.chat": "6f73a407ae7250850a8aeec8870a79ca567313eeeb2b89c7a7c003a81e63a89c",
+   "group:notion.agents.manage": "caa5a0a182e59908ee887af2c78c69a9d5747370dc2010f2049f6467a4e3e62e",
+   "group:notion.connection.manage": "7728ec88c62390e0cc7ee3c2e15d1dece2d30a28dc76230e4d0f5138a038593f",
+   "other-reads": "cbac01c42b495aca83d496a78c1966a64bbcbf391e1ef321286a6be90d45318b",
+   "other-changes": "0eb1fa9fc9a0dacb4faafd69f7a87f107414ad39a8a5d020fc8046525984bf52",
+   "other-deletes": "580befc51312f9d525476edd7eb0a0fe26dcfb5fad376b2ca2f28d82aedc85c4",
+   "graphql": "53ea9c7a1bead569d9d8d646749c064014baca2182c3672cd6d0cff79069a895"
+  },
+  "slack": {
+   "group:slack.channels.read": "88cf4d95c664944cf620473cf29f74eca67b0f4758a4e322d23284cce68639c1",
+   "group:slack.messages.read": "813954e564e994a54a67add2276d004df3bb889edb6f5a041bd6eca74ec681e8",
+   "group:slack.messages.search": "d46940a0ba544c761cf65e63022f6ac8dfd2892ca8dde89fd83b4b67493b984e",
+   "group:slack.files.read": "e5d5211a189a6bc2bca938eb54354d22e3b4b33782fb7d1e522a76961e2cf8c5",
+   "group:slack.workspace.read": "9b9917906f879f57175b15e32973304cd120140579ec6d1d3a54c4146c87db2e",
+   "group:slack.messages.send": "f291ec87d021f35afb92534e4a66ad78041f88cb338a9b703c7e3ea6aca77a65",
+   "group:slack.files.write": "04db7f5be11ed3b7d4e938e4ed5a3985a5fa9ce0715f86376ed525b3061c01e8",
+   "group:slack.channels.manage": "6f30a2b360df69a56402739db8e39acff8f9dee31df6b8891466998774a9d743",
+   "group:slack.conversations.mark": "d16b56c684c882f2c59cd0db6c3e10f989038d9ab300c0e34a20f1c4b6759e3b",
+   "group:slack.profile.write": "5743d33d41ebaecc1ad6ca7dc6a1d37751403b9987961b33f73881e9a8f6f3ac",
+   "group:slack.permanent.delete": "249abb7d386ca129afef9740aea3cb6417c41d1b712eeb37eca581356b77e442",
+   "group:slack.admin": "7733d5a15609e80116452c8374d4a3ff4317943b4b2b8d9ccf75e682de2620e8",
+   "other-changes": "bdb32a93e35fed88c1dbec83b1a70fa093e8ec2a7a548a4367459c5e64dcb7e0"
+  }
+ }
+}

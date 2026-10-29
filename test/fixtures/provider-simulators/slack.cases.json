@@ -1,0 +1,21 @@
+{
+ "schemaVersion": 1,
+ "appId": "slack",
+ "simulator": "test/fixtures/provider-simulators/slack.mjs",
+ "tests": ["test/actions-slack.test.mjs"],
+ "cases": {
+  "list-conversations v1": ["succeeds", "refused", "provider-refusal"],
+  "read-messages v1": ["succeeds", "refused", "provider-refusal"],
+  "read-thread v1": ["succeeds", "refused", "provider-refusal"],
+  "search-messages v1": ["succeeds", "refused", "provider-refusal"],
+  "find-person v1": ["succeeds", "refused", "provider-refusal"],
+  "send-message v1": ["succeeds", "refused", "provider-refusal", "unverified", "lost-answer"],
+  "reply-thread v1": ["succeeds", "refused", "provider-refusal", "unverified", "lost-answer"],
+  "send-dm v1": ["succeeds", "refused", "provider-refusal", "unverified", "lost-answer"],
+  "edit-message v1": ["succeeds", "refused", "provider-refusal", "unverified", "lost-answer"],
+  "react v1": ["succeeds", "refused", "provider-refusal", "unverified", "lost-answer"],
+  "schedule-message v1": ["succeeds", "refused", "provider-refusal", "unverified", "lost-answer"],
+  "set-status v1": ["succeeds", "refused", "provider-refusal", "unverified", "lost-answer"],
+  "read-canvas v1": ["succeeds", "refused", "provider-refusal"]
+ }
+}

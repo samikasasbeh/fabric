@@ -1,0 +1,800 @@
+{
+ "source": "Notion, Slack and GitHub documentation and git-check-ref-format; refusals of other forms are Fabric adversarial",
+ "cases": [
+  {
+   "name": "a page URL gives its hyphenated id",
+   "source": "Notion API, working with page and database ids in URLs",
+   "transform": "ids.notionId@1",
+   "input": {
+    "value": "https://www.notion.so/My-Page-1429989fe8ac4effbc8f57f56486db54"
+   },
+   "output": {
+    "id": "1429989f-e8ac-4eff-bc8f-57f56486db54"
+   }
+  },
+  {
+   "name": "an upper-case id and host come back in lower case",
+   "source": "Notion API, working with page and database ids in URLs",
+   "transform": "ids.notionId@1",
+   "input": {
+    "value": "https://WWW.Notion.SO/Page-1429989FE8AC4EFFBC8F57F56486DB54"
+   },
+   "output": {
+    "id": "1429989f-e8ac-4eff-bc8f-57f56486db54"
+   }
+  },
+  {
+   "name": "a notion.so URL without www and with a trailing slash gives its id",
+   "source": "Notion API, working with page and database ids in URLs",
+   "transform": "ids.notionId@1",
+   "input": {
+    "value": "https://notion.so/1429989fe8ac4effbc8f57f56486db54/"
+   },
+   "output": {
+    "id": "1429989f-e8ac-4eff-bc8f-57f56486db54"
+   }
+  },
+  {
+   "name": "a peeked page keeps the path id, never p=",
+   "source": "Notion API, working with page and database ids in URLs",
+   "transform": "ids.notionId@1",
+   "input": {
+    "value": "https://www.notion.so/acme/1429989fe8ac4effbc8f57f56486db54?v=0123456789abcdef0123456789abcdef&p=fedcba9876543210fedcba9876543210&pm=s"
+   },
+   "output": {
+    "id": "1429989f-e8ac-4eff-bc8f-57f56486db54"
+   }
+  },
+  {
+   "name": "a database URL takes the path id, never the view id",
+   "source": "Notion API, working with page and database ids in URLs",
+   "transform": "ids.notionId@1",
+   "input": {
+    "value": "https://www.notion.so/acme/1429989fe8ac4effbc8f57f56486db54?v=0123456789abcdef0123456789abcdef"
+   },
+   "output": {
+    "id": "1429989f-e8ac-4eff-bc8f-57f56486db54"
+   }
+  },
+  {
+   "name": "a notion.site URL gives its id",
+   "source": "Notion API, working with page and database ids in URLs",
+   "transform": "ids.notionId@1",
+   "input": {
+    "value": "https://acme.notion.site/Page-1429989fe8ac4effbc8f57f56486db54"
+   },
+   "output": {
+    "id": "1429989f-e8ac-4eff-bc8f-57f56486db54"
+   }
+  },
+  {
+   "name": "a bare id gives its hyphenated form",
+   "source": "Notion API, working with page and database ids in URLs",
+   "transform": "ids.notionId@1",
+   "input": {
+    "value": "1429989fe8ac4effbc8f57f56486db54"
+   },
+   "output": {
+    "id": "1429989f-e8ac-4eff-bc8f-57f56486db54"
+   }
+  },
+  {
+   "name": "a hyphenated id comes back the same",
+   "source": "Notion API, working with page and database ids in URLs",
+   "transform": "ids.notionId@1",
+   "input": {
+    "value": "1429989f-e8ac-4eff-bc8f-57f56486db54"
+   },
+   "output": {
+    "id": "1429989f-e8ac-4eff-bc8f-57f56486db54"
+   }
+  },
+  {
+   "name": "Notion refuses 31 hex digits",
+   "source": "Fabric adversarial",
+   "transform": "ids.notionId@1",
+   "input": {
+    "value": "429989fe8ac4effbc8f57f56486db54"
+   },
+   "refuses": "notion_id_invalid"
+  },
+  {
+   "name": "Notion refuses 33 hex digits",
+   "source": "Fabric adversarial",
+   "transform": "ids.notionId@1",
+   "input": {
+    "value": "1429989fe8ac4effbc8f57f56486db540"
+   },
+   "refuses": "notion_id_invalid"
+  },
+  {
+   "name": "Notion refuses another host",
+   "source": "Fabric adversarial",
+   "transform": "ids.notionId@1",
+   "input": {
+    "value": "https://evil.example/Page-1429989fe8ac4effbc8f57f56486db54"
+   },
+   "refuses": "notion_id_invalid"
+  },
+  {
+   "name": "Notion refuses a host that only ends like notion.so",
+   "source": "Fabric adversarial",
+   "transform": "ids.notionId@1",
+   "input": {
+    "value": "https://evilnotion.so/Page-1429989fe8ac4effbc8f57f56486db54"
+   },
+   "refuses": "notion_id_invalid"
+  },
+  {
+   "name": "Notion refuses http",
+   "source": "Fabric adversarial",
+   "transform": "ids.notionId@1",
+   "input": {
+    "value": "http://www.notion.so/Page-1429989fe8ac4effbc8f57f56486db54"
+   },
+   "refuses": "notion_id_invalid"
+  },
+  {
+   "name": "Notion refuses a user before the host",
+   "source": "Fabric adversarial",
+   "transform": "ids.notionId@1",
+   "input": {
+    "value": "https://evil.example@www.notion.so/Page-1429989fe8ac4effbc8f57f56486db54"
+   },
+   "refuses": "notion_id_invalid"
+  },
+  {
+   "name": "Notion refuses a port",
+   "source": "Fabric adversarial",
+   "transform": "ids.notionId@1",
+   "input": {
+    "value": "https://www.notion.so:8443/Page-1429989fe8ac4effbc8f57f56486db54"
+   },
+   "refuses": "notion_id_invalid"
+  },
+  {
+   "name": "Notion refuses a host that only starts like notion.so",
+   "source": "Fabric adversarial",
+   "transform": "ids.notionId@1",
+   "input": {
+    "value": "https://www.notion.so.evil.example/Page-1429989fe8ac4effbc8f57f56486db54"
+   },
+   "refuses": "notion_id_invalid"
+  },
+  {
+   "name": "Notion refuses a URL with no id",
+   "source": "Fabric adversarial",
+   "transform": "ids.notionId@1",
+   "input": {
+    "value": "https://www.notion.so/"
+   },
+   "refuses": "notion_id_invalid"
+  },
+  {
+   "name": "Notion refuses an id glued to a word",
+   "source": "Fabric adversarial",
+   "transform": "ids.notionId@1",
+   "input": {
+    "value": "https://www.notion.so/Page1429989fe8ac4effbc8f57f56486db54"
+   },
+   "refuses": "notion_id_invalid"
+  },
+  {
+   "name": "a message link gives its channel and ts",
+   "source": "Slack help center, copy a link to a message",
+   "transform": "ids.slackLink@1",
+   "input": {
+    "link": "https://acme.slack.com/archives/C024BE91L/p1355517523000008"
+   },
+   "expect": {
+    "/channel": "C024BE91L",
+    "/ts": "1355517523.000008"
+   }
+  },
+  {
+   "name": "a reply link gives the parent from thread_ts",
+   "source": "Slack help center, copy a link to a message",
+   "transform": "ids.slackLink@1",
+   "input": {
+    "link": "https://acme.slack.com/archives/C024BE91L/p1355517523000008?thread_ts=1355517523.000005&cid=C024BE91L"
+   },
+   "expect": {
+    "/channel": "C024BE91L",
+    "/ts": "1355517523.000008",
+    "/parent": "1355517523.000005"
+   }
+  },
+  {
+   "name": "a message link's thread is its own ts (open point Minor 10)",
+   "source": "Slack help center, copy a link to a message",
+   "transform": "ids.slackLink@1",
+   "input": {
+    "link": "https://acme.slack.com/archives/C024BE91L/p1355517523000008"
+   },
+   "output": {
+    "channel": "C024BE91L",
+    "ts": "1355517523.000008",
+    "thread": "1355517523.000008"
+   }
+  },
+  {
+   "name": "a reply link's thread is its parent (open point Minor 10)",
+   "source": "Slack help center, copy a link to a message",
+   "transform": "ids.slackLink@1",
+   "input": {
+    "link": "https://acme.slack.com/archives/C024BE91L/p1355517523000008?thread_ts=1355517523.000005&cid=C024BE91L"
+   },
+   "output": {
+    "channel": "C024BE91L",
+    "ts": "1355517523.000008",
+    "thread": "1355517523.000005",
+    "parent": "1355517523.000005"
+   }
+  },
+  {
+   "name": "Slack refuses another host",
+   "source": "Fabric adversarial",
+   "transform": "ids.slackLink@1",
+   "input": {
+    "link": "https://acme.example.com/archives/C024BE91L/p1355517523000008"
+   },
+   "refuses": "slack_link_invalid"
+  },
+  {
+   "name": "Slack refuses 15 digits",
+   "source": "Fabric adversarial",
+   "transform": "ids.slackLink@1",
+   "input": {
+    "link": "https://acme.slack.com/archives/C024BE91L/p135551752300000"
+   },
+   "refuses": "slack_link_invalid"
+  },
+  {
+   "name": "Slack refuses http",
+   "source": "Fabric adversarial",
+   "transform": "ids.slackLink@1",
+   "input": {
+    "link": "http://acme.slack.com/archives/C024BE91L/p1355517523000008"
+   },
+   "refuses": "slack_link_invalid"
+  },
+  {
+   "name": "Slack refuses a host that only starts like slack.com",
+   "source": "Fabric adversarial",
+   "transform": "ids.slackLink@1",
+   "input": {
+    "link": "https://acme.slack.com.evil.example/archives/C024BE91L/p1355517523000008"
+   },
+   "refuses": "slack_link_invalid"
+  },
+  {
+   "name": "Slack refuses 17 digits",
+   "source": "Fabric adversarial",
+   "transform": "ids.slackLink@1",
+   "input": {
+    "link": "https://acme.slack.com/archives/C024BE91L/p13555175230000081"
+   },
+   "refuses": "slack_link_invalid"
+  },
+  {
+   "name": "Slack refuses a lower-case channel id",
+   "source": "Fabric adversarial",
+   "transform": "ids.slackLink@1",
+   "input": {
+    "link": "https://acme.slack.com/archives/c024be91l/p1355517523000008"
+   },
+   "refuses": "slack_link_invalid"
+  },
+  {
+   "name": "Slack refuses a second thread_ts",
+   "source": "Fabric adversarial",
+   "transform": "ids.slackLink@1",
+   "input": {
+    "link": "https://acme.slack.com/archives/C024BE91L/p1355517523000008?thread_ts=1355517523.000005&thread_ts=1355517523.000001"
+   },
+   "refuses": "slack_link_invalid"
+  },
+  {
+   "name": "Slack refuses a thread_ts that is no ts",
+   "source": "Fabric adversarial",
+   "transform": "ids.slackLink@1",
+   "input": {
+    "link": "https://acme.slack.com/archives/C024BE91L/p1355517523000008?thread_ts=1.5"
+   },
+   "refuses": "slack_link_invalid"
+  },
+  {
+   "name": "Slack refuses a path past the message",
+   "source": "Fabric adversarial",
+   "transform": "ids.slackLink@1",
+   "input": {
+    "link": "https://acme.slack.com/archives/C024BE91L/p1355517523000008/x"
+   },
+   "refuses": "slack_link_invalid"
+  },
+  {
+   "name": "owner/repo splits",
+   "source": "GitHub naming rules",
+   "transform": "ids.ownerRepo@1",
+   "input": {
+    "value": "octo/hello-world"
+   },
+   "output": {
+    "owner": "octo",
+    "repo": "hello-world"
+   }
+  },
+  {
+   "name": "a 39-character owner passes",
+   "source": "GitHub naming rules",
+   "transform": "ids.ownerRepo@1",
+   "input": {
+    "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/b"
+   },
+   "output": {
+    "owner": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "repo": "b"
+   }
+  },
+  {
+   "name": "owner/repo refuses three parts",
+   "source": "Fabric adversarial",
+   "transform": "ids.ownerRepo@1",
+   "input": {
+    "value": "a/b/c"
+   },
+   "refuses": "repo_invalid"
+  },
+  {
+   "name": "owner/repo refuses a dot-dot owner",
+   "source": "Fabric adversarial",
+   "transform": "ids.ownerRepo@1",
+   "input": {
+    "value": "../x"
+   },
+   "refuses": "repo_invalid"
+  },
+  {
+   "name": "owner/repo refuses a leading hyphen",
+   "source": "Fabric adversarial",
+   "transform": "ids.ownerRepo@1",
+   "input": {
+    "value": "-a/b"
+   },
+   "refuses": "repo_invalid"
+  },
+  {
+   "name": "owner/repo refuses a 40-character owner",
+   "source": "Fabric adversarial",
+   "transform": "ids.ownerRepo@1",
+   "input": {
+    "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/b"
+   },
+   "refuses": "repo_invalid"
+  },
+  {
+   "name": "owner/repo refuses . as a repository",
+   "source": "Fabric adversarial",
+   "transform": "ids.ownerRepo@1",
+   "input": {
+    "value": "a/."
+   },
+   "refuses": "repo_invalid"
+  },
+  {
+   "name": "owner/repo refuses .. as a repository",
+   "source": "Fabric adversarial",
+   "transform": "ids.ownerRepo@1",
+   "input": {
+    "value": "a/.."
+   },
+   "refuses": "repo_invalid"
+  },
+  {
+   "name": "owner/repo refuses a double hyphen",
+   "source": "Fabric adversarial",
+   "transform": "ids.ownerRepo@1",
+   "input": {
+    "value": "a--b/c"
+   },
+   "refuses": "repo_invalid"
+  },
+  {
+   "name": "fabric/test-<runId> passes",
+   "source": "git-check-ref-format",
+   "transform": "ids.gitRefName@1",
+   "input": {
+    "name": "fabric/test-run1"
+   },
+   "expect": {}
+  },
+  {
+   "name": "a ref name refuses ..",
+   "source": "git-check-ref-format",
+   "transform": "ids.gitRefName@1",
+   "input": {
+    "name": "a..b"
+   },
+   "refuses": "ref_invalid"
+  },
+  {
+   "name": "a ref name refuses @{",
+   "source": "git-check-ref-format",
+   "transform": "ids.gitRefName@1",
+   "input": {
+    "name": "a@{b"
+   },
+   "refuses": "ref_invalid"
+  },
+  {
+   "name": "a ref name refuses a .lock component",
+   "source": "git-check-ref-format",
+   "transform": "ids.gitRefName@1",
+   "input": {
+    "name": "a/b.lock/c"
+   },
+   "refuses": "ref_invalid"
+  },
+  {
+   "name": "a ref name refuses a .lock ending",
+   "source": "git-check-ref-format",
+   "transform": "ids.gitRefName@1",
+   "input": {
+    "name": "a.lock"
+   },
+   "refuses": "ref_invalid"
+  },
+  {
+   "name": "a ref name refuses a leading dot",
+   "source": "git-check-ref-format",
+   "transform": "ids.gitRefName@1",
+   "input": {
+    "name": ".a"
+   },
+   "refuses": "ref_invalid"
+  },
+  {
+   "name": "a ref name refuses a component with a leading dot",
+   "source": "git-check-ref-format",
+   "transform": "ids.gitRefName@1",
+   "input": {
+    "name": "a/.b"
+   },
+   "refuses": "ref_invalid"
+  },
+  {
+   "name": "a ref name refuses a control character",
+   "source": "git-check-ref-format",
+   "transform": "ids.gitRefName@1",
+   "input": {
+    "name": "a\u0001b"
+   },
+   "refuses": "ref_invalid"
+  },
+  {
+   "name": "a ref name refuses a space",
+   "source": "git-check-ref-format",
+   "transform": "ids.gitRefName@1",
+   "input": {
+    "name": "a b"
+   },
+   "refuses": "ref_invalid"
+  },
+  {
+   "name": "a ref name refuses ~",
+   "source": "git-check-ref-format",
+   "transform": "ids.gitRefName@1",
+   "input": {
+    "name": "a~b"
+   },
+   "refuses": "ref_invalid"
+  },
+  {
+   "name": "a ref name refuses ^",
+   "source": "git-check-ref-format",
+   "transform": "ids.gitRefName@1",
+   "input": {
+    "name": "a^b"
+   },
+   "refuses": "ref_invalid"
+  },
+  {
+   "name": "a ref name refuses :",
+   "source": "git-check-ref-format",
+   "transform": "ids.gitRefName@1",
+   "input": {
+    "name": "a:b"
+   },
+   "refuses": "ref_invalid"
+  },
+  {
+   "name": "a ref name refuses ?",
+   "source": "git-check-ref-format",
+   "transform": "ids.gitRefName@1",
+   "input": {
+    "name": "a?b"
+   },
+   "refuses": "ref_invalid"
+  },
+  {
+   "name": "a ref name refuses *",
+   "source": "git-check-ref-format",
+   "transform": "ids.gitRefName@1",
+   "input": {
+    "name": "a*b"
+   },
+   "refuses": "ref_invalid"
+  },
+  {
+   "name": "a ref name refuses [",
+   "source": "git-check-ref-format",
+   "transform": "ids.gitRefName@1",
+   "input": {
+    "name": "a[b"
+   },
+   "refuses": "ref_invalid"
+  },
+  {
+   "name": "a ref name refuses a backslash",
+   "source": "git-check-ref-format",
+   "transform": "ids.gitRefName@1",
+   "input": {
+    "name": "a\\b"
+   },
+   "refuses": "ref_invalid"
+  },
+  {
+   "name": "a ref name refuses a trailing slash",
+   "source": "git-check-ref-format",
+   "transform": "ids.gitRefName@1",
+   "input": {
+    "name": "a/"
+   },
+   "refuses": "ref_invalid"
+  },
+  {
+   "name": "a ref name refuses a trailing dot",
+   "source": "git-check-ref-format",
+   "transform": "ids.gitRefName@1",
+   "input": {
+    "name": "a."
+   },
+   "refuses": "ref_invalid"
+  },
+  {
+   "name": "a ref name refuses //",
+   "source": "git-check-ref-format",
+   "transform": "ids.gitRefName@1",
+   "input": {
+    "name": "a//b"
+   },
+   "refuses": "ref_invalid"
+  },
+  {
+   "name": "a ref name refuses @ alone",
+   "source": "git-check-ref-format",
+   "transform": "ids.gitRefName@1",
+   "input": {
+    "name": "@"
+   },
+   "refuses": "ref_invalid"
+  },
+  {
+   "name": "a one-level branch name passes",
+   "source": "git-check-ref-format",
+   "transform": "ids.gitRefName@1",
+   "input": {
+    "name": "main"
+   },
+   "output": {
+    "name": "main"
+   }
+  },
+  {
+   "name": "a ref name refuses a character outside printable ASCII",
+   "source": "Fabric adversarial",
+   "transform": "ids.gitRefName@1",
+   "input": {
+    "name": "feature/café"
+   },
+   "refuses": "ref_invalid"
+  },
+  {
+   "name": "a ref name refuses DEL",
+   "source": "git-check-ref-format",
+   "transform": "ids.gitRefName@1",
+   "input": {
+    "name": "ab"
+   },
+   "refuses": "ref_invalid"
+  },
+  {
+   "name": "a ref name refuses a leading slash",
+   "source": "git-check-ref-format",
+   "transform": "ids.gitRefName@1",
+   "input": {
+    "name": "/a"
+   },
+   "refuses": "ref_invalid"
+  },
+  {
+   "name": "a branch name refuses a leading hyphen",
+   "source": "git-check-ref-format --branch",
+   "transform": "ids.gitRefName@1",
+   "input": {
+    "name": "-a"
+   },
+   "refuses": "ref_invalid"
+  },
+  {
+   "name": "slackEmoji takes a bare name",
+   "source": "Slack reactions.add and users.profile.set reference (emoji names); refusals are Fabric adversarial",
+   "transform": "ids.slackEmoji@1",
+   "input": {
+    "name": "thumbsup"
+   },
+   "output": {
+    "name": "thumbsup",
+    "code": ":thumbsup:"
+   }
+  },
+  {
+   "name": "slackEmoji takes a name between colons",
+   "source": "Slack reactions.add and users.profile.set reference (emoji names); refusals are Fabric adversarial",
+   "transform": "ids.slackEmoji@1",
+   "input": {
+    "name": ":white_check_mark:"
+   },
+   "output": {
+    "name": "white_check_mark",
+    "code": ":white_check_mark:"
+   }
+  },
+  {
+   "name": "slackEmoji takes +1",
+   "source": "Slack reactions.add and users.profile.set reference (emoji names); refusals are Fabric adversarial",
+   "transform": "ids.slackEmoji@1",
+   "input": {
+    "name": "+1"
+   },
+   "output": {
+    "name": "+1",
+    "code": ":+1:"
+   }
+  },
+  {
+   "name": "slackEmoji keeps a skin tone",
+   "source": "Slack reactions.add and users.profile.set reference (emoji names); refusals are Fabric adversarial",
+   "transform": "ids.slackEmoji@1",
+   "input": {
+    "name": "white_check_mark::skin-tone-3"
+   },
+   "output": {
+    "name": "white_check_mark::skin-tone-3",
+    "code": ":white_check_mark::skin-tone-3:"
+   }
+  },
+  {
+   "name": "slackEmoji refuses a Unicode emoji",
+   "source": "Fabric adversarial",
+   "transform": "ids.slackEmoji@1",
+   "input": {
+    "name": "👍"
+   },
+   "refuses": "emoji_invalid"
+  },
+  {
+   "name": "slackEmoji refuses capitals and a space",
+   "source": "Fabric adversarial",
+   "transform": "ids.slackEmoji@1",
+   "input": {
+    "name": "Thumbs Up"
+   },
+   "refuses": "emoji_invalid"
+  },
+  {
+   "name": "slackEmoji refuses an empty name",
+   "source": "Fabric adversarial",
+   "transform": "ids.slackEmoji@1",
+   "input": {
+    "name": ""
+   },
+   "refuses": "emoji_invalid"
+  },
+  {
+   "name": "slackEmoji refuses 101 characters",
+   "source": "Fabric adversarial",
+   "transform": "ids.slackEmoji@1",
+   "input": {
+    "name": {
+     "$repeat": [
+      "a",
+      101
+     ]
+    }
+   },
+   "refuses": "emoji_invalid"
+  },
+  {
+   "name": "slackEmoji refuses a skin tone outside 2 to 6",
+   "source": "Slack reactions.add and users.profile.set reference (emoji names); refusals are Fabric adversarial",
+   "transform": "ids.slackEmoji@1",
+   "input": {
+    "name": "thumbsup::skin-tone-7"
+   },
+   "refuses": "emoji_invalid"
+  },
+  {
+   "name": "repoPath: a nested path with a space passes and is no workflow",
+   "source": "GitHub REST API, repository contents (create or update file contents)",
+   "transform": "ids.repoPath@1",
+   "input": {
+    "path": "docs/read me.md"
+   },
+   "output": {
+    "path": "docs/read me.md",
+    "workflow": false
+   }
+  },
+  {
+   "name": "repoPath: a file under .github/workflows/ is a workflow",
+   "source": "GitHub Actions, workflow syntax (workflow files live in .github/workflows)",
+   "transform": "ids.repoPath@1",
+   "input": {
+    "path": ".github/workflows/ci.yml"
+   },
+   "output": {
+    "path": ".github/workflows/ci.yml",
+    "workflow": true
+   }
+  },
+  {
+   "name": "repoPath: an oddly cased workflows folder is flagged too",
+   "source": "Fabric adversarial",
+   "transform": "ids.repoPath@1",
+   "input": {
+    "path": ".GitHub/Workflows/ci.yml"
+   },
+   "output": {
+    "path": ".GitHub/Workflows/ci.yml",
+    "workflow": true
+   }
+  },
+  {
+   "name": "repoPath: a .. segment refuses",
+   "source": "Fabric adversarial",
+   "transform": "ids.repoPath@1",
+   "input": {
+    "path": "a/../b"
+   },
+   "refuses": "path_invalid"
+  },
+  {
+   "name": "repoPath: an encoded dot segment refuses",
+   "source": "Fabric adversarial",
+   "transform": "ids.repoPath@1",
+   "input": {
+    "path": "%2e%2e/secrets"
+   },
+   "refuses": "path_invalid"
+  },
+  {
+   "name": "repoPath: a backslash refuses",
+   "source": "Fabric adversarial",
+   "transform": "ids.repoPath@1",
+   "input": {
+    "path": "a\\b"
+   },
+   "refuses": "path_invalid"
+  },
+  {
+   "name": "repoPath: a direction override refuses",
+   "source": "Fabric adversarial",
+   "transform": "ids.repoPath@1",
+   "input": {
+    "path": "docs/a‮gpj.exe"
+   },
+   "refuses": "path_invalid"
+  }
+ ]
+}

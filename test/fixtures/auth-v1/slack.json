@@ -1,0 +1,145 @@
+{
+  "schemaVersion": 1,
+  "providerId": "slack",
+  "displayName": "Slack",
+  "reviewStatus": "reviewed",
+  "credentialEnvironment": {
+    "clientId": "FABRIC_SLACK_CLIENT_ID",
+    "clientSecret": "FABRIC_SLACK_CLIENT_SECRET"
+  },
+  "authorization": {
+    "url": "https://slack.com/oauth/v2/authorize",
+    "pkce": "none",
+    "scopeParameter": "scope",
+    "userScopeParameter": "user_scope",
+    "loopbackRedirect": "https-required",
+    "scopeSeparator": ",",
+    "identityScopes": [],
+    "extraParameters": {}
+  },
+  "token": {
+    "url": "https://slack.com/api/oauth.v2.access",
+    "encoding": "form",
+    "clientAuthentication": "basic",
+    "responseFormat": "slack-v2",
+    "scopeSeparator": ",",
+    "acceptedTokenTypes": [
+      "user",
+      "bot"
+    ],
+    "reconnectErrors": [
+      "invalid_code",
+      "invalid_refresh_token",
+      "token_expired",
+      "token_revoked"
+    ],
+    "requireExpiry": false,
+    "maxLifetimeSeconds": 43200,
+    "quirks": {
+      "errorInSuccessBody": false,
+      "errorCodeField": "error",
+      "nullRefreshMeansNone": false,
+      "basicEncoding": "raw"
+    }
+  },
+  "refresh": {
+    "supported": true,
+    "keepPreviousWhenOmitted": false
+  },
+  "revocation": {
+    "url": "https://slack.com/api/auth.revoke",
+    "method": "POST",
+    "encoding": "form",
+    "clientAuthentication": "none",
+    "tokenParameter": "token",
+    "preferredToken": "access",
+    "successStatuses": [
+      200
+    ],
+    "successRequire": [
+      {
+        "pointer": "/ok",
+        "equals": true
+      },
+      {
+        "pointer": "/revoked",
+        "equals": true
+      }
+    ],
+    "covers": "token"
+  },
+  "apiHeaders": {},
+  "identity": {
+    "request": {
+      "url": "https://slack.com/api/auth.test",
+      "method": "POST",
+      "headers": {},
+      "body": "empty-form"
+    },
+    "require": [
+      {
+        "pointer": "/ok",
+        "equals": true
+      }
+    ],
+    "requireFailure": "reconnect_required",
+    "id": {
+      "pointers": [
+        "/team_id",
+        "/user_id"
+      ],
+      "separator": ":",
+      "allowNumbers": false
+    },
+    "alternateId": null,
+    "displayName": {
+      "pointers": [
+        "/user"
+      ],
+      "fallback": "Slack account"
+    },
+    "email": null,
+    "attributes": {
+      "workspaceId": "/team_id",
+      "workspaceName": "/team"
+    }
+  },
+  "apps": [
+    {
+      "appId": "slack",
+      "scopes": {
+        "read": [],
+        "write": []
+      },
+      "userScopes": {
+        "read": [
+          "channels:read",
+          "channels:history",
+          "users:read"
+        ],
+        "write": [
+          "channels:read",
+          "channels:history",
+          "users:read",
+          "chat:write"
+        ]
+      },
+      "upgradeScopes": {
+        "prefixes": [],
+        "exact": [
+          "groups:read",
+          "groups:history",
+          "im:read",
+          "im:history",
+          "mpim:read",
+          "search:read",
+          "files:read",
+          "reactions:read",
+          "reactions:write",
+          "chat:write"
+        ]
+      },
+      "accessProbe": null
+    }
+  ]
+}

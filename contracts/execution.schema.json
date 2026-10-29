@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fabric.invalid/contracts/execution.schema.json",
+  "title": "Fabric execution contracts version 1",
+  "description": "Immutable JSON shapes. execution.mts additionally enforces bounded JSON, canonical SHA-256 bindings, exact ownership/scope, semantic timestamps, expiry and transition rules. These contracts do not authenticate callers, authorize grants, persist jobs or execute operations.",
+  "oneOf": [
+    {"$ref": "#/$defs/request"},
+    {"$ref": "#/$defs/approval"},
+    {"$ref": "#/$defs/continuation"},
+    {"$ref": "#/$defs/error"}
+  ],
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@-]{0,127}$"},
+    "capabilityId": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@-]{0,199}$"},
+    "hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "revision": {"type": "integer", "minimum": 1, "maximum": 9007199254740991},
+    "appId": {"type": "string", "pattern": "^[a-z][a-z0-9-]{0,63}$"},
+    "timestamp": {"type": "string", "format": "date-time", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{3})?Z$"},
+    "state": {"enum": ["awaiting_connection", "awaiting_approval", "queued", "running", "succeeded", "failed", "uncertain", "cancelled", "expired"]},
+    "capability": {
+      "type": "object", "additionalProperties": false,
+      "required": ["appId", "id", "version", "definitionHash", "effect"],
+      "properties": {
+        "appId": {"$ref": "#/$defs/appId"}, "id": {"$ref": "#/$defs/capabilityId"}, "version": {"$ref": "#/$defs/revision"},
+        "definitionHash": {"$ref": "#/$defs/hash"}, "effect": {"enum": ["read", "write", "delete"]}
+      }
+    },
+    "connectionAccess": {
+      "type": "object", "additionalProperties": false, "required": ["kind", "id", "generation"],
+      "properties": {"kind": {"const": "connection"}, "id": {"$ref": "#/$defs/id"}, "generation": {"$ref": "#/$defs/revision"}}
+    },
+    "missingAccess": {
+      "type": "object", "additionalProperties": false, "required": ["kind", "appId", "accountSelection"],
+      "properties": {
+        "kind": {"const": "missing"}, "appId": {"$ref": "#/$defs/appId"},
+        "accountSelection": {"oneOf": [
+          {"type": "object", "additionalProperties": false, "required": ["kind"], "properties": {"kind": {"const": "owner_required"}}},
+          {"type": "object", "additionalProperties": false, "required": ["kind", "accountId"], "properties": {"kind": {"const": "exact"}, "accountId": {"$ref": "#/$defs/id"}}}
+        ]}
+      }
+    },
+    "access": {"oneOf": [{"$ref": "#/$defs/connectionAccess"}, {"$ref": "#/$defs/missingAccess"}]},
+    "request": {
+      "description": "Local clients use their authenticated grant ID and exact local-owner delegator, never local-owner credentials. Runtime additionally checks scope equality; this shape alone does not authorize the grant.",
+      "type": "object", "additionalProperties": false,
+      "required": ["schemaVersion", "id", "scope", "principal", "access", "capability", "args", "policyRevision", "idempotencyKey", "createdAt", "deadline"],
+      "properties": {
+        "schemaVersion": {"const": 1}, "id": {"$ref": "#/$defs/id"},
+        "scope": {"$ref": "identity.schema.json#/$defs/Scope"}, "principal": {"$ref": "identity.schema.json#/$defs/Principal"},
+        "access": {"$ref": "#/$defs/access"}, "capability": {"$ref": "#/$defs/capability"}, "args": {"type": "object"},
+        "policyRevision": {"$ref": "#/$defs/revision", "description": "Trusted acceptance-policy snapshot. Missing-access handoffs must rebind after account selection."},
+        "idempotencyKey": {"$ref": "#/$defs/id"}, "createdAt": {"$ref": "#/$defs/timestamp"}, "deadline": {"$ref": "#/$defs/timestamp"}
+      }
+    },
+    "approval": {
+      "description": "Only a human local owner or product user may approve. Runtime requires the exact request owner or delegator; local clients and agents cannot approve.",
+      "type": "object", "additionalProperties": false,
+      "required": ["schemaVersion", "id", "scope", "requestHash", "principalHash", "accessHash", "capabilityHash", "approver", "decision", "createdAt", "expiresAt"],
+      "properties": {
+        "schemaVersion": {"const": 1}, "id": {"$ref": "#/$defs/id"}, "scope": {"$ref": "identity.schema.json#/$defs/Scope"},
+        "requestHash": {"$ref": "#/$defs/hash"}, "principalHash": {"$ref": "#/$defs/hash"}, "accessHash": {"$ref": "#/$defs/hash"}, "capabilityHash": {"$ref": "#/$defs/hash"},
+        "approver": {"allOf": [{"$ref": "identity.schema.json#/$defs/Principal"}, {"type": "object", "properties": {"kind": {"enum": ["local_owner", "product_user"]}}}]},
+        "decision": {"enum": ["approved", "rejected"]}, "createdAt": {"$ref": "#/$defs/timestamp"}, "expiresAt": {"$ref": "#/$defs/timestamp"}
+      }
+    },
+    "continuation": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schemaVersion", "id", "scope", "requestHash", "principalHash", "accessHash", "capabilityHash", "kind", "createdAt", "expiresAt"],
+      "properties": {
+        "schemaVersion": {"const": 1}, "id": {"$ref": "#/$defs/id"}, "scope": {"$ref": "identity.schema.json#/$defs/Scope"},
+        "requestHash": {"$ref": "#/$defs/hash"}, "principalHash": {"$ref": "#/$defs/hash"}, "accessHash": {"$ref": "#/$defs/hash"}, "capabilityHash": {"$ref": "#/$defs/hash"},
+        "kind": {"enum": ["connection", "approval"]}, "createdAt": {"$ref": "#/$defs/timestamp"}, "expiresAt": {"$ref": "#/$defs/timestamp"}
+      }
+    },
+    "error": {
+      "type": "object", "additionalProperties": false, "required": ["schemaVersion", "code", "source", "retryable", "message"],
+      "properties": {
+        "schemaVersion": {"const": 1},
+        "code": {"enum": ["invalid_contract", "connection_required", "approval_required", "approval_rejected", "approval_expired", "continuation_expired", "deadline_exceeded", "authority_changed", "capability_retired", "idempotency_conflict", "invalid_transition", "provider_failed", "credential_expired", "policy_denied", "delivery_failed", "fabric_failed", "outcome_uncertain", "input_schema_changed", "action_refused"]},
+        "source": {"enum": ["caller", "fabric", "provider", "credential", "policy", "delivery"]},
+        "retryable": {"const": false}, "message": {"type": "string", "minLength": 1, "maxLength": 500, "pattern": "^[^\\u0000-\\u001f\\u007f]+$"}
+      },
+      "allOf": [
+        {"if": {"properties": {"code": {"enum": ["invalid_contract", "deadline_exceeded", "idempotency_conflict", "input_schema_changed", "action_refused"]}}}, "then": {"properties": {"source": {"const": "caller"}}}},
+        {"if": {"properties": {"code": {"enum": ["connection_required", "continuation_expired", "credential_expired"]}}}, "then": {"properties": {"source": {"const": "credential"}}}},
+        {"if": {"properties": {"code": {"enum": ["approval_required", "approval_rejected", "approval_expired", "authority_changed", "capability_retired", "policy_denied"]}}}, "then": {"properties": {"source": {"const": "policy"}}}},
+        {"if": {"properties": {"code": {"enum": ["invalid_transition", "fabric_failed"]}}}, "then": {"properties": {"source": {"const": "fabric"}}}},
+        {"if": {"properties": {"code": {"enum": ["provider_failed", "outcome_uncertain"]}}}, "then": {"properties": {"source": {"const": "provider"}}}},
+        {"if": {"properties": {"code": {"const": "delivery_failed"}}}, "then": {"properties": {"source": {"const": "delivery"}}}}
+      ]
+    }
+  }
+}

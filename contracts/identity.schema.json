@@ -1,0 +1,124 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://fabric.invalid/contracts/identity.schema.json",
+  "title": "Fabric identity and ownership contracts",
+  "description": "Version 1 shapes only, not authentication or grants. Runtime validation additionally bounds JSON, rejects unsafe properties, checks identity equalities, and returns frozen detached values. Product-user owner and delegate IDs refer to upstream subjectId; principal.id is the Fabric identity record ID.",
+  "$ref": "#/$defs/Principal",
+  "$defs": {
+    "Identifier": {"type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@-]{0,127}$"},
+    "LocalScope": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schemaVersion", "kind", "localOwnerId"],
+      "properties": {"schemaVersion": {"const": 1}, "kind": {"const": "local"}, "localOwnerId": {"$ref": "#/$defs/Identifier"}}
+    },
+    "TenantScope": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schemaVersion", "kind", "organizationId", "projectId", "environmentId"],
+      "properties": {
+        "schemaVersion": {"const": 1}, "kind": {"const": "tenant"},
+        "organizationId": {"$ref": "#/$defs/Identifier"}, "projectId": {"$ref": "#/$defs/Identifier"}, "environmentId": {"$ref": "#/$defs/Identifier"}
+      }
+    },
+    "Scope": {"oneOf": [{"$ref": "#/$defs/LocalScope"}, {"$ref": "#/$defs/TenantScope"}]},
+    "LocalOwnerPrincipal": {
+      "description": "Runtime additionally requires id === scope.localOwnerId.",
+      "type": "object", "additionalProperties": false,
+      "required": ["schemaVersion", "id", "kind", "scope"],
+      "properties": {"schemaVersion": {"const": 1}, "id": {"$ref": "#/$defs/Identifier"}, "kind": {"const": "local_owner"}, "scope": {"$ref": "#/$defs/LocalScope"}}
+    },
+    "LocalClientPrincipal": {
+      "description": "id is the authenticated local grant ID. Runtime requires delegatedBy.id === scope.localOwnerId and id !== delegatedBy.id. Shape validation does not authenticate the grant. A local client cannot own a connection, approve work or delegate another caller.",
+      "type": "object", "additionalProperties": false,
+      "required": ["schemaVersion", "id", "kind", "scope", "delegatedBy"],
+      "properties": {
+        "schemaVersion": {"const": 1}, "id": {"$ref": "#/$defs/Identifier"}, "kind": {"const": "local_client"}, "scope": {"$ref": "#/$defs/LocalScope"},
+        "delegatedBy": {
+          "type": "object", "additionalProperties": false, "required": ["kind", "id"],
+          "properties": {"kind": {"const": "local_owner"}, "id": {"$ref": "#/$defs/Identifier"}}
+        }
+      }
+    },
+    "DeveloperPrincipal": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schemaVersion", "id", "kind", "scope"],
+      "properties": {
+        "schemaVersion": {"const": 1}, "id": {"$ref": "#/$defs/Identifier"}, "kind": {"const": "developer"}, "scope": {"$ref": "#/$defs/TenantScope"},
+        "workspaceId": {"$ref": "#/$defs/Identifier"}
+      }
+    },
+    "ServiceClientPrincipal": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schemaVersion", "id", "kind", "scope"],
+      "properties": {
+        "schemaVersion": {"const": 1}, "id": {"$ref": "#/$defs/Identifier"}, "kind": {"const": "service_client"}, "scope": {"$ref": "#/$defs/TenantScope"},
+        "workspaceId": {"$ref": "#/$defs/Identifier"}
+      }
+    },
+    "ProductUserPrincipal": {
+      "description": "subjectId is the upstream user ID asserted by a trusted backend, distinct from Fabric principal id.",
+      "type": "object", "additionalProperties": false,
+      "required": ["schemaVersion", "id", "kind", "scope", "subjectId"],
+      "properties": {
+        "schemaVersion": {"const": 1}, "id": {"$ref": "#/$defs/Identifier"}, "kind": {"const": "product_user"}, "scope": {"$ref": "#/$defs/TenantScope"},
+        "subjectId": {"$ref": "#/$defs/Identifier"}, "workspaceId": {"$ref": "#/$defs/Identifier"}
+      }
+    },
+    "UserDelegatedAgent": {
+      "description": "Runtime requires subjectId === delegatedBy.id and id !== delegatedBy.id. A matching shape does not establish a delegation grant.",
+      "type": "object", "additionalProperties": false,
+      "required": ["schemaVersion", "id", "kind", "scope", "subjectId", "delegatedBy", "delegationId"],
+      "properties": {
+        "schemaVersion": {"const": 1}, "id": {"$ref": "#/$defs/Identifier"}, "kind": {"const": "agent"}, "scope": {"$ref": "#/$defs/TenantScope"},
+        "subjectId": {"$ref": "#/$defs/Identifier"}, "workspaceId": {"$ref": "#/$defs/Identifier"}, "delegationId": {"$ref": "#/$defs/Identifier"},
+        "delegatedBy": {
+          "type": "object", "additionalProperties": false, "required": ["kind", "id"],
+          "properties": {"kind": {"const": "product_user"}, "id": {"$ref": "#/$defs/Identifier"}}
+        }
+      }
+    },
+    "ServiceDelegatedAgent": {
+      "description": "Runtime additionally requires id !== delegatedBy.id. Service delegation has no product-user subject.",
+      "type": "object", "additionalProperties": false,
+      "required": ["schemaVersion", "id", "kind", "scope", "delegatedBy", "delegationId"],
+      "properties": {
+        "schemaVersion": {"const": 1}, "id": {"$ref": "#/$defs/Identifier"}, "kind": {"const": "agent"}, "scope": {"$ref": "#/$defs/TenantScope"},
+        "workspaceId": {"$ref": "#/$defs/Identifier"}, "delegationId": {"$ref": "#/$defs/Identifier"},
+        "delegatedBy": {
+          "type": "object", "additionalProperties": false, "required": ["kind", "id"],
+          "properties": {"kind": {"const": "service_client"}, "id": {"$ref": "#/$defs/Identifier"}}
+        }
+      }
+    },
+    "Principal": {
+      "oneOf": [
+        {"$ref": "#/$defs/LocalOwnerPrincipal"}, {"$ref": "#/$defs/LocalClientPrincipal"}, {"$ref": "#/$defs/DeveloperPrincipal"}, {"$ref": "#/$defs/ServiceClientPrincipal"},
+        {"$ref": "#/$defs/ProductUserPrincipal"}, {"$ref": "#/$defs/UserDelegatedAgent"}, {"$ref": "#/$defs/ServiceDelegatedAgent"}
+      ]
+    },
+    "LocalOwnedRecord": {
+      "description": "Runtime additionally requires owner.id === scope.localOwnerId.",
+      "type": "object", "additionalProperties": false,
+      "required": ["schemaVersion", "scope", "owner"],
+      "properties": {
+        "schemaVersion": {"const": 1}, "scope": {"$ref": "#/$defs/LocalScope"},
+        "owner": {
+          "type": "object", "additionalProperties": false, "required": ["kind", "id"],
+          "properties": {"kind": {"const": "local_owner"}, "id": {"$ref": "#/$defs/Identifier"}}
+        }
+      }
+    },
+    "TenantOwnedRecord": {
+      "description": "Direct ownership checks never imply workspace membership, sharing, developer administration, or agent delegation rights.",
+      "type": "object", "additionalProperties": false,
+      "required": ["schemaVersion", "scope", "owner"],
+      "properties": {
+        "schemaVersion": {"const": 1}, "scope": {"$ref": "#/$defs/TenantScope"},
+        "owner": {
+          "type": "object", "additionalProperties": false, "required": ["kind", "id"],
+          "properties": {"kind": {"enum": ["product_user", "service_client", "workspace"]}, "id": {"$ref": "#/$defs/Identifier"}}
+        }
+      }
+    },
+    "OwnedRecord": {"oneOf": [{"$ref": "#/$defs/LocalOwnedRecord"}, {"$ref": "#/$defs/TenantOwnedRecord"}]}
+  }
+}

@@ -1,0 +1,1401 @@
+{
+ "source": "Fabric cases over the Gmail, Calendar, Notion and Slack list shapes",
+ "cases": [
+  {
+   "name": "findBy matches one with ASCII folding",
+   "transform": "collections.findBy@1",
+   "input": {
+    "list": {
+     "results": [
+      {
+       "id": "U1",
+       "email": "Ann@Example.com",
+       "name": "Ann"
+      },
+      {
+       "id": "U2",
+       "email": "bob@example.com",
+       "name": "Bob"
+      },
+      {
+       "id": "U3",
+       "email": "bob@example.com",
+       "name": "Bobby"
+      }
+     ]
+    },
+    "items": "/results",
+    "field": "/email",
+    "id": "/id",
+    "label": "/name",
+    "value": "ann@example.com",
+    "fold": "ascii",
+    "require": "one"
+   },
+   "output": {
+    "matches": [
+     {
+      "id": "U1",
+      "label": "Ann"
+     }
+    ]
+   }
+  },
+  {
+   "name": "findBy without a label returns ids only",
+   "transform": "collections.findBy@1",
+   "input": {
+    "list": {
+     "results": [
+      {
+       "id": "U1",
+       "email": "Ann@Example.com",
+       "name": "Ann"
+      },
+      {
+       "id": "U2",
+       "email": "bob@example.com",
+       "name": "Bob"
+      },
+      {
+       "id": "U3",
+       "email": "bob@example.com",
+       "name": "Bobby"
+      }
+     ]
+    },
+    "items": "/results",
+    "field": "/email",
+    "id": "/id",
+    "value": "ann@example.com",
+    "fold": "ascii",
+    "require": "one"
+   },
+   "output": {
+    "matches": [
+     {
+      "id": "U1"
+     }
+    ]
+   }
+  },
+  {
+   "name": "findBy with fold none keeps case",
+   "transform": "collections.findBy@1",
+   "input": {
+    "list": {
+     "results": [
+      {
+       "id": "U1",
+       "email": "Ann@Example.com",
+       "name": "Ann"
+      },
+      {
+       "id": "U2",
+       "email": "bob@example.com",
+       "name": "Bob"
+      },
+      {
+       "id": "U3",
+       "email": "bob@example.com",
+       "name": "Bobby"
+      }
+     ]
+    },
+    "items": "/results",
+    "field": "/email",
+    "id": "/id",
+    "label": "/name",
+    "value": "ann@example.com",
+    "fold": "none",
+    "require": "one"
+   },
+   "refuses": "match_none"
+  },
+  {
+   "name": "findBy refuses several matches when one is required, never guessing",
+   "transform": "collections.findBy@1",
+   "input": {
+    "list": {
+     "results": [
+      {
+       "id": "U1",
+       "email": "Ann@Example.com",
+       "name": "Ann"
+      },
+      {
+       "id": "U2",
+       "email": "bob@example.com",
+       "name": "Bob"
+      },
+      {
+       "id": "U3",
+       "email": "bob@example.com",
+       "name": "Bobby"
+      }
+     ]
+    },
+    "items": "/results",
+    "field": "/email",
+    "id": "/id",
+    "label": "/name",
+    "value": "bob@example.com",
+    "fold": "ascii",
+    "require": "one"
+   },
+   "refuses": "match_many"
+  },
+  {
+   "name": "findBy lists several matches when any is allowed",
+   "transform": "collections.findBy@1",
+   "input": {
+    "list": {
+     "results": [
+      {
+       "id": "U1",
+       "email": "Ann@Example.com",
+       "name": "Ann"
+      },
+      {
+       "id": "U2",
+       "email": "bob@example.com",
+       "name": "Bob"
+      },
+      {
+       "id": "U3",
+       "email": "bob@example.com",
+       "name": "Bobby"
+      }
+     ]
+    },
+    "items": "/results",
+    "field": "/email",
+    "id": "/id",
+    "label": "/name",
+    "value": "bob@example.com",
+    "fold": "ascii",
+    "require": "any"
+   },
+   "output": {
+    "matches": [
+     {
+      "id": "U2",
+      "label": "Bob"
+     },
+     {
+      "id": "U3",
+      "label": "Bobby"
+     }
+    ]
+   }
+  },
+  {
+   "name": "findBy with no match and any allowed is empty",
+   "transform": "collections.findBy@1",
+   "input": {
+    "list": {
+     "results": [
+      {
+       "id": "U1",
+       "email": "Ann@Example.com",
+       "name": "Ann"
+      },
+      {
+       "id": "U2",
+       "email": "bob@example.com",
+       "name": "Bob"
+      },
+      {
+       "id": "U3",
+       "email": "bob@example.com",
+       "name": "Bobby"
+      }
+     ]
+    },
+    "items": "/results",
+    "field": "/email",
+    "id": "/id",
+    "label": "/name",
+    "value": "zed@example.com",
+    "fold": "ascii",
+    "require": "any"
+   },
+   "output": {
+    "matches": []
+   }
+  },
+  {
+   "name": "findBy refuses 1,001 items",
+   "source": "Fabric adversarial",
+   "transform": "collections.findBy@1",
+   "input": {
+    "list": {
+     "results": {
+      "$list": [
+       1001,
+       {
+        "id": "U{n}",
+        "email": "u{n}@example.com"
+       }
+      ]
+     }
+    },
+    "items": "/results",
+    "field": "/email",
+    "id": "/id",
+    "label": "/name",
+    "value": "x",
+    "fold": "none",
+    "require": "any"
+   },
+   "refuses": "too_many_items"
+  },
+  {
+   "name": "findBy reads a joined list at its root and finds the only match on the second page (open point Minor 8)",
+   "source": "Notion API, list all users (paged); the pages joined as F10.9 joins them",
+   "transform": "collections.findBy@1",
+   "input": {
+    "list": [
+     {
+      "id": "U1",
+      "name": "Ann"
+     },
+     {
+      "id": "U2",
+      "name": "Bob"
+     },
+     {
+      "id": "U3",
+      "name": "Cy"
+     },
+     {
+      "id": "U4",
+      "name": "Dee"
+     }
+    ],
+    "items": "",
+    "field": "/name",
+    "id": "/id",
+    "value": "dee",
+    "fold": "ascii",
+    "require": "one"
+   },
+   "output": {
+    "matches": [
+     {
+      "id": "U4"
+     }
+    ]
+   }
+  },
+  {
+   "name": "findBy reads an absent list as empty, so a required match refuses with match_none",
+   "source": "Google Calendar API, events resource: attendees",
+   "transform": "collections.findBy@1",
+   "input": {
+    "list": {
+     "id": "e1"
+    },
+    "items": "/attendees",
+    "field": "/email",
+    "id": "/email",
+    "value": "owner@example.com",
+    "fold": "ascii",
+    "require": "one"
+   },
+   "refuses": "match_none"
+  },
+  {
+   "name": "mergeEmails keeps each guest whole, in any ASCII case once, and adds the new one",
+   "source": "Google Calendar API, events resource: attendees",
+   "transform": "collections.mergeEmails@1",
+   "input": {
+    "event": {
+     "id": "e1",
+     "organizer": {
+      "email": "org@example.com"
+     },
+     "attendees": [
+      {
+       "email": "org@example.com",
+       "organizer": true,
+       "responseStatus": "accepted"
+      },
+      {
+       "email": "Guest@Example.com",
+       "responseStatus": "tentative",
+       "optional": true,
+       "comment": "maybe"
+      },
+      {
+       "email": "owner@example.com",
+       "self": true,
+       "responseStatus": "accepted"
+      }
+     ]
+    },
+    "add": [
+     "guest@example.com",
+     "New@example.com",
+     "new@EXAMPLE.com"
+    ],
+    "remove": [],
+    "owner": "owner@example.com"
+   },
+   "output": {
+    "attendees": [
+     {
+      "email": "org@example.com",
+      "organizer": true,
+      "responseStatus": "accepted"
+     },
+     {
+      "email": "Guest@Example.com",
+      "responseStatus": "tentative",
+      "optional": true,
+      "comment": "maybe"
+     },
+     {
+      "email": "owner@example.com",
+      "self": true,
+      "responseStatus": "accepted"
+     },
+     {
+      "email": "New@example.com"
+     }
+    ],
+    "added": [
+     "New@example.com"
+    ],
+    "removed": []
+   }
+  },
+  {
+   "name": "mergeEmails removes a guest in any ASCII case and names it as written",
+   "source": "Google Calendar API, events resource: attendees",
+   "transform": "collections.mergeEmails@1",
+   "input": {
+    "event": {
+     "id": "e1",
+     "organizer": {
+      "email": "org@example.com"
+     },
+     "attendees": [
+      {
+       "email": "org@example.com",
+       "organizer": true,
+       "responseStatus": "accepted"
+      },
+      {
+       "email": "Guest@Example.com",
+       "responseStatus": "tentative",
+       "optional": true,
+       "comment": "maybe"
+      },
+      {
+       "email": "owner@example.com",
+       "self": true,
+       "responseStatus": "accepted"
+      }
+     ]
+    },
+    "add": [],
+    "remove": [
+     "guest@example.com"
+    ],
+    "owner": "owner@example.com"
+   },
+   "output": {
+    "attendees": [
+     {
+      "email": "org@example.com",
+      "organizer": true,
+      "responseStatus": "accepted"
+     },
+     {
+      "email": "owner@example.com",
+      "self": true,
+      "responseStatus": "accepted"
+     }
+    ],
+    "added": [],
+    "removed": [
+     "Guest@Example.com"
+    ]
+   }
+  },
+  {
+   "name": "mergeEmails refuses to remove the organizer",
+   "source": "Google Calendar API, events resource: attendees",
+   "transform": "collections.mergeEmails@1",
+   "input": {
+    "event": {
+     "id": "e1",
+     "organizer": {
+      "email": "org@example.com"
+     },
+     "attendees": [
+      {
+       "email": "org@example.com",
+       "organizer": true,
+       "responseStatus": "accepted"
+      },
+      {
+       "email": "Guest@Example.com",
+       "responseStatus": "tentative",
+       "optional": true,
+       "comment": "maybe"
+      },
+      {
+       "email": "owner@example.com",
+       "self": true,
+       "responseStatus": "accepted"
+      }
+     ]
+    },
+    "add": [],
+    "remove": [
+     "ORG@example.com"
+    ],
+    "owner": "owner@example.com"
+   },
+   "refuses": "attendee_protected"
+  },
+  {
+   "name": "mergeEmails refuses to remove the owner",
+   "source": "Google Calendar API, events resource: attendees",
+   "transform": "collections.mergeEmails@1",
+   "input": {
+    "event": {
+     "id": "e1",
+     "organizer": {
+      "email": "org@example.com"
+     },
+     "attendees": [
+      {
+       "email": "org@example.com",
+       "organizer": true,
+       "responseStatus": "accepted"
+      },
+      {
+       "email": "Guest@Example.com",
+       "responseStatus": "tentative",
+       "optional": true,
+       "comment": "maybe"
+      },
+      {
+       "email": "owner@example.com",
+       "self": true,
+       "responseStatus": "accepted"
+      }
+     ]
+    },
+    "add": [],
+    "remove": [
+     "Owner@Example.com"
+    ],
+    "owner": "owner@example.com"
+   },
+   "refuses": "attendee_protected"
+  },
+  {
+   "name": "mergeEmails refuses an attendee field Calendar does not list, never dropping it",
+   "source": "Google Calendar API, events resource: attendees",
+   "transform": "collections.mergeEmails@1",
+   "input": {
+    "event": {
+     "attendees": [
+      {
+       "email": "a@example.com",
+       "colorId": "1"
+      }
+     ]
+    },
+    "add": [
+     "b@example.com"
+    ],
+    "remove": [],
+    "owner": "owner@example.com"
+   },
+   "refuses": "output_invalid"
+  },
+  {
+   "name": "mergeEmails adds the first guest to an event with none",
+   "source": "Google Calendar API, events resource: attendees",
+   "transform": "collections.mergeEmails@1",
+   "input": {
+    "event": {
+     "id": "e1"
+    },
+    "add": [
+     "a@example.com"
+    ],
+    "remove": [],
+    "owner": "owner@example.com"
+   },
+   "output": {
+    "attendees": [
+     {
+      "email": "a@example.com"
+     }
+    ],
+    "added": [
+     "a@example.com"
+    ],
+    "removed": []
+   }
+  },
+  {
+   "name": "labelIds resolves names case-insensitively, and ids, in the order given",
+   "source": "Gmail API, users.labels.list",
+   "transform": "collections.labelIds@1",
+   "input": {
+    "list": {
+     "labels": [
+      {
+       "id": "INBOX",
+       "name": "INBOX",
+       "type": "system"
+      },
+      {
+       "id": "SENT",
+       "name": "SENT",
+       "type": "system"
+      },
+      {
+       "id": "DRAFT",
+       "name": "DRAFT",
+       "type": "system"
+      },
+      {
+       "id": "TRASH",
+       "name": "TRASH",
+       "type": "system"
+      },
+      {
+       "id": "SPAM",
+       "name": "SPAM",
+       "type": "system"
+      },
+      {
+       "id": "Label_1",
+       "name": "Receipts",
+       "type": "user"
+      },
+      {
+       "id": "Label_2",
+       "name": "Work",
+       "type": "user"
+      }
+     ]
+    },
+    "names": [
+     "receipts",
+     "Label_2"
+    ]
+   },
+   "output": {
+    "labels": [
+     {
+      "id": "Label_1",
+      "name": "Receipts"
+     },
+     {
+      "id": "Label_2",
+      "name": "Work"
+     }
+    ],
+    "ids": [
+     "Label_1",
+     "Label_2"
+    ]
+   }
+  },
+  {
+   "name": "labelIds passes INBOX",
+   "source": "Gmail API, users.labels.list",
+   "transform": "collections.labelIds@1",
+   "input": {
+    "list": {
+     "labels": [
+      {
+       "id": "INBOX",
+       "name": "INBOX",
+       "type": "system"
+      },
+      {
+       "id": "SENT",
+       "name": "SENT",
+       "type": "system"
+      },
+      {
+       "id": "DRAFT",
+       "name": "DRAFT",
+       "type": "system"
+      },
+      {
+       "id": "TRASH",
+       "name": "TRASH",
+       "type": "system"
+      },
+      {
+       "id": "SPAM",
+       "name": "SPAM",
+       "type": "system"
+      },
+      {
+       "id": "Label_1",
+       "name": "Receipts",
+       "type": "user"
+      },
+      {
+       "id": "Label_2",
+       "name": "Work",
+       "type": "user"
+      }
+     ]
+    },
+    "names": [
+     "INBOX"
+    ]
+   },
+   "output": {
+    "labels": [
+     {
+      "id": "INBOX",
+      "name": "INBOX"
+     }
+    ],
+    "ids": [
+     "INBOX"
+    ]
+   }
+  },
+  {
+   "name": "labelIds refuses the system label SENT",
+   "source": "Gmail API, users.labels.list",
+   "transform": "collections.labelIds@1",
+   "input": {
+    "list": {
+     "labels": [
+      {
+       "id": "INBOX",
+       "name": "INBOX",
+       "type": "system"
+      },
+      {
+       "id": "SENT",
+       "name": "SENT",
+       "type": "system"
+      },
+      {
+       "id": "DRAFT",
+       "name": "DRAFT",
+       "type": "system"
+      },
+      {
+       "id": "TRASH",
+       "name": "TRASH",
+       "type": "system"
+      },
+      {
+       "id": "SPAM",
+       "name": "SPAM",
+       "type": "system"
+      },
+      {
+       "id": "Label_1",
+       "name": "Receipts",
+       "type": "user"
+      },
+      {
+       "id": "Label_2",
+       "name": "Work",
+       "type": "user"
+      }
+     ]
+    },
+    "names": [
+     "SENT"
+    ]
+   },
+   "refuses": "label_system"
+  },
+  {
+   "name": "labelIds refuses the system label DRAFT",
+   "source": "Gmail API, users.labels.list",
+   "transform": "collections.labelIds@1",
+   "input": {
+    "list": {
+     "labels": [
+      {
+       "id": "INBOX",
+       "name": "INBOX",
+       "type": "system"
+      },
+      {
+       "id": "SENT",
+       "name": "SENT",
+       "type": "system"
+      },
+      {
+       "id": "DRAFT",
+       "name": "DRAFT",
+       "type": "system"
+      },
+      {
+       "id": "TRASH",
+       "name": "TRASH",
+       "type": "system"
+      },
+      {
+       "id": "SPAM",
+       "name": "SPAM",
+       "type": "system"
+      },
+      {
+       "id": "Label_1",
+       "name": "Receipts",
+       "type": "user"
+      },
+      {
+       "id": "Label_2",
+       "name": "Work",
+       "type": "user"
+      }
+     ]
+    },
+    "names": [
+     "DRAFT"
+    ]
+   },
+   "refuses": "label_system"
+  },
+  {
+   "name": "labelIds refuses the system label TRASH",
+   "source": "Gmail API, users.labels.list",
+   "transform": "collections.labelIds@1",
+   "input": {
+    "list": {
+     "labels": [
+      {
+       "id": "INBOX",
+       "name": "INBOX",
+       "type": "system"
+      },
+      {
+       "id": "SENT",
+       "name": "SENT",
+       "type": "system"
+      },
+      {
+       "id": "DRAFT",
+       "name": "DRAFT",
+       "type": "system"
+      },
+      {
+       "id": "TRASH",
+       "name": "TRASH",
+       "type": "system"
+      },
+      {
+       "id": "SPAM",
+       "name": "SPAM",
+       "type": "system"
+      },
+      {
+       "id": "Label_1",
+       "name": "Receipts",
+       "type": "user"
+      },
+      {
+       "id": "Label_2",
+       "name": "Work",
+       "type": "user"
+      }
+     ]
+    },
+    "names": [
+     "TRASH"
+    ]
+   },
+   "refuses": "label_system"
+  },
+  {
+   "name": "labelIds refuses the system label SPAM",
+   "source": "Gmail API, users.labels.list",
+   "transform": "collections.labelIds@1",
+   "input": {
+    "list": {
+     "labels": [
+      {
+       "id": "INBOX",
+       "name": "INBOX",
+       "type": "system"
+      },
+      {
+       "id": "SENT",
+       "name": "SENT",
+       "type": "system"
+      },
+      {
+       "id": "DRAFT",
+       "name": "DRAFT",
+       "type": "system"
+      },
+      {
+       "id": "TRASH",
+       "name": "TRASH",
+       "type": "system"
+      },
+      {
+       "id": "SPAM",
+       "name": "SPAM",
+       "type": "system"
+      },
+      {
+       "id": "Label_1",
+       "name": "Receipts",
+       "type": "user"
+      },
+      {
+       "id": "Label_2",
+       "name": "Work",
+       "type": "user"
+      }
+     ]
+    },
+    "names": [
+     "SPAM"
+    ]
+   },
+   "refuses": "label_system"
+  },
+  {
+   "name": "labelIds refuses the system label trash",
+   "source": "Gmail API, users.labels.list",
+   "transform": "collections.labelIds@1",
+   "input": {
+    "list": {
+     "labels": [
+      {
+       "id": "INBOX",
+       "name": "INBOX",
+       "type": "system"
+      },
+      {
+       "id": "SENT",
+       "name": "SENT",
+       "type": "system"
+      },
+      {
+       "id": "DRAFT",
+       "name": "DRAFT",
+       "type": "system"
+      },
+      {
+       "id": "TRASH",
+       "name": "TRASH",
+       "type": "system"
+      },
+      {
+       "id": "SPAM",
+       "name": "SPAM",
+       "type": "system"
+      },
+      {
+       "id": "Label_1",
+       "name": "Receipts",
+       "type": "user"
+      },
+      {
+       "id": "Label_2",
+       "name": "Work",
+       "type": "user"
+      }
+     ]
+    },
+    "names": [
+     "trash"
+    ]
+   },
+   "refuses": "label_system"
+  },
+  {
+   "name": "labelIds refuses the system label Spam",
+   "source": "Gmail API, users.labels.list",
+   "transform": "collections.labelIds@1",
+   "input": {
+    "list": {
+     "labels": [
+      {
+       "id": "INBOX",
+       "name": "INBOX",
+       "type": "system"
+      },
+      {
+       "id": "SENT",
+       "name": "SENT",
+       "type": "system"
+      },
+      {
+       "id": "DRAFT",
+       "name": "DRAFT",
+       "type": "system"
+      },
+      {
+       "id": "TRASH",
+       "name": "TRASH",
+       "type": "system"
+      },
+      {
+       "id": "SPAM",
+       "name": "SPAM",
+       "type": "system"
+      },
+      {
+       "id": "Label_1",
+       "name": "Receipts",
+       "type": "user"
+      },
+      {
+       "id": "Label_2",
+       "name": "Work",
+       "type": "user"
+      }
+     ]
+    },
+    "names": [
+     "Spam"
+    ]
+   },
+   "refuses": "label_system"
+  },
+  {
+   "name": "labelIds refuses an unknown name and never creates it",
+   "source": "Gmail API, users.labels.list",
+   "transform": "collections.labelIds@1",
+   "input": {
+    "list": {
+     "labels": [
+      {
+       "id": "INBOX",
+       "name": "INBOX",
+       "type": "system"
+      },
+      {
+       "id": "SENT",
+       "name": "SENT",
+       "type": "system"
+      },
+      {
+       "id": "DRAFT",
+       "name": "DRAFT",
+       "type": "system"
+      },
+      {
+       "id": "TRASH",
+       "name": "TRASH",
+       "type": "system"
+      },
+      {
+       "id": "SPAM",
+       "name": "SPAM",
+       "type": "system"
+      },
+      {
+       "id": "Label_1",
+       "name": "Receipts",
+       "type": "user"
+      },
+      {
+       "id": "Label_2",
+       "name": "Work",
+       "type": "user"
+      }
+     ]
+    },
+    "names": [
+     "Travel"
+    ]
+   },
+   "refuses": "label_unknown"
+  },
+  {
+   "name": "labelIds with no names gives empty lists (open point Minor 11)",
+   "source": "Gmail API, users.messages.modify",
+   "transform": "collections.labelIds@1",
+   "input": {
+    "list": {
+     "labels": [
+      {
+       "id": "INBOX",
+       "name": "INBOX",
+       "type": "system"
+      },
+      {
+       "id": "SENT",
+       "name": "SENT",
+       "type": "system"
+      },
+      {
+       "id": "DRAFT",
+       "name": "DRAFT",
+       "type": "system"
+      },
+      {
+       "id": "TRASH",
+       "name": "TRASH",
+       "type": "system"
+      },
+      {
+       "id": "SPAM",
+       "name": "SPAM",
+       "type": "system"
+      },
+      {
+       "id": "Label_1",
+       "name": "Receipts",
+       "type": "user"
+      },
+      {
+       "id": "Label_2",
+       "name": "Work",
+       "type": "user"
+      }
+     ]
+    },
+    "names": []
+   },
+   "output": {
+    "labels": [],
+    "ids": []
+   }
+  },
+  {
+   "name": "labelIds refuses a name that two labels answer to, never guessing",
+   "source": "Fabric adversarial",
+   "transform": "collections.labelIds@1",
+   "input": {
+    "list": {
+     "labels": [
+      {
+       "id": "Label_2",
+       "name": "Work"
+      },
+      {
+       "id": "Label_9",
+       "name": "label_2"
+      }
+     ]
+    },
+    "names": [
+     "Label_2"
+    ]
+   },
+   "refuses": "match_many"
+  },
+  {
+   "name": "diff lists additions and removals in a stable order",
+   "transform": "collections.diff@1",
+   "input": {
+    "before": [
+     "a",
+     "b",
+     "c"
+    ],
+    "after": [
+     "b",
+     "c",
+     "d",
+     "e"
+    ]
+   },
+   "output": {
+    "add": [
+     "d",
+     "e"
+    ],
+    "remove": [
+     "a"
+    ]
+   }
+  },
+  {
+   "name": "diff of equal lists is empty",
+   "transform": "collections.diff@1",
+   "input": {
+    "before": [
+     "a"
+    ],
+    "after": [
+     "a"
+    ]
+   },
+   "output": {
+    "add": [],
+    "remove": []
+   }
+  },
+  {
+   "name": "diff lists each value once",
+   "source": "Fabric adversarial",
+   "transform": "collections.diff@1",
+   "input": {
+    "before": [
+     "a",
+     "a",
+     "b"
+    ],
+    "after": [
+     "b",
+     "c",
+     "c"
+    ]
+   },
+   "output": {
+    "add": [
+     "c"
+    ],
+    "remove": [
+     "a"
+    ]
+   }
+  },
+  {
+   "name": "oneOf passes default for Move event",
+   "source": "Google Calendar API, events.move: only default events move",
+   "transform": "collections.oneOf@1",
+   "input": {
+    "value": "default",
+    "set": [
+     "default"
+    ],
+    "fold": "none"
+   },
+   "output": {
+    "value": "default"
+   }
+  },
+  {
+   "name": "oneOf refuses focusTime for Move event",
+   "source": "Google Calendar API, events.move",
+   "transform": "collections.oneOf@1",
+   "input": {
+    "value": "focusTime",
+    "set": [
+     "default"
+    ],
+    "fold": "none"
+   },
+   "refuses": "not_one_of"
+  },
+  {
+   "name": "oneOf with fold none keeps case",
+   "transform": "collections.oneOf@1",
+   "input": {
+    "value": "DEFAULT",
+    "set": [
+     "default"
+    ],
+    "fold": "none"
+   },
+   "refuses": "not_one_of"
+  },
+  {
+   "name": "oneOf with fold ascii folds A to Z",
+   "transform": "collections.oneOf@1",
+   "input": {
+    "value": "DEFAULT",
+    "set": [
+     "default"
+    ],
+    "fold": "ascii"
+   },
+   "output": {
+    "value": "DEFAULT"
+   }
+  },
+  {
+   "name": "oneOf with fold ascii folds A to Z only",
+   "source": "Fabric adversarial",
+   "transform": "collections.oneOf@1",
+   "input": {
+    "value": "É",
+    "set": [
+     "é"
+    ],
+    "fold": "ascii"
+   },
+   "refuses": "not_one_of"
+  },
+  {
+   "name": "oneOf refuses a database row for Move page",
+   "source": "Notion API, move a page: regular pages only",
+   "transform": "collections.oneOf@1",
+   "input": {
+    "value": "data_source_id",
+    "set": [
+     "page_id",
+     "workspace"
+    ],
+    "fold": "none"
+   },
+   "refuses": "not_one_of"
+  },
+  {
+   "name": "missing finds a name present in another ASCII case",
+   "source": "Gmail API, users.labels.list",
+   "transform": "collections.missing@1",
+   "input": {
+    "list": {
+     "labels": [
+      {
+       "id": "Label_2",
+       "name": "Work"
+      }
+     ]
+    },
+    "items": "/labels",
+    "field": "/name",
+    "name": "work",
+    "fold": "ascii"
+   },
+   "output": {
+    "missing": []
+   }
+  },
+  {
+   "name": "missing lists a new name",
+   "source": "Gmail API, users.labels.list",
+   "transform": "collections.missing@1",
+   "input": {
+    "list": {
+     "labels": [
+      {
+       "id": "Label_2",
+       "name": "Work"
+      }
+     ]
+    },
+    "items": "/labels",
+    "field": "/name",
+    "name": "Travel",
+    "fold": "ascii"
+   },
+   "output": {
+    "missing": [
+     "Travel"
+    ]
+   }
+  },
+  {
+   "name": "missing with fold none keeps case",
+   "transform": "collections.missing@1",
+   "input": {
+    "list": {
+     "labels": [
+      {
+       "id": "Label_2",
+       "name": "Work"
+      }
+     ]
+    },
+    "items": "/labels",
+    "field": "/name",
+    "name": "work",
+    "fold": "none"
+   },
+   "output": {
+    "missing": [
+     "work"
+    ]
+   }
+  },
+  {
+   "name": "missing refuses 1,001 items",
+   "source": "Fabric adversarial",
+   "transform": "collections.missing@1",
+   "input": {
+    "list": {
+     "labels": {
+      "$list": [
+       1001,
+       {
+        "id": "Label_{n}",
+        "name": "Name {n}"
+       }
+      ]
+     }
+    },
+    "items": "/labels",
+    "field": "/name",
+    "name": "Travel",
+    "fold": "ascii"
+   },
+   "refuses": "too_many_items"
+  },
+  {
+   "name": "stringValues: pairs become one object of strings",
+   "source": "GitHub REST API, create a workflow dispatch event (inputs)",
+   "transform": "collections.stringValues@1",
+   "input": {
+    "values": [
+     {
+      "name": "env",
+      "value": "prod"
+     },
+     {
+      "name": "dry_run",
+      "value": "true"
+     }
+    ]
+   },
+   "output": {
+    "env": "prod",
+    "dry_run": "true"
+   }
+  },
+  {
+   "name": "stringValues: no pairs give an empty object",
+   "source": "GitHub REST API, create a workflow dispatch event (inputs)",
+   "transform": "collections.stringValues@1",
+   "input": {
+    "values": []
+   },
+   "output": {}
+  },
+  {
+   "name": "stringValues: a name given twice in another case refuses",
+   "source": "Fabric adversarial",
+   "transform": "collections.stringValues@1",
+   "input": {
+    "values": [
+     {
+      "name": "Env",
+      "value": "1"
+     },
+     {
+      "name": "env",
+      "value": "2"
+     }
+    ]
+   },
+   "refuses": "name_repeated"
+  },
+  {
+   "name": "stringValues: a name starting with a digit refuses",
+   "source": "GitHub Actions, workflow syntax (inputs.<input_id>)",
+   "transform": "collections.stringValues@1",
+   "input": {
+    "values": [
+     {
+      "name": "1abc",
+      "value": "1"
+     }
+    ]
+   },
+   "refuses": "name_invalid"
+  }
+ ]
+}

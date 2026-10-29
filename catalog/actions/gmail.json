@@ -1,0 +1,434 @@
+{
+ "schemaVersion": 1,
+ "appId": "gmail",
+ "specVersion": "fabric/0.2",
+ "reviewStatus": "reviewed",
+ "pinnedParameters": {"userId":"me"},
+ "actions": [
+  {
+   "id": "gmail.action.find-emails.v1.3b7968758003c06b3cf44648",
+   "key": "find-emails",
+   "version": 1,
+   "name": "Find emails",
+   "description": "Searches your mail, newest first, with plain fields Fabric turns into one Gmail search (each value is matched as written, never read as a search operator). It returns up to maxResults messages a page, each with its sender, subject, date, snippet and labels, and nextPageToken for the next page. Mail in Trash and Spam is left out.",
+   "effect": "read",
+   "row": "gmail.messages.read",
+   "hints": {"readOnly":true,"destructive":false,"idempotent":true,"openWorld":true},
+   "inputSchema": {"type":"object","properties":{"from":{"type":"string","minLength":1,"maxLength":1000,"description":"Words or an address the From line holds."},"to":{"type":"string","minLength":1,"maxLength":1000,"description":"Words or an address the To line holds."},"subject":{"type":"string","minLength":1,"maxLength":1000,"description":"Words the subject holds."},"label":{"type":"string","minLength":1,"maxLength":1000,"description":"A label name or id the messages carry."},"words":{"type":"string","minLength":1,"maxLength":1000,"description":"A phrase anywhere in the message."},"hasAttachment":{"type":"boolean","description":"true for messages with an attachment, false for those without."},"after":{"type":"string","format":"date-time","maxLength":64,"description":"Only messages from this instant on, RFC 3339 with its offset."},"before":{"type":"string","format":"date-time","maxLength":64,"description":"Only messages before this instant, RFC 3339 with its offset."},"maxResults":{"type":"integer","minimum":1,"maximum":25,"description":"How many messages a page holds, 1 to 25."},"pageToken":{"type":"string","minLength":1,"maxLength":1024,"description":"nextPageToken from the page before, for the next page."}},"required":["maxResults"],"additionalProperties":false},
+   "outputSchema": {"type":"object","properties":{"messages":{"type":"array","maxItems":25,"items":{"type":"object","properties":{"id":{"type":"string","maxLength":1024},"threadId":{"type":"string","maxLength":1024},"from":{"type":"string","maxLength":1024},"subject":{"type":"string","maxLength":10000},"date":{"type":"string","maxLength":1024},"snippet":{"type":"string","maxLength":1024},"labelIds":{"type":"array","maxItems":100,"items":{"type":"string","maxLength":1024}}},"required":[],"additionalProperties":false}},"nextPageToken":{"type":"string","maxLength":1024}},"required":[],"additionalProperties":false},
+   "guards": [],
+   "prepare": [
+    {"id":"list","method":"GET","path":"/gmail/v1/users/{userId}/messages","query":{"q":{"pick":{"transform":"text.gmailQuery@1","args":{"from":{"input":"/from"},"to":{"input":"/to"},"subject":{"input":"/subject"},"label":{"input":"/label"},"hasAttachment":{"input":"/hasAttachment"},"words":{"input":"/words"},"after":{"when":{"present":{"input":"/after"}},"then":{"pick":{"transform":"time.rfc3339ToEpochSeconds@1","args":{"time":{"input":"/after"}}},"pointer":"/seconds"}},"before":{"when":{"present":{"input":"/before"}},"then":{"pick":{"transform":"time.rfc3339ToEpochSeconds@1","args":{"time":{"input":"/before"}}},"pointer":"/seconds"}}}},"pointer":"/q"},"maxResults":{"input":"/maxResults"},"pageToken":{"input":"/pageToken"}},"maxResponseBytes":65536,"expect":{"status":[200],"require":[]}}
+   ],
+   "perform": [
+    {"id":"meta","method":"GET","path":"/gmail/v1/users/{userId}/messages/{id}","params":{"id":{"item":"/id"}},"query":{"format":{"const":"metadata"},"metadataHeaders":{"const":["From","To","Subject","Date"]}},"when":{"present":{"step":"list","pointer":"/messages"}},"forEach":{"over":{"step":"list","pointer":"/messages"},"max":25},"maxResponseBytes":65536,"expect":{"status":[200],"require":[]}}
+   ],
+   "output": {"messages":{"when":{"present":{"step":"meta","pointer":""}},"then":{"each":{"step":"meta","pointer":""},"as":"m","max":25,"do":{"object":{"id":{"pick":{"var":"m"},"pointer":"/id"},"threadId":{"pick":{"var":"m"},"pointer":"/threadId"},"from":{"pick":{"transform":"rfc5322.decodeGmailPayload@1","args":{"message":{"var":"m"}}},"pointer":"/summary/from/0/address"},"subject":{"pick":{"transform":"rfc5322.decodeGmailPayload@1","args":{"message":{"var":"m"}}},"pointer":"/summary/subject"},"date":{"pick":{"transform":"rfc5322.decodeGmailPayload@1","args":{"message":{"var":"m"}}},"pointer":"/summary/date"},"snippet":{"pick":{"var":"m"},"pointer":"/snippet"},"labelIds":{"when":{"present":{"pick":{"var":"m"},"pointer":"/labelIds"}},"then":{"pick":{"transform":"collections.diff@1","args":{"before":{"const":[]},"after":{"pick":{"var":"m"},"pointer":"/labelIds"}}},"pointer":"/add"}}}}}},"nextPageToken":{"step":"list","pointer":"/nextPageToken"}},
+   "preview": [
+    {"label":"Search","expr":{"pick":{"transform":"text.gmailQuery@1","args":{"from":{"input":"/from"},"to":{"input":"/to"},"subject":{"input":"/subject"},"label":{"input":"/label"},"hasAttachment":{"input":"/hasAttachment"},"words":{"input":"/words"},"after":{"when":{"present":{"input":"/after"}},"then":{"pick":{"transform":"time.rfc3339ToEpochSeconds@1","args":{"time":{"input":"/after"}}},"pointer":"/seconds"}},"before":{"when":{"present":{"input":"/before"}},"then":{"pick":{"transform":"time.rfc3339ToEpochSeconds@1","args":{"time":{"input":"/before"}}},"pointer":"/seconds"}}}},"pointer":"/q"}},
+    {"label":"Messages","expr":{"input":"/maxResults"}}
+   ],
+   "definitive": [400,403],
+   "certified": {"evidence":"docs/live-evidence/gmail/actions.json","definitionHash":"c8bf5a23742108bdc85cb965ab0d7c97413238e32d5b2d1a6bf26d15e6e4677b"}
+  },
+  {
+   "id": "gmail.action.read-email.v1.9c2b3b302531287513ee5345",
+   "key": "read-email",
+   "version": 1,
+   "name": "Read email",
+   "description": "Reads one message: its sender, recipients, subject, date and labels, its plain text (or, when it has none, its HTML as text), each cut at 100,000 characters, and its attachments by name, type and size. Attachments are never fetched.",
+   "effect": "read",
+   "row": "gmail.messages.read",
+   "hints": {"readOnly":true,"destructive":false,"idempotent":true,"openWorld":true},
+   "inputSchema": {"type":"object","properties":{"messageId":{"type":"string","minLength":1,"maxLength":256,"description":"The message id, as Find emails or Read email gives it."}},"required":["messageId"],"additionalProperties":false},
+   "outputSchema": {"type":"object","properties":{"id":{"type":"string","maxLength":1024},"threadId":{"type":"string","maxLength":1024},"labelIds":{"type":"array","maxItems":100,"items":{"type":"string","maxLength":1024}},"from":{"type":"array","maxItems":100,"items":{"type":"string","maxLength":1024}},"to":{"type":"array","maxItems":100,"items":{"type":"string","maxLength":1024}},"cc":{"type":"array","maxItems":100,"items":{"type":"string","maxLength":1024}},"replyTo":{"type":"array","maxItems":100,"items":{"type":"string","maxLength":1024}},"subject":{"type":"string","maxLength":10000},"date":{"type":"string","maxLength":1024},"text":{"type":"string","maxLength":100000},"htmlText":{"type":"string","maxLength":100000},"truncated":{"type":"boolean"},"attachments":{"type":"array","maxItems":100,"items":{"type":"object","properties":{"filename":{"type":"string","maxLength":1024},"mimeType":{"type":"string","maxLength":1024},"size":{"type":"integer","minimum":0}},"required":[],"additionalProperties":false}}},"required":["id"],"additionalProperties":false},
+   "guards": [],
+   "prepare": [],
+   "perform": [
+    {"id":"message","method":"GET","path":"/gmail/v1/users/{userId}/messages/{id}","params":{"id":{"input":"/messageId"}},"query":{"format":{"const":"full"}},"expect":{"status":[200],"require":[]}}
+   ],
+   "output": {"id":{"step":"message","pointer":"/id"},"threadId":{"step":"message","pointer":"/threadId"},"labelIds":{"when":{"present":{"step":"message","pointer":"/labelIds"}},"then":{"pick":{"transform":"collections.diff@1","args":{"before":{"const":[]},"after":{"step":"message","pointer":"/labelIds"}}},"pointer":"/add"}},"from":{"when":{"present":{"pick":{"transform":"rfc5322.decodeGmailPayload@1","args":{"message":{"step":"message","pointer":""}}},"pointer":"/summary/from"}},"then":{"each":{"pick":{"transform":"rfc5322.decodeGmailPayload@1","args":{"message":{"step":"message","pointer":""}}},"pointer":"/summary/from"},"as":"box","max":100,"do":{"pick":{"var":"box"},"pointer":"/address"}}},"to":{"when":{"present":{"pick":{"transform":"rfc5322.decodeGmailPayload@1","args":{"message":{"step":"message","pointer":""}}},"pointer":"/summary/to"}},"then":{"each":{"pick":{"transform":"rfc5322.decodeGmailPayload@1","args":{"message":{"step":"message","pointer":""}}},"pointer":"/summary/to"},"as":"box","max":100,"do":{"pick":{"var":"box"},"pointer":"/address"}}},"cc":{"when":{"present":{"pick":{"transform":"rfc5322.decodeGmailPayload@1","args":{"message":{"step":"message","pointer":""}}},"pointer":"/summary/cc"}},"then":{"each":{"pick":{"transform":"rfc5322.decodeGmailPayload@1","args":{"message":{"step":"message","pointer":""}}},"pointer":"/summary/cc"},"as":"box","max":100,"do":{"pick":{"var":"box"},"pointer":"/address"}}},"replyTo":{"when":{"present":{"pick":{"transform":"rfc5322.decodeGmailPayload@1","args":{"message":{"step":"message","pointer":""}}},"pointer":"/summary/replyTo"}},"then":{"each":{"pick":{"transform":"rfc5322.decodeGmailPayload@1","args":{"message":{"step":"message","pointer":""}}},"pointer":"/summary/replyTo"},"as":"box","max":100,"do":{"pick":{"var":"box"},"pointer":"/address"}}},"subject":{"pick":{"transform":"rfc5322.decodeGmailPayload@1","args":{"message":{"step":"message","pointer":""}}},"pointer":"/summary/subject"},"date":{"pick":{"transform":"rfc5322.decodeGmailPayload@1","args":{"message":{"step":"message","pointer":""}}},"pointer":"/summary/date"},"text":{"when":{"present":{"pick":{"transform":"rfc5322.decodeGmailPayload@1","args":{"message":{"step":"message","pointer":""}}},"pointer":"/text"}},"then":{"pick":{"transform":"text.truncate@1","args":{"text":{"pick":{"transform":"rfc5322.decodeGmailPayload@1","args":{"message":{"step":"message","pointer":""}}},"pointer":"/text"},"max":{"const":100000}}},"pointer":"/text"}},"htmlText":{"when":{"equals":[{"pick":{"transform":"text.joinList@1","args":{"items":{"array":[{"when":{"present":{"pick":{"transform":"rfc5322.decodeGmailPayload@1","args":{"message":{"step":"message","pointer":""}}},"pointer":"/text"}},"then":{"const":"text"}},{"when":{"absent":{"pick":{"transform":"rfc5322.decodeGmailPayload@1","args":{"message":{"step":"message","pointer":""}}},"pointer":"/html"}},"then":{"const":"no html"}}]}}},"pointer":"/count"},{"const":0}]},"then":{"pick":{"transform":"text.truncate@1","args":{"text":{"pick":{"transform":"html.toText@1","args":{"html":{"pick":{"transform":"rfc5322.decodeGmailPayload@1","args":{"message":{"step":"message","pointer":""}}},"pointer":"/html"}}},"pointer":"/text"},"max":{"const":100000}}},"pointer":"/text"}},"truncated":{"when":{"present":{"pick":{"transform":"rfc5322.decodeGmailPayload@1","args":{"message":{"step":"message","pointer":""}}},"pointer":"/text"}},"then":{"pick":{"transform":"text.truncate@1","args":{"text":{"pick":{"transform":"rfc5322.decodeGmailPayload@1","args":{"message":{"step":"message","pointer":""}}},"pointer":"/text"},"max":{"const":100000}}},"pointer":"/truncated"}},"attachments":{"each":{"pick":{"transform":"rfc5322.decodeGmailPayload@1","args":{"message":{"step":"message","pointer":""}}},"pointer":"/attachments"},"as":"file","max":100,"do":{"object":{"filename":{"pick":{"var":"file"},"pointer":"/filename"},"mimeType":{"pick":{"var":"file"},"pointer":"/mimeType"},"size":{"pick":{"var":"file"},"pointer":"/size"}}}}},
+   "preview": [
+    {"label":"Message","expr":{"input":"/messageId"}}
+   ],
+   "definitive": [400,403,404],
+   "certified": {"evidence":"docs/live-evidence/gmail/actions.json","definitionHash":"58c042a950d36064d3c37a9b8863b332534ef777f6194f20279dbb37c2285d85"}
+  },
+  {
+   "id": "gmail.action.read-conversation.v1.9e1ef3473eaf76c0b1e77ef5",
+   "key": "read-conversation",
+   "version": 1,
+   "name": "Read conversation",
+   "description": "Reads one conversation, oldest message first: each message's sender, subject, date and plain text, cut at 2,000 characters. A conversation of more than 50 messages is refused; Read email reads any one of them, and its HTML when it has no plain text.",
+   "effect": "read",
+   "row": "gmail.messages.read",
+   "hints": {"readOnly":true,"destructive":false,"idempotent":true,"openWorld":true},
+   "inputSchema": {"type":"object","properties":{"threadId":{"type":"string","minLength":1,"maxLength":256,"description":"The conversation id (threadId), as Find emails or Read email gives it."}},"required":["threadId"],"additionalProperties":false},
+   "outputSchema": {"type":"object","properties":{"id":{"type":"string","maxLength":1024},"messages":{"type":"array","maxItems":50,"items":{"type":"object","properties":{"id":{"type":"string","maxLength":1024},"from":{"type":"string","maxLength":1024},"subject":{"type":"string","maxLength":10000},"date":{"type":"string","maxLength":1024},"text":{"type":"string","maxLength":2000},"truncated":{"type":"boolean"}},"required":[],"additionalProperties":false}}},"required":["id"],"additionalProperties":false},
+   "guards": [],
+   "prepare": [],
+   "perform": [
+    {"id":"thread","method":"GET","path":"/gmail/v1/users/{userId}/threads/{id}","params":{"id":{"input":"/threadId"}},"query":{"format":{"const":"full"}},"expect":{"status":[200],"require":[]}}
+   ],
+   "output": {"id":{"step":"thread","pointer":"/id"},"messages":{"each":{"step":"thread","pointer":"/messages"},"as":"m","max":50,"do":{"object":{"id":{"pick":{"var":"m"},"pointer":"/id"},"from":{"pick":{"transform":"rfc5322.decodeGmailPayload@1","args":{"message":{"var":"m"}}},"pointer":"/summary/from/0/address"},"subject":{"pick":{"transform":"rfc5322.decodeGmailPayload@1","args":{"message":{"var":"m"}}},"pointer":"/summary/subject"},"date":{"pick":{"transform":"rfc5322.decodeGmailPayload@1","args":{"message":{"var":"m"}}},"pointer":"/summary/date"},"text":{"when":{"present":{"pick":{"transform":"rfc5322.decodeGmailPayload@1","args":{"message":{"var":"m"}}},"pointer":"/text"}},"then":{"pick":{"transform":"text.truncate@1","args":{"text":{"pick":{"transform":"rfc5322.decodeGmailPayload@1","args":{"message":{"var":"m"}}},"pointer":"/text"},"max":{"const":2000}}},"pointer":"/text"}},"truncated":{"when":{"present":{"pick":{"transform":"rfc5322.decodeGmailPayload@1","args":{"message":{"var":"m"}}},"pointer":"/text"}},"then":{"pick":{"transform":"text.truncate@1","args":{"text":{"pick":{"transform":"rfc5322.decodeGmailPayload@1","args":{"message":{"var":"m"}}},"pointer":"/text"},"max":{"const":2000}}},"pointer":"/truncated"}}}}}},
+   "preview": [
+    {"label":"Conversation","expr":{"input":"/threadId"}}
+   ],
+   "definitive": [400,403,404],
+   "certified": {"evidence":"docs/live-evidence/gmail/actions.json","definitionHash":"3c90f38c3643bcc1b2cb78d59266405909318b157456b32630c3a21d6230e655"}
+  },
+  {
+   "id": "gmail.action.send-email.v1.5639ebadb0d9e2f1ce1d9ad2",
+   "key": "send-email",
+   "version": 1,
+   "name": "Send email",
+   "description": "Sends a new plain-text email from your own address. To, Cc and Bcc take plain addresses, at most 100 each, and nobody else receives it: it never sets a reply-to address, a display name or an attachment. The card shows every recipient and the whole text.",
+   "effect": "write",
+   "row": "gmail.messages.send",
+   "hints": {"readOnly":false,"destructive":false,"idempotent":false,"openWorld":true},
+   "inputSchema": {"type":"object","properties":{"to":{"type":"array","maxItems":100,"items":{"type":"string","format":"email","minLength":3,"maxLength":254},"description":"The addresses the email goes to: plain addresses, at most 100.","minItems":1},"cc":{"type":"array","maxItems":100,"items":{"type":"string","format":"email","minLength":3,"maxLength":254},"description":"The addresses copied: plain addresses, at most 100."},"bcc":{"type":"array","maxItems":100,"items":{"type":"string","format":"email","minLength":3,"maxLength":254},"description":"The addresses copied without the others seeing them: plain addresses, at most 100."},"subject":{"type":"string","minLength":1,"maxLength":500,"description":"The subject line."},"text":{"type":"string","minLength":1,"maxLength":10000,"description":"The plain text of the email, at most 10,000 characters."}},"required":["to","subject","text"],"additionalProperties":false},
+   "outputSchema": {"type":"object","properties":{"id":{"type":"string","maxLength":1024},"threadId":{"type":"string","maxLength":1024}},"required":["id"],"additionalProperties":false},
+   "guards": [],
+   "prepare": [],
+   "perform": [
+    {"id":"send","method":"POST","path":"/gmail/v1/users/{userId}/messages/send","body":{"object":{"raw":{"pick":{"transform":"rfc5322.build@1","args":{"from":{"object":{"address":{"account":"email"}}},"to":{"each":{"input":"/to"},"as":"address","max":100,"do":{"object":{"address":{"var":"address"}}}},"cc":{"when":{"present":{"input":"/cc"}},"then":{"each":{"input":"/cc"},"as":"address","max":100,"do":{"object":{"address":{"var":"address"}}}}},"bcc":{"when":{"present":{"input":"/bcc"}},"then":{"each":{"input":"/bcc"},"as":"address","max":100,"do":{"object":{"address":{"var":"address"}}}}},"subject":{"input":"/subject"},"text":{"input":"/text"},"now":{"now":{}}}},"pointer":"/raw"}}},"expect":{"status":[200],"require":[]}}
+   ],
+   "verify": {
+    "requests": [{"id":"check","method":"GET","path":"/gmail/v1/users/{userId}/messages/{id}","params":{"id":{"step":"send","pointer":"/id"}},"query":{"format":{"const":"minimal"}},"maxResponseBytes":65536,"expect":{"status":[200],"require":[]}}],
+    "identity": [{"kind":"readback","step":"check","pointer":"/id","equals":{"step":"send","pointer":"/id"}}],
+    "assert": [{"step":"check","contains":{"pointer":"/labelIds","value":{"const":"SENT"}}}]
+   },
+   "output": {"id":{"step":"send","pointer":"/id"},"threadId":{"step":"send","pointer":"/threadId"}},
+   "preview": [
+    {"label":"From","expr":{"account":"email"}},
+    {"label":"To","expr":{"pick":{"transform":"text.joinList@1","args":{"items":{"input":"/to"}}},"pointer":"/text"}},
+    {"label":"Cc","expr":{"pick":{"transform":"text.joinList@1","args":{"items":{"input":"/cc"},"mailboxes":{"when":{"absent":{"input":"/cc"}},"then":{"const":[]}}}},"pointer":"/text"}},
+    {"label":"Bcc","expr":{"pick":{"transform":"text.joinList@1","args":{"items":{"input":"/bcc"},"mailboxes":{"when":{"absent":{"input":"/bcc"}},"then":{"const":[]}}}},"pointer":"/text"}},
+    {"label":"Subject","expr":{"input":"/subject"}},
+    {"label":"Text","expr":{"input":"/text"},"truncate":10000}
+   ],
+   "definitive": [400,403],
+   "certified": {"evidence":"docs/live-evidence/gmail/actions.json","definitionHash":"6b425aede14d6a8ff6fdbda54d822d3513d375027184cec8336aea9938a2cbcb"}
+  },
+  {
+   "id": "gmail.action.reply.v1.1032d845b2b376926425b801",
+   "key": "reply",
+   "version": 1,
+   "name": "Reply",
+   "description": "Replies in plain text to one message, in its conversation. It goes to the message's Reply-To, or its sender when there is none; with replyAll it also goes to everyone the message was sent and copied to, never back to you. The card shows every recipient.",
+   "effect": "write",
+   "row": "gmail.messages.send",
+   "hints": {"readOnly":false,"destructive":false,"idempotent":false,"openWorld":true},
+   "inputSchema": {"type":"object","properties":{"messageId":{"type":"string","minLength":1,"maxLength":256,"description":"The message to reply to, as Find emails or Read email gives it."},"replyAll":{"type":"boolean","description":"true to reply to everyone the message was sent and copied to as well."},"text":{"type":"string","minLength":1,"maxLength":10000,"description":"The plain text of the email, at most 10,000 characters."}},"required":["messageId","replyAll","text"],"additionalProperties":false},
+   "outputSchema": {"type":"object","properties":{"id":{"type":"string","maxLength":1024},"threadId":{"type":"string","maxLength":1024}},"required":["id"],"additionalProperties":false},
+   "guards": [],
+   "prepare": [
+    {"id":"parent","method":"GET","path":"/gmail/v1/users/{userId}/messages/{id}","params":{"id":{"input":"/messageId"}},"query":{"format":{"const":"metadata"},"metadataHeaders":{"const":["From","To","Cc","Reply-To","Subject","Message-ID","References","In-Reply-To"]}},"maxResponseBytes":1048576,"expect":{"status":[200],"require":[]}}
+   ],
+   "perform": [
+    {"id":"send","method":"POST","path":"/gmail/v1/users/{userId}/messages/send","body":{"object":{"raw":{"pick":{"transform":"rfc5322.build@1","args":{"from":{"object":{"address":{"account":"email"}}},"to":{"pick":{"transform":"rfc5322.replyHeaders@1","args":{"parent":{"step":"parent","pointer":""},"owner":{"object":{"address":{"account":"email"}}},"replyAll":{"input":"/replyAll"}}},"pointer":"/to"},"cc":{"pick":{"transform":"rfc5322.replyHeaders@1","args":{"parent":{"step":"parent","pointer":""},"owner":{"object":{"address":{"account":"email"}}},"replyAll":{"input":"/replyAll"}}},"pointer":"/cc"},"subject":{"pick":{"transform":"rfc5322.replyHeaders@1","args":{"parent":{"step":"parent","pointer":""},"owner":{"object":{"address":{"account":"email"}}},"replyAll":{"input":"/replyAll"}}},"pointer":"/subject"},"text":{"input":"/text"},"inReplyTo":{"pick":{"transform":"rfc5322.replyHeaders@1","args":{"parent":{"step":"parent","pointer":""},"owner":{"object":{"address":{"account":"email"}}},"replyAll":{"input":"/replyAll"}}},"pointer":"/inReplyTo"},"references":{"pick":{"transform":"rfc5322.replyHeaders@1","args":{"parent":{"step":"parent","pointer":""},"owner":{"object":{"address":{"account":"email"}}},"replyAll":{"input":"/replyAll"}}},"pointer":"/references"},"now":{"now":{}}}},"pointer":"/raw"},"threadId":{"step":"parent","pointer":"/threadId"}}},"expect":{"status":[200],"require":[]}}
+   ],
+   "verify": {
+    "requests": [{"id":"check","method":"GET","path":"/gmail/v1/users/{userId}/messages/{id}","params":{"id":{"step":"send","pointer":"/id"}},"query":{"format":{"const":"minimal"}},"maxResponseBytes":65536,"expect":{"status":[200],"require":[]}}],
+    "identity": [{"kind":"readback","step":"check","pointer":"/id","equals":{"step":"send","pointer":"/id"}}],
+    "assert": [{"step":"check","equals":{"pointer":"/threadId","value":{"step":"parent","pointer":"/threadId"}}},{"step":"check","contains":{"pointer":"/labelIds","value":{"const":"SENT"}}}]
+   },
+   "output": {"id":{"step":"send","pointer":"/id"},"threadId":{"step":"send","pointer":"/threadId"}},
+   "preview": [
+    {"label":"From","expr":{"account":"email"}},
+    {"label":"To","expr":{"pick":{"transform":"text.joinList@1","args":{"mailboxes":{"pick":{"transform":"rfc5322.replyHeaders@1","args":{"parent":{"step":"parent","pointer":""},"owner":{"object":{"address":{"account":"email"}}},"replyAll":{"input":"/replyAll"}}},"pointer":"/to"}}},"pointer":"/text"}},
+    {"label":"Cc","expr":{"pick":{"transform":"text.joinList@1","args":{"mailboxes":{"pick":{"transform":"rfc5322.replyHeaders@1","args":{"parent":{"step":"parent","pointer":""},"owner":{"object":{"address":{"account":"email"}}},"replyAll":{"input":"/replyAll"}}},"pointer":"/cc"}}},"pointer":"/text"}},
+    {"label":"Subject","expr":{"pick":{"transform":"rfc5322.replyHeaders@1","args":{"parent":{"step":"parent","pointer":""},"owner":{"object":{"address":{"account":"email"}}},"replyAll":{"input":"/replyAll"}}},"pointer":"/subject"}},
+    {"label":"In reply to","expr":{"pick":{"transform":"rfc5322.decodeGmailPayload@1","args":{"message":{"step":"parent","pointer":""}}},"pointer":"/summary/from/0/address"}},
+    {"label":"Text","expr":{"input":"/text"},"truncate":10000}
+   ],
+   "definitive": [400,403,404],
+   "certified": {"evidence":"docs/live-evidence/gmail/actions.json","definitionHash":"5df3f0d37f91a41bab3e8b2b199afc0fc119d74384390cf2b43e1e13703fceb6"}
+  },
+  {
+   "id": "gmail.action.create-draft.v1.b7db5b6fe00ca0419687d7a2",
+   "key": "create-draft",
+   "version": 1,
+   "name": "Create draft",
+   "description": "Saves a new plain-text draft from your own address, which Fabric records as made by it, so Edit draft can change it later without asking again. To, Cc and Bcc take plain addresses, at most 100 each. Nothing is sent.",
+   "effect": "write",
+   "row": "gmail.drafts.write",
+   "hints": {"readOnly":false,"destructive":false,"idempotent":false,"openWorld":true},
+   "inputSchema": {"type":"object","properties":{"to":{"type":"array","maxItems":100,"items":{"type":"string","format":"email","minLength":3,"maxLength":254},"description":"The addresses the email goes to: plain addresses, at most 100.","minItems":1},"cc":{"type":"array","maxItems":100,"items":{"type":"string","format":"email","minLength":3,"maxLength":254},"description":"The addresses copied: plain addresses, at most 100."},"bcc":{"type":"array","maxItems":100,"items":{"type":"string","format":"email","minLength":3,"maxLength":254},"description":"The addresses copied without the others seeing them: plain addresses, at most 100."},"subject":{"type":"string","minLength":1,"maxLength":500,"description":"The subject line."},"text":{"type":"string","minLength":1,"maxLength":10000,"description":"The plain text of the email, at most 10,000 characters."}},"required":["to","subject","text"],"additionalProperties":false},
+   "outputSchema": {"type":"object","properties":{"id":{"type":"string","maxLength":1024},"messageId":{"type":"string","maxLength":1024},"threadId":{"type":"string","maxLength":1024},"to":{"type":"array","maxItems":100,"items":{"type":"string","maxLength":1024}},"subject":{"type":"string","maxLength":10000}},"required":["id"],"additionalProperties":false},
+   "guards": [],
+   "prepare": [],
+   "perform": [
+    {"id":"create","method":"POST","path":"/gmail/v1/users/{userId}/drafts","body":{"object":{"message":{"object":{"raw":{"pick":{"transform":"rfc5322.build@1","args":{"from":{"object":{"address":{"account":"email"}}},"to":{"each":{"input":"/to"},"as":"address","max":100,"do":{"object":{"address":{"var":"address"}}}},"cc":{"when":{"present":{"input":"/cc"}},"then":{"each":{"input":"/cc"},"as":"address","max":100,"do":{"object":{"address":{"var":"address"}}}}},"bcc":{"when":{"present":{"input":"/bcc"}},"then":{"each":{"input":"/bcc"},"as":"address","max":100,"do":{"object":{"address":{"var":"address"}}}}},"subject":{"input":"/subject"},"text":{"input":"/text"},"now":{"now":{}}}},"pointer":"/raw"}}}}},"expect":{"status":[200],"require":[]}}
+   ],
+   "verify": {
+    "requests": [{"id":"check","method":"GET","path":"/gmail/v1/users/{userId}/drafts/{id}","params":{"id":{"step":"create","pointer":"/id"}},"query":{"format":{"const":"raw"}},"expect":{"status":[200],"require":[]}}],
+    "identity": [{"kind":"readback","step":"check","pointer":"/id","equals":{"step":"create","pointer":"/id"}}],
+    "assert": [{"step":"check","equals":{"pointer":"/message/id","value":{"step":"create","pointer":"/message/id"}}}]
+   },
+   "records": {"kind":"draft","pointer":"/id"},
+   "output": {"id":{"step":"create","pointer":"/id"},"messageId":{"step":"create","pointer":"/message/id"},"threadId":{"step":"create","pointer":"/message/threadId"},"to":{"when":{"present":{"step":"check","pointer":"/message/raw"}},"then":{"each":{"pick":{"transform":"rfc5322.decodeRaw@1","args":{"raw":{"step":"check","pointer":"/message/raw"}}},"pointer":"/summary/to"},"as":"box","max":100,"do":{"pick":{"var":"box"},"pointer":"/address"}}},"subject":{"when":{"present":{"step":"check","pointer":"/message/raw"}},"then":{"pick":{"transform":"rfc5322.decodeRaw@1","args":{"raw":{"step":"check","pointer":"/message/raw"}}},"pointer":"/summary/subject"}}},
+   "preview": [
+    {"label":"From","expr":{"account":"email"}},
+    {"label":"To","expr":{"pick":{"transform":"text.joinList@1","args":{"items":{"input":"/to"}}},"pointer":"/text"}},
+    {"label":"Cc","expr":{"pick":{"transform":"text.joinList@1","args":{"items":{"input":"/cc"},"mailboxes":{"when":{"absent":{"input":"/cc"}},"then":{"const":[]}}}},"pointer":"/text"}},
+    {"label":"Bcc","expr":{"pick":{"transform":"text.joinList@1","args":{"items":{"input":"/bcc"},"mailboxes":{"when":{"absent":{"input":"/bcc"}},"then":{"const":[]}}}},"pointer":"/text"}},
+    {"label":"Subject","expr":{"input":"/subject"}},
+    {"label":"Text","expr":{"input":"/text"},"truncate":10000}
+   ],
+   "definitive": [400,403],
+   "certified": {"evidence":"docs/live-evidence/gmail/actions.json","definitionHash":"d2732de29ad3ea2e2f8894168b386f7a1be9418ab7dc7792f076fb43bceb131a"}
+  },
+  {
+   "id": "gmail.action.edit-draft.v1.d668a500e6991607e0db8786",
+   "key": "edit-draft",
+   "version": 1,
+   "name": "Edit draft",
+   "description": "Replaces a draft's whole message with a new plain-text one from your own address: the card shows the draft's headers now beside the new message. It runs without asking only on a draft Fabric made; any other draft asks first. The new message starts its own conversation. Nothing is sent.",
+   "effect": "write",
+   "row": "gmail.drafts.write",
+   "hints": {"readOnly":false,"destructive":false,"idempotent":true,"openWorld":true},
+   "inputSchema": {"type":"object","properties":{"draftId":{"type":"string","minLength":1,"maxLength":256,"description":"The draft id, as Create draft gives it."},"to":{"type":"array","maxItems":100,"items":{"type":"string","format":"email","minLength":3,"maxLength":254},"description":"The addresses the email goes to: plain addresses, at most 100.","minItems":1},"cc":{"type":"array","maxItems":100,"items":{"type":"string","format":"email","minLength":3,"maxLength":254},"description":"The addresses copied: plain addresses, at most 100."},"bcc":{"type":"array","maxItems":100,"items":{"type":"string","format":"email","minLength":3,"maxLength":254},"description":"The addresses copied without the others seeing them: plain addresses, at most 100."},"subject":{"type":"string","minLength":1,"maxLength":500,"description":"The subject line."},"text":{"type":"string","minLength":1,"maxLength":10000,"description":"The plain text of the email, at most 10,000 characters."}},"required":["draftId","to","subject","text"],"additionalProperties":false},
+   "outputSchema": {"type":"object","properties":{"id":{"type":"string","maxLength":1024},"messageId":{"type":"string","maxLength":1024}},"required":["id"],"additionalProperties":false},
+   "guards": [],
+   "prepare": [
+    {"id":"draft","method":"GET","path":"/gmail/v1/users/{userId}/drafts/{id}","params":{"id":{"input":"/draftId"}},"query":{"format":{"const":"raw"}},"expect":{"status":[200],"require":[]}}
+   ],
+   "perform": [
+    {"id":"put","method":"PUT","path":"/gmail/v1/users/{userId}/drafts/{id}","params":{"id":{"input":"/draftId"}},"body":{"object":{"id":{"input":"/draftId"},"message":{"object":{"raw":{"pick":{"transform":"rfc5322.build@1","args":{"from":{"object":{"address":{"account":"email"}}},"to":{"each":{"input":"/to"},"as":"address","max":100,"do":{"object":{"address":{"var":"address"}}}},"cc":{"when":{"present":{"input":"/cc"}},"then":{"each":{"input":"/cc"},"as":"address","max":100,"do":{"object":{"address":{"var":"address"}}}}},"bcc":{"when":{"present":{"input":"/bcc"}},"then":{"each":{"input":"/bcc"},"as":"address","max":100,"do":{"object":{"address":{"var":"address"}}}}},"subject":{"input":"/subject"},"text":{"input":"/text"},"now":{"now":{}}}},"pointer":"/raw"}}}}},"expect":{"status":[200],"require":[]}}
+   ],
+   "verify": {
+    "requests": [{"id":"check","method":"GET","path":"/gmail/v1/users/{userId}/drafts/{id}","params":{"id":{"input":"/draftId"}},"query":{"format":{"const":"raw"}},"expect":{"status":[200],"require":[]}}],
+    "identity": [{"kind":"readback","step":"check","pointer":"/id","equals":{"input":"/draftId"}}],
+    "assert": [{"step":"check","equals":{"pointer":"/message/id","value":{"step":"put","pointer":"/message/id"}}}]
+   },
+   "askUnless": {"createdByFabric":{"kind":"draft","input":"draftId"}},
+   "output": {"id":{"step":"put","pointer":"/id"},"messageId":{"step":"put","pointer":"/message/id"}},
+   "preview": [
+    {"label":"Draft now","expr":{"pick":{"transform":"encoding.base64urlDecode@1","args":{"encoded":{"step":"draft","pointer":"/message/raw"}}},"pointer":"/text"},"truncate":10000},
+    {"label":"From","expr":{"account":"email"}},
+    {"label":"To","expr":{"pick":{"transform":"text.joinList@1","args":{"items":{"input":"/to"}}},"pointer":"/text"}},
+    {"label":"Cc","expr":{"pick":{"transform":"text.joinList@1","args":{"items":{"input":"/cc"},"mailboxes":{"when":{"absent":{"input":"/cc"}},"then":{"const":[]}}}},"pointer":"/text"}},
+    {"label":"Bcc","expr":{"pick":{"transform":"text.joinList@1","args":{"items":{"input":"/bcc"},"mailboxes":{"when":{"absent":{"input":"/bcc"}},"then":{"const":[]}}}},"pointer":"/text"}},
+    {"label":"Subject","expr":{"input":"/subject"}},
+    {"label":"Text","expr":{"input":"/text"},"truncate":10000}
+   ],
+   "definitive": [400,403,404],
+   "certified": {"evidence":"docs/live-evidence/gmail/actions.json","definitionHash":"fd26069131643d365eb34f0bb209effe297a84dbe7ca6b112b9565beda67856c"}
+  },
+  {
+   "id": "gmail.action.send-draft.v1.48eff5b85986e81aa6951082",
+   "key": "send-draft",
+   "version": 1,
+   "name": "Send draft",
+   "description": "Sends a draft exactly as Fabric read it for the card, which shows the whole message as it will be sent: every header (Bcc and Reply-To included), so every recipient, the subject, each part and the attachments by name, and the plain text decoded (cut at 10,000 characters there). A change made to the draft after the card was shown is not sent. A draft the card cannot show whole (over 50,000 characters) is refused, as is a draft with no plain text.",
+   "effect": "write",
+   "row": "gmail.messages.send",
+   "hints": {"readOnly":false,"destructive":false,"idempotent":false,"openWorld":true},
+   "inputSchema": {"type":"object","properties":{"draftId":{"type":"string","minLength":1,"maxLength":256,"description":"The draft id, as Create draft gives it."}},"required":["draftId"],"additionalProperties":false},
+   "outputSchema": {"type":"object","properties":{"id":{"type":"string","maxLength":1024},"threadId":{"type":"string","maxLength":1024}},"required":["id"],"additionalProperties":false},
+   "guards": [
+    {"transform":"collections.oneOf@1","args":{"value":{"concat":[{"pick":{"transform":"text.joinList@1","args":{"items":{"array":[{"when":{"present":{"pick":{"transform":"rfc5322.decodeRaw@1","args":{"raw":{"step":"draft","pointer":"/message/raw"}}},"pointer":"/text"}},"then":{"const":"text"}}]}}},"pointer":"/text"}],"max":100},"set":{"const":["text"]},"fold":{"const":"none"}},"refuse":"wrong_kind","after":"draft"},
+    {"transform":"collections.oneOf@1","args":{"value":{"concat":[{"pick":{"transform":"text.joinList@1","args":{"items":{"array":[{"when":{"absent":{"pick":{"transform":"text.truncate@1","args":{"text":{"pick":{"transform":"encoding.base64urlDecode@1","args":{"encoded":{"step":"draft","pointer":"/message/raw"}}},"pointer":"/text"},"max":{"const":50000}}},"pointer":"/truncated"}},"then":{"const":"whole"}}]}}},"pointer":"/text"}],"max":100},"set":{"const":["whole"]},"fold":{"const":"none"}},"refuse":"wrong_kind","after":"draft"}
+   ],
+   "prepare": [
+    {"id":"draft","method":"GET","path":"/gmail/v1/users/{userId}/drafts/{id}","params":{"id":{"input":"/draftId"}},"query":{"format":{"const":"raw"}},"expect":{"status":[200],"require":[]}}
+   ],
+   "perform": [
+    {"id":"send","method":"POST","path":"/gmail/v1/users/{userId}/drafts/send","body":{"object":{"id":{"input":"/draftId"},"message":{"object":{"raw":{"step":"draft","pointer":"/message/raw"}}}}},"bindContent":"resend","expect":{"status":[200],"require":[]}}
+   ],
+   "verify": {
+    "requests": [{"id":"check","method":"GET","path":"/gmail/v1/users/{userId}/messages/{id}","params":{"id":{"step":"send","pointer":"/id"}},"query":{"format":{"const":"minimal"}},"maxResponseBytes":65536,"expect":{"status":[200],"require":[]}},{"id":"gone","method":"GET","path":"/gmail/v1/users/{userId}/drafts/{id}","params":{"id":{"input":"/draftId"}},"query":{"format":{"const":"minimal"}},"maxResponseBytes":65536,"expect":{"status":[200,404],"require":[]}}],
+    "identity": [{"kind":"readback","step":"check","pointer":"/id","equals":{"step":"send","pointer":"/id"}}],
+    "assert": [{"step":"check","contains":{"pointer":"/labelIds","value":{"const":"SENT"}}},{"step":"gone","statusIn":[404]}]
+   },
+   "output": {"id":{"step":"send","pointer":"/id"},"threadId":{"step":"send","pointer":"/threadId"}},
+   "preview": [
+    {"label":"Message as sent","expr":{"pick":{"transform":"encoding.base64urlDecode@1","args":{"encoded":{"step":"draft","pointer":"/message/raw"}}},"pointer":"/text"}},
+    {"label":"Subject","expr":{"pick":{"transform":"rfc5322.decodeRaw@1","args":{"raw":{"step":"draft","pointer":"/message/raw"}}},"pointer":"/summary/subject"}},
+    {"label":"Text","expr":{"pick":{"transform":"text.truncate@1","args":{"text":{"pick":{"transform":"rfc5322.decodeRaw@1","args":{"raw":{"step":"draft","pointer":"/message/raw"}}},"pointer":"/text"},"max":{"const":10000}}},"pointer":"/text"}},
+    {"label":"Attachments","expr":{"pick":{"transform":"text.joinList@1","args":{"items":{"each":{"pick":{"transform":"rfc5322.decodeRaw@1","args":{"raw":{"step":"draft","pointer":"/message/raw"}}},"pointer":"/attachments"},"as":"file","max":100,"do":{"const":"attachment"}}}},"pointer":"/count"}}
+   ],
+   "definitive": [400,403,404],
+   "certified": {"evidence":"docs/live-evidence/gmail/actions.json","definitionHash":"fc88133a1190d86eb529875e2734083543b4fbbc53d713917e2bcb9f9a4382d3"}
+  },
+  {
+   "id": "gmail.action.organize-email.v1.3587aa301e430ff83f8a8b6a",
+   "key": "organize-email",
+   "version": 1,
+   "name": "Organize email",
+   "description": "Adds and removes labels on up to 25 messages, or on every message of one conversation: removing INBOX archives, removing UNREAD marks as read. Labels are names or ids of labels you have; SENT, DRAFT, TRASH and SPAM are refused (use Move to trash or restore), and an unknown name is refused rather than created.",
+   "effect": "write",
+   "row": "gmail.messages.mark",
+   "hints": {"readOnly":false,"destructive":false,"idempotent":false,"openWorld":true},
+   "inputSchema": {"type":"object","properties":{"target":{"type":"string","enum":["messages","thread"],"description":"messages takes messageIds; thread takes threadId and changes every message of the conversation."},"messageIds":{"type":"array","minItems":1,"maxItems":25,"items":{"type":"string","minLength":1,"maxLength":256},"description":"The messages, as Find emails gives them."},"threadId":{"type":"string","minLength":1,"maxLength":256,"description":"The conversation id (threadId), as Find emails or Read email gives it."},"addLabels":{"type":"array","maxItems":20,"items":{"type":"string","minLength":1,"maxLength":225},"description":"Label names or ids to add; [] for none."},"removeLabels":{"type":"array","maxItems":20,"items":{"type":"string","minLength":1,"maxLength":225},"description":"Label names or ids to remove; [] for none."}},"required":["target","addLabels","removeLabels"],"additionalProperties":false},
+   "outputSchema": {"type":"object","properties":{"added":{"type":"array","maxItems":100,"items":{"type":"string","maxLength":1024}},"removed":{"type":"array","maxItems":100,"items":{"type":"string","maxLength":1024}}},"required":[],"additionalProperties":false},
+   "guards": [
+    {"transform":"collections.oneOf@1","args":{"value":{"concat":[{"pick":{"transform":"text.joinList@1","args":{"items":{"array":[{"when":{"equals":[{"input":"/target"},{"const":"messages"}]},"then":{"const":"messages"}},{"when":{"equals":[{"input":"/target"},{"const":"thread"}]},"then":{"const":"thread"}},{"when":{"present":{"input":"/messageIds"}},"then":{"const":"messageIds"}},{"when":{"present":{"input":"/threadId"}},"then":{"const":"threadId"}}]}}},"pointer":"/text"}],"max":100},"set":{"const":["messages\nmessageIds","thread\nthreadId"]},"fold":{"const":"none"}},"refuse":"wrong_kind"}
+   ],
+   "prepare": [
+    {"id":"labels","method":"GET","path":"/gmail/v1/users/{userId}/labels","maxResponseBytes":1048576,"expect":{"status":[200],"require":[]}}
+   ],
+   "perform": [
+    {"id":"batch","method":"POST","path":"/gmail/v1/users/{userId}/messages/batchModify","body":{"object":{"ids":{"input":"/messageIds"},"addLabelIds":{"pick":{"transform":"collections.labelIds@1","args":{"list":{"step":"labels","pointer":""},"names":{"input":"/addLabels"}}},"pointer":"/ids"},"removeLabelIds":{"pick":{"transform":"collections.labelIds@1","args":{"list":{"step":"labels","pointer":""},"names":{"input":"/removeLabels"}}},"pointer":"/ids"}}},"when":{"equals":[{"input":"/target"},{"const":"messages"}]},"maxResponseBytes":65536,"expect":{"status":[204],"require":[]}},
+    {"id":"modify","method":"POST","path":"/gmail/v1/users/{userId}/threads/{id}/modify","params":{"id":{"input":"/threadId"}},"body":{"object":{"addLabelIds":{"pick":{"transform":"collections.labelIds@1","args":{"list":{"step":"labels","pointer":""},"names":{"input":"/addLabels"}}},"pointer":"/ids"},"removeLabelIds":{"pick":{"transform":"collections.labelIds@1","args":{"list":{"step":"labels","pointer":""},"names":{"input":"/removeLabels"}}},"pointer":"/ids"}}},"when":{"equals":[{"input":"/target"},{"const":"thread"}]},"expect":{"status":[200],"require":[]}}
+   ],
+   "verify": {
+    "requests": [{"id":"check","method":"GET","path":"/gmail/v1/users/{userId}/messages/{id}","params":{"id":{"item":""}},"query":{"format":{"const":"minimal"}},"maxResponseBytes":65536,"when":{"equals":[{"input":"/target"},{"const":"messages"}]},"forEach":{"over":{"input":"/messageIds"},"max":25},"expect":{"status":[200],"require":[]}},{"id":"checkThread","method":"GET","path":"/gmail/v1/users/{userId}/threads/{id}","params":{"id":{"input":"/threadId"}},"query":{"format":{"const":"minimal"}},"when":{"equals":[{"input":"/target"},{"const":"thread"}]},"maxResponseBytes":1048576,"expect":{"status":[200],"require":[]}}],
+    "identity": [{"kind":"membership","step":"check","listHas":{"list":"","where":[{"field":"/labelIds","contains":{"pick":{"transform":"collections.labelIds@1","args":{"list":{"step":"labels","pointer":""},"names":{"input":"/addLabels"}}},"pointer":"/ids"}}]}},{"kind":"readback","step":"checkThread","pointer":"/id","equals":{"input":"/threadId"}}],
+    "assert": [{"step":"check","when":{"equals":[{"input":"/target"},{"const":"messages"}]},"listLacks":{"list":"","where":[{"field":"/labelIds","contains":{"pick":{"transform":"collections.labelIds@1","args":{"list":{"step":"labels","pointer":""},"names":{"input":"/removeLabels"}}},"pointer":"/ids/0"}}]}},{"step":"checkThread","when":{"equals":[{"input":"/target"},{"const":"thread"}]},"listHas":{"list":"/messages","where":[{"field":"/labelIds","contains":{"pick":{"transform":"collections.labelIds@1","args":{"list":{"step":"labels","pointer":""},"names":{"input":"/addLabels"}}},"pointer":"/ids"}}]}},{"step":"checkThread","when":{"equals":[{"input":"/target"},{"const":"thread"}]},"listLacks":{"list":"/messages","where":[{"field":"/labelIds","contains":{"pick":{"transform":"collections.labelIds@1","args":{"list":{"step":"labels","pointer":""},"names":{"input":"/removeLabels"}}},"pointer":"/ids/0"}}]}}]
+   },
+   "output": {"added":{"pick":{"transform":"collections.labelIds@1","args":{"list":{"step":"labels","pointer":""},"names":{"input":"/addLabels"}}},"pointer":"/ids"},"removed":{"pick":{"transform":"collections.labelIds@1","args":{"list":{"step":"labels","pointer":""},"names":{"input":"/removeLabels"}}},"pointer":"/ids"}},
+   "preview": [
+    {"label":"Labels to add","expr":{"pick":{"transform":"text.joinList@1","args":{"items":{"each":{"pick":{"transform":"collections.labelIds@1","args":{"list":{"step":"labels","pointer":""},"names":{"input":"/addLabels"}}},"pointer":"/labels"},"as":"label","max":20,"do":{"pick":{"var":"label"},"pointer":"/name"}}}},"pointer":"/text"}},
+    {"label":"Labels to remove","expr":{"pick":{"transform":"text.joinList@1","args":{"items":{"each":{"pick":{"transform":"collections.labelIds@1","args":{"list":{"step":"labels","pointer":""},"names":{"input":"/removeLabels"}}},"pointer":"/labels"},"as":"label","max":20,"do":{"pick":{"var":"label"},"pointer":"/name"}}}},"pointer":"/text"}},
+    {"label":"Messages","expr":{"pick":{"transform":"text.joinList@1","args":{"items":{"input":"/messageIds"},"mailboxes":{"when":{"absent":{"input":"/messageIds"}},"then":{"const":[]}}}},"pointer":"/text"}},
+    {"label":"Conversation","expr":{"input":"/threadId"}}
+   ],
+   "definitive": [400,403,404],
+   "certified": {"evidence":"docs/live-evidence/gmail/actions.json","definitionHash":"d0251025b54349efdf14ac2cbb632275c3b863c040e686278d92f0a0908c4182"}
+  },
+  {
+   "id": "gmail.action.create-label.v1.b91c91e247217dd1e3214154",
+   "key": "create-label",
+   "version": 1,
+   "name": "Create label",
+   "description": "Finds the label with this name, in any letter case, or creates it when there is none, and returns its id; created is true only when it made the label. It never makes a second label that differs only in case.",
+   "effect": "write",
+   "row": "gmail.labels.manage",
+   "hints": {"readOnly":false,"destructive":false,"idempotent":false,"openWorld":true},
+   "inputSchema": {"type":"object","properties":{"name":{"type":"string","minLength":1,"maxLength":225,"description":"The label name."}},"required":["name"],"additionalProperties":false},
+   "outputSchema": {"type":"object","properties":{"id":{"type":"string","maxLength":1024},"name":{"type":"string","maxLength":1024},"created":{"type":"boolean"}},"required":["id"],"additionalProperties":false},
+   "guards": [],
+   "prepare": [
+    {"id":"labels","method":"GET","path":"/gmail/v1/users/{userId}/labels","maxResponseBytes":1048576,"expect":{"status":[200],"require":[]}}
+   ],
+   "perform": [
+    {"id":"create","method":"POST","path":"/gmail/v1/users/{userId}/labels","body":{"object":{"name":{"item":""},"labelListVisibility":{"const":"labelShow"},"messageListVisibility":{"const":"show"}}},"forEach":{"over":{"pick":{"transform":"collections.missing@1","args":{"list":{"step":"labels","pointer":""},"items":{"const":"/labels"},"field":{"const":"/name"},"name":{"input":"/name"},"fold":{"const":"ascii"}}},"pointer":"/missing"},"max":1},"maxResponseBytes":65536,"expect":{"status":[200],"require":[]}}
+   ],
+   "verify": {
+    "requests": [{"id":"check","method":"GET","path":"/gmail/v1/users/{userId}/labels","maxResponseBytes":1048576,"expect":{"status":[200],"require":[]}}],
+    "identity": [{"kind":"membership","step":"check","forEach":"create","listHas":{"list":"/labels","where":[{"field":"/name","equals":{"item":""}}]}}],
+    "assert": []
+   },
+   "output": {"id":{"either":[{"step":"create","pointer":"/0/id"},{"pick":{"transform":"collections.findBy@1","args":{"list":{"step":"labels","pointer":""},"items":{"const":"/labels"},"field":{"const":"/name"},"id":{"const":"/id"},"label":{"const":"/name"},"value":{"input":"/name"},"fold":{"const":"ascii"},"require":{"const":"one"}}},"pointer":"/matches/0/id"}]},"name":{"either":[{"step":"create","pointer":"/0/name"},{"pick":{"transform":"collections.findBy@1","args":{"list":{"step":"labels","pointer":""},"items":{"const":"/labels"},"field":{"const":"/name"},"id":{"const":"/id"},"label":{"const":"/name"},"value":{"input":"/name"},"fold":{"const":"ascii"},"require":{"const":"one"}}},"pointer":"/matches/0/label"}]},"created":{"when":{"present":{"step":"create","pointer":"/0/id"}},"then":{"const":true}}},
+   "preview": [
+    {"label":"Label","expr":{"input":"/name"}}
+   ],
+   "definitive": [400,403,409],
+   "certified": {"evidence":"docs/live-evidence/gmail/actions.json","definitionHash":"4101dcfde9f106942c04dd76d156951b81f3984c101f237ac7007295c83dea12"}
+  },
+  {
+   "id": "gmail.action.move-to-trash.v1.631a729928e2d4b7da2d26db",
+   "key": "move-to-trash",
+   "version": 1,
+   "name": "Move to trash or restore",
+   "description": "Moves one message, or every message of one conversation, to Trash, or restores it from Trash. Gmail deletes mail in Trash for good after 30 days, so restore it before then. It never deletes anything itself.",
+   "effect": "delete",
+   "row": "gmail.messages.trash",
+   "hints": {"readOnly":false,"destructive":true,"idempotent":false,"openWorld":true},
+   "inputSchema": {"type":"object","properties":{"move":{"type":"string","enum":["trash-message","restore-message","trash-thread","restore-thread"],"description":"trash-message or restore-message take messageId; trash-thread or restore-thread take threadId."},"messageId":{"type":"string","minLength":1,"maxLength":256,"description":"The message id, as Find emails or Read email gives it."},"threadId":{"type":"string","minLength":1,"maxLength":256,"description":"The conversation id (threadId), as Find emails or Read email gives it."}},"required":["move"],"additionalProperties":false},
+   "outputSchema": {"type":"object","properties":{"move":{"type":"string","maxLength":1024},"messageId":{"type":"string","maxLength":1024},"threadId":{"type":"string","maxLength":1024}},"required":["move"],"additionalProperties":false},
+   "guards": [
+    {"transform":"collections.oneOf@1","args":{"value":{"concat":[{"pick":{"transform":"text.joinList@1","args":{"items":{"array":[{"when":{"anyOf":[{"equals":[{"input":"/move"},{"const":"trash-message"}]},{"equals":[{"input":"/move"},{"const":"restore-message"}]}]},"then":{"const":"message"}},{"when":{"anyOf":[{"equals":[{"input":"/move"},{"const":"trash-thread"}]},{"equals":[{"input":"/move"},{"const":"restore-thread"}]}]},"then":{"const":"thread"}},{"when":{"present":{"input":"/messageId"}},"then":{"const":"messageId"}},{"when":{"present":{"input":"/threadId"}},"then":{"const":"threadId"}}]}}},"pointer":"/text"}],"max":100},"set":{"const":["message\nmessageId","thread\nthreadId"]},"fold":{"const":"none"}},"refuse":"wrong_kind"}
+   ],
+   "prepare": [
+    {"id":"message","method":"GET","path":"/gmail/v1/users/{userId}/messages/{id}","params":{"id":{"input":"/messageId"}},"query":{"format":{"const":"metadata"},"metadataHeaders":{"const":"Subject"}},"when":{"anyOf":[{"equals":[{"input":"/move"},{"const":"trash-message"}]},{"equals":[{"input":"/move"},{"const":"restore-message"}]}]},"maxResponseBytes":65536,"expect":{"status":[200],"require":[]}},
+    {"id":"thread","method":"GET","path":"/gmail/v1/users/{userId}/threads/{id}","params":{"id":{"input":"/threadId"}},"query":{"format":{"const":"metadata"},"metadataHeaders":{"const":"Subject"}},"when":{"anyOf":[{"equals":[{"input":"/move"},{"const":"trash-thread"}]},{"equals":[{"input":"/move"},{"const":"restore-thread"}]}]},"maxResponseBytes":1048576,"expect":{"status":[200],"require":[]}}
+   ],
+   "perform": [
+    {"id":"trashMessage","method":"POST","path":"/gmail/v1/users/{userId}/messages/{id}/trash","params":{"id":{"input":"/messageId"}},"when":{"equals":[{"input":"/move"},{"const":"trash-message"}]},"maxResponseBytes":1048576,"expect":{"status":[200],"require":[]}},
+    {"id":"restoreMessage","method":"POST","path":"/gmail/v1/users/{userId}/messages/{id}/untrash","params":{"id":{"input":"/messageId"}},"when":{"equals":[{"input":"/move"},{"const":"restore-message"}]},"maxResponseBytes":1048576,"expect":{"status":[200],"require":[]}},
+    {"id":"trashThread","method":"POST","path":"/gmail/v1/users/{userId}/threads/{id}/trash","params":{"id":{"input":"/threadId"}},"when":{"equals":[{"input":"/move"},{"const":"trash-thread"}]},"maxResponseBytes":1048576,"expect":{"status":[200],"require":[]}},
+    {"id":"restoreThread","method":"POST","path":"/gmail/v1/users/{userId}/threads/{id}/untrash","params":{"id":{"input":"/threadId"}},"when":{"equals":[{"input":"/move"},{"const":"restore-thread"}]},"maxResponseBytes":1048576,"expect":{"status":[200],"require":[]}}
+   ],
+   "verify": {
+    "requests": [{"id":"checkMessage","method":"GET","path":"/gmail/v1/users/{userId}/messages/{id}","params":{"id":{"input":"/messageId"}},"query":{"format":{"const":"minimal"}},"maxResponseBytes":65536,"when":{"anyOf":[{"equals":[{"input":"/move"},{"const":"trash-message"}]},{"equals":[{"input":"/move"},{"const":"restore-message"}]}]},"expect":{"status":[200],"require":[]}},{"id":"checkThread","method":"GET","path":"/gmail/v1/users/{userId}/threads/{id}","params":{"id":{"input":"/threadId"}},"query":{"format":{"const":"minimal"}},"when":{"anyOf":[{"equals":[{"input":"/move"},{"const":"trash-thread"}]},{"equals":[{"input":"/move"},{"const":"restore-thread"}]}]},"maxResponseBytes":1048576,"expect":{"status":[200],"require":[]}}],
+    "identity": [{"kind":"readback","step":"checkMessage","pointer":"/id","equals":{"input":"/messageId"}},{"kind":"readback","step":"checkThread","pointer":"/id","equals":{"input":"/threadId"}}],
+    "assert": [{"step":"checkMessage","when":{"equals":[{"input":"/move"},{"const":"trash-message"}]},"contains":{"pointer":"/labelIds","value":{"const":"TRASH"}}},{"step":"checkMessage","when":{"equals":[{"input":"/move"},{"const":"restore-message"}]},"listLacks":{"list":"/labelIds","where":[{"field":"","equals":{"const":"TRASH"}}]}},{"step":"checkThread","when":{"equals":[{"input":"/move"},{"const":"trash-thread"}]},"listHas":{"list":"/messages","where":[{"field":"/labelIds","contains":{"const":"TRASH"}}]}},{"step":"checkThread","when":{"equals":[{"input":"/move"},{"const":"restore-thread"}]},"listLacks":{"list":"/messages","where":[{"field":"/labelIds","contains":{"const":"TRASH"}}]}}]
+   },
+   "output": {"move":{"input":"/move"},"messageId":{"input":"/messageId"},"threadId":{"input":"/threadId"}},
+   "preview": [
+    {"label":"Move","expr":{"input":"/move"}},
+    {"label":"Message","expr":{"input":"/messageId"}},
+    {"label":"Conversation","expr":{"input":"/threadId"}},
+    {"label":"Subject","expr":{"either":[{"step":"message","pointer":"/payload/headers/0/value"},{"step":"thread","pointer":"/messages/0/payload/headers/0/value"}]},"truncate":1000},
+    {"label":"Trash","expr":{"const":"Gmail deletes mail in Trash for good after 30 days."}}
+   ],
+   "definitive": [400,403,404],
+   "certified": {"evidence":"docs/live-evidence/gmail/actions.json","definitionHash":"446dee28bf9a3e3d489d53d113010d264b3fdfe34e3eb1aec5efbd222ba40f72"}
+  },
+  {
+   "id": "gmail.action.set-out-of-office.v1.d139f63b468d9e1ce04b2ac0",
+   "key": "set-out-of-office",
+   "version": 1,
+   "name": "Set out-of-office reply",
+   "description": "Turns your automatic reply off, or on for a time window with a subject and plain text, for your contacts only or for everyone who writes. Off takes nothing else; on takes contactsOnly, subject, text, start and end (RFC 3339 instants with their offset, the start before the end).",
+   "effect": "write",
+   "row": "gmail.settings.write",
+   "hints": {"readOnly":false,"destructive":false,"idempotent":true,"openWorld":true},
+   "inputSchema": {"type":"object","properties":{"enable":{"type":"boolean","enum":[true,false],"description":"true turns the reply on, false turns it off."},"contactsOnly":{"type":"boolean","description":"true replies only to people in your contacts; false to everyone who writes."},"subject":{"type":"string","minLength":1,"maxLength":500,"description":"The reply's subject."},"text":{"type":"string","minLength":1,"maxLength":10000,"description":"The reply's plain text, at most 10,000 characters."},"start":{"type":"string","format":"date-time","maxLength":64,"description":"When the reply starts, RFC 3339 with its offset."},"end":{"type":"string","format":"date-time","maxLength":64,"description":"When the reply ends, RFC 3339 with its offset."}},"required":["enable"],"additionalProperties":false},
+   "outputSchema": {"type":"object","properties":{"enabled":{"type":"boolean"},"contactsOnly":{"type":"boolean"},"subject":{"type":"string","maxLength":10000},"start":{"type":"string","maxLength":1024},"end":{"type":"string","maxLength":1024}},"required":[],"additionalProperties":false},
+   "guards": [
+    {"transform":"collections.oneOf@1","args":{"value":{"concat":[{"pick":{"transform":"text.joinList@1","args":{"items":{"array":[{"when":{"equals":[{"input":"/enable"},{"const":true}]},"then":{"const":"on"}},{"when":{"equals":[{"input":"/enable"},{"const":false}]},"then":{"const":"off"}},{"when":{"present":{"input":"/contactsOnly"}},"then":{"const":"contactsOnly"}},{"when":{"present":{"input":"/subject"}},"then":{"const":"subject"}},{"when":{"present":{"input":"/text"}},"then":{"const":"text"}},{"when":{"present":{"input":"/start"}},"then":{"const":"start"}},{"when":{"present":{"input":"/end"}},"then":{"const":"end"}}]}}},"pointer":"/text"}],"max":100},"set":{"const":["off","on\ncontactsOnly\nsubject\ntext\nstart\nend"]},"fold":{"const":"none"}},"refuse":"wrong_kind"},
+    {"transform":"time.window@1","args":{"start":{"input":"/start"},"end":{"input":"/end"},"now":{"now":{}}},"refuse":"time_window"}
+   ],
+   "prepare": [
+    {"id":"current","method":"GET","path":"/gmail/v1/users/{userId}/settings/vacation","maxResponseBytes":65536,"expect":{"status":[200],"require":[]}}
+   ],
+   "perform": [
+    {"id":"put","method":"PUT","path":"/gmail/v1/users/{userId}/settings/vacation","body":{"object":{"enableAutoReply":{"input":"/enable"},"responseSubject":{"input":"/subject"},"responseBodyPlainText":{"input":"/text"},"restrictToContacts":{"input":"/contactsOnly"},"startTime":{"when":{"present":{"input":"/start"}},"then":{"pick":{"transform":"time.rfc3339ToEpochMillisString@1","args":{"time":{"input":"/start"}}},"pointer":"/millis"}},"endTime":{"when":{"present":{"input":"/end"}},"then":{"pick":{"transform":"time.rfc3339ToEpochMillisString@1","args":{"time":{"input":"/end"}}},"pointer":"/millis"}}}},"maxResponseBytes":65536,"expect":{"status":[200],"require":[]}}
+   ],
+   "verify": {
+    "requests": [{"id":"check","method":"GET","path":"/gmail/v1/users/{userId}/settings/vacation","maxResponseBytes":65536,"expect":{"status":[200],"require":[]}}],
+    "identity": [{"kind":"readback","step":"check","pointer":"/enableAutoReply","equals":{"input":"/enable"}}],
+    "assert": [{"step":"check","when":{"equals":[{"input":"/enable"},{"const":true}]},"equals":{"pointer":"/restrictToContacts","value":{"input":"/contactsOnly"}}},{"step":"check","when":{"equals":[{"input":"/enable"},{"const":true}]},"equals":{"pointer":"/responseSubject","value":{"input":"/subject"}}},{"step":"check","when":{"equals":[{"input":"/enable"},{"const":true}]},"equals":{"pointer":"/responseBodyPlainText","value":{"input":"/text"}}},{"step":"check","when":{"equals":[{"input":"/enable"},{"const":true}]},"equals":{"pointer":"/startTime","value":{"pick":{"transform":"time.rfc3339ToEpochMillisString@1","args":{"time":{"input":"/start"}}},"pointer":"/millis"}}},{"step":"check","when":{"equals":[{"input":"/enable"},{"const":true}]},"equals":{"pointer":"/endTime","value":{"pick":{"transform":"time.rfc3339ToEpochMillisString@1","args":{"time":{"input":"/end"}}},"pointer":"/millis"}}}]
+   },
+   "output": {"enabled":{"step":"put","pointer":"/enableAutoReply"},"contactsOnly":{"step":"put","pointer":"/restrictToContacts"},"subject":{"step":"put","pointer":"/responseSubject"},"start":{"when":{"present":{"step":"put","pointer":"/startTime"}},"then":{"pick":{"transform":"time.epochMillisStringToRfc3339@1","args":{"millis":{"step":"put","pointer":"/startTime"}}},"pointer":"/time"}},"end":{"when":{"present":{"step":"put","pointer":"/endTime"}},"then":{"pick":{"transform":"time.epochMillisStringToRfc3339@1","args":{"millis":{"step":"put","pointer":"/endTime"}}},"pointer":"/time"}}},
+   "preview": [
+    {"label":"Auto-reply now","expr":{"pick":{"transform":"text.joinList@1","args":{"items":{"array":[{"when":{"equals":[{"step":"current","pointer":"/enableAutoReply"},{"const":true}]},"then":{"const":"on"}},{"when":{"equals":[{"step":"current","pointer":"/enableAutoReply"},{"const":false}]},"then":{"const":"off"}}]}}},"pointer":"/text"}},
+    {"label":"Subject now","expr":{"step":"current","pointer":"/responseSubject"},"truncate":500},
+    {"label":"Auto-reply","expr":{"pick":{"transform":"text.joinList@1","args":{"items":{"array":[{"when":{"equals":[{"input":"/enable"},{"const":true}]},"then":{"const":"on"}},{"when":{"equals":[{"input":"/enable"},{"const":false}]},"then":{"const":"off"}}]}}},"pointer":"/text"}},
+    {"label":"Who gets the reply","expr":{"pick":{"transform":"text.joinList@1","args":{"items":{"array":[{"when":{"equals":[{"input":"/contactsOnly"},{"const":true}]},"then":{"const":"Your contacts only"}},{"when":{"equals":[{"input":"/contactsOnly"},{"const":false}]},"then":{"const":"Everyone who writes to you"}}]}}},"pointer":"/text"}},
+    {"label":"Starts","expr":{"input":"/start"}},
+    {"label":"Ends","expr":{"input":"/end"}},
+    {"label":"Subject","expr":{"input":"/subject"}},
+    {"label":"Text","expr":{"input":"/text"},"truncate":10000}
+   ],
+   "definitive": [400,403],
+   "certified": {"evidence":"docs/live-evidence/gmail/actions.json","definitionHash":"745411d237f6c25fe0976d64a6e69f329a3870bd5326960d7af3781ea7b9dc51"}
+  },
+  {
+   "id": "gmail.action.auto-label.v1.f96f1269d1bd2a63539aac0d",
+   "key": "auto-label",
+   "version": 1,
+   "name": "Auto-label incoming mail",
+   "description": "Makes a Gmail filter that adds one of your labels to new mail from one address. It never forwards, deletes or archives mail; SENT, DRAFT, TRASH and SPAM are refused. \"Delete drafts, labels or filters\" removes the filter.",
+   "effect": "write",
+   "row": "gmail.settings.write",
+   "hints": {"readOnly":false,"destructive":false,"idempotent":false,"openWorld":true},
+   "inputSchema": {"type":"object","properties":{"from":{"type":"string","format":"email","minLength":3,"maxLength":254,"description":"The sender's address."},"label":{"type":"string","minLength":1,"maxLength":225,"description":"A label name or id of a label you have."}},"required":["from","label"],"additionalProperties":false},
+   "outputSchema": {"type":"object","properties":{"id":{"type":"string","maxLength":1024},"from":{"type":"string","maxLength":1024},"labelId":{"type":"string","maxLength":1024}},"required":["id"],"additionalProperties":false},
+   "guards": [],
+   "prepare": [
+    {"id":"labels","method":"GET","path":"/gmail/v1/users/{userId}/labels","maxResponseBytes":1048576,"expect":{"status":[200],"require":[]}}
+   ],
+   "perform": [
+    {"id":"create","method":"POST","path":"/gmail/v1/users/{userId}/settings/filters","body":{"object":{"criteria":{"object":{"from":{"input":"/from"}}},"action":{"object":{"addLabelIds":{"pick":{"transform":"collections.labelIds@1","args":{"list":{"step":"labels","pointer":""},"names":{"array":[{"input":"/label"}]}}},"pointer":"/ids"}}}}},"maxResponseBytes":65536,"expect":{"status":[200],"require":[]}}
+   ],
+   "verify": {
+    "requests": [{"id":"check","method":"GET","path":"/gmail/v1/users/{userId}/settings/filters/{id}","params":{"id":{"step":"create","pointer":"/id"}},"maxResponseBytes":65536,"expect":{"status":[200],"require":[]}}],
+    "identity": [{"kind":"readback","step":"check","pointer":"/id","equals":{"step":"create","pointer":"/id"}}],
+    "assert": [{"step":"check","equals":{"pointer":"/criteria/from","value":{"input":"/from"}}},{"step":"check","equals":{"pointer":"/action/addLabelIds","value":{"pick":{"transform":"collections.labelIds@1","args":{"list":{"step":"labels","pointer":""},"names":{"array":[{"input":"/label"}]}}},"pointer":"/ids"}}}]
+   },
+   "output": {"id":{"step":"create","pointer":"/id"},"from":{"step":"create","pointer":"/criteria/from"},"labelId":{"step":"create","pointer":"/action/addLabelIds/0"}},
+   "preview": [
+    {"label":"When mail is from","expr":{"input":"/from"}},
+    {"label":"Apply label","expr":{"pick":{"transform":"collections.labelIds@1","args":{"list":{"step":"labels","pointer":""},"names":{"array":[{"input":"/label"}]}}},"pointer":"/labels/0/name"}},
+    {"label":"To remove it","expr":{"const":"Delete the filter under \"Delete drafts, labels or filters\"."}}
+   ],
+   "definitive": [400,403,404],
+   "certified": {"evidence":"docs/live-evidence/gmail/actions.json","definitionHash":"643b91aeb6f2b4ac7ae179497780349025107817f956dbeb8efeba3550f34681"}
+  }
+ ]
+}

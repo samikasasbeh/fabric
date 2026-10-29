@@ -1,0 +1,180 @@
+{
+ "schemaVersion": 1,
+ "appId": "google-calendar",
+ "note": "Calendar's live write tests C0 to C13 (spec section 5.2, step 14): two calendars the run creates, A and B, and C9's one answer on your primary calendar. Every change carries sendUpdates=none, every date falls 7 to 13 days after the run date in your time zone, and times reach the actions as local wall times. Checked offline by node scripts/live-certify.mjs google-calendar --check.",
+ "recorded": {
+  "c9Event": "The id of the invitation the second test account sent to your primary calendar before the run, with [SYNTHETIC] in its title and a date 7 to 13 days ahead: C0 reads it and C9 answers it."
+ },
+ "readRows": ["google-calendar.events.read", "google-calendar.calendars.read", "google-calendar.settings.read"],
+ "timeZone": {"path": "/users/me/settings/timezone", "pointer": "/value"},
+ "gone": {"pointer": "/status", "equals": "cancelled"},
+ "tests": [
+  {
+   "id": "C0",
+   "name": "Read pass: list the calendars, find the synthetic events and read the invitation",
+   "steps": [
+    {"call": {"action": "list-calendars@1", "args": {}, "checks": [{"pointer": "/calendars", "present": true}]}},
+    {"call": {"action": "find-events@1", "args": {"calendarId": "primary", "from": {"$local": {"day": 7, "time": "00:00"}}, "to": {"$local": {"day": 13, "time": "23:00"}}, "q": "[SYNTHETIC]"},
+     "checks": [{"pointer": "/events", "present": true}, {"pointer": "/timeZone", "equals": {"$owner": "timeZone"}}]}},
+    {"call": {"action": "get-event@1", "args": {"calendarId": "primary", "eventId": {"$recorded": "c9Event"}}, "checks": [{"pointer": "/id", "equals": {"$recorded": "c9Event"}}]}}
+   ]
+  },
+  {
+   "id": "C1",
+   "name": "Create calendars A and B",
+   "steps": [
+    {"call": {"action": "create-calendar@1", "args": {"summary": {"$text": "calendar A"}, "timeZone": {"$owner": "timeZone"}}, "save": {"calendarA": "/id"}}},
+    {"read": {"path": "/calendars/{cal}", "params": {"cal": {"$saved": "calendarA"}}, "checks": [{"status": 200}, {"pointer": "/id", "equals": {"$saved": "calendarA"}}]}},
+    {"call": {"action": "create-calendar@1", "args": {"summary": {"$text": "calendar B"}, "timeZone": {"$owner": "timeZone"}}, "save": {"calendarB": "/id"}}},
+    {"read": {"path": "/calendars/{cal}", "params": {"cal": {"$saved": "calendarB"}}, "checks": [{"status": 200}, {"pointer": "/id", "equals": {"$saved": "calendarB"}}]}}
+   ],
+   "undo": {"test": "C13"}
+  },
+  {
+   "id": "C2",
+   "name": "Create an event on A, day 9, 10:00 to 10:30",
+   "steps": [
+    {"call": {"action": "create-event@1", "args": {"calendarId": {"$saved": "calendarA"}, "kind": "timed", "summary": {"$text": "event"},
+     "start": {"$local": {"day": 9, "time": "10:00"}}, "end": {"$local": {"day": 9, "time": "10:30"}}, "notify": "none"},
+     "save": {"event": "/id"}, "checks": [{"pointer": "/summary", "equals": {"$text": "event"}}, {"pointer": "/start/dateTime", "present": true}]}},
+    {"read": {"path": "/calendars/{cal}/events/{event}", "params": {"cal": {"$saved": "calendarA"}, "event": {"$saved": "event"}},
+     "checks": [{"status": 200}, {"pointer": "/id", "equals": {"$saved": "event"}}, {"pointer": "/summary", "equals": {"$text": "event"}}]}}
+   ],
+   "undo": {"test": "C12"}
+  },
+  {
+   "id": "C3",
+   "name": "Create an event with Google Meet on A",
+   "steps": [
+    {"call": {"action": "create-event@1", "args": {"calendarId": {"$saved": "calendarA"}, "kind": "timed", "summary": {"$text": "meet"},
+     "start": {"$local": {"day": 9, "time": "11:00"}}, "end": {"$local": {"day": 9, "time": "11:30"}}, "meet": true, "notify": "none"},
+     "save": {"meet": "/id"}, "checks": [{"pointer": "/conferenceStatus", "equals": "success"}, {"pointer": "/hangoutLink", "present": true}]}}
+   ],
+   "undo": {"test": "C12"}
+  },
+  {
+   "id": "C4",
+   "name": "Create an all-day event and a daily event of three on A",
+   "steps": [
+    {"call": {"action": "create-event@1", "args": {"calendarId": {"$saved": "calendarA"}, "kind": "all-day", "summary": {"$text": "all day"}, "date": {"$day": 10}, "days": 1, "notify": "none"},
+     "save": {"allDay": "/id"}, "checks": [{"pointer": "/start/date", "equals": {"$day": 10}}, {"pointer": "/end/date", "equals": {"$day": 11}}]}},
+    {"call": {"action": "create-event@1", "args": {"calendarId": {"$saved": "calendarA"}, "kind": "timed", "summary": {"$text": "daily"},
+     "start": {"$local": {"day": 11, "time": "09:00"}}, "end": {"$local": {"day": 11, "time": "09:30"}}, "recurrence": "RRULE:FREQ=DAILY;COUNT=3", "notify": "none"},
+     "save": {"daily": "/id"}}},
+    {"read": {"path": "/calendars/{cal}/events/{event}/instances", "params": {"cal": {"$saved": "calendarA"}, "event": {"$saved": "daily"}}, "checks": [{"status": 200}, {"pointer": "/items", "count": 3}]}}
+   ],
+   "undo": {"test": "C12"}
+  },
+  {
+   "id": "C5",
+   "name": "Quick add on A, day 10, 3pm to 3:30pm",
+   "steps": [
+    {"call": {"action": "quick-add@1", "args": {"calendarId": {"$saved": "calendarA"}, "text": {"$text": {"words": "quick add on {date} at 3pm to 3:30pm", "day": 10}}, "notify": "none"},
+     "save": {"quick": "/id"}, "checks": [{"pointer": "/start/dateTime", "present": true}]}}
+   ],
+   "undo": {"test": "C12"}
+  },
+  {
+   "id": "C6",
+   "name": "Reschedule C2 by 30 minutes on the version read first; a second change on that version is refused with 412",
+   "steps": [
+    {"race": {"action": "update-event@1", "args": {"calendarId": {"$saved": "calendarA"}, "eventId": {"$saved": "event"},
+     "newTime": {"start": {"$local": {"day": 9, "time": "10:30"}}, "end": {"$local": {"day": 9, "time": "11:00"}}}, "notify": "none"}, "status": 412,
+     "readback": {"path": "/calendars/{cal}/events/{event}", "params": {"cal": {"$saved": "calendarA"}, "event": {"$saved": "event"}}, "pointer": "/etag", "output": "/etag"}}}
+   ],
+   "undo": {"steps": [
+    {"call": {"action": "update-event@1", "args": {"calendarId": {"$saved": "calendarA"}, "eventId": {"$saved": "event"},
+     "newTime": {"start": {"$local": {"day": 9, "time": "10:00"}}, "end": {"$local": {"day": 9, "time": "10:30"}}}, "notify": "none"}, "checks": [{"pointer": "/start/dateTime", "present": true}]}}
+   ]}
+  },
+  {
+   "id": "C7",
+   "name": "Invite fabric-guest@example.com to C2",
+   "steps": [
+    {"call": {"action": "update-guests@1", "args": {"calendarId": {"$saved": "calendarA"}, "eventId": {"$saved": "event"}, "add": ["fabric-guest@example.com"], "remove": [], "notify": "none"},
+     "checks": [{"pointer": "/added", "count": 1}]}},
+    {"read": {"path": "/calendars/{cal}/events/{event}", "params": {"cal": {"$saved": "calendarA"}, "event": {"$saved": "event"}},
+     "checks": [{"pointer": "/attendees", "where": {"/email": "fabric-guest@example.com"}, "field": "/responseStatus", "equals": "needsAction"}]}}
+   ],
+   "undo": {"steps": [
+    {"call": {"action": "update-guests@1", "args": {"calendarId": {"$saved": "calendarA"}, "eventId": {"$saved": "event"}, "add": [], "remove": ["fabric-guest@example.com"], "notify": "none"},
+     "checks": [{"pointer": "/removed", "count": 1}]}}
+   ]}
+  },
+  {
+   "id": "C8",
+   "name": "Move C2 from A to B",
+   "steps": [
+    {"call": {"action": "move-event@1", "args": {"calendarId": {"$saved": "calendarA"}, "eventId": {"$saved": "event"}, "destination": {"$saved": "calendarB"}, "notify": "none"}}},
+    {"read": {"path": "/calendars/{cal}/events/{event}", "params": {"cal": {"$saved": "calendarB"}, "event": {"$saved": "event"}}, "checks": [{"status": 200}, {"pointer": "/id", "equals": {"$saved": "event"}}]}}
+   ],
+   "undo": {"steps": [
+    {"call": {"action": "move-event@1", "args": {"calendarId": {"$saved": "calendarB"}, "eventId": {"$saved": "event"}, "destination": {"$saved": "calendarA"}, "notify": "none"}}},
+    {"read": {"path": "/calendars/{cal}/events/{event}", "params": {"cal": {"$saved": "calendarA"}, "event": {"$saved": "event"}}, "checks": [{"status": 200}]}}
+   ]}
+  },
+  {
+   "id": "C9",
+   "name": "Accept the second test account's invitation",
+   "steps": [
+    {"call": {"action": "respond-event@1", "args": {"calendarId": "primary", "eventId": {"$recorded": "c9Event"}, "response": "accepted", "notify": "none"}, "checks": [{"pointer": "/response", "equals": "accepted"}]}},
+    {"read": {"path": "/calendars/{cal}/events/{event}", "params": {"cal": "primary", "event": {"$recorded": "c9Event"}},
+     "checks": [{"pointer": "/attendees", "where": {"/self": true}, "field": "/responseStatus", "equals": "accepted"}]}}
+   ],
+   "undo": {"steps": [
+    {"call": {"action": "respond-event@1", "args": {"calendarId": "primary", "eventId": {"$recorded": "c9Event"}, "response": "tentative", "notify": "none"}, "checks": [{"pointer": "/response", "equals": "tentative"}]}},
+    {"owner": {"words": "Delete the invitation from the second test account's calendar (the account that sent it), then press Enter.",
+     "until": {"path": "/calendars/{cal}/events/{event}", "params": {"cal": "primary", "event": {"$recorded": "c9Event"}}, "checks": [{"gone": true}]}}}
+   ]}
+  },
+  {
+   "id": "C10",
+   "name": "Stop sharing A with fabric-share@example.com",
+   "steps": [
+    {"owner": {"words": "In Google Calendar, open the settings of the calendar whose name ends in calendar A, share it with fabric-share@example.com (See all event details), then press Enter.",
+     "until": {"path": "/calendars/{cal}/acl/{rule}", "params": {"cal": {"$saved": "calendarA"}, "rule": "user:fabric-share@example.com"}, "checks": [{"status": 200}]}}},
+    {"call": {"action": "stop-sharing@1", "args": {"calendarId": {"$saved": "calendarA"}, "ruleId": "user:fabric-share@example.com"}, "checks": [{"pointer": "/ruleId", "equals": "user:fabric-share@example.com"}]}},
+    {"read": {"path": "/calendars/{cal}/acl/{rule}", "params": {"cal": {"$saved": "calendarA"}, "rule": "user:fabric-share@example.com"}, "checks": [{"status": 404}]}}
+   ],
+   "undo": {"none": "Removing the rule undoes the share made by hand for this test, and calendar A goes in C13."}
+  },
+  {
+   "id": "C11",
+   "name": "Find free time over the run window on A and B",
+   "steps": [
+    {"call": {"action": "find-free-time@1", "args": {"from": {"$local": {"day": 7, "time": "00:00"}}, "to": {"$local": {"day": 13, "time": "23:00"}},
+     "calendars": [{"$saved": "calendarA"}, {"$saved": "calendarB"}], "minMinutes": 30}, "checks": [{"pointer": "/free", "present": true}, {"pointer": "/timeZone", "equals": {"$owner": "timeZone"}}]}}
+   ]
+  },
+  {
+   "id": "C12",
+   "name": "Cancel C2 to C5",
+   "steps": [
+    {"call": {"action": "delete-event@1", "args": {"calendarId": {"$saved": "calendarA"}, "eventId": {"$saved": "event"}, "notify": "none"}}},
+    {"read": {"path": "/calendars/{cal}/events/{event}", "params": {"cal": {"$saved": "calendarA"}, "event": {"$saved": "event"}}, "checks": [{"gone": true}]}},
+    {"call": {"action": "delete-event@1", "args": {"calendarId": {"$saved": "calendarA"}, "eventId": {"$saved": "meet"}, "notify": "none"}}},
+    {"read": {"path": "/calendars/{cal}/events/{event}", "params": {"cal": {"$saved": "calendarA"}, "event": {"$saved": "meet"}}, "checks": [{"gone": true}]}},
+    {"call": {"action": "delete-event@1", "args": {"calendarId": {"$saved": "calendarA"}, "eventId": {"$saved": "allDay"}, "notify": "none"}}},
+    {"read": {"path": "/calendars/{cal}/events/{event}", "params": {"cal": {"$saved": "calendarA"}, "event": {"$saved": "allDay"}}, "checks": [{"gone": true}]}},
+    {"call": {"action": "delete-event@1", "args": {"calendarId": {"$saved": "calendarA"}, "eventId": {"$saved": "daily"}, "notify": "none"}}},
+    {"read": {"path": "/calendars/{cal}/events/{event}", "params": {"cal": {"$saved": "calendarA"}, "event": {"$saved": "daily"}}, "checks": [{"gone": true}]}},
+    {"call": {"action": "delete-event@1", "args": {"calendarId": {"$saved": "calendarA"}, "eventId": {"$saved": "quick"}, "notify": "none"}}},
+    {"read": {"path": "/calendars/{cal}/events/{event}", "params": {"cal": {"$saved": "calendarA"}, "event": {"$saved": "quick"}}, "checks": [{"gone": true}]}}
+   ],
+   "undo": {"none": "It is the undo of C2 to C5."}
+  },
+  {
+   "id": "C13",
+   "name": "Delete calendars A and B through the one-time Ask, then the row is Never again",
+   "cleanup": true,
+   "steps": [
+    {"oneTimeAsk": {"row": "google-calendar.permanent.delete", "requests": [
+     {"method": "DELETE", "path": "/calendars/{cal}", "params": {"cal": {"$saved": "calendarA"}}},
+     {"method": "DELETE", "path": "/calendars/{cal}", "params": {"cal": {"$saved": "calendarB"}}}]}},
+    {"read": {"path": "/calendars/{cal}", "params": {"cal": {"$saved": "calendarA"}}, "checks": [{"status": 404}]}},
+    {"read": {"path": "/calendars/{cal}", "params": {"cal": {"$saved": "calendarB"}}, "checks": [{"status": 404}]}}
+   ],
+   "undo": {"none": "It is the undo of C1, and the row's return to Never is recorded."}
+  }
+ ]
+}

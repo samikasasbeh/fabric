@@ -1,0 +1,55 @@
+{
+ "note": "F10.1 ratchet for scripts/app-template-check.mjs: which exit-gate checks pass for each template app. A slice that makes a check pass updates this file on purpose; a check that starts failing again fails the test.",
+ "apps": {
+  "gmail": {
+   "auth-definition": true,
+   "closure": true,
+   "rows": true,
+   "row-scope-data": true,
+   "defaults": true,
+   "actions": true,
+   "live-evidence": true,
+   "sign-in-evidence": true
+  },
+  "google-calendar": {
+   "auth-definition": true,
+   "closure": true,
+   "rows": true,
+   "row-scope-data": true,
+   "defaults": true,
+   "actions": true,
+   "live-evidence": true,
+   "sign-in-evidence": true
+  },
+  "github": {
+   "auth-definition": true,
+   "closure": true,
+   "rows": true,
+   "row-scope-data": true,
+   "defaults": true,
+   "actions": true,
+   "live-evidence": false,
+   "sign-in-evidence": true
+  },
+  "notion": {
+   "auth-definition": true,
+   "closure": true,
+   "rows": true,
+   "row-scope-data": true,
+   "defaults": true,
+   "actions": true,
+   "live-evidence": false,
+   "sign-in-evidence": true
+  },
+  "slack": {
+   "auth-definition": true,
+   "closure": true,
+   "rows": true,
+   "row-scope-data": true,
+   "defaults": true,
+   "actions": true,
+   "live-evidence": false,
+   "sign-in-evidence": false
+  }
+ }
+}

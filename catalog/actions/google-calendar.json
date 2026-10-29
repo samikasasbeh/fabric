@@ -1,0 +1,458 @@
+{
+ "schemaVersion": 1,
+ "appId": "google-calendar",
+ "specVersion": "fabric/0.2",
+ "reviewStatus": "reviewed",
+ "pinnedParameters": {},
+ "actions": [
+  {
+   "id": "google-calendar.action.find-events.v1.52c7c84a8cf53b5ed869f18a",
+   "key": "find-events",
+   "version": 1,
+   "name": "Find events",
+   "description": "Finds the events on one calendar that overlap a time window, earliest first, 25 a page, with each repeating event shown as its single occurrences. Times are read in your calendar's time zone, which the answer names.",
+   "effect": "read",
+   "row": "google-calendar.events.read",
+   "hints": {"readOnly":true,"destructive":false,"idempotent":true,"openWorld":true},
+   "inputSchema": {"type":"object","properties":{"calendarId":{"type":"string","minLength":1,"maxLength":1024,"description":"The calendar: an id from List my calendars, or primary for your own calendar."},"from":{"type":"string","minLength":19,"maxLength":19,"description":"The start of the window, as a local wall time YYYY-MM-DDTHH:MM:SS in your calendar's time zone."},"to":{"type":"string","minLength":19,"maxLength":19,"description":"The end of the window, as a local wall time YYYY-MM-DDTHH:MM:SS in your calendar's time zone."},"q":{"type":"string","minLength":1,"maxLength":200,"description":"Words every event found holds, in its title, description, place or guests."},"pageToken":{"type":"string","minLength":1,"maxLength":1024,"description":"nextPageToken from the page before, for the next page."}},"required":["calendarId","from","to"],"additionalProperties":false},
+   "outputSchema": {"type":"object","properties":{"timeZone":{"type":"string","maxLength":64},"events":{"type":"array","maxItems":25,"items":{"type":"object","properties":{"id":{"type":"string","maxLength":1024},"summary":{"type":"string","maxLength":8192},"start":{"type":"object","properties":{"dateTime":{"type":"string","maxLength":64},"date":{"type":"string","maxLength":16},"timeZone":{"type":"string","maxLength":64}},"required":[],"additionalProperties":false},"end":{"type":"object","properties":{"dateTime":{"type":"string","maxLength":64},"date":{"type":"string","maxLength":16},"timeZone":{"type":"string","maxLength":64}},"required":[],"additionalProperties":false},"status":{"type":"string","maxLength":32},"htmlLink":{"type":"string","maxLength":2048},"recurringEventId":{"type":"string","maxLength":1024}},"required":[],"additionalProperties":false}},"nextPageToken":{"type":"string","maxLength":1024}},"required":["timeZone","events"],"additionalProperties":false},
+   "choices": [{"input":"calendarId","source":"calendars"}],
+   "guards": [],
+   "prepare": [
+    {"id":"tz","method":"GET","path":"/users/me/settings/{setting}","params":{"setting":{"const":"timezone"}},"optional":true,"maxResponseBytes":65536,"expect":{"status":[200],"require":[]}},
+    {"id":"tzPrimary","method":"GET","path":"/users/me/calendarList/{calendarId}","params":{"calendarId":{"const":"primary"}},"fallbackFor":"tz","maxResponseBytes":65536,"expect":{"status":[200],"require":[]}}
+   ],
+   "perform": [
+    {"id":"list","method":"GET","path":"/calendars/{calendarId}/events","params":{"calendarId":{"input":"/calendarId"}},"query":{"singleEvents":{"const":true},"orderBy":{"const":"startTime"},"timeMin":{"pick":{"transform":"time.zonedToRfc3339@1","args":{"local":{"input":"/from"},"zone":{"pick":{"transform":"time.zone@1","args":{"zone":{"either":[{"step":"tz","pointer":"/value"},{"step":"tzPrimary","pointer":"/timeZone"}]}}},"pointer":"/zone"}}},"pointer":"/time"},"timeMax":{"pick":{"transform":"time.zonedToRfc3339@1","args":{"local":{"input":"/to"},"zone":{"pick":{"transform":"time.zone@1","args":{"zone":{"either":[{"step":"tz","pointer":"/value"},{"step":"tzPrimary","pointer":"/timeZone"}]}}},"pointer":"/zone"}}},"pointer":"/time"},"timeZone":{"pick":{"transform":"time.zone@1","args":{"zone":{"either":[{"step":"tz","pointer":"/value"},{"step":"tzPrimary","pointer":"/timeZone"}]}}},"pointer":"/zone"},"maxResults":{"const":25},"maxAttendees":{"const":1},"q":{"when":{"present":{"input":"/q"}},"then":{"input":"/q"}},"pageToken":{"when":{"present":{"input":"/pageToken"}},"then":{"input":"/pageToken"}}},"maxResponseBytes":1048576,"expect":{"status":[200],"require":[]}}
+   ],
+   "output": {"timeZone":{"pick":{"transform":"time.zone@1","args":{"zone":{"either":[{"step":"tz","pointer":"/value"},{"step":"tzPrimary","pointer":"/timeZone"}]}}},"pointer":"/zone"},"events":{"each":{"step":"list","pointer":"/items"},"as":"item","max":25,"do":{"object":{"id":{"pick":{"var":"item"},"pointer":"/id"},"summary":{"pick":{"var":"item"},"pointer":"/summary"},"start":{"object":{"dateTime":{"pick":{"var":"item"},"pointer":"/start/dateTime"},"date":{"pick":{"var":"item"},"pointer":"/start/date"},"timeZone":{"pick":{"var":"item"},"pointer":"/start/timeZone"}}},"end":{"object":{"dateTime":{"pick":{"var":"item"},"pointer":"/end/dateTime"},"date":{"pick":{"var":"item"},"pointer":"/end/date"},"timeZone":{"pick":{"var":"item"},"pointer":"/end/timeZone"}}},"status":{"pick":{"var":"item"},"pointer":"/status"},"htmlLink":{"pick":{"var":"item"},"pointer":"/htmlLink"},"recurringEventId":{"pick":{"var":"item"},"pointer":"/recurringEventId"}}}},"nextPageToken":{"step":"list","pointer":"/nextPageToken"}},
+   "preview": [
+    {"label":"Calendar","expr":{"input":"/calendarId"}},
+    {"label":"From","expr":{"concat":[{"pick":{"transform":"time.zonedToRfc3339@1","args":{"local":{"input":"/from"},"zone":{"pick":{"transform":"time.zone@1","args":{"zone":{"either":[{"step":"tz","pointer":"/value"},{"step":"tzPrimary","pointer":"/timeZone"}]}}},"pointer":"/zone"}}},"pointer":"/time"},{"const":" ("},{"pick":{"transform":"time.zone@1","args":{"zone":{"either":[{"step":"tz","pointer":"/value"},{"step":"tzPrimary","pointer":"/timeZone"}]}}},"pointer":"/zone"},{"const":")"}],"max":120}},
+    {"label":"To","expr":{"concat":[{"pick":{"transform":"time.zonedToRfc3339@1","args":{"local":{"input":"/to"},"zone":{"pick":{"transform":"time.zone@1","args":{"zone":{"either":[{"step":"tz","pointer":"/value"},{"step":"tzPrimary","pointer":"/timeZone"}]}}},"pointer":"/zone"}}},"pointer":"/time"},{"const":" ("},{"pick":{"transform":"time.zone@1","args":{"zone":{"either":[{"step":"tz","pointer":"/value"},{"step":"tzPrimary","pointer":"/timeZone"}]}}},"pointer":"/zone"},{"const":")"}],"max":120}},
+    {"label":"Search","expr":{"input":"/q"}}
+   ],
+   "definitive": [400,403,404,410],
+   "certified": {"evidence":"docs/live-evidence/google-calendar/actions.json","definitionHash":"3c3feb012af05325fce0a286fd3cc7e4469bd0319da7faffca2eeab57f6656c0"}
+  },
+  {
+   "id": "google-calendar.action.get-event.v1.29b73563f4aa8a04079ff18c",
+   "key": "get-event",
+   "version": 1,
+   "name": "Get event details",
+   "description": "Reads one event: its times, place, description (cut at 4,000 characters), organizer, up to 100 guests with their answers, how it repeats and its video call link.",
+   "effect": "read",
+   "row": "google-calendar.events.read",
+   "hints": {"readOnly":true,"destructive":false,"idempotent":true,"openWorld":true},
+   "inputSchema": {"type":"object","properties":{"calendarId":{"type":"string","minLength":1,"maxLength":1024,"description":"The calendar: an id from List my calendars, or primary for your own calendar."},"eventId":{"type":"string","minLength":1,"maxLength":1024,"description":"The event id, as Find events or Get event details gives it."}},"required":["calendarId","eventId"],"additionalProperties":false},
+   "outputSchema": {"type":"object","properties":{"id":{"type":"string","maxLength":1024},"summary":{"type":"string","maxLength":8192},"start":{"type":"object","properties":{"dateTime":{"type":"string","maxLength":64},"date":{"type":"string","maxLength":16},"timeZone":{"type":"string","maxLength":64}},"required":[],"additionalProperties":false},"end":{"type":"object","properties":{"dateTime":{"type":"string","maxLength":64},"date":{"type":"string","maxLength":16},"timeZone":{"type":"string","maxLength":64}},"required":[],"additionalProperties":false},"status":{"type":"string","maxLength":32},"htmlLink":{"type":"string","maxLength":2048},"etag":{"type":"string","maxLength":256},"description":{"type":"string","maxLength":4000},"descriptionTruncated":{"type":"boolean"},"location":{"type":"string","maxLength":8192},"eventType":{"type":"string","maxLength":64},"organizerEmail":{"type":"string","maxLength":1024},"organizerSelf":{"type":"boolean"},"attendees":{"type":"array","maxItems":100,"items":{"type":"object","properties":{"email":{"type":"string","maxLength":1024},"responseStatus":{"type":"string","maxLength":32},"optional":{"type":"boolean"},"organizer":{"type":"boolean"},"self":{"type":"boolean"}},"required":[],"additionalProperties":false}},"attendeesOmitted":{"type":"boolean"},"recurrence":{"type":"array","maxItems":10,"items":{"type":"string","maxLength":1000}},"recurringEventId":{"type":"string","maxLength":1024},"hangoutLink":{"type":"string","maxLength":2048},"conferenceStatus":{"type":"string","maxLength":32}},"required":["id"],"additionalProperties":false},
+   "choices": [{"input":"calendarId","source":"calendars"}],
+   "guards": [],
+   "prepare": [],
+   "perform": [
+    {"id":"event","method":"GET","path":"/calendars/{calendarId}/events/{eventId}","params":{"calendarId":{"input":"/calendarId"},"eventId":{"input":"/eventId"}},"query":{"maxAttendees":{"const":100}},"expect":{"status":[200],"require":[]}}
+   ],
+   "output": {"id":{"step":"event","pointer":"/id"},"summary":{"step":"event","pointer":"/summary"},"start":{"object":{"dateTime":{"step":"event","pointer":"/start/dateTime"},"date":{"step":"event","pointer":"/start/date"},"timeZone":{"step":"event","pointer":"/start/timeZone"}}},"end":{"object":{"dateTime":{"step":"event","pointer":"/end/dateTime"},"date":{"step":"event","pointer":"/end/date"},"timeZone":{"step":"event","pointer":"/end/timeZone"}}},"status":{"step":"event","pointer":"/status"},"htmlLink":{"step":"event","pointer":"/htmlLink"},"etag":{"step":"event","pointer":"/etag"},"description":{"when":{"present":{"step":"event","pointer":"/description"}},"then":{"pick":{"transform":"text.truncate@1","args":{"text":{"step":"event","pointer":"/description"},"max":{"const":4000}}},"pointer":"/text"}},"descriptionTruncated":{"when":{"present":{"step":"event","pointer":"/description"}},"then":{"pick":{"transform":"text.truncate@1","args":{"text":{"step":"event","pointer":"/description"},"max":{"const":4000}}},"pointer":"/truncated"}},"location":{"step":"event","pointer":"/location"},"eventType":{"step":"event","pointer":"/eventType"},"organizerEmail":{"step":"event","pointer":"/organizer/email"},"organizerSelf":{"step":"event","pointer":"/organizer/self"},"attendees":{"when":{"present":{"step":"event","pointer":"/attendees"}},"then":{"each":{"step":"event","pointer":"/attendees"},"as":"guest","max":100,"do":{"object":{"email":{"pick":{"var":"guest"},"pointer":"/email"},"responseStatus":{"pick":{"var":"guest"},"pointer":"/responseStatus"},"optional":{"pick":{"var":"guest"},"pointer":"/optional"},"organizer":{"pick":{"var":"guest"},"pointer":"/organizer"},"self":{"pick":{"var":"guest"},"pointer":"/self"}}}}},"attendeesOmitted":{"step":"event","pointer":"/attendeesOmitted"},"recurrence":{"when":{"present":{"step":"event","pointer":"/recurrence"}},"then":{"each":{"step":"event","pointer":"/recurrence"},"as":"line","max":10,"do":{"concat":[{"var":"line"}],"max":1000}}},"recurringEventId":{"step":"event","pointer":"/recurringEventId"},"hangoutLink":{"step":"event","pointer":"/hangoutLink"},"conferenceStatus":{"step":"event","pointer":"/conferenceData/createRequest/status/statusCode"}},
+   "preview": [
+    {"label":"Calendar","expr":{"input":"/calendarId"}},
+    {"label":"Event id","expr":{"input":"/eventId"}}
+   ],
+   "definitive": [403,404,410],
+   "certified": {"evidence":"docs/live-evidence/google-calendar/actions.json","definitionHash":"bdaebb29c6ddaf37b1dac3acf1bb6e4cf69a6145fd90097f7a794badb6c25c45"}
+  },
+  {
+   "id": "google-calendar.action.list-calendars.v1.5862d2ac99281766e2f9eeea",
+   "key": "list-calendars",
+   "version": 1,
+   "name": "List my calendars",
+   "description": "Lists the calendars on your list, 50 a page, with each one's id (which the other Calendar actions take), name, your access and its time zone.",
+   "effect": "read",
+   "row": "google-calendar.calendars.read",
+   "hints": {"readOnly":true,"destructive":false,"idempotent":true,"openWorld":true},
+   "inputSchema": {"type":"object","properties":{"pageToken":{"type":"string","minLength":1,"maxLength":1024,"description":"nextPageToken from the page before, for the next page."}},"required":[],"additionalProperties":false},
+   "outputSchema": {"type":"object","properties":{"calendars":{"type":"array","maxItems":50,"items":{"type":"object","properties":{"id":{"type":"string","maxLength":1024},"summary":{"type":"string","maxLength":1024},"summaryOverride":{"type":"string","maxLength":1024},"primary":{"type":"boolean"},"accessRole":{"type":"string","maxLength":32},"timeZone":{"type":"string","maxLength":64}},"required":[],"additionalProperties":false}},"nextPageToken":{"type":"string","maxLength":1024}},"required":["calendars"],"additionalProperties":false},
+   "guards": [],
+   "prepare": [],
+   "perform": [
+    {"id":"list","method":"GET","path":"/users/me/calendarList","query":{"maxResults":{"const":50},"pageToken":{"when":{"present":{"input":"/pageToken"}},"then":{"input":"/pageToken"}}},"maxResponseBytes":1048576,"expect":{"status":[200],"require":[]}}
+   ],
+   "output": {"calendars":{"each":{"step":"list","pointer":"/items"},"as":"entry","max":50,"do":{"object":{"id":{"pick":{"var":"entry"},"pointer":"/id"},"summary":{"pick":{"var":"entry"},"pointer":"/summary"},"summaryOverride":{"pick":{"var":"entry"},"pointer":"/summaryOverride"},"primary":{"pick":{"var":"entry"},"pointer":"/primary"},"accessRole":{"pick":{"var":"entry"},"pointer":"/accessRole"},"timeZone":{"pick":{"var":"entry"},"pointer":"/timeZone"}}}},"nextPageToken":{"step":"list","pointer":"/nextPageToken"}},
+   "preview": [],
+   "definitive": [400,403],
+   "certified": {"evidence":"docs/live-evidence/google-calendar/actions.json","definitionHash":"dbf997c7a3a27111cb19ffeedd9f5dc9b6e5201167d8db4e4fe5445e042416e4"}
+  },
+  {
+   "id": "google-calendar.action.find-free-time.v1.35e22e29141c03619ed939ca",
+   "key": "find-free-time",
+   "version": 1,
+   "name": "Find free time",
+   "description": "Finds the free blocks of at least minMinutes in a time window, across up to 20 calendars, from their busy times. A calendar Google cannot read never shows as free. Blocks are in UTC; the answer names your time zone.",
+   "effect": "read",
+   "row": "google-calendar.availability.read",
+   "hints": {"readOnly":true,"destructive":false,"idempotent":true,"openWorld":true},
+   "inputSchema": {"type":"object","properties":{"from":{"type":"string","minLength":19,"maxLength":19,"description":"The start of the window, as a local wall time YYYY-MM-DDTHH:MM:SS in your calendar's time zone."},"to":{"type":"string","minLength":19,"maxLength":19,"description":"The end of the window, as a local wall time YYYY-MM-DDTHH:MM:SS in your calendar's time zone."},"calendars":{"type":"array","minItems":1,"maxItems":20,"items":{"type":"string","minLength":1,"maxLength":1000},"description":"The calendars to check: ids from List my calendars, or primary."},"minMinutes":{"type":"integer","minimum":1,"maximum":1440,"description":"The shortest free block worth showing, in minutes."}},"required":["from","to","calendars","minMinutes"],"additionalProperties":false},
+   "outputSchema": {"type":"object","properties":{"timeZone":{"type":"string","maxLength":64},"free":{"type":"array","maxItems":2001,"items":{"type":"object","properties":{"start":{"type":"string","maxLength":24},"end":{"type":"string","maxLength":24}},"required":["start","end"],"additionalProperties":false}}},"required":["timeZone","free"],"additionalProperties":false},
+   "choices": [{"input":"calendars","source":"calendars"}],
+   "guards": [],
+   "prepare": [
+    {"id":"tz","method":"GET","path":"/users/me/settings/{setting}","params":{"setting":{"const":"timezone"}},"optional":true,"maxResponseBytes":65536,"expect":{"status":[200],"require":[]}},
+    {"id":"tzPrimary","method":"GET","path":"/users/me/calendarList/{calendarId}","params":{"calendarId":{"const":"primary"}},"fallbackFor":"tz","maxResponseBytes":65536,"expect":{"status":[200],"require":[]}}
+   ],
+   "perform": [
+    {"id":"busy","method":"POST","path":"/freeBusy","body":{"object":{"timeMin":{"pick":{"transform":"time.zonedToRfc3339@1","args":{"local":{"input":"/from"},"zone":{"pick":{"transform":"time.zone@1","args":{"zone":{"either":[{"step":"tz","pointer":"/value"},{"step":"tzPrimary","pointer":"/timeZone"}]}}},"pointer":"/zone"}}},"pointer":"/time"},"timeMax":{"pick":{"transform":"time.zonedToRfc3339@1","args":{"local":{"input":"/to"},"zone":{"pick":{"transform":"time.zone@1","args":{"zone":{"either":[{"step":"tz","pointer":"/value"},{"step":"tzPrimary","pointer":"/timeZone"}]}}},"pointer":"/zone"}}},"pointer":"/time"},"timeZone":{"pick":{"transform":"time.zone@1","args":{"zone":{"either":[{"step":"tz","pointer":"/value"},{"step":"tzPrimary","pointer":"/timeZone"}]}}},"pointer":"/zone"},"items":{"each":{"input":"/calendars"},"as":"calendar","max":20,"do":{"object":{"id":{"var":"calendar"}}}}}},"maxResponseBytes":1048576,"expect":{"status":[200],"require":[]}}
+   ],
+   "output": {"timeZone":{"pick":{"transform":"time.zone@1","args":{"zone":{"either":[{"step":"tz","pointer":"/value"},{"step":"tzPrimary","pointer":"/timeZone"}]}}},"pointer":"/zone"},"free":{"pick":{"transform":"time.freeSlots@1","args":{"freeBusy":{"step":"busy","pointer":""},"start":{"pick":{"transform":"time.zonedToRfc3339@1","args":{"local":{"input":"/from"},"zone":{"pick":{"transform":"time.zone@1","args":{"zone":{"either":[{"step":"tz","pointer":"/value"},{"step":"tzPrimary","pointer":"/timeZone"}]}}},"pointer":"/zone"}}},"pointer":"/time"},"end":{"pick":{"transform":"time.zonedToRfc3339@1","args":{"local":{"input":"/to"},"zone":{"pick":{"transform":"time.zone@1","args":{"zone":{"either":[{"step":"tz","pointer":"/value"},{"step":"tzPrimary","pointer":"/timeZone"}]}}},"pointer":"/zone"}}},"pointer":"/time"},"minMinutes":{"input":"/minMinutes"}}},"pointer":"/free"}},
+   "preview": [
+    {"label":"From","expr":{"concat":[{"pick":{"transform":"time.zonedToRfc3339@1","args":{"local":{"input":"/from"},"zone":{"pick":{"transform":"time.zone@1","args":{"zone":{"either":[{"step":"tz","pointer":"/value"},{"step":"tzPrimary","pointer":"/timeZone"}]}}},"pointer":"/zone"}}},"pointer":"/time"},{"const":" ("},{"pick":{"transform":"time.zone@1","args":{"zone":{"either":[{"step":"tz","pointer":"/value"},{"step":"tzPrimary","pointer":"/timeZone"}]}}},"pointer":"/zone"},{"const":")"}],"max":120}},
+    {"label":"To","expr":{"concat":[{"pick":{"transform":"time.zonedToRfc3339@1","args":{"local":{"input":"/to"},"zone":{"pick":{"transform":"time.zone@1","args":{"zone":{"either":[{"step":"tz","pointer":"/value"},{"step":"tzPrimary","pointer":"/timeZone"}]}}},"pointer":"/zone"}}},"pointer":"/time"},{"const":" ("},{"pick":{"transform":"time.zone@1","args":{"zone":{"either":[{"step":"tz","pointer":"/value"},{"step":"tzPrimary","pointer":"/timeZone"}]}}},"pointer":"/zone"},{"const":")"}],"max":120}},
+    {"label":"Calendars","expr":{"pick":{"transform":"text.joinList@1","args":{"items":{"input":"/calendars"}}},"pointer":"/text"}},
+    {"label":"Shortest block (minutes)","expr":{"input":"/minMinutes"}}
+   ],
+   "definitive": [400,403],
+   "certified": {"evidence":"docs/live-evidence/google-calendar/actions.json","definitionHash":"dc8a2185b13af029d1db196a04dbe75cb46a0ee5a264dd046868f02a345c50ff"}
+  },
+  {
+   "id": "google-calendar.action.create-event.v1.c9dba780678739624d636a8d",
+   "key": "create-event",
+   "version": 1,
+   "name": "Create event",
+   "description": "Creates one event: timed, from local start and end times in your calendar's time zone, or all day, from a first day and a number of days. It may repeat (one RRULE line), invite guests and add a Google Meet link. Google emails people only as notify says.",
+   "effect": "write",
+   "row": "google-calendar.events.write",
+   "hints": {"readOnly":false,"destructive":false,"idempotent":false,"openWorld":true},
+   "inputSchema": {"type":"object","properties":{"calendarId":{"type":"string","minLength":1,"maxLength":1024,"description":"The calendar: an id from List my calendars, or primary for your own calendar."},"kind":{"type":"string","enum":["timed","all-day"],"description":"timed takes start and end, and no date or days; all-day takes date and days, and no start or end."},"summary":{"type":"string","minLength":1,"maxLength":1024,"description":"The title."},"description":{"type":"string","minLength":1,"maxLength":8192},"location":{"type":"string","minLength":1,"maxLength":1024},"start":{"type":"string","minLength":19,"maxLength":19,"description":"The start of a timed event, as a local wall time YYYY-MM-DDTHH:MM:SS in your calendar's time zone."},"end":{"type":"string","minLength":19,"maxLength":19,"description":"The end of a timed event, as a local wall time YYYY-MM-DDTHH:MM:SS in your calendar's time zone."},"date":{"type":"string","format":"date","minLength":10,"maxLength":10,"description":"The first day of an all-day event, YYYY-MM-DD."},"days":{"type":"integer","minimum":1,"maximum":3660,"description":"How many days an all-day event lasts."},"recurrence":{"type":"string","minLength":1,"maxLength":1000,"description":"How it repeats: one RRULE line, such as RRULE:FREQ=WEEKLY;COUNT=3."},"guests":{"type":"array","maxItems":100,"items":{"type":"string","format":"email","minLength":3,"maxLength":254},"description":"The addresses to invite."},"meet":{"type":"boolean","description":"true adds a Google Meet video call."},"notify":{"type":"string","enum":["none","externalOnly","all"],"description":"Who Google emails about this change: none (nobody), externalOnly (guests outside your organization) or all guests."}},"required":["calendarId","kind","summary","notify"],"additionalProperties":false},
+   "outputSchema": {"type":"object","properties":{"id":{"type":"string","maxLength":1024},"summary":{"type":"string","maxLength":8192},"start":{"type":"object","properties":{"dateTime":{"type":"string","maxLength":64},"date":{"type":"string","maxLength":16},"timeZone":{"type":"string","maxLength":64}},"required":[],"additionalProperties":false},"end":{"type":"object","properties":{"dateTime":{"type":"string","maxLength":64},"date":{"type":"string","maxLength":16},"timeZone":{"type":"string","maxLength":64}},"required":[],"additionalProperties":false},"status":{"type":"string","maxLength":32},"htmlLink":{"type":"string","maxLength":2048},"hangoutLink":{"type":"string","maxLength":2048},"conferenceStatus":{"type":"string","maxLength":32}},"required":["id"],"additionalProperties":false},
+   "choices": [{"input":"calendarId","source":"calendars"}],
+   "guards": [
+    {"transform":"collections.oneOf@1","args":{"value":{"concat":[{"pick":{"transform":"text.joinList@1","args":{"items":{"array":[{"when":{"equals":[{"input":"/kind"},{"const":"timed"}]},"then":{"const":"timed"}},{"when":{"equals":[{"input":"/kind"},{"const":"all-day"}]},"then":{"const":"all-day"}},{"when":{"present":{"input":"/start"}},"then":{"const":"start"}},{"when":{"present":{"input":"/end"}},"then":{"const":"end"}},{"when":{"present":{"input":"/date"}},"then":{"const":"date"}},{"when":{"present":{"input":"/days"}},"then":{"const":"days"}}]}}},"pointer":"/text"}],"max":100},"set":{"const":["timed\nstart\nend","all-day\ndate\ndays"]},"fold":{"const":"none"}},"refuse":"wrong_kind"}
+   ],
+   "prepare": [
+    {"id":"tz","method":"GET","path":"/users/me/settings/{setting}","params":{"setting":{"const":"timezone"}},"optional":true,"maxResponseBytes":65536,"expect":{"status":[200],"require":[]}},
+    {"id":"tzPrimary","method":"GET","path":"/users/me/calendarList/{calendarId}","params":{"calendarId":{"const":"primary"}},"fallbackFor":"tz","maxResponseBytes":65536,"expect":{"status":[200],"require":[]}}
+   ],
+   "perform": [
+    {"id":"create","method":"POST","path":"/calendars/{calendarId}/events","params":{"calendarId":{"input":"/calendarId"}},"query":{"conferenceDataVersion":{"const":1},"sendUpdates":{"input":"/notify"}},"body":{"object":{"summary":{"input":"/summary"},"description":{"when":{"present":{"input":"/description"}},"then":{"input":"/description"}},"location":{"when":{"present":{"input":"/location"}},"then":{"input":"/location"}},"start":{"object":{"dateTime":{"when":{"equals":[{"input":"/kind"},{"const":"timed"}]},"then":{"pick":{"transform":"time.zonedToRfc3339@1","args":{"local":{"input":"/start"},"zone":{"pick":{"transform":"time.zone@1","args":{"zone":{"either":[{"step":"tz","pointer":"/value"},{"step":"tzPrimary","pointer":"/timeZone"}]}}},"pointer":"/zone"}}},"pointer":"/time"}},"date":{"when":{"equals":[{"input":"/kind"},{"const":"all-day"}]},"then":{"input":"/date"}},"timeZone":{"when":{"equals":[{"input":"/kind"},{"const":"timed"}]},"then":{"pick":{"transform":"time.zone@1","args":{"zone":{"either":[{"step":"tz","pointer":"/value"},{"step":"tzPrimary","pointer":"/timeZone"}]}}},"pointer":"/zone"}}}},"end":{"object":{"dateTime":{"when":{"equals":[{"input":"/kind"},{"const":"timed"}]},"then":{"pick":{"transform":"time.zonedToRfc3339@1","args":{"local":{"input":"/end"},"zone":{"pick":{"transform":"time.zone@1","args":{"zone":{"either":[{"step":"tz","pointer":"/value"},{"step":"tzPrimary","pointer":"/timeZone"}]}}},"pointer":"/zone"}}},"pointer":"/time"}},"date":{"when":{"equals":[{"input":"/kind"},{"const":"all-day"}]},"then":{"pick":{"transform":"time.allDayEnd@1","args":{"date":{"input":"/date"},"days":{"input":"/days"}}},"pointer":"/end"}},"timeZone":{"when":{"equals":[{"input":"/kind"},{"const":"timed"}]},"then":{"pick":{"transform":"time.zone@1","args":{"zone":{"either":[{"step":"tz","pointer":"/value"},{"step":"tzPrimary","pointer":"/timeZone"}]}}},"pointer":"/zone"}}}},"recurrence":{"when":{"present":{"input":"/recurrence"}},"then":{"pick":{"transform":"time.rrule@1","args":{"recurrence":{"array":[{"input":"/recurrence"}]}}},"pointer":"/recurrence"}},"attendees":{"when":{"present":{"input":"/guests"}},"then":{"each":{"input":"/guests"},"as":"guest","max":100,"do":{"object":{"email":{"var":"guest"}}}}},"conferenceData":{"when":{"equals":[{"input":"/meet"},{"const":true}]},"then":{"object":{"createRequest":{"object":{"requestId":{"jobKey":"meet"},"conferenceSolutionKey":{"const":{"type":"hangoutsMeet"}}}}}}}}},"expect":{"status":[200],"require":[]}}
+   ],
+   "verify": {
+    "requests": [{"id":"check","method":"GET","path":"/calendars/{calendarId}/events/{eventId}","params":{"calendarId":{"input":"/calendarId"},"eventId":{"step":"create","pointer":"/id"}},"expect":{"status":[200],"require":[]}}],
+    "identity": [{"kind":"readback","step":"check","pointer":"/id","equals":{"step":"create","pointer":"/id"}}],
+    "assert": [{"step":"check","equals":{"pointer":"/summary","value":{"step":"create","pointer":"/summary"}}},{"step":"check","equals":{"pointer":"/start","value":{"step":"create","pointer":"/start"}}}]
+   },
+   "output": {"id":{"step":"create","pointer":"/id"},"summary":{"step":"create","pointer":"/summary"},"start":{"object":{"dateTime":{"step":"create","pointer":"/start/dateTime"},"date":{"step":"create","pointer":"/start/date"},"timeZone":{"step":"create","pointer":"/start/timeZone"}}},"end":{"object":{"dateTime":{"step":"create","pointer":"/end/dateTime"},"date":{"step":"create","pointer":"/end/date"},"timeZone":{"step":"create","pointer":"/end/timeZone"}}},"status":{"step":"create","pointer":"/status"},"htmlLink":{"step":"create","pointer":"/htmlLink"},"hangoutLink":{"step":"create","pointer":"/hangoutLink"},"conferenceStatus":{"step":"create","pointer":"/conferenceData/createRequest/status/statusCode"}},
+   "preview": [
+    {"label":"Calendar","expr":{"input":"/calendarId"}},
+    {"label":"Event","expr":{"input":"/summary"},"truncate":200},
+    {"label":"Starts (local time)","expr":{"input":"/start"}},
+    {"label":"Ends (local time)","expr":{"input":"/end"}},
+    {"label":"Time zone","expr":{"pick":{"transform":"time.zone@1","args":{"zone":{"either":[{"step":"tz","pointer":"/value"},{"step":"tzPrimary","pointer":"/timeZone"}]}}},"pointer":"/zone"}},
+    {"label":"All day from","expr":{"input":"/date"}},
+    {"label":"Days","expr":{"input":"/days"}},
+    {"label":"Repeats","expr":{"input":"/recurrence"}},
+    {"label":"Guests","expr":{"pick":{"transform":"text.joinList@1","args":{"items":{"when":{"present":{"input":"/guests"}},"then":{"input":"/guests"}},"mailboxes":{"when":{"absent":{"input":"/guests"}},"then":{"const":[]}}}},"pointer":"/text"}},
+    {"label":"Emails Google sends","expr":{"input":"/notify"}}
+   ],
+   "definitive": [400,403,404],
+   "certified": {"evidence":"docs/live-evidence/google-calendar/actions.json","definitionHash":"6504283d6b379d5ab717077f17a678d7a3579b185cf1dfa61bd155f786319ada"}
+  },
+  {
+   "id": "google-calendar.action.quick-add.v1.3c393646f468e16cdc2cfd86",
+   "key": "quick-add",
+   "version": 1,
+   "name": "Quick add",
+   "description": "Creates one event from a line of text, such as \"Lunch on 2026-11-02 at 12pm to 1pm\"; Google reads the title, date and time from it in your calendar's time zone. The answer shows the times Google read. It invites nobody: use Create event for guests.",
+   "effect": "write",
+   "row": "google-calendar.events.write",
+   "hints": {"readOnly":false,"destructive":false,"idempotent":false,"openWorld":true},
+   "inputSchema": {"type":"object","properties":{"calendarId":{"type":"string","minLength":1,"maxLength":1024,"description":"The calendar: an id from List my calendars, or primary for your own calendar."},"text":{"type":"string","minLength":1,"maxLength":1024,"description":"The line of text Google reads."},"notify":{"type":"string","enum":["none","externalOnly","all"],"description":"Who Google emails about this change: none (nobody), externalOnly (guests outside your organization) or all guests."}},"required":["calendarId","text","notify"],"additionalProperties":false},
+   "outputSchema": {"type":"object","properties":{"id":{"type":"string","maxLength":1024},"summary":{"type":"string","maxLength":8192},"start":{"type":"object","properties":{"dateTime":{"type":"string","maxLength":64},"date":{"type":"string","maxLength":16},"timeZone":{"type":"string","maxLength":64}},"required":[],"additionalProperties":false},"end":{"type":"object","properties":{"dateTime":{"type":"string","maxLength":64},"date":{"type":"string","maxLength":16},"timeZone":{"type":"string","maxLength":64}},"required":[],"additionalProperties":false},"status":{"type":"string","maxLength":32},"htmlLink":{"type":"string","maxLength":2048}},"required":["id"],"additionalProperties":false},
+   "choices": [{"input":"calendarId","source":"calendars"}],
+   "guards": [],
+   "prepare": [],
+   "perform": [
+    {"id":"quick","method":"POST","path":"/calendars/{calendarId}/events/quickAdd","params":{"calendarId":{"input":"/calendarId"}},"query":{"text":{"input":"/text"},"sendUpdates":{"input":"/notify"}},"expect":{"status":[200],"require":[]}}
+   ],
+   "verify": {
+    "requests": [{"id":"check","method":"GET","path":"/calendars/{calendarId}/events/{eventId}","params":{"calendarId":{"input":"/calendarId"},"eventId":{"step":"quick","pointer":"/id"}},"expect":{"status":[200],"require":[]}}],
+    "identity": [{"kind":"readback","step":"check","pointer":"/id","equals":{"step":"quick","pointer":"/id"}}],
+    "assert": [{"step":"check","equals":{"pointer":"/summary","value":{"step":"quick","pointer":"/summary"}}},{"step":"check","equals":{"pointer":"/start","value":{"step":"quick","pointer":"/start"}}}]
+   },
+   "output": {"id":{"step":"quick","pointer":"/id"},"summary":{"step":"quick","pointer":"/summary"},"start":{"object":{"dateTime":{"step":"quick","pointer":"/start/dateTime"},"date":{"step":"quick","pointer":"/start/date"},"timeZone":{"step":"quick","pointer":"/start/timeZone"}}},"end":{"object":{"dateTime":{"step":"quick","pointer":"/end/dateTime"},"date":{"step":"quick","pointer":"/end/date"},"timeZone":{"step":"quick","pointer":"/end/timeZone"}}},"status":{"step":"quick","pointer":"/status"},"htmlLink":{"step":"quick","pointer":"/htmlLink"}},
+   "preview": [
+    {"label":"Calendar","expr":{"input":"/calendarId"}},
+    {"label":"Text","expr":{"input":"/text"}},
+    {"label":"Times","expr":{"const":"Google reads the date and time from the text, in your calendar's time zone."}},
+    {"label":"Emails Google sends","expr":{"input":"/notify"}}
+   ],
+   "definitive": [400,403,404],
+   "certified": {"evidence":"docs/live-evidence/google-calendar/actions.json","definitionHash":"5b536b256abda31cc17f3a43b933d142598d620a7ac2d3cd114f9e78649a30d4"}
+  },
+  {
+   "id": "google-calendar.action.update-event.v1.58e5854b867e7fb877c8c2c4",
+   "key": "update-event",
+   "version": 1,
+   "name": "Update or reschedule",
+   "description": "Changes the title, description, place or times of one event, sending only what you give, and only if the event is still the version read first. New times are local wall times in your calendar's time zone.",
+   "effect": "write",
+   "row": "google-calendar.events.write",
+   "hints": {"readOnly":false,"destructive":false,"idempotent":true,"openWorld":true},
+   "inputSchema": {"type":"object","properties":{"calendarId":{"type":"string","minLength":1,"maxLength":1024,"description":"The calendar: an id from List my calendars, or primary for your own calendar."},"eventId":{"type":"string","minLength":1,"maxLength":1024,"description":"The event id, as Find events or Get event details gives it."},"summary":{"type":"string","minLength":1,"maxLength":1024},"description":{"type":"string","minLength":1,"maxLength":8192},"location":{"type":"string","minLength":1,"maxLength":1024},"newTime":{"type":"object","properties":{"start":{"type":"string","minLength":19,"maxLength":19,"description":"The new start, as a local wall time YYYY-MM-DDTHH:MM:SS in your calendar's time zone."},"end":{"type":"string","minLength":19,"maxLength":19,"description":"The new end, as a local wall time YYYY-MM-DDTHH:MM:SS in your calendar's time zone."}},"required":["start","end"],"additionalProperties":false},"notify":{"type":"string","enum":["none","externalOnly","all"],"description":"Who Google emails about this change: none (nobody), externalOnly (guests outside your organization) or all guests."}},"required":["calendarId","eventId","notify"],"additionalProperties":false},
+   "outputSchema": {"type":"object","properties":{"id":{"type":"string","maxLength":1024},"summary":{"type":"string","maxLength":8192},"start":{"type":"object","properties":{"dateTime":{"type":"string","maxLength":64},"date":{"type":"string","maxLength":16},"timeZone":{"type":"string","maxLength":64}},"required":[],"additionalProperties":false},"end":{"type":"object","properties":{"dateTime":{"type":"string","maxLength":64},"date":{"type":"string","maxLength":16},"timeZone":{"type":"string","maxLength":64}},"required":[],"additionalProperties":false},"status":{"type":"string","maxLength":32},"htmlLink":{"type":"string","maxLength":2048},"etag":{"type":"string","maxLength":256}},"required":["id"],"additionalProperties":false},
+   "choices": [{"input":"calendarId","source":"calendars"}],
+   "guards": [],
+   "prepare": [
+    {"id":"event","method":"GET","path":"/calendars/{calendarId}/events/{eventId}","params":{"calendarId":{"input":"/calendarId"},"eventId":{"input":"/eventId"}},"expect":{"status":[200],"require":[]}},
+    {"id":"tz","method":"GET","path":"/users/me/settings/{setting}","params":{"setting":{"const":"timezone"}},"optional":true,"maxResponseBytes":65536,"expect":{"status":[200],"require":[]}},
+    {"id":"tzPrimary","method":"GET","path":"/users/me/calendarList/{calendarId}","params":{"calendarId":{"const":"primary"}},"fallbackFor":"tz","maxResponseBytes":65536,"expect":{"status":[200],"require":[]}}
+   ],
+   "perform": [
+    {"id":"patch","method":"PATCH","path":"/calendars/{calendarId}/events/{eventId}","params":{"calendarId":{"input":"/calendarId"},"eventId":{"input":"/eventId"}},"query":{"sendUpdates":{"input":"/notify"}},"headers":{"If-Match":{"step":"event","pointer":"/etag"}},"body":{"object":{"summary":{"when":{"present":{"input":"/summary"}},"then":{"input":"/summary"}},"description":{"when":{"present":{"input":"/description"}},"then":{"input":"/description"}},"location":{"when":{"present":{"input":"/location"}},"then":{"input":"/location"}},"start":{"when":{"present":{"input":"/newTime"}},"then":{"object":{"dateTime":{"pick":{"transform":"time.zonedToRfc3339@1","args":{"local":{"input":"/newTime/start"},"zone":{"pick":{"transform":"time.zone@1","args":{"zone":{"either":[{"step":"tz","pointer":"/value"},{"step":"tzPrimary","pointer":"/timeZone"}]}}},"pointer":"/zone"}}},"pointer":"/time"},"timeZone":{"pick":{"transform":"time.zone@1","args":{"zone":{"either":[{"step":"tz","pointer":"/value"},{"step":"tzPrimary","pointer":"/timeZone"}]}}},"pointer":"/zone"}}}},"end":{"when":{"present":{"input":"/newTime"}},"then":{"object":{"dateTime":{"pick":{"transform":"time.zonedToRfc3339@1","args":{"local":{"input":"/newTime/end"},"zone":{"pick":{"transform":"time.zone@1","args":{"zone":{"either":[{"step":"tz","pointer":"/value"},{"step":"tzPrimary","pointer":"/timeZone"}]}}},"pointer":"/zone"}}},"pointer":"/time"},"timeZone":{"pick":{"transform":"time.zone@1","args":{"zone":{"either":[{"step":"tz","pointer":"/value"},{"step":"tzPrimary","pointer":"/timeZone"}]}}},"pointer":"/zone"}}}}}},"bindContent":"etag","expect":{"status":[200],"require":[]}}
+   ],
+   "verify": {
+    "requests": [{"id":"check","method":"GET","path":"/calendars/{calendarId}/events/{eventId}","params":{"calendarId":{"input":"/calendarId"},"eventId":{"step":"patch","pointer":"/id"}},"expect":{"status":[200],"require":[]}}],
+    "identity": [{"kind":"readback","step":"check","pointer":"/id","equals":{"step":"patch","pointer":"/id"}}],
+    "assert": [{"step":"check","equals":{"pointer":"/etag","value":{"step":"patch","pointer":"/etag"}}}]
+   },
+   "output": {"id":{"step":"patch","pointer":"/id"},"summary":{"step":"patch","pointer":"/summary"},"start":{"object":{"dateTime":{"step":"patch","pointer":"/start/dateTime"},"date":{"step":"patch","pointer":"/start/date"},"timeZone":{"step":"patch","pointer":"/start/timeZone"}}},"end":{"object":{"dateTime":{"step":"patch","pointer":"/end/dateTime"},"date":{"step":"patch","pointer":"/end/date"},"timeZone":{"step":"patch","pointer":"/end/timeZone"}}},"status":{"step":"patch","pointer":"/status"},"htmlLink":{"step":"patch","pointer":"/htmlLink"},"etag":{"step":"patch","pointer":"/etag"}},
+   "preview": [
+    {"label":"Calendar","expr":{"input":"/calendarId"}},
+    {"label":"Event","expr":{"step":"event","pointer":"/summary"},"truncate":200},
+    {"label":"Event id","expr":{"input":"/eventId"}},
+    {"label":"Starts now","expr":{"step":"event","pointer":"/start/dateTime"}},
+    {"label":"Starts now (all day)","expr":{"step":"event","pointer":"/start/date"}},
+    {"label":"Guests now","expr":{"pick":{"transform":"text.joinList@1","args":{"items":{"when":{"present":{"step":"event","pointer":"/attendees"}},"then":{"each":{"step":"event","pointer":"/attendees"},"as":"guest","do":{"pick":{"var":"guest"},"pointer":"/email"},"max":100}},"mailboxes":{"when":{"absent":{"step":"event","pointer":"/attendees"}},"then":{"const":[]}}}},"pointer":"/text"}},
+    {"label":"New title","expr":{"input":"/summary"},"truncate":200},
+    {"label":"New description","expr":{"input":"/description"},"truncate":500},
+    {"label":"New place","expr":{"input":"/location"},"truncate":200},
+    {"label":"New start (local time)","expr":{"input":"/newTime/start"}},
+    {"label":"New end (local time)","expr":{"input":"/newTime/end"}},
+    {"label":"Time zone","expr":{"pick":{"transform":"time.zone@1","args":{"zone":{"either":[{"step":"tz","pointer":"/value"},{"step":"tzPrimary","pointer":"/timeZone"}]}}},"pointer":"/zone"}},
+    {"label":"Emails Google sends","expr":{"input":"/notify"}}
+   ],
+   "definitive": [400,403,404,410,412],
+   "certified": {"evidence":"docs/live-evidence/google-calendar/actions.json","definitionHash":"d011a5e9178a7582eb0d9e3280a4d0027c8ba1768d6b781b187b3621503b499c"}
+  },
+  {
+   "id": "google-calendar.action.update-guests.v1.ae9d9cd5c9c093dac444e71e",
+   "key": "update-guests",
+   "version": 1,
+   "name": "Invite or remove guests",
+   "description": "Invites and removes guests of one event, keeping every other guest and their answers as they are. It never removes the organizer or you, and acts only if the event is still the version read first.",
+   "effect": "write",
+   "row": "google-calendar.events.write",
+   "hints": {"readOnly":false,"destructive":false,"idempotent":true,"openWorld":true},
+   "inputSchema": {"type":"object","properties":{"calendarId":{"type":"string","minLength":1,"maxLength":1024,"description":"The calendar: an id from List my calendars, or primary for your own calendar."},"eventId":{"type":"string","minLength":1,"maxLength":1024,"description":"The event id, as Find events or Get event details gives it."},"add":{"type":"array","maxItems":100,"items":{"type":"string","format":"email","minLength":3,"maxLength":254},"description":"Addresses to invite; [] for none."},"remove":{"type":"array","maxItems":100,"items":{"type":"string","format":"email","minLength":3,"maxLength":254},"description":"Addresses to remove; [] for none."},"notify":{"type":"string","enum":["none","externalOnly","all"],"description":"Who Google emails about this change: none (nobody), externalOnly (guests outside your organization) or all guests."}},"required":["calendarId","eventId","add","remove","notify"],"additionalProperties":false},
+   "outputSchema": {"type":"object","properties":{"id":{"type":"string","maxLength":1024},"etag":{"type":"string","maxLength":256},"added":{"type":"array","maxItems":100,"items":{"type":"string","maxLength":254}},"removed":{"type":"array","maxItems":100,"items":{"type":"string","maxLength":254}}},"required":["id"],"additionalProperties":false},
+   "choices": [{"input":"calendarId","source":"calendars"}],
+   "guards": [],
+   "prepare": [
+    {"id":"event","method":"GET","path":"/calendars/{calendarId}/events/{eventId}","params":{"calendarId":{"input":"/calendarId"},"eventId":{"input":"/eventId"}},"expect":{"status":[200],"require":[]}}
+   ],
+   "perform": [
+    {"id":"patch","method":"PATCH","path":"/calendars/{calendarId}/events/{eventId}","params":{"calendarId":{"input":"/calendarId"},"eventId":{"input":"/eventId"}},"query":{"sendUpdates":{"input":"/notify"}},"headers":{"If-Match":{"step":"event","pointer":"/etag"}},"body":{"object":{"attendees":{"pick":{"transform":"collections.mergeEmails@1","args":{"event":{"step":"event","pointer":""},"add":{"input":"/add"},"remove":{"input":"/remove"},"owner":{"account":"email"}}},"pointer":"/attendees"}}},"bindContent":"etag","expect":{"status":[200],"require":[]}}
+   ],
+   "verify": {
+    "requests": [{"id":"check","method":"GET","path":"/calendars/{calendarId}/events/{eventId}","params":{"calendarId":{"input":"/calendarId"},"eventId":{"step":"patch","pointer":"/id"}},"expect":{"status":[200],"require":[]}}],
+    "identity": [{"kind":"readback","step":"check","pointer":"/id","equals":{"step":"patch","pointer":"/id"}}],
+    "assert": [{"step":"check","equals":{"pointer":"/etag","value":{"step":"patch","pointer":"/etag"}}}]
+   },
+   "output": {"id":{"step":"patch","pointer":"/id"},"etag":{"step":"patch","pointer":"/etag"},"added":{"pick":{"transform":"collections.mergeEmails@1","args":{"event":{"step":"event","pointer":""},"add":{"input":"/add"},"remove":{"input":"/remove"},"owner":{"account":"email"}}},"pointer":"/added"},"removed":{"pick":{"transform":"collections.mergeEmails@1","args":{"event":{"step":"event","pointer":""},"add":{"input":"/add"},"remove":{"input":"/remove"},"owner":{"account":"email"}}},"pointer":"/removed"}},
+   "preview": [
+    {"label":"Calendar","expr":{"input":"/calendarId"}},
+    {"label":"Event","expr":{"step":"event","pointer":"/summary"},"truncate":200},
+    {"label":"Event id","expr":{"input":"/eventId"}},
+    {"label":"Starts now","expr":{"step":"event","pointer":"/start/dateTime"}},
+    {"label":"Starts now (all day)","expr":{"step":"event","pointer":"/start/date"}},
+    {"label":"Guests now","expr":{"pick":{"transform":"text.joinList@1","args":{"items":{"when":{"present":{"step":"event","pointer":"/attendees"}},"then":{"each":{"step":"event","pointer":"/attendees"},"as":"guest","do":{"pick":{"var":"guest"},"pointer":"/email"},"max":100}},"mailboxes":{"when":{"absent":{"step":"event","pointer":"/attendees"}},"then":{"const":[]}}}},"pointer":"/text"}},
+    {"label":"Guests added","expr":{"pick":{"transform":"text.joinList@1","args":{"items":{"pick":{"transform":"collections.mergeEmails@1","args":{"event":{"step":"event","pointer":""},"add":{"input":"/add"},"remove":{"input":"/remove"},"owner":{"account":"email"}}},"pointer":"/added"}}},"pointer":"/text"}},
+    {"label":"Guests removed","expr":{"pick":{"transform":"text.joinList@1","args":{"items":{"pick":{"transform":"collections.mergeEmails@1","args":{"event":{"step":"event","pointer":""},"add":{"input":"/add"},"remove":{"input":"/remove"},"owner":{"account":"email"}}},"pointer":"/removed"}}},"pointer":"/text"}},
+    {"label":"Emails Google sends","expr":{"input":"/notify"}}
+   ],
+   "definitive": [400,403,404,410,412],
+   "certified": {"evidence":"docs/live-evidence/google-calendar/actions.json","definitionHash":"68c9db87b5ca2a13e69f42a9eabf43d7980a9d7021a8ee1ad4222176709b7599"}
+  },
+  {
+   "id": "google-calendar.action.respond-event.v1.8e0d5867c84278c762f0b962",
+   "key": "respond-event",
+   "version": 1,
+   "name": "Respond to an invitation",
+   "description": "Answers an invitation on your calendar: accepted, declined or tentative. It sends only your own guest entry, and refuses when you are not a guest of the event.",
+   "effect": "write",
+   "row": "google-calendar.events.write",
+   "hints": {"readOnly":false,"destructive":false,"idempotent":true,"openWorld":true},
+   "inputSchema": {"type":"object","properties":{"calendarId":{"type":"string","minLength":1,"maxLength":1024,"description":"The calendar: an id from List my calendars, or primary for your own calendar."},"eventId":{"type":"string","minLength":1,"maxLength":1024,"description":"The event id, as Find events or Get event details gives it."},"response":{"type":"string","enum":["accepted","declined","tentative"]},"notify":{"type":"string","enum":["none","externalOnly","all"],"description":"Who Google emails about this change: none (nobody), externalOnly (guests outside your organization) or all guests."}},"required":["calendarId","eventId","response","notify"],"additionalProperties":false},
+   "outputSchema": {"type":"object","properties":{"id":{"type":"string","maxLength":1024},"etag":{"type":"string","maxLength":256},"response":{"type":"string","maxLength":32}},"required":["id"],"additionalProperties":false},
+   "choices": [{"input":"calendarId","source":"calendars"}],
+   "guards": [],
+   "prepare": [
+    {"id":"event","method":"GET","path":"/calendars/{calendarId}/events/{eventId}","params":{"calendarId":{"input":"/calendarId"},"eventId":{"input":"/eventId"}},"expect":{"status":[200],"require":[]}}
+   ],
+   "perform": [
+    {"id":"patch","method":"PATCH","path":"/calendars/{calendarId}/events/{eventId}","params":{"calendarId":{"input":"/calendarId"},"eventId":{"input":"/eventId"}},"query":{"sendUpdates":{"input":"/notify"}},"headers":{"If-Match":{"step":"event","pointer":"/etag"}},"body":{"object":{"attendeesOmitted":{"const":true},"attendees":{"array":[{"object":{"email":{"pick":{"transform":"collections.findBy@1","args":{"list":{"step":"event","pointer":""},"items":{"const":"/attendees"},"field":{"const":"/email"},"id":{"const":"/email"},"value":{"account":"email"},"fold":{"const":"ascii"},"require":{"const":"one"}}},"pointer":"/matches/0/id"},"responseStatus":{"input":"/response"}}}]}}},"bindContent":"etag","expect":{"status":[200],"require":[]}}
+   ],
+   "verify": {
+    "requests": [{"id":"check","method":"GET","path":"/calendars/{calendarId}/events/{eventId}","params":{"calendarId":{"input":"/calendarId"},"eventId":{"step":"patch","pointer":"/id"}},"expect":{"status":[200],"require":[]}}],
+    "identity": [{"kind":"readback","step":"check","pointer":"/id","equals":{"step":"patch","pointer":"/id"}}],
+    "assert": [{"step":"check","equals":{"pointer":"/etag","value":{"step":"patch","pointer":"/etag"}}},{"step":"check","listHas":{"list":"/attendees","where":[{"field":"/self","equals":{"const":true}},{"field":"/responseStatus","equals":{"input":"/response"}}]}}]
+   },
+   "output": {"id":{"step":"patch","pointer":"/id"},"etag":{"step":"patch","pointer":"/etag"},"response":{"input":"/response"}},
+   "preview": [
+    {"label":"Calendar","expr":{"input":"/calendarId"}},
+    {"label":"Event","expr":{"step":"event","pointer":"/summary"},"truncate":200},
+    {"label":"Event id","expr":{"input":"/eventId"}},
+    {"label":"Starts now","expr":{"step":"event","pointer":"/start/dateTime"}},
+    {"label":"Starts now (all day)","expr":{"step":"event","pointer":"/start/date"}},
+    {"label":"Guests now","expr":{"pick":{"transform":"text.joinList@1","args":{"items":{"when":{"present":{"step":"event","pointer":"/attendees"}},"then":{"each":{"step":"event","pointer":"/attendees"},"as":"guest","do":{"pick":{"var":"guest"},"pointer":"/email"},"max":100}},"mailboxes":{"when":{"absent":{"step":"event","pointer":"/attendees"}},"then":{"const":[]}}}},"pointer":"/text"}},
+    {"label":"Organizer","expr":{"step":"event","pointer":"/organizer/email"}},
+    {"label":"Your answer","expr":{"input":"/response"}},
+    {"label":"Emails Google sends","expr":{"input":"/notify"}}
+   ],
+   "definitive": [400,403,404,410,412],
+   "certified": {"evidence":"docs/live-evidence/google-calendar/actions.json","definitionHash":"b07a89dbc51bf6409465c55be3323fd5256d562175b29cc34ab6b64d60f499b5"}
+  },
+  {
+   "id": "google-calendar.action.delete-event.v1.320b28cfc0d999672cd0cf6f",
+   "key": "delete-event",
+   "version": 1,
+   "name": "Cancel or delete event",
+   "description": "Cancels an event you organize, or removes an invitation from your calendar. To tell an organizer you will not come, use Respond to an invitation with declined.",
+   "effect": "delete",
+   "row": "google-calendar.events.delete",
+   "hints": {"readOnly":false,"destructive":true,"idempotent":true,"openWorld":true},
+   "inputSchema": {"type":"object","properties":{"calendarId":{"type":"string","minLength":1,"maxLength":1024,"description":"The calendar: an id from List my calendars, or primary for your own calendar."},"eventId":{"type":"string","minLength":1,"maxLength":1024,"description":"The event id, as Find events or Get event details gives it."},"notify":{"type":"string","enum":["none","externalOnly","all"],"description":"Who Google emails about this change: none (nobody), externalOnly (guests outside your organization) or all guests."}},"required":["calendarId","eventId","notify"],"additionalProperties":false},
+   "outputSchema": {"type":"object","properties":{"id":{"type":"string","maxLength":1024}},"required":["id"],"additionalProperties":false},
+   "choices": [{"input":"calendarId","source":"calendars"}],
+   "guards": [],
+   "prepare": [
+    {"id":"event","method":"GET","path":"/calendars/{calendarId}/events/{eventId}","params":{"calendarId":{"input":"/calendarId"},"eventId":{"input":"/eventId"}},"expect":{"status":[200],"require":[]}}
+   ],
+   "perform": [
+    {"id":"delete","method":"DELETE","path":"/calendars/{calendarId}/events/{eventId}","params":{"calendarId":{"input":"/calendarId"},"eventId":{"input":"/eventId"}},"query":{"sendUpdates":{"input":"/notify"}},"maxResponseBytes":65536,"expect":{"status":[200,204],"require":[]}}
+   ],
+   "verify": {
+    "requests": [{"id":"check","method":"GET","path":"/calendars/{calendarId}/events/{eventId}","params":{"calendarId":{"input":"/calendarId"},"eventId":{"input":"/eventId"}},"expect":{"status":[200],"require":[]}}],
+    "identity": [{"kind":"readback","step":"check","pointer":"/id","equals":{"input":"/eventId"}}],
+    "assert": [{"step":"check","equals":{"pointer":"/status","value":{"const":"cancelled"}}}]
+   },
+   "output": {"id":{"input":"/eventId"}},
+   "preview": [
+    {"label":"Calendar","expr":{"input":"/calendarId"}},
+    {"label":"Event","expr":{"step":"event","pointer":"/summary"},"truncate":200},
+    {"label":"Event id","expr":{"input":"/eventId"}},
+    {"label":"Starts now","expr":{"step":"event","pointer":"/start/dateTime"}},
+    {"label":"Starts now (all day)","expr":{"step":"event","pointer":"/start/date"}},
+    {"label":"Guests now","expr":{"pick":{"transform":"text.joinList@1","args":{"items":{"when":{"present":{"step":"event","pointer":"/attendees"}},"then":{"each":{"step":"event","pointer":"/attendees"},"as":"guest","do":{"pick":{"var":"guest"},"pointer":"/email"},"max":100}},"mailboxes":{"when":{"absent":{"step":"event","pointer":"/attendees"}},"then":{"const":[]}}}},"pointer":"/text"}},
+    {"label":"Organizer","expr":{"step":"event","pointer":"/organizer/email"}},
+    {"label":"If you are a guest","expr":{"const":"Deleting an invitation removes it from your calendar only. To tell the organizer, use Respond to an invitation with declined."}},
+    {"label":"Emails Google sends","expr":{"input":"/notify"}}
+   ],
+   "definitive": [403,404,410],
+   "certified": {"evidence":"docs/live-evidence/google-calendar/actions.json","definitionHash":"6b03b31101e4d7976dcb8168d44e858b2e8820467e5310177d297dee3df2532c"}
+  },
+  {
+   "id": "google-calendar.action.move-event.v1.9db705fdd59940818e85b85d",
+   "key": "move-event",
+   "version": 1,
+   "name": "Move event",
+   "description": "Moves an event you organize to another of your calendars, keeping its id. Only ordinary events move: focus time, out of office and working location events are refused.",
+   "effect": "write",
+   "row": "google-calendar.events.write",
+   "hints": {"readOnly":false,"destructive":false,"idempotent":false,"openWorld":true},
+   "inputSchema": {"type":"object","properties":{"calendarId":{"type":"string","minLength":1,"maxLength":1024,"description":"The calendar: an id from List my calendars, or primary for your own calendar."},"eventId":{"type":"string","minLength":1,"maxLength":1024,"description":"The event id, as Find events or Get event details gives it."},"destination":{"type":"string","minLength":1,"maxLength":1024,"description":"The calendar to move it to: an id from List my calendars."},"notify":{"type":"string","enum":["none","externalOnly","all"],"description":"Who Google emails about this change: none (nobody), externalOnly (guests outside your organization) or all guests."}},"required":["calendarId","eventId","destination","notify"],"additionalProperties":false},
+   "outputSchema": {"type":"object","properties":{"id":{"type":"string","maxLength":1024},"summary":{"type":"string","maxLength":8192},"start":{"type":"object","properties":{"dateTime":{"type":"string","maxLength":64},"date":{"type":"string","maxLength":16},"timeZone":{"type":"string","maxLength":64}},"required":[],"additionalProperties":false},"end":{"type":"object","properties":{"dateTime":{"type":"string","maxLength":64},"date":{"type":"string","maxLength":16},"timeZone":{"type":"string","maxLength":64}},"required":[],"additionalProperties":false},"status":{"type":"string","maxLength":32},"htmlLink":{"type":"string","maxLength":2048},"etag":{"type":"string","maxLength":256},"calendarId":{"type":"string","maxLength":1024}},"required":["id"],"additionalProperties":false},
+   "choices": [{"input":"calendarId","source":"calendars"},{"input":"destination","source":"calendars"}],
+   "guards": [
+    {"transform":"collections.oneOf@1","args":{"value":{"step":"event","pointer":"/eventType"},"set":{"const":["default"]},"fold":{"const":"none"}},"refuse":"wrong_kind","after":"event"}
+   ],
+   "prepare": [
+    {"id":"event","method":"GET","path":"/calendars/{calendarId}/events/{eventId}","params":{"calendarId":{"input":"/calendarId"},"eventId":{"input":"/eventId"}},"expect":{"status":[200],"require":[]}}
+   ],
+   "perform": [
+    {"id":"move","method":"POST","path":"/calendars/{calendarId}/events/{eventId}/move","params":{"calendarId":{"input":"/calendarId"},"eventId":{"input":"/eventId"}},"query":{"destination":{"input":"/destination"},"sendUpdates":{"input":"/notify"}},"expect":{"status":[200],"require":[]}}
+   ],
+   "verify": {
+    "requests": [{"id":"check","method":"GET","path":"/calendars/{calendarId}/events/{eventId}","params":{"calendarId":{"input":"/destination"},"eventId":{"step":"move","pointer":"/id"}},"expect":{"status":[200],"require":[]}}],
+    "identity": [{"kind":"readback","step":"check","pointer":"/id","equals":{"step":"move","pointer":"/id"}}],
+    "assert": [{"step":"check","equals":{"pointer":"/start","value":{"step":"move","pointer":"/start"}}},{"step":"check","equals":{"pointer":"/end","value":{"step":"move","pointer":"/end"}}}]
+   },
+   "output": {"id":{"step":"move","pointer":"/id"},"summary":{"step":"move","pointer":"/summary"},"start":{"object":{"dateTime":{"step":"move","pointer":"/start/dateTime"},"date":{"step":"move","pointer":"/start/date"},"timeZone":{"step":"move","pointer":"/start/timeZone"}}},"end":{"object":{"dateTime":{"step":"move","pointer":"/end/dateTime"},"date":{"step":"move","pointer":"/end/date"},"timeZone":{"step":"move","pointer":"/end/timeZone"}}},"status":{"step":"move","pointer":"/status"},"htmlLink":{"step":"move","pointer":"/htmlLink"},"etag":{"step":"move","pointer":"/etag"},"calendarId":{"input":"/destination"}},
+   "preview": [
+    {"label":"Calendar","expr":{"input":"/calendarId"}},
+    {"label":"Event","expr":{"step":"event","pointer":"/summary"},"truncate":200},
+    {"label":"Event id","expr":{"input":"/eventId"}},
+    {"label":"Starts now","expr":{"step":"event","pointer":"/start/dateTime"}},
+    {"label":"Starts now (all day)","expr":{"step":"event","pointer":"/start/date"}},
+    {"label":"Guests now","expr":{"pick":{"transform":"text.joinList@1","args":{"items":{"when":{"present":{"step":"event","pointer":"/attendees"}},"then":{"each":{"step":"event","pointer":"/attendees"},"as":"guest","do":{"pick":{"var":"guest"},"pointer":"/email"},"max":100}},"mailboxes":{"when":{"absent":{"step":"event","pointer":"/attendees"}},"then":{"const":[]}}}},"pointer":"/text"}},
+    {"label":"Move to","expr":{"input":"/destination"}},
+    {"label":"Emails Google sends","expr":{"input":"/notify"}}
+   ],
+   "definitive": [400,403,404],
+   "certified": {"evidence":"docs/live-evidence/google-calendar/actions.json","definitionHash":"ef5416a5e0024d64a809798c65007b4a39882a8e3830deb92ce83ade9fca2241"}
+  },
+  {
+   "id": "google-calendar.action.create-calendar.v1.08dedfdffbea77c1766eea90",
+   "key": "create-calendar",
+   "version": 1,
+   "name": "Create a calendar",
+   "description": "Creates a new calendar you own, in your time zone unless you name another IANA zone such as America/Toronto.",
+   "effect": "write",
+   "row": "google-calendar.calendars.write",
+   "hints": {"readOnly":false,"destructive":false,"idempotent":false,"openWorld":true},
+   "inputSchema": {"type":"object","properties":{"summary":{"type":"string","minLength":1,"maxLength":1024,"description":"The name."},"description":{"type":"string","minLength":1,"maxLength":8192},"timeZone":{"type":"string","minLength":1,"maxLength":64,"description":"An IANA time zone, such as America/Toronto."}},"required":["summary"],"additionalProperties":false},
+   "outputSchema": {"type":"object","properties":{"id":{"type":"string","maxLength":1024},"summary":{"type":"string","maxLength":1024},"timeZone":{"type":"string","maxLength":64}},"required":["id"],"additionalProperties":false},
+   "guards": [],
+   "prepare": [],
+   "perform": [
+    {"id":"create","method":"POST","path":"/calendars","body":{"object":{"summary":{"input":"/summary"},"description":{"when":{"present":{"input":"/description"}},"then":{"input":"/description"}},"timeZone":{"when":{"present":{"input":"/timeZone"}},"then":{"pick":{"transform":"time.zone@1","args":{"zone":{"input":"/timeZone"}}},"pointer":"/zone"}}}},"expect":{"status":[200],"require":[]}}
+   ],
+   "verify": {
+    "requests": [{"id":"check","method":"GET","path":"/calendars/{calendarId}","params":{"calendarId":{"step":"create","pointer":"/id"}},"expect":{"status":[200],"require":[]}}],
+    "identity": [{"kind":"readback","step":"check","pointer":"/id","equals":{"step":"create","pointer":"/id"}}],
+    "assert": [{"step":"check","equals":{"pointer":"/summary","value":{"step":"create","pointer":"/summary"}}}]
+   },
+   "output": {"id":{"step":"create","pointer":"/id"},"summary":{"step":"create","pointer":"/summary"},"timeZone":{"step":"create","pointer":"/timeZone"}},
+   "preview": [
+    {"label":"Name","expr":{"input":"/summary"},"truncate":200},
+    {"label":"Description","expr":{"input":"/description"},"truncate":500},
+    {"label":"Time zone","expr":{"input":"/timeZone"}}
+   ],
+   "definitive": [400,403],
+   "certified": {"evidence":"docs/live-evidence/google-calendar/actions.json","definitionHash":"c55363a3a9104d053d2f3b75f9d30329f6ed0bb7f0f30baea0e0660eaedb8f04"}
+  },
+  {
+   "id": "google-calendar.action.stop-sharing.v1.d7384916f702057d437c5f31",
+   "key": "stop-sharing",
+   "version": 1,
+   "name": "Stop sharing a calendar",
+   "description": "Removes one sharing rule of a calendar you own, so that person or group no longer sees it. It never removes an owner's rule.",
+   "effect": "delete",
+   "row": "google-calendar.sharing.write",
+   "hints": {"readOnly":false,"destructive":true,"idempotent":true,"openWorld":true},
+   "inputSchema": {"type":"object","properties":{"calendarId":{"type":"string","minLength":1,"maxLength":1024,"description":"The calendar: an id from List my calendars, or primary for your own calendar."},"ruleId":{"type":"string","minLength":1,"maxLength":1024,"description":"The sharing rule, such as user:someone@example.com."}},"required":["calendarId","ruleId"],"additionalProperties":false},
+   "outputSchema": {"type":"object","properties":{"ruleId":{"type":"string","maxLength":1024}},"required":["ruleId"],"additionalProperties":false},
+   "choices": [{"input":"calendarId","source":"calendars"}],
+   "guards": [
+    {"transform":"collections.oneOf@1","args":{"value":{"step":"rule","pointer":"/role"},"set":{"const":["freeBusyReader","reader","writer"]},"fold":{"const":"none"}},"refuse":"wrong_kind","after":"rule"}
+   ],
+   "prepare": [
+    {"id":"rule","method":"GET","path":"/calendars/{calendarId}/acl/{ruleId}","params":{"calendarId":{"input":"/calendarId"},"ruleId":{"input":"/ruleId"}},"maxResponseBytes":65536,"expect":{"status":[200],"require":[]}}
+   ],
+   "perform": [
+    {"id":"unshare","method":"DELETE","path":"/calendars/{calendarId}/acl/{ruleId}","params":{"calendarId":{"input":"/calendarId"},"ruleId":{"input":"/ruleId"}},"maxResponseBytes":65536,"expect":{"status":[200,204],"require":[]}}
+   ],
+   "verify": {
+    "requests": [{"id":"check","method":"GET","path":"/calendars/{calendarId}/acl/{ruleId}","params":{"calendarId":{"input":"/calendarId"},"ruleId":{"input":"/ruleId"}},"maxResponseBytes":65536,"expect":{"status":[200,404,410],"require":[]}}],
+    "identity": [{"kind":"address","step":"check","of":"unshare"}],
+    "assert": [{"step":"check","statusIn":[404,410]}]
+   },
+   "output": {"ruleId":{"input":"/ruleId"}},
+   "preview": [
+    {"label":"Calendar","expr":{"input":"/calendarId"}},
+    {"label":"Shared with","expr":{"step":"rule","pointer":"/scope/type"}},
+    {"label":"Address or domain","expr":{"step":"rule","pointer":"/scope/value"}},
+    {"label":"Access it gives","expr":{"step":"rule","pointer":"/role"}}
+   ],
+   "definitive": [400,403,404],
+   "certified": {"evidence":"docs/live-evidence/google-calendar/actions.json","definitionHash":"0f7d1d1ba8e0d35adac1ce973bf0073c5512c5e337472dec6b327b7566b2df57"}
+  }
+ ]
+}

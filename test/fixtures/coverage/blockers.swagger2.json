@@ -1,0 +1,192 @@
+{
+ "swagger": "2.0",
+ "info": {
+  "title": "Fabric coverage fixture, Swagger 2.0",
+  "version": "1",
+  "description": "Written by hand for Fabric's compiler-coverage tests."
+ },
+ "host": "api.coverage.example.com",
+ "basePath": "/v1",
+ "schemes": [
+  "http",
+  "https"
+ ],
+ "consumes": [
+  "application/json"
+ ],
+ "produces": [
+  "application/json"
+ ],
+ "securityDefinitions": {
+  "key": {
+   "type": "apiKey",
+   "in": "header",
+   "name": "X-Api-Key"
+  },
+  "basic": {
+   "type": "basic"
+  },
+  "oauth": {
+   "type": "oauth2",
+   "flow": "accessCode",
+   "authorizationUrl": "https://api.coverage.example.com/v1/oauth2/authorize",
+   "tokenUrl": "https://api.coverage.example.com/v1/oauth2/token",
+   "scopes": {
+    "read": "Read"
+   }
+  }
+ },
+ "security": [
+  {
+   "oauth": [
+    "read"
+   ]
+  }
+ ],
+ "definitions": {
+  "Item": {
+   "type": "object",
+   "properties": {
+    "name": {
+     "type": "string"
+    },
+    "note": {
+     "type": "string",
+     "x-nullable": true
+    }
+   }
+  }
+ },
+ "paths": {
+  "/items": {
+   "get": {
+    "operationId": "listItems",
+    "summary": "List items",
+    "parameters": [
+     {
+      "name": "ids",
+      "in": "query",
+      "type": "array",
+      "items": {
+       "type": "string"
+      }
+     },
+     {
+      "name": "tags",
+      "in": "query",
+      "type": "array",
+      "items": {
+       "type": "string"
+      },
+      "collectionFormat": "multi"
+     },
+     {
+      "name": "piped",
+      "in": "query",
+      "type": "array",
+      "items": {
+       "type": "string"
+      },
+      "collectionFormat": "pipes"
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "OK"
+     }
+    }
+   },
+   "post": {
+    "operationId": "createItem",
+    "summary": "Create an item",
+    "parameters": [
+     {
+      "name": "item",
+      "in": "body",
+      "required": true,
+      "schema": {
+       "$ref": "#/definitions/Item"
+      }
+     }
+    ],
+    "responses": {
+     "201": {
+      "description": "Created"
+     }
+    }
+   }
+  },
+  "/upload": {
+   "post": {
+    "operationId": "uploadFile",
+    "summary": "Upload",
+    "consumes": [
+     "multipart/form-data"
+    ],
+    "parameters": [
+     {
+      "name": "file",
+      "in": "formData",
+      "type": "file",
+      "required": true
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "OK"
+     }
+    }
+   }
+  },
+  "/form": {
+   "post": {
+    "operationId": "formItem",
+    "summary": "Form",
+    "consumes": [
+     "application/x-www-form-urlencoded"
+    ],
+    "parameters": [
+     {
+      "name": "name",
+      "in": "formData",
+      "type": "string",
+      "required": true
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "OK"
+     }
+    }
+   }
+  },
+  "/keyed": {
+   "get": {
+    "operationId": "keyedRead",
+    "summary": "Keyed read",
+    "security": [
+     {
+      "key": []
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "OK"
+     }
+    }
+   }
+  },
+  "/trigger": {
+   "get": {
+    "operationId": "onNewItem",
+    "summary": "When an item is created",
+    "x-ms-trigger": "single",
+    "responses": {
+     "200": {
+      "description": "OK"
+     }
+    }
+   }
+  }
+ }
+}

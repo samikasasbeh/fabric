@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fabric · Connectors</title>
+  <link rel="stylesheet" href="/hosted.css">
+  <script type="module" src="/hosted-catalog.js"></script>
+</head>
+<body>
+  <main class="page">
+    <header class="head">
+      <div class="head-row"><a id="brand" class="brand" href="/"><span class="brand-mark" aria-hidden="true">F</span>fabric</a><a id="activity-link" class="text-accent" href="/activity">Activity</a></div>
+      <h1>Connectors</h1>
+      <p class="lede">Connect your apps so your agent can work with them. You choose what it may read, change or must ask about.</p>
+    </header>
+    <div class="controls">
+      <label class="search"><span class="visually-hidden">Search apps</span><span class="search-mark" aria-hidden="true">⌕</span><input id="search" type="search" placeholder="Search" autocomplete="off"></label>
+      <div class="segments" role="group" aria-label="Show">
+        <button type="button" data-status="all" aria-pressed="true">Available</button>
+        <button type="button" data-status="connected" aria-pressed="false">Connected</button>
+      </div>
+    </div>
+    <p id="status" class="visually-hidden" role="status" aria-live="polite"></p>
+    <div id="catalog" aria-live="polite" aria-busy="true"><p class="empty">Loading the catalog…</p></div>
+  </main>
+  <noscript><p>This page needs JavaScript to read the catalog from your local Fabric.</p></noscript>
+</body>
+</html>

@@ -1,0 +1,482 @@
+{
+ "schemaVersion": 1,
+ "appId": "github",
+ "specVersion": "fabric/0.2",
+ "reviewStatus": "reviewed",
+ "pinnedParameters": {},
+ "actions": [
+  {
+   "id": "github.action.list-repos.v1.1e11c13a7303c5fa36468f02",
+   "key": "list-repos",
+   "version": 1,
+   "name": "List my repositories",
+   "description": "Lists the repositories you can reach, most recently changed first, 100 a page: each one's owner/name (which the other GitHub actions take), whether it is private or archived, its default branch, whether you can push to it and its description.",
+   "effect": "read",
+   "row": "github.repos.read",
+   "hints": {"readOnly":true,"destructive":false,"idempotent":true,"openWorld":true},
+   "inputSchema": {"type":"object","properties":{"page":{"type":"integer","minimum":1,"maximum":100,"description":"The page to read, from 1; the first page when left out."}},"required":[],"additionalProperties":false},
+   "outputSchema": {"type":"object","properties":{"repositories":{"type":"array","maxItems":100,"items":{"type":"object","properties":{"fullName":{"type":"string","maxLength":140},"private":{"type":"boolean"},"defaultBranch":{"type":"string","maxLength":255},"archived":{"type":"boolean"},"canPush":{"type":"boolean"},"description":{"type":"string","maxLength":1024}},"required":["fullName"],"additionalProperties":false}}},"required":["repositories"],"additionalProperties":false},
+   "guards": [],
+   "prepare": [],
+   "perform": [
+    {"id":"list","method":"GET","path":"/user/repos","query":{"per_page":{"const":100},"sort":{"const":"updated"},"page":{"when":{"present":{"input":"/page"}},"then":{"input":"/page"}}},"headers":{"Accept":{"const":"application/vnd.github+json"}},"expect":{"status":[200],"require":[]}}
+   ],
+   "output": {"repositories":{"each":{"step":"list","pointer":""},"as":"repo","max":100,"do":{"object":{"fullName":{"pick":{"var":"repo"},"pointer":"/full_name"},"private":{"pick":{"var":"repo"},"pointer":"/private"},"defaultBranch":{"pick":{"var":"repo"},"pointer":"/default_branch"},"archived":{"pick":{"var":"repo"},"pointer":"/archived"},"canPush":{"pick":{"var":"repo"},"pointer":"/permissions/push"},"description":{"when":{"nonEmpty":{"pick":{"var":"repo"},"pointer":"/description"}},"then":{"pick":{"var":"repo"},"pointer":"/description"}}}}}},
+   "preview": [
+    {"label":"Page","expr":{"input":"/page"}}
+   ],
+   "definitive": [401,403]
+  },
+  {
+   "id": "github.action.find-issues.v1.02044bbd7c7e006838fb6c35",
+   "key": "find-issues",
+   "version": 1,
+   "name": "Find issues and pull requests",
+   "description": "Searches issues, or pull requests, in one repository or among those that involve you, 25 a page. Your words are searched as words: they never become search qualifiers. Give a repository, an involvement, or both.",
+   "effect": "read",
+   "row": "github.issues.read",
+   "hints": {"readOnly":true,"destructive":false,"idempotent":true,"openWorld":true},
+   "inputSchema": {"type":"object","properties":{"type":{"type":"string","enum":["issue","pull-request"],"description":"issue or pull-request: one search finds one kind."},"repository":{"type":"string","minLength":3,"maxLength":140,"description":"The repository, as owner/name, such as octo-org/platform."},"involvement":{"type":"string","enum":["author","assignee","mentions","involves","review-requested"],"description":"Only items that involve you this way."},"state":{"type":"string","enum":["open","closed"]},"text":{"type":"string","minLength":1,"maxLength":1000,"description":"Words every item found holds, at most 256 characters."},"page":{"type":"integer","minimum":1,"maximum":40,"description":"The page to read, from 1; the first page when left out."}},"required":["type"],"additionalProperties":false},
+   "outputSchema": {"type":"object","properties":{"totalCount":{"type":"integer","minimum":0,"maximum":100000000},"incomplete":{"type":"boolean"},"items":{"type":"array","maxItems":25,"items":{"type":"object","properties":{"number":{"type":"integer","minimum":1,"maximum":2147483647},"title":{"type":"string","maxLength":1024},"state":{"type":"string","maxLength":16},"author":{"type":"string","maxLength":39},"updatedAt":{"type":"string","maxLength":32},"comments":{"type":"integer","minimum":0,"maximum":100000000},"htmlUrl":{"type":"string","maxLength":2048}},"required":["number"],"additionalProperties":false}}},"required":["items"],"additionalProperties":false},
+   "guards": [],
+   "prepare": [],
+   "perform": [
+    {"id":"search","method":"GET","path":"/search/issues","query":{"q":{"pick":{"transform":"text.githubQuery@1","args":{"type":{"input":"/type"},"repo":{"when":{"present":{"input":"/repository"}},"then":{"object":{"owner":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/owner"},"name":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/repo"}}}},"scope":{"input":"/involvement"},"state":{"input":"/state"},"text":{"input":"/text"}}},"pointer":"/q"},"per_page":{"const":25},"page":{"when":{"present":{"input":"/page"}},"then":{"input":"/page"}}},"headers":{"Accept":{"const":"application/vnd.github+json"}},"expect":{"status":[200],"require":[]}}
+   ],
+   "output": {"totalCount":{"step":"search","pointer":"/total_count"},"incomplete":{"step":"search","pointer":"/incomplete_results"},"items":{"each":{"step":"search","pointer":"/items"},"as":"item","max":25,"do":{"object":{"number":{"pick":{"var":"item"},"pointer":"/number"},"title":{"pick":{"var":"item"},"pointer":"/title"},"state":{"pick":{"var":"item"},"pointer":"/state"},"author":{"pick":{"var":"item"},"pointer":"/user/login"},"updatedAt":{"pick":{"var":"item"},"pointer":"/updated_at"},"comments":{"pick":{"var":"item"},"pointer":"/comments"},"htmlUrl":{"pick":{"var":"item"},"pointer":"/html_url"}}}}},
+   "preview": [
+    {"label":"Query","expr":{"pick":{"transform":"text.githubQuery@1","args":{"type":{"input":"/type"},"repo":{"when":{"present":{"input":"/repository"}},"then":{"object":{"owner":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/owner"},"name":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/repo"}}}},"scope":{"input":"/involvement"},"state":{"input":"/state"},"text":{"input":"/text"}}},"pointer":"/q"}},
+    {"label":"Page","expr":{"input":"/page"}}
+   ],
+   "definitive": [403,422]
+  },
+  {
+   "id": "github.action.read-conversation.v1.e421b0ea9953ff16d370cd91",
+   "key": "read-conversation",
+   "version": 1,
+   "name": "Read conversation",
+   "description": "Reads one issue or pull request and its comments, oldest first, 50 a page: title, state, author, labels and body (cut at 8,000 characters), each comment (cut at 4,000, ending in [truncated] when cut), and for a pull request its branches, head commit and whether it is merged.",
+   "effect": "read",
+   "row": "github.issues.read",
+   "hints": {"readOnly":true,"destructive":false,"idempotent":true,"openWorld":true},
+   "inputSchema": {"type":"object","properties":{"repository":{"type":"string","minLength":3,"maxLength":140,"description":"The repository, as owner/name, such as octo-org/platform."},"number":{"type":"integer","minimum":1,"maximum":2147483647,"description":"The issue or pull request number."},"page":{"type":"integer","minimum":1,"maximum":100,"description":"The page to read, from 1; the first page when left out."}},"required":["repository","number"],"additionalProperties":false},
+   "outputSchema": {"type":"object","properties":{"number":{"type":"integer","minimum":1,"maximum":2147483647},"title":{"type":"string","maxLength":1024},"state":{"type":"string","maxLength":16},"stateReason":{"type":"string","maxLength":32},"author":{"type":"string","maxLength":39},"labels":{"type":"array","maxItems":100,"items":{"type":"string","maxLength":100}},"body":{"type":"string","maxLength":8000},"bodyTruncated":{"type":"boolean"},"commentCount":{"type":"integer","minimum":0,"maximum":100000000},"comments":{"type":"array","maxItems":50,"items":{"type":"object","properties":{"id":{"type":"integer","minimum":1,"maximum":9007199254740991},"author":{"type":"string","maxLength":39},"createdAt":{"type":"string","maxLength":32},"body":{"type":"string","maxLength":4000}},"required":["id"],"additionalProperties":false}},"pull":{"type":"object","properties":{"headRef":{"type":"string","maxLength":255},"headSha":{"type":"string","maxLength":64},"baseRef":{"type":"string","maxLength":255},"draft":{"type":"boolean"},"merged":{"type":"boolean"},"mergeable":{"type":"boolean"}},"required":[],"additionalProperties":false},"htmlUrl":{"type":"string","maxLength":2048}},"required":["number"],"additionalProperties":false},
+   "guards": [],
+   "prepare": [
+    {"id":"issue","method":"GET","path":"/repos/{owner}/{repo}/issues/{issue_number}","params":{"owner":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/owner"},"repo":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/repo"},"issue_number":{"input":"/number"}},"headers":{"Accept":{"const":"application/vnd.github+json"}},"expect":{"status":[200],"require":[]}}
+   ],
+   "perform": [
+    {"id":"comments","method":"GET","path":"/repos/{owner}/{repo}/issues/{issue_number}/comments","params":{"owner":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/owner"},"repo":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/repo"},"issue_number":{"input":"/number"}},"query":{"per_page":{"const":50},"page":{"when":{"present":{"input":"/page"}},"then":{"input":"/page"}}},"headers":{"Accept":{"const":"application/vnd.github+json"}},"expect":{"status":[200],"require":[]}},
+    {"id":"pull","method":"GET","path":"/repos/{owner}/{repo}/pulls/{pull_number}","params":{"owner":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/owner"},"repo":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/repo"},"pull_number":{"input":"/number"}},"headers":{"Accept":{"const":"application/vnd.github+json"}},"when":{"present":{"step":"issue","pointer":"/pull_request"}},"expect":{"status":[200],"require":[]}}
+   ],
+   "output": {"number":{"step":"issue","pointer":"/number"},"title":{"step":"issue","pointer":"/title"},"state":{"step":"issue","pointer":"/state"},"stateReason":{"when":{"nonEmpty":{"step":"issue","pointer":"/state_reason"}},"then":{"step":"issue","pointer":"/state_reason"}},"author":{"step":"issue","pointer":"/user/login"},"labels":{"each":{"step":"issue","pointer":"/labels"},"as":"label","max":100,"do":{"pick":{"var":"label"},"pointer":"/name"}},"body":{"when":{"nonEmpty":{"step":"issue","pointer":"/body"}},"then":{"pick":{"transform":"text.truncate@1","args":{"text":{"step":"issue","pointer":"/body"},"max":{"const":8000}}},"pointer":"/text"}},"bodyTruncated":{"when":{"nonEmpty":{"step":"issue","pointer":"/body"}},"then":{"pick":{"transform":"text.truncate@1","args":{"text":{"step":"issue","pointer":"/body"},"max":{"const":8000}}},"pointer":"/truncated"}},"commentCount":{"step":"issue","pointer":"/comments"},"comments":{"each":{"step":"comments","pointer":""},"as":"comment","max":50,"do":{"object":{"id":{"pick":{"var":"comment"},"pointer":"/id"},"author":{"pick":{"var":"comment"},"pointer":"/user/login"},"createdAt":{"pick":{"var":"comment"},"pointer":"/created_at"},"body":{"when":{"nonEmpty":{"pick":{"var":"comment"},"pointer":"/body"}},"then":{"pick":{"transform":"text.truncate@1","args":{"text":{"pick":{"var":"comment"},"pointer":"/body"},"max":{"const":4000}}},"pointer":"/text"}}}}},"pull":{"when":{"present":{"step":"pull","pointer":"/number"}},"then":{"object":{"headRef":{"step":"pull","pointer":"/head/ref"},"headSha":{"step":"pull","pointer":"/head/sha"},"baseRef":{"step":"pull","pointer":"/base/ref"},"draft":{"step":"pull","pointer":"/draft"},"merged":{"step":"pull","pointer":"/merged"},"mergeable":{"when":{"nonEmpty":{"step":"pull","pointer":"/mergeable"}},"then":{"step":"pull","pointer":"/mergeable"}}}}},"htmlUrl":{"step":"issue","pointer":"/html_url"}},
+   "preview": [
+    {"label":"Repository","expr":{"input":"/repository"}},
+    {"label":"Issue","expr":{"input":"/number"}},
+    {"label":"Page","expr":{"input":"/page"}}
+   ],
+   "definitive": [403,404,410]
+  },
+  {
+   "id": "github.action.create-issue.v1.c9bec5d8bc47fa48059b573c",
+   "key": "create-issue",
+   "version": 1,
+   "name": "Create issue",
+   "description": "Opens one issue with a title, and a body and up to 10 labels when given. GitHub notifies everyone the body @mentions; the card lists them.",
+   "effect": "write",
+   "row": "github.issues.write",
+   "hints": {"readOnly":false,"destructive":false,"idempotent":false,"openWorld":true},
+   "inputSchema": {"type":"object","properties":{"repository":{"type":"string","minLength":3,"maxLength":140,"description":"The repository, as owner/name, such as octo-org/platform."},"title":{"type":"string","minLength":1,"maxLength":256},"body":{"type":"string","minLength":1,"maxLength":65536,"description":"Markdown. GitHub notifies everyone it @mentions."},"labels":{"type":"array","minItems":1,"maxItems":10,"items":{"type":"string","minLength":1,"maxLength":50},"description":"Label names; GitHub creates one the repository lacks."}},"required":["repository","title"],"additionalProperties":false},
+   "outputSchema": {"type":"object","properties":{"number":{"type":"integer","minimum":1,"maximum":2147483647},"title":{"type":"string","maxLength":1024},"htmlUrl":{"type":"string","maxLength":2048}},"required":["number"],"additionalProperties":false},
+   "guards": [],
+   "prepare": [],
+   "perform": [
+    {"id":"create","method":"POST","path":"/repos/{owner}/{repo}/issues","params":{"owner":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/owner"},"repo":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/repo"}},"headers":{"Accept":{"const":"application/vnd.github+json"}},"body":{"object":{"title":{"input":"/title"},"body":{"when":{"present":{"input":"/body"}},"then":{"input":"/body"}},"labels":{"when":{"present":{"input":"/labels"}},"then":{"input":"/labels"}}}},"expect":{"status":[201],"require":[]}}
+   ],
+   "verify": {
+    "requests": [{"id":"check","method":"GET","path":"/repos/{owner}/{repo}/issues/{issue_number}","params":{"owner":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/owner"},"repo":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/repo"},"issue_number":{"step":"create","pointer":"/number"}},"headers":{"Accept":{"const":"application/vnd.github+json"}},"expect":{"status":[200],"require":[]}}],
+    "identity": [{"kind":"readback","step":"check","pointer":"/id","equals":{"step":"create","pointer":"/id"}}],
+    "assert": [{"step":"check","equals":{"pointer":"/title","value":{"step":"create","pointer":"/title"}}}]
+   },
+   "output": {"number":{"step":"create","pointer":"/number"},"title":{"step":"create","pointer":"/title"},"htmlUrl":{"step":"create","pointer":"/html_url"}},
+   "preview": [
+    {"label":"Repository","expr":{"input":"/repository"}},
+    {"label":"Title","expr":{"input":"/title"}},
+    {"label":"Body","expr":{"input":"/body"}},
+    {"label":"Labels to add (GitHub creates any the repository lacks)","expr":{"pick":{"transform":"text.joinList@1","args":{"items":{"when":{"present":{"input":"/labels"}},"then":{"input":"/labels"}},"mailboxes":{"when":{"absent":{"input":"/labels"}},"then":{"const":[]}}}},"pointer":"/text"}},
+    {"label":"Mentions (GitHub notifies them)","expr":{"pick":{"transform":"text.joinList@1","args":{"items":{"pick":{"transform":"text.mentions@1","args":{"text":{"input":"/body"}}},"pointer":"/mentions"}}},"pointer":"/text"}}
+   ],
+   "definitive": [400,403,404,410,422]
+  },
+  {
+   "id": "github.action.update-issue.v1.b492da5b4964684b39f0c713",
+   "key": "update-issue",
+   "version": 1,
+   "name": "Update, close or reopen issue",
+   "description": "Changes the title or body of one issue, or closes or reopens it, sending only what you give. Close as says why it closed: completed or not_planned. A pull request number works too.",
+   "effect": "write",
+   "row": "github.issues.write",
+   "hints": {"readOnly":false,"destructive":false,"idempotent":false,"openWorld":true},
+   "inputSchema": {"type":"object","properties":{"repository":{"type":"string","minLength":3,"maxLength":140,"description":"The repository, as owner/name, such as octo-org/platform."},"number":{"type":"integer","minimum":1,"maximum":2147483647,"description":"The issue or pull request number."},"title":{"type":"string","minLength":1,"maxLength":256},"body":{"type":"string","minLength":1,"maxLength":65536,"description":"Markdown. GitHub notifies everyone it @mentions."},"state":{"type":"string","enum":["open","closed"]},"closeAs":{"type":"string","enum":["completed","not_planned"],"description":"Why it closed, with state closed."}},"required":["repository","number"],"additionalProperties":false},
+   "outputSchema": {"type":"object","properties":{"number":{"type":"integer","minimum":1,"maximum":2147483647},"title":{"type":"string","maxLength":1024},"state":{"type":"string","maxLength":16},"stateReason":{"type":"string","maxLength":32},"updatedAt":{"type":"string","maxLength":32}},"required":["number"],"additionalProperties":false},
+   "guards": [
+    {"transform":"collections.oneOf@1","args":{"value":{"concat":[{"pick":{"transform":"text.joinList@1","args":{"items":{"array":[{"const":"update"},{"when":{"equals":[{"input":"/state"},{"const":"closed"}]},"then":{"const":"close"}},{"when":{"present":{"input":"/closeAs"}},"then":{"const":"reason"}}]}}},"pointer":"/text"}],"max":100},"set":{"const":["update","update\nclose","update\nclose\nreason"]},"fold":{"const":"none"}},"refuse":"wrong_state"}
+   ],
+   "prepare": [
+    {"id":"issue","method":"GET","path":"/repos/{owner}/{repo}/issues/{issue_number}","params":{"owner":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/owner"},"repo":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/repo"},"issue_number":{"input":"/number"}},"headers":{"Accept":{"const":"application/vnd.github+json"}},"expect":{"status":[200],"require":[]}}
+   ],
+   "perform": [
+    {"id":"patch","method":"PATCH","path":"/repos/{owner}/{repo}/issues/{issue_number}","params":{"owner":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/owner"},"repo":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/repo"},"issue_number":{"input":"/number"}},"headers":{"Accept":{"const":"application/vnd.github+json"}},"body":{"object":{"title":{"when":{"present":{"input":"/title"}},"then":{"input":"/title"}},"body":{"when":{"present":{"input":"/body"}},"then":{"input":"/body"}},"state":{"when":{"present":{"input":"/state"}},"then":{"input":"/state"}},"state_reason":{"when":{"present":{"input":"/closeAs"}},"then":{"input":"/closeAs"}}}},"expect":{"status":[200],"require":[]}}
+   ],
+   "verify": {
+    "requests": [{"id":"check","method":"GET","path":"/repos/{owner}/{repo}/issues/{issue_number}","params":{"owner":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/owner"},"repo":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/repo"},"issue_number":{"input":"/number"}},"headers":{"Accept":{"const":"application/vnd.github+json"}},"expect":{"status":[200],"require":[]}}],
+    "identity": [{"kind":"readback","step":"check","pointer":"/updated_at","equals":{"step":"patch","pointer":"/updated_at"}}],
+    "assert": [{"step":"check","equals":{"pointer":"/title","value":{"step":"patch","pointer":"/title"}}},{"step":"check","equals":{"pointer":"/state","value":{"step":"patch","pointer":"/state"}}},{"step":"check","equals":{"pointer":"/body","value":{"step":"patch","pointer":"/body"}}}]
+   },
+   "output": {"number":{"step":"patch","pointer":"/number"},"title":{"step":"patch","pointer":"/title"},"state":{"step":"patch","pointer":"/state"},"stateReason":{"when":{"nonEmpty":{"step":"patch","pointer":"/state_reason"}},"then":{"step":"patch","pointer":"/state_reason"}},"updatedAt":{"step":"patch","pointer":"/updated_at"}},
+   "preview": [
+    {"label":"Repository","expr":{"input":"/repository"}},
+    {"label":"Issue","expr":{"input":"/number"}},
+    {"label":"Title now","expr":{"step":"issue","pointer":"/title"}},
+    {"label":"State now","expr":{"step":"issue","pointer":"/state"}},
+    {"label":"New title","expr":{"input":"/title"}},
+    {"label":"New state","expr":{"input":"/state"}},
+    {"label":"Close as","expr":{"input":"/closeAs"}},
+    {"label":"Body","expr":{"input":"/body"}},
+    {"label":"Mentions (GitHub notifies them)","expr":{"pick":{"transform":"text.joinList@1","args":{"items":{"pick":{"transform":"text.mentions@1","args":{"text":{"input":"/body"}}},"pointer":"/mentions"}}},"pointer":"/text"}}
+   ],
+   "definitive": [400,403,404,410,422]
+  },
+  {
+   "id": "github.action.update-labels.v1.c6f89bf34371b691d7f68ce8",
+   "key": "update-labels",
+   "version": 1,
+   "name": "Add or remove labels",
+   "description": "Adds and removes labels on one issue or pull request, one request per label, so an empty list is never sent (it would remove every label). Removing a label it does not have changes nothing.",
+   "effect": "delete",
+   "row": "github.issues.write",
+   "hints": {"readOnly":false,"destructive":true,"idempotent":false,"openWorld":true},
+   "inputSchema": {"type":"object","properties":{"repository":{"type":"string","minLength":3,"maxLength":140,"description":"The repository, as owner/name, such as octo-org/platform."},"number":{"type":"integer","minimum":1,"maximum":2147483647,"description":"The issue or pull request number."},"add":{"type":"array","minItems":0,"maxItems":10,"items":{"type":"string","minLength":1,"maxLength":50},"description":"Label names to add, up to 10; [] for none."},"remove":{"type":"array","minItems":0,"maxItems":10,"items":{"type":"string","minLength":1,"maxLength":50},"description":"Label names to remove, up to 10; [] for none. A name holding / or % cannot be removed this way."}},"required":["repository","number","add","remove"],"additionalProperties":false},
+   "outputSchema": {"type":"object","properties":{"number":{"type":"integer","minimum":1,"maximum":2147483647},"labels":{"type":"array","maxItems":100,"items":{"type":"string","maxLength":100}}},"required":["number"],"additionalProperties":false},
+   "guards": [],
+   "prepare": [
+    {"id":"issue","method":"GET","path":"/repos/{owner}/{repo}/issues/{issue_number}","params":{"owner":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/owner"},"repo":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/repo"},"issue_number":{"input":"/number"}},"headers":{"Accept":{"const":"application/vnd.github+json"}},"expect":{"status":[200],"require":[]}}
+   ],
+   "perform": [
+    {"id":"add","method":"POST","path":"/repos/{owner}/{repo}/issues/{issue_number}/labels","params":{"owner":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/owner"},"repo":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/repo"},"issue_number":{"input":"/number"}},"headers":{"Accept":{"const":"application/vnd.github+json"}},"forEach":{"over":{"input":"/add"},"max":10},"body":{"object":{"labels":{"array":[{"item":""}]}}},"maxResponseBytes":65536,"expect":{"status":[200],"require":[]}},
+    {"id":"remove","method":"DELETE","path":"/repos/{owner}/{repo}/issues/{issue_number}/labels/{name}","params":{"owner":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/owner"},"repo":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/repo"},"issue_number":{"input":"/number"},"name":{"item":""}},"headers":{"Accept":{"const":"application/vnd.github+json"}},"forEach":{"over":{"input":"/remove"},"max":10},"maxResponseBytes":65536,"expect":{"status":[200,404],"require":[]}}
+   ],
+   "verify": {
+    "requests": [{"id":"check","method":"GET","path":"/repos/{owner}/{repo}/issues/{issue_number}","params":{"owner":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/owner"},"repo":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/repo"},"issue_number":{"input":"/number"}},"headers":{"Accept":{"const":"application/vnd.github+json"}},"expect":{"status":[200],"require":[]}}],
+    "identity": [{"kind":"membership","step":"check","listHas":{"list":"/labels","where":[{"field":"/name","equals":{"item":""}}]},"forEach":"add"},{"kind":"membership","step":"check","listLacks":{"list":"/labels","where":[{"field":"/name","equals":{"item":""}}]},"forEach":"remove"}],
+    "assert": []
+   },
+   "output": {"number":{"step":"issue","pointer":"/number"},"labels":{"when":{"present":{"step":"check","pointer":"/labels"}},"then":{"each":{"step":"check","pointer":"/labels"},"as":"label","max":100,"do":{"pick":{"var":"label"},"pointer":"/name"}}}},
+   "preview": [
+    {"label":"Repository","expr":{"input":"/repository"}},
+    {"label":"Issue","expr":{"input":"/number"}},
+    {"label":"Title now","expr":{"step":"issue","pointer":"/title"}},
+    {"label":"Labels now","expr":{"pick":{"transform":"text.joinList@1","args":{"items":{"each":{"step":"issue","pointer":"/labels"},"as":"label","max":100,"do":{"pick":{"var":"label"},"pointer":"/name"}}}},"pointer":"/text"}},
+    {"label":"Labels to add (GitHub creates any the repository lacks)","expr":{"pick":{"transform":"text.joinList@1","args":{"items":{"input":"/add"}}},"pointer":"/text"}},
+    {"label":"Labels to remove","expr":{"pick":{"transform":"text.joinList@1","args":{"items":{"input":"/remove"}}},"pointer":"/text"}}
+   ],
+   "definitive": [400,403,404,410,422]
+  },
+  {
+   "id": "github.action.comment.v1.d657b7a00e107176a012610b",
+   "key": "comment",
+   "version": 1,
+   "name": "Comment",
+   "description": "Comments on one issue or pull request. GitHub notifies everyone the comment @mentions, and everyone who follows the conversation; the card lists the mentions.",
+   "effect": "write",
+   "row": "github.comments.write",
+   "hints": {"readOnly":false,"destructive":false,"idempotent":false,"openWorld":true},
+   "inputSchema": {"type":"object","properties":{"repository":{"type":"string","minLength":3,"maxLength":140,"description":"The repository, as owner/name, such as octo-org/platform."},"number":{"type":"integer","minimum":1,"maximum":2147483647,"description":"The issue or pull request number."},"body":{"type":"string","minLength":1,"maxLength":65536,"description":"Markdown. GitHub notifies everyone it @mentions."}},"required":["repository","number","body"],"additionalProperties":false},
+   "outputSchema": {"type":"object","properties":{"id":{"type":"integer","minimum":1,"maximum":9007199254740991},"htmlUrl":{"type":"string","maxLength":2048}},"required":["id"],"additionalProperties":false},
+   "guards": [],
+   "prepare": [
+    {"id":"issue","method":"GET","path":"/repos/{owner}/{repo}/issues/{issue_number}","params":{"owner":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/owner"},"repo":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/repo"},"issue_number":{"input":"/number"}},"headers":{"Accept":{"const":"application/vnd.github+json"}},"expect":{"status":[200],"require":[]}}
+   ],
+   "perform": [
+    {"id":"post","method":"POST","path":"/repos/{owner}/{repo}/issues/{issue_number}/comments","params":{"owner":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/owner"},"repo":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/repo"},"issue_number":{"input":"/number"}},"headers":{"Accept":{"const":"application/vnd.github+json"}},"body":{"object":{"body":{"input":"/body"}}},"expect":{"status":[201],"require":[]}}
+   ],
+   "verify": {
+    "requests": [{"id":"check","method":"GET","path":"/repos/{owner}/{repo}/issues/comments/{comment_id}","params":{"owner":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/owner"},"repo":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/repo"},"comment_id":{"step":"post","pointer":"/id"}},"headers":{"Accept":{"const":"application/vnd.github+json"}},"expect":{"status":[200],"require":[]}}],
+    "identity": [{"kind":"readback","step":"check","pointer":"/id","equals":{"step":"post","pointer":"/id"}}],
+    "assert": [{"step":"check","equals":{"pointer":"/body","value":{"step":"post","pointer":"/body"}}}]
+   },
+   "output": {"id":{"step":"post","pointer":"/id"},"htmlUrl":{"step":"post","pointer":"/html_url"}},
+   "preview": [
+    {"label":"Repository","expr":{"input":"/repository"}},
+    {"label":"Issue","expr":{"input":"/number"}},
+    {"label":"Title now","expr":{"step":"issue","pointer":"/title"}},
+    {"label":"Comment","expr":{"input":"/body"}},
+    {"label":"Mentions (GitHub notifies them)","expr":{"pick":{"transform":"text.joinList@1","args":{"items":{"pick":{"transform":"text.mentions@1","args":{"text":{"input":"/body"}}},"pointer":"/mentions"}}},"pointer":"/text"}}
+   ],
+   "definitive": [403,404,410,422]
+  },
+  {
+   "id": "github.action.read-file.v1.fa3435d02533e347f85f4226",
+   "key": "read-file",
+   "version": 1,
+   "name": "Read a file",
+   "description": "Reads one file of a repository as text, on a branch or the default branch, cut at 200,000 characters. A file that is not text reads as binary. A folder, a link or a file over 1 MB is refused.",
+   "effect": "read",
+   "row": "github.repos.read",
+   "hints": {"readOnly":true,"destructive":false,"idempotent":true,"openWorld":true},
+   "inputSchema": {"type":"object","properties":{"repository":{"type":"string","minLength":3,"maxLength":140,"description":"The repository, as owner/name, such as octo-org/platform."},"path":{"type":"string","minLength":1,"maxLength":1000,"description":"The file's path in the repository, such as docs/notes.md, with no leading slash."},"ref":{"type":"string","minLength":1,"maxLength":255,"description":"The branch to read; the default branch when left out."}},"required":["repository","path"],"additionalProperties":false},
+   "outputSchema": {"type":"object","properties":{"path":{"type":"string","maxLength":1000},"sha":{"type":"string","maxLength":64},"size":{"type":"integer","minimum":0,"maximum":104857600},"text":{"type":"string","maxLength":200000},"truncated":{"type":"boolean"},"binary":{"type":"boolean"}},"required":["path","sha"],"additionalProperties":false},
+   "guards": [],
+   "prepare": [],
+   "perform": [
+    {"id":"file","method":"GET","path":"/repos/{owner}/{repo}/contents/{+path}","params":{"owner":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/owner"},"repo":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/repo"},"path":{"pick":{"transform":"ids.repoPath@1","args":{"path":{"input":"/path"}}},"pointer":"/path"}},"query":{"ref":{"when":{"present":{"input":"/ref"}},"then":{"pick":{"transform":"ids.gitRefName@1","args":{"name":{"input":"/ref"}}},"pointer":"/name"}}},"headers":{"Accept":{"const":"application/vnd.github+json"}},"expect":{"status":[200],"require":[{"equals":{"pointer":"/type","value":{"const":"file"}}},{"equals":{"pointer":"/encoding","value":{"const":"base64"}}}]}}
+   ],
+   "output": {"path":{"step":"file","pointer":"/path"},"sha":{"step":"file","pointer":"/sha"},"size":{"step":"file","pointer":"/size"},"text":{"when":{"present":{"pick":{"transform":"encoding.base64Decode@1","args":{"encoded":{"step":"file","pointer":"/content"},"lineBreaks":{"const":"lf"}}},"pointer":"/text"}},"then":{"pick":{"transform":"text.truncate@1","args":{"text":{"pick":{"transform":"encoding.base64Decode@1","args":{"encoded":{"step":"file","pointer":"/content"},"lineBreaks":{"const":"lf"}}},"pointer":"/text"},"max":{"const":200000}}},"pointer":"/text"}},"truncated":{"when":{"present":{"pick":{"transform":"encoding.base64Decode@1","args":{"encoded":{"step":"file","pointer":"/content"},"lineBreaks":{"const":"lf"}}},"pointer":"/text"}},"then":{"pick":{"transform":"text.truncate@1","args":{"text":{"pick":{"transform":"encoding.base64Decode@1","args":{"encoded":{"step":"file","pointer":"/content"},"lineBreaks":{"const":"lf"}}},"pointer":"/text"},"max":{"const":200000}}},"pointer":"/truncated"}},"binary":{"pick":{"transform":"encoding.base64Decode@1","args":{"encoded":{"step":"file","pointer":"/content"},"lineBreaks":{"const":"lf"}}},"pointer":"/binary"}},
+   "preview": [
+    {"label":"Repository","expr":{"input":"/repository"}},
+    {"label":"File","expr":{"input":"/path"}},
+    {"label":"Branch","expr":{"input":"/ref"}}
+   ],
+   "definitive": [403,404]
+  },
+  {
+   "id": "github.action.put-file.v1.ce394f8955de120b896ab074",
+   "key": "put-file",
+   "version": 1,
+   "name": "Create or update a file",
+   "description": "Writes one text file on a branch as one commit: a new file, or a new version of the one read first. If the file changed after it was read, nothing is written. A file under .github/workflows/ needs the workflow permission, since it runs in GitHub Actions.",
+   "effect": "write",
+   "row": "github.code.write",
+   "hints": {"readOnly":false,"destructive":false,"idempotent":true,"openWorld":true},
+   "inputSchema": {"type":"object","properties":{"repository":{"type":"string","minLength":3,"maxLength":140,"description":"The repository, as owner/name, such as octo-org/platform."},"path":{"type":"string","minLength":1,"maxLength":1000,"description":"The file's path in the repository, such as docs/notes.md, with no leading slash."},"branch":{"type":"string","minLength":1,"maxLength":255,"description":"A branch name, such as main or fabric/notes."},"message":{"type":"string","minLength":1,"maxLength":4096,"description":"The commit message."},"content":{"type":"string","minLength":0,"maxLength":716800,"description":"The whole new text of the file, at most 750,000 bytes as UTF-8."}},"required":["repository","path","branch","message","content"],"additionalProperties":false},
+   "outputSchema": {"type":"object","properties":{"path":{"type":"string","maxLength":1000},"sha":{"type":"string","maxLength":64},"commit":{"type":"string","maxLength":64}},"required":["path","sha"],"additionalProperties":false},
+   "guards": [],
+   "prepare": [
+    {"id":"current","method":"GET","path":"/repos/{owner}/{repo}/contents/{+path}","params":{"owner":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/owner"},"repo":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/repo"},"path":{"pick":{"transform":"ids.repoPath@1","args":{"path":{"input":"/path"}}},"pointer":"/path"}},"query":{"ref":{"pick":{"transform":"ids.gitRefName@1","args":{"name":{"input":"/branch"}}},"pointer":"/name"}},"headers":{"Accept":{"const":"application/vnd.github+json"}},"expect":{"status":[200,404],"require":[]}}
+   ],
+   "perform": [
+    {"id":"put","method":"PUT","path":"/repos/{owner}/{repo}/contents/{+path}","params":{"owner":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/owner"},"repo":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/repo"},"path":{"pick":{"transform":"ids.repoPath@1","args":{"path":{"input":"/path"}}},"pointer":"/path"}},"headers":{"Accept":{"const":"application/vnd.github+json"}},"body":{"object":{"message":{"input":"/message"},"content":{"pick":{"transform":"encoding.base64Encode@1","args":{"text":{"input":"/content"}}},"pointer":"/encoded"},"branch":{"pick":{"transform":"ids.gitRefName@1","args":{"name":{"input":"/branch"}}},"pointer":"/name"},"sha":{"when":{"present":{"step":"current","pointer":"/sha"}},"then":{"step":"current","pointer":"/sha"}}}},"bindContent":"sha","requiresScope":{"scope":"workflow","when":{"equals":[{"pick":{"transform":"ids.repoPath@1","args":{"path":{"input":"/path"}}},"pointer":"/workflow"},{"const":true}]}},"expect":{"status":[200,201],"require":[]}}
+   ],
+   "verify": {
+    "requests": [{"id":"check","method":"GET","path":"/repos/{owner}/{repo}/contents/{+path}","params":{"owner":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/owner"},"repo":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/repo"},"path":{"pick":{"transform":"ids.repoPath@1","args":{"path":{"input":"/path"}}},"pointer":"/path"}},"query":{"ref":{"pick":{"transform":"ids.gitRefName@1","args":{"name":{"input":"/branch"}}},"pointer":"/name"}},"headers":{"Accept":{"const":"application/vnd.github+json"}},"expect":{"status":[200],"require":[]}}],
+    "identity": [{"kind":"readback","step":"check","pointer":"/sha","equals":{"step":"put","pointer":"/content/sha"}}],
+    "assert": []
+   },
+   "output": {"path":{"step":"put","pointer":"/content/path"},"sha":{"step":"put","pointer":"/content/sha"},"commit":{"step":"put","pointer":"/commit/sha"}},
+   "preview": [
+    {"label":"Repository","expr":{"input":"/repository"}},
+    {"label":"Branch","expr":{"pick":{"transform":"ids.gitRefName@1","args":{"name":{"input":"/branch"}}},"pointer":"/name"}},
+    {"label":"File","expr":{"pick":{"transform":"ids.repoPath@1","args":{"path":{"input":"/path"}}},"pointer":"/path"}},
+    {"label":"Workflow file","expr":{"pick":{"transform":"text.joinList@1","args":{"items":{"array":[{"when":{"equals":[{"pick":{"transform":"ids.repoPath@1","args":{"path":{"input":"/path"}}},"pointer":"/workflow"},{"const":true}]},"then":{"const":"yes"}},{"when":{"equals":[{"pick":{"transform":"ids.repoPath@1","args":{"path":{"input":"/path"}}},"pointer":"/workflow"},{"const":false}]},"then":{"const":"no"}}]}}},"pointer":"/text"}},
+    {"label":"Replaces version","expr":{"step":"current","pointer":"/sha"}},
+    {"label":"Commit message","expr":{"input":"/message"}},
+    {"label":"New content (first 10,000 characters)","expr":{"input":"/content"},"truncate":10000}
+   ],
+   "definitive": [400,403,404,409,422]
+  },
+  {
+   "id": "github.action.create-branch.v1.ec07786b5577c5f693c2d8f0",
+   "key": "create-branch",
+   "version": 1,
+   "name": "Create a branch",
+   "description": "Makes a new branch at the commit another branch points to now. The card shows that commit.",
+   "effect": "write",
+   "row": "github.code.write",
+   "hints": {"readOnly":false,"destructive":false,"idempotent":false,"openWorld":true},
+   "inputSchema": {"type":"object","properties":{"repository":{"type":"string","minLength":3,"maxLength":140,"description":"The repository, as owner/name, such as octo-org/platform."},"name":{"type":"string","minLength":1,"maxLength":255,"description":"The new branch's name, such as fabric/notes."},"from":{"type":"string","minLength":1,"maxLength":255,"description":"The branch it starts from, such as main."}},"required":["repository","name","from"],"additionalProperties":false},
+   "outputSchema": {"type":"object","properties":{"ref":{"type":"string","maxLength":266},"sha":{"type":"string","maxLength":64}},"required":["ref","sha"],"additionalProperties":false},
+   "guards": [],
+   "prepare": [
+    {"id":"base","method":"GET","path":"/repos/{owner}/{repo}/git/ref/{+ref}","params":{"owner":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/owner"},"repo":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/repo"},"ref":{"concat":[{"const":"heads/"},{"pick":{"transform":"ids.gitRefName@1","args":{"name":{"input":"/from"}}},"pointer":"/name"}],"max":261}},"headers":{"Accept":{"const":"application/vnd.github+json"}},"expect":{"status":[200],"require":[]}}
+   ],
+   "perform": [
+    {"id":"create","method":"POST","path":"/repos/{owner}/{repo}/git/refs","params":{"owner":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/owner"},"repo":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/repo"}},"headers":{"Accept":{"const":"application/vnd.github+json"}},"body":{"object":{"ref":{"concat":[{"const":"refs/heads/"},{"pick":{"transform":"ids.gitRefName@1","args":{"name":{"input":"/name"}}},"pointer":"/name"}],"max":266},"sha":{"step":"base","pointer":"/object/sha"}}},"expect":{"status":[201],"require":[]}}
+   ],
+   "verify": {
+    "requests": [{"id":"check","method":"GET","path":"/repos/{owner}/{repo}/git/ref/{+ref}","params":{"owner":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/owner"},"repo":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/repo"},"ref":{"concat":[{"const":"heads/"},{"pick":{"transform":"ids.gitRefName@1","args":{"name":{"input":"/name"}}},"pointer":"/name"}],"max":261}},"headers":{"Accept":{"const":"application/vnd.github+json"}},"expect":{"status":[200],"require":[]}}],
+    "identity": [{"kind":"readback","step":"check","pointer":"/ref","equals":{"step":"create","pointer":"/ref"}}],
+    "assert": [{"step":"check","equals":{"pointer":"/object/sha","value":{"step":"create","pointer":"/object/sha"}}}]
+   },
+   "output": {"ref":{"step":"create","pointer":"/ref"},"sha":{"step":"create","pointer":"/object/sha"}},
+   "preview": [
+    {"label":"Repository","expr":{"input":"/repository"}},
+    {"label":"New branch","expr":{"pick":{"transform":"ids.gitRefName@1","args":{"name":{"input":"/name"}}},"pointer":"/name"}},
+    {"label":"From branch","expr":{"pick":{"transform":"ids.gitRefName@1","args":{"name":{"input":"/from"}}},"pointer":"/name"}},
+    {"label":"From commit","expr":{"step":"base","pointer":"/object/sha"}}
+   ],
+   "definitive": [403,404,409,422]
+  },
+  {
+   "id": "github.action.open-pull.v1.78d232ca1676e41db054b66a",
+   "key": "open-pull",
+   "version": 1,
+   "name": "Open a pull request",
+   "description": "Opens a pull request from a branch into another branch of the same repository, as a draft or ready for review. GitHub notifies everyone the body @mentions; the card lists them.",
+   "effect": "write",
+   "row": "github.pulls.write",
+   "hints": {"readOnly":false,"destructive":false,"idempotent":false,"openWorld":true},
+   "inputSchema": {"type":"object","properties":{"repository":{"type":"string","minLength":3,"maxLength":140,"description":"The repository, as owner/name, such as octo-org/platform."},"title":{"type":"string","minLength":1,"maxLength":256},"head":{"type":"string","minLength":1,"maxLength":255,"description":"The branch with the changes."},"base":{"type":"string","minLength":1,"maxLength":255,"description":"The branch to merge them into, such as main."},"draft":{"type":"boolean","description":"true opens it as a draft, which cannot be merged until it is marked ready."},"body":{"type":"string","minLength":1,"maxLength":65536,"description":"Markdown. GitHub notifies everyone it @mentions."}},"required":["repository","title","head","base","draft"],"additionalProperties":false},
+   "outputSchema": {"type":"object","properties":{"number":{"type":"integer","minimum":1,"maximum":2147483647},"htmlUrl":{"type":"string","maxLength":2048},"headSha":{"type":"string","maxLength":64},"draft":{"type":"boolean"}},"required":["number"],"additionalProperties":false},
+   "guards": [],
+   "prepare": [],
+   "perform": [
+    {"id":"open","method":"POST","path":"/repos/{owner}/{repo}/pulls","params":{"owner":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/owner"},"repo":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/repo"}},"headers":{"Accept":{"const":"application/vnd.github+json"}},"body":{"object":{"title":{"input":"/title"},"head":{"pick":{"transform":"ids.gitRefName@1","args":{"name":{"input":"/head"}}},"pointer":"/name"},"base":{"pick":{"transform":"ids.gitRefName@1","args":{"name":{"input":"/base"}}},"pointer":"/name"},"draft":{"input":"/draft"},"body":{"when":{"present":{"input":"/body"}},"then":{"input":"/body"}}}},"expect":{"status":[201],"require":[]}}
+   ],
+   "verify": {
+    "requests": [{"id":"check","method":"GET","path":"/repos/{owner}/{repo}/pulls/{pull_number}","params":{"owner":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/owner"},"repo":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/repo"},"pull_number":{"step":"open","pointer":"/number"}},"headers":{"Accept":{"const":"application/vnd.github+json"}},"expect":{"status":[200],"require":[]}}],
+    "identity": [{"kind":"readback","step":"check","pointer":"/id","equals":{"step":"open","pointer":"/id"}}],
+    "assert": [{"step":"check","equals":{"pointer":"/head/ref","value":{"step":"open","pointer":"/head/ref"}}}]
+   },
+   "output": {"number":{"step":"open","pointer":"/number"},"htmlUrl":{"step":"open","pointer":"/html_url"},"headSha":{"step":"open","pointer":"/head/sha"},"draft":{"step":"open","pointer":"/draft"}},
+   "preview": [
+    {"label":"Repository","expr":{"input":"/repository"}},
+    {"label":"Title","expr":{"input":"/title"}},
+    {"label":"Head branch","expr":{"pick":{"transform":"ids.gitRefName@1","args":{"name":{"input":"/head"}}},"pointer":"/name"}},
+    {"label":"Base branch","expr":{"pick":{"transform":"ids.gitRefName@1","args":{"name":{"input":"/base"}}},"pointer":"/name"}},
+    {"label":"Draft","expr":{"pick":{"transform":"text.joinList@1","args":{"items":{"array":[{"when":{"equals":[{"input":"/draft"},{"const":true}]},"then":{"const":"yes"}},{"when":{"equals":[{"input":"/draft"},{"const":false}]},"then":{"const":"no"}}]}}},"pointer":"/text"}},
+    {"label":"Body","expr":{"input":"/body"}},
+    {"label":"Mentions (GitHub notifies them)","expr":{"pick":{"transform":"text.joinList@1","args":{"items":{"pick":{"transform":"text.mentions@1","args":{"text":{"input":"/body"}}},"pointer":"/mentions"}}},"pointer":"/text"}}
+   ],
+   "definitive": [403,404,422]
+  },
+  {
+   "id": "github.action.review-pull.v1.0c36a40a075ef87c2c16489b",
+   "key": "review-pull",
+   "version": 1,
+   "name": "Review changes and checks",
+   "description": "Reads one pull request to review it: its state, branches, head commit, whether GitHub can merge it, its changed files 50 a page (each patch cut at 3,000 characters, ending in [truncated] when cut) and the check runs on its head commit.",
+   "effect": "read",
+   "row": "github.issues.read",
+   "hints": {"readOnly":true,"destructive":false,"idempotent":true,"openWorld":true},
+   "inputSchema": {"type":"object","properties":{"repository":{"type":"string","minLength":3,"maxLength":140,"description":"The repository, as owner/name, such as octo-org/platform."},"number":{"type":"integer","minimum":1,"maximum":2147483647,"description":"The pull request number."},"page":{"type":"integer","minimum":1,"maximum":60,"description":"The page of changed files, from 1; the first page when left out."}},"required":["repository","number"],"additionalProperties":false},
+   "outputSchema": {"type":"object","properties":{"number":{"type":"integer","minimum":1,"maximum":2147483647},"title":{"type":"string","maxLength":1024},"state":{"type":"string","maxLength":16},"draft":{"type":"boolean"},"merged":{"type":"boolean"},"mergeable":{"type":"boolean"},"mergeableState":{"type":"string","maxLength":32},"head":{"type":"object","properties":{"ref":{"type":"string","maxLength":255},"sha":{"type":"string","maxLength":64}},"required":[],"additionalProperties":false},"base":{"type":"object","properties":{"ref":{"type":"string","maxLength":255},"sha":{"type":"string","maxLength":64}},"required":[],"additionalProperties":false},"additions":{"type":"integer","minimum":0,"maximum":100000000},"deletions":{"type":"integer","minimum":0,"maximum":100000000},"changedFiles":{"type":"integer","minimum":0,"maximum":100000000},"files":{"type":"array","maxItems":50,"items":{"type":"object","properties":{"filename":{"type":"string","maxLength":1000},"status":{"type":"string","maxLength":32},"additions":{"type":"integer","minimum":0,"maximum":100000000},"deletions":{"type":"integer","minimum":0,"maximum":100000000},"patch":{"type":"string","maxLength":3000}},"required":["filename"],"additionalProperties":false}},"checksTotal":{"type":"integer","minimum":0,"maximum":100000000},"checks":{"type":"array","maxItems":50,"items":{"type":"object","properties":{"name":{"type":"string","maxLength":256},"status":{"type":"string","maxLength":32},"conclusion":{"type":"string","maxLength":32}},"required":[],"additionalProperties":false}}},"required":["number"],"additionalProperties":false},
+   "guards": [],
+   "prepare": [
+    {"id":"pull","method":"GET","path":"/repos/{owner}/{repo}/pulls/{pull_number}","params":{"owner":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/owner"},"repo":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/repo"},"pull_number":{"input":"/number"}},"headers":{"Accept":{"const":"application/vnd.github+json"}},"expect":{"status":[200],"require":[]}}
+   ],
+   "perform": [
+    {"id":"checks","method":"GET","path":"/repos/{owner}/{repo}/commits/{ref}/check-runs","params":{"owner":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/owner"},"repo":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/repo"},"ref":{"step":"pull","pointer":"/head/sha"}},"query":{"per_page":{"const":50}},"headers":{"Accept":{"const":"application/vnd.github+json"}},"expect":{"status":[200],"require":[]}},
+    {"id":"files","method":"GET","path":"/repos/{owner}/{repo}/pulls/{pull_number}/files","params":{"owner":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/owner"},"repo":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/repo"},"pull_number":{"input":"/number"}},"query":{"per_page":{"const":50},"page":{"when":{"present":{"input":"/page"}},"then":{"input":"/page"}}},"headers":{"Accept":{"const":"application/vnd.github+json"}},"expect":{"status":[200],"require":[]}},
+    {"id":"again","method":"GET","path":"/repos/{owner}/{repo}/pulls/{pull_number}","params":{"owner":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/owner"},"repo":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/repo"},"pull_number":{"input":"/number"}},"headers":{"Accept":{"const":"application/vnd.github+json"}},"when":{"equals":[{"step":"pull","pointer":"/mergeable"},{"const":null}]},"expect":{"status":[200],"require":[]}}
+   ],
+   "output": {"number":{"step":"pull","pointer":"/number"},"title":{"step":"pull","pointer":"/title"},"state":{"step":"pull","pointer":"/state"},"draft":{"step":"pull","pointer":"/draft"},"merged":{"step":"pull","pointer":"/merged"},"mergeable":{"when":{"nonEmpty":{"either":[{"step":"again","pointer":"/mergeable"},{"step":"pull","pointer":"/mergeable"}]}},"then":{"either":[{"step":"again","pointer":"/mergeable"},{"step":"pull","pointer":"/mergeable"}]}},"mergeableState":{"either":[{"step":"again","pointer":"/mergeable_state"},{"step":"pull","pointer":"/mergeable_state"}]},"head":{"object":{"ref":{"step":"pull","pointer":"/head/ref"},"sha":{"step":"pull","pointer":"/head/sha"}}},"base":{"object":{"ref":{"step":"pull","pointer":"/base/ref"},"sha":{"step":"pull","pointer":"/base/sha"}}},"additions":{"step":"pull","pointer":"/additions"},"deletions":{"step":"pull","pointer":"/deletions"},"changedFiles":{"step":"pull","pointer":"/changed_files"},"files":{"each":{"step":"files","pointer":""},"as":"file","max":50,"do":{"object":{"filename":{"pick":{"var":"file"},"pointer":"/filename"},"status":{"pick":{"var":"file"},"pointer":"/status"},"additions":{"pick":{"var":"file"},"pointer":"/additions"},"deletions":{"pick":{"var":"file"},"pointer":"/deletions"},"patch":{"when":{"nonEmpty":{"pick":{"var":"file"},"pointer":"/patch"}},"then":{"pick":{"transform":"text.truncate@1","args":{"text":{"pick":{"var":"file"},"pointer":"/patch"},"max":{"const":3000}}},"pointer":"/text"}}}}},"checksTotal":{"step":"checks","pointer":"/total_count"},"checks":{"each":{"step":"checks","pointer":"/check_runs"},"as":"run","max":50,"do":{"object":{"name":{"pick":{"var":"run"},"pointer":"/name"},"status":{"pick":{"var":"run"},"pointer":"/status"},"conclusion":{"when":{"nonEmpty":{"pick":{"var":"run"},"pointer":"/conclusion"}},"then":{"pick":{"var":"run"},"pointer":"/conclusion"}}}}}},
+   "preview": [
+    {"label":"Repository","expr":{"input":"/repository"}},
+    {"label":"Pull request","expr":{"input":"/number"}},
+    {"label":"Page","expr":{"input":"/page"}}
+   ],
+   "definitive": [403,404,422]
+  },
+  {
+   "id": "github.action.submit-review.v1.b82c182fd58d54fed83ae316",
+   "key": "submit-review",
+   "version": 1,
+   "name": "Submit a review",
+   "description": "Submits a review of one open pull request, pinned to the head commit read first: APPROVE, REQUEST_CHANGES (needs a body) or COMMENT (needs a body). GitHub notifies the author and everyone the body @mentions.",
+   "effect": "write",
+   "row": "github.comments.write",
+   "hints": {"readOnly":false,"destructive":false,"idempotent":false,"openWorld":true},
+   "inputSchema": {"type":"object","properties":{"repository":{"type":"string","minLength":3,"maxLength":140,"description":"The repository, as owner/name, such as octo-org/platform."},"number":{"type":"integer","minimum":1,"maximum":2147483647,"description":"The pull request number."},"event":{"type":"string","enum":["APPROVE","REQUEST_CHANGES","COMMENT"],"description":"What the review says."},"body":{"type":"string","minLength":1,"maxLength":65536,"description":"Markdown. GitHub notifies everyone it @mentions."}},"required":["repository","number","event"],"additionalProperties":false},
+   "outputSchema": {"type":"object","properties":{"id":{"type":"integer","minimum":1,"maximum":9007199254740991},"state":{"type":"string","maxLength":32},"commitId":{"type":"string","maxLength":64},"htmlUrl":{"type":"string","maxLength":2048}},"required":["id"],"additionalProperties":false},
+   "guards": [
+    {"transform":"collections.oneOf@1","args":{"value":{"step":"pull","pointer":"/state"},"set":{"const":["open"]},"fold":{"const":"none"}},"refuse":"wrong_state","after":"pull"}
+   ],
+   "prepare": [
+    {"id":"pull","method":"GET","path":"/repos/{owner}/{repo}/pulls/{pull_number}","params":{"owner":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/owner"},"repo":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/repo"},"pull_number":{"input":"/number"}},"headers":{"Accept":{"const":"application/vnd.github+json"}},"expect":{"status":[200],"require":[]}}
+   ],
+   "perform": [
+    {"id":"review","method":"POST","path":"/repos/{owner}/{repo}/pulls/{pull_number}/reviews","params":{"owner":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/owner"},"repo":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/repo"},"pull_number":{"input":"/number"}},"headers":{"Accept":{"const":"application/vnd.github+json"}},"body":{"object":{"event":{"input":"/event"},"commit_id":{"step":"pull","pointer":"/head/sha"},"body":{"when":{"present":{"input":"/body"}},"then":{"input":"/body"}}}},"expect":{"status":[200],"require":[]}}
+   ],
+   "verify": {
+    "requests": [{"id":"check","method":"GET","path":"/repos/{owner}/{repo}/pulls/{pull_number}/reviews/{review_id}","params":{"owner":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/owner"},"repo":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/repo"},"pull_number":{"input":"/number"},"review_id":{"step":"review","pointer":"/id"}},"headers":{"Accept":{"const":"application/vnd.github+json"}},"expect":{"status":[200],"require":[]}}],
+    "identity": [{"kind":"readback","step":"check","pointer":"/id","equals":{"step":"review","pointer":"/id"}}],
+    "assert": [{"step":"check","equals":{"pointer":"/commit_id","value":{"step":"review","pointer":"/commit_id"}}},{"step":"check","equals":{"pointer":"/state","value":{"step":"review","pointer":"/state"}}}]
+   },
+   "output": {"id":{"step":"review","pointer":"/id"},"state":{"step":"review","pointer":"/state"},"commitId":{"step":"review","pointer":"/commit_id"},"htmlUrl":{"step":"review","pointer":"/html_url"}},
+   "preview": [
+    {"label":"Repository","expr":{"input":"/repository"}},
+    {"label":"Pull request","expr":{"input":"/number"}},
+    {"label":"Title now","expr":{"step":"pull","pointer":"/title"}},
+    {"label":"Pinned to commit","expr":{"step":"pull","pointer":"/head/sha"}},
+    {"label":"Your review","expr":{"input":"/event"}},
+    {"label":"Review","expr":{"input":"/body"}},
+    {"label":"Mentions (GitHub notifies them)","expr":{"pick":{"transform":"text.joinList@1","args":{"items":{"pick":{"transform":"text.mentions@1","args":{"text":{"input":"/body"}}},"pointer":"/mentions"}}},"pointer":"/text"}}
+   ],
+   "definitive": [403,404,422]
+  },
+  {
+   "id": "github.action.merge-pull.v1.46cefb8daba8743b703c4513",
+   "key": "merge-pull",
+   "version": 1,
+   "name": "Merge",
+   "description": "Merges one open pull request, only if its head is still the commit read first and shown on the card; if anyone pushed since, nothing is merged. A draft cannot be merged.",
+   "effect": "write",
+   "row": "github.pulls.write",
+   "hints": {"readOnly":false,"destructive":false,"idempotent":true,"openWorld":true},
+   "inputSchema": {"type":"object","properties":{"repository":{"type":"string","minLength":3,"maxLength":140,"description":"The repository, as owner/name, such as octo-org/platform."},"number":{"type":"integer","minimum":1,"maximum":2147483647,"description":"The pull request number."},"method":{"type":"string","enum":["merge","squash","rebase"],"description":"merge keeps every commit, squash makes one, rebase replays them."},"commitTitle":{"type":"string","minLength":1,"maxLength":256},"commitMessage":{"type":"string","minLength":1,"maxLength":65536}},"required":["repository","number","method"],"additionalProperties":false},
+   "outputSchema": {"type":"object","properties":{"sha":{"type":"string","maxLength":64},"merged":{"type":"boolean"}},"required":["sha"],"additionalProperties":false},
+   "guards": [
+    {"transform":"collections.oneOf@1","args":{"value":{"step":"pull","pointer":"/state"},"set":{"const":["open"]},"fold":{"const":"none"}},"refuse":"wrong_state","after":"pull"}
+   ],
+   "prepare": [
+    {"id":"pull","method":"GET","path":"/repos/{owner}/{repo}/pulls/{pull_number}","params":{"owner":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/owner"},"repo":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/repo"},"pull_number":{"input":"/number"}},"headers":{"Accept":{"const":"application/vnd.github+json"}},"expect":{"status":[200],"require":[]}}
+   ],
+   "perform": [
+    {"id":"merge","method":"PUT","path":"/repos/{owner}/{repo}/pulls/{pull_number}/merge","params":{"owner":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/owner"},"repo":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/repo"},"pull_number":{"input":"/number"}},"headers":{"Accept":{"const":"application/vnd.github+json"}},"body":{"object":{"sha":{"step":"pull","pointer":"/head/sha"},"merge_method":{"input":"/method"},"commit_title":{"when":{"present":{"input":"/commitTitle"}},"then":{"input":"/commitTitle"}},"commit_message":{"when":{"present":{"input":"/commitMessage"}},"then":{"input":"/commitMessage"}}}},"bindContent":"sha","expect":{"status":[200],"require":[]}}
+   ],
+   "verify": {
+    "requests": [{"id":"check","method":"GET","path":"/repos/{owner}/{repo}/pulls/{pull_number}","params":{"owner":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/owner"},"repo":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/repo"},"pull_number":{"input":"/number"}},"headers":{"Accept":{"const":"application/vnd.github+json"}},"expect":{"status":[200],"require":[]}}],
+    "identity": [{"kind":"readback","step":"check","pointer":"/merge_commit_sha","equals":{"step":"merge","pointer":"/sha"}}],
+    "assert": [{"step":"check","equals":{"pointer":"/merged","value":{"const":true}}}]
+   },
+   "output": {"sha":{"step":"merge","pointer":"/sha"},"merged":{"step":"merge","pointer":"/merged"}},
+   "preview": [
+    {"label":"Repository","expr":{"input":"/repository"}},
+    {"label":"Pull request","expr":{"input":"/number"}},
+    {"label":"Title now","expr":{"step":"pull","pointer":"/title"}},
+    {"label":"Head branch","expr":{"step":"pull","pointer":"/head/ref"}},
+    {"label":"Base branch","expr":{"step":"pull","pointer":"/base/ref"}},
+    {"label":"Head commit","expr":{"step":"pull","pointer":"/head/sha"}},
+    {"label":"Merge method","expr":{"input":"/method"}},
+    {"label":"Mergeable now","expr":{"pick":{"transform":"text.joinList@1","args":{"items":{"array":[{"when":{"equals":[{"step":"pull","pointer":"/mergeable"},{"const":true}]},"then":{"const":"yes"}},{"when":{"equals":[{"step":"pull","pointer":"/mergeable"},{"const":false}]},"then":{"const":"no"}},{"when":{"equals":[{"step":"pull","pointer":"/mergeable"},{"const":null}]},"then":{"const":"not known yet"}}]}}},"pointer":"/text"}},
+    {"label":"Commit title","expr":{"input":"/commitTitle"}},
+    {"label":"Commit message","expr":{"input":"/commitMessage"}}
+   ],
+   "definitive": [403,404,405,409,422]
+  },
+  {
+   "id": "github.action.run-workflow.v1.448cfb94a56d5d427ef6ac84",
+   "key": "run-workflow",
+   "version": 1,
+   "name": "Run a workflow",
+   "description": "Starts one GitHub Actions workflow that can be run by hand, on a branch, with its inputs as text. The run shows in the workflow's runs a moment later.",
+   "effect": "write",
+   "row": "github.actions.run",
+   "hints": {"readOnly":false,"destructive":false,"idempotent":false,"openWorld":true},
+   "inputSchema": {"type":"object","properties":{"repository":{"type":"string","minLength":3,"maxLength":140,"description":"The repository, as owner/name, such as octo-org/platform."},"workflow":{"type":"string","minLength":1,"maxLength":255,"description":"The workflow's file name, such as ci.yml, or its id."},"branch":{"type":"string","minLength":1,"maxLength":255,"description":"A branch name, such as main or fabric/notes."},"inputs":{"type":"array","minItems":0,"maxItems":25,"items":{"type":"object","properties":{"name":{"type":"string","minLength":1,"maxLength":100},"value":{"type":"string","maxLength":1000}},"required":["name","value"],"additionalProperties":false},"description":"The workflow's inputs as name and text value; [] for none."}},"required":["repository","workflow","branch","inputs"],"additionalProperties":false},
+   "outputSchema": {"type":"object","properties":{"workflowId":{"type":"integer","minimum":1,"maximum":9007199254740991},"workflowPath":{"type":"string","maxLength":1000},"branch":{"type":"string","maxLength":255}},"required":["workflowId"],"additionalProperties":false},
+   "guards": [
+    {"transform":"collections.oneOf@1","args":{"value":{"step":"workflow","pointer":"/state"},"set":{"const":["active"]},"fold":{"const":"none"}},"refuse":"wrong_state","after":"workflow"}
+   ],
+   "prepare": [
+    {"id":"workflow","method":"GET","path":"/repos/{owner}/{repo}/actions/workflows/{workflow_id}","params":{"owner":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/owner"},"repo":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/repo"},"workflow_id":{"input":"/workflow"}},"headers":{"Accept":{"const":"application/vnd.github+json"}},"expect":{"status":[200],"require":[]}}
+   ],
+   "perform": [
+    {"id":"dispatch","method":"POST","path":"/repos/{owner}/{repo}/actions/workflows/{workflow_id}/dispatches","params":{"owner":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/owner"},"repo":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/repo"},"workflow_id":{"input":"/workflow"}},"headers":{"Accept":{"const":"application/vnd.github+json"}},"body":{"object":{"ref":{"pick":{"transform":"ids.gitRefName@1","args":{"name":{"input":"/branch"}}},"pointer":"/name"},"inputs":{"transform":"collections.stringValues@1","args":{"values":{"input":"/inputs"}}}}},"expect":{"status":[204],"require":[]}}
+   ],
+   "verify": {
+    "requests": [{"id":"runs","method":"GET","path":"/repos/{owner}/{repo}/actions/workflows/{workflow_id}/runs","params":{"owner":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/owner"},"repo":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/repo"},"workflow_id":{"input":"/workflow"}},"query":{"event":{"const":"workflow_dispatch"},"branch":{"pick":{"transform":"ids.gitRefName@1","args":{"name":{"input":"/branch"}}},"pointer":"/name"},"per_page":{"const":10}},"headers":{"Accept":{"const":"application/vnd.github+json"}},"expect":{"status":[200],"require":[]}}],
+    "identity": [{"kind":"membership","step":"runs","listHas":{"list":"/workflow_runs","where":[{"field":"/head_branch","equals":{"pick":{"transform":"ids.gitRefName@1","args":{"name":{"input":"/branch"}}},"pointer":"/name"}},{"field":"/event","equals":{"const":"workflow_dispatch"}}]}}],
+    "assert": []
+   },
+   "output": {"workflowId":{"step":"workflow","pointer":"/id"},"workflowPath":{"step":"workflow","pointer":"/path"},"branch":{"pick":{"transform":"ids.gitRefName@1","args":{"name":{"input":"/branch"}}},"pointer":"/name"}},
+   "preview": [
+    {"label":"Repository","expr":{"input":"/repository"}},
+    {"label":"Workflow","expr":{"concat":[{"step":"workflow","pointer":"/name"},{"const":" ("},{"step":"workflow","pointer":"/path"},{"const":")"}],"max":2000}},
+    {"label":"Branch","expr":{"pick":{"transform":"ids.gitRefName@1","args":{"name":{"input":"/branch"}}},"pointer":"/name"}},
+    {"label":"Inputs","expr":{"pick":{"transform":"text.joinList@1","args":{"items":{"each":{"input":"/inputs"},"as":"input","max":25,"do":{"pick":{"var":"input"},"pointer":"/name"}}}},"pointer":"/text"}}
+   ],
+   "definitive": [403,404,422]
+  }
+ ]
+}

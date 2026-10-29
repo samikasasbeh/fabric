@@ -1,0 +1,1896 @@
+{
+ "openapi": "3.0.3",
+ "info": {
+  "title": "Fabric coverage fixture",
+  "version": "1",
+  "description": "Written by hand for Fabric's compiler-coverage tests. Each operation shows one blocker class. Not copied from any provider."
+ },
+ "servers": [
+  {
+   "url": "https://api.coverage.example.com/v1"
+  }
+ ],
+ "security": [
+  {
+   "oauth": [
+    "read"
+   ]
+  }
+ ],
+ "components": {
+  "securitySchemes": {
+   "oauth": {
+    "type": "oauth2",
+    "flows": {
+     "authorizationCode": {
+      "authorizationUrl": "https://api.coverage.example.com/v1/oauth2/authorize",
+      "tokenUrl": "https://api.coverage.example.com/v1/oauth2/token",
+      "scopes": {
+       "read": "Read",
+       "write": "Write"
+      }
+     }
+    }
+   },
+   "bearer": {
+    "type": "http",
+    "scheme": "bearer"
+   },
+   "bearerCapital": {
+    "type": "http",
+    "scheme": "Bearer"
+   },
+   "basic": {
+    "type": "http",
+    "scheme": "basic"
+   },
+   "apiKeyHeader": {
+    "type": "apiKey",
+    "in": "header",
+    "name": "X-Api-Key"
+   },
+   "apiKeyQuery": {
+    "type": "apiKey",
+    "in": "query",
+    "name": "appid"
+   }
+  },
+  "schemas": {
+   "Node": {
+    "type": "object",
+    "properties": {
+     "name": {
+      "type": "string"
+     },
+     "child": {
+      "$ref": "#/components/schemas/Node"
+     }
+    },
+    "additionalProperties": false
+   }
+  }
+ },
+ "paths": {
+  "/plain": {
+   "get": {
+    "operationId": "getPlain",
+    "summary": "Get a plain item",
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "id": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     }
+    },
+    "parameters": [
+     {
+      "name": "limit",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "integer",
+       "minimum": 1,
+       "maximum": 100
+      }
+     }
+    ]
+   },
+   "post": {
+    "operationId": "postPlain",
+    "summary": "Create a plain item",
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "id": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     }
+    },
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "object",
+        "properties": {
+         "name": {
+          "type": "string"
+         }
+        },
+        "required": [
+         "name"
+        ],
+        "additionalProperties": false
+       }
+      }
+     }
+    }
+   }
+  },
+  "/plain/{id}": {
+   "parameters": [
+    {
+     "name": "id",
+     "in": "path",
+     "required": true,
+     "schema": {
+      "type": "string"
+     }
+    }
+   ],
+   "delete": {
+    "operationId": "deletePlain",
+    "summary": "Delete a plain item",
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "id": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     }
+    },
+    "requestBody": {
+     "required": false,
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "object",
+        "properties": {
+         "reason": {
+          "type": "string"
+         }
+        },
+        "additionalProperties": false
+       }
+      }
+     }
+    }
+   }
+  },
+  "/annotation": {
+   "get": {
+    "operationId": "annotationRequired",
+    "summary": "annotationRequired",
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "id": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     }
+    },
+    "parameters": [
+     {
+      "name": "q",
+      "in": "query",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "example": "abc"
+      }
+     }
+    ]
+   }
+  },
+  "/annotation-optional": {
+   "get": {
+    "operationId": "annotationOptional",
+    "summary": "annotationOptional",
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "id": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     }
+    },
+    "parameters": [
+     {
+      "name": "q",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "string",
+       "example": "abc"
+      }
+     }
+    ]
+   }
+  },
+  "/x-extension": {
+   "post": {
+    "operationId": "xExtension",
+    "summary": "xExtension",
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "id": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     }
+    },
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "object",
+        "properties": {
+         "name": {
+          "type": "string",
+          "x-internal": true
+         }
+        },
+        "additionalProperties": false
+       }
+      }
+     }
+    }
+   }
+  },
+  "/deprecated": {
+   "get": {
+    "operationId": "deprecatedParam",
+    "summary": "deprecatedParam",
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "id": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     }
+    },
+    "parameters": [
+     {
+      "name": "old",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "string",
+       "deprecated": true
+      }
+     }
+    ]
+   }
+  },
+  "/nullable": {
+   "get": {
+    "operationId": "nullableRequired",
+    "summary": "nullableRequired",
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "id": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     }
+    },
+    "parameters": [
+     {
+      "name": "v",
+      "in": "query",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "nullable": true
+      }
+     }
+    ]
+   }
+  },
+  "/nullable-optional": {
+   "get": {
+    "operationId": "nullableOptional",
+    "summary": "nullableOptional",
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "id": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     }
+    },
+    "parameters": [
+     {
+      "name": "v",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "string",
+       "nullable": true
+      }
+     }
+    ]
+   }
+  },
+  "/allof": {
+   "post": {
+    "operationId": "allOfBody",
+    "summary": "allOfBody",
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "id": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     }
+    },
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "allOf": [
+         {
+          "type": "object",
+          "properties": {
+           "a": {
+            "type": "string"
+           }
+          },
+          "required": [
+           "a"
+          ]
+         },
+         {
+          "type": "object",
+          "properties": {
+           "b": {
+            "type": "string"
+           }
+          }
+         }
+        ]
+       }
+      }
+     }
+    }
+   }
+  },
+  "/oneof": {
+   "post": {
+    "operationId": "oneOfBody",
+    "summary": "oneOfBody",
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "id": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     }
+    },
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "oneOf": [
+         {
+          "type": "object",
+          "properties": {
+           "a": {
+            "type": "string"
+           }
+          },
+          "required": [
+           "a"
+          ],
+          "additionalProperties": false
+         },
+         {
+          "type": "object",
+          "properties": {
+           "b": {
+            "type": "string"
+           }
+          },
+          "required": [
+           "b"
+          ],
+          "additionalProperties": false
+         }
+        ]
+       }
+      }
+     }
+    }
+   }
+  },
+  "/oneof-optional": {
+   "get": {
+    "operationId": "oneOfOptional",
+    "summary": "oneOfOptional",
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "id": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     }
+    },
+    "parameters": [
+     {
+      "name": "v",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "oneOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "integer"
+        }
+       ]
+      }
+     }
+    ]
+   }
+  },
+  "/pattern/{sid}": {
+   "get": {
+    "operationId": "patternRequired",
+    "summary": "patternRequired",
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "id": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     }
+    },
+    "parameters": [
+     {
+      "name": "sid",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "pattern": "^AC[0-9a-f]{32}$"
+      }
+     }
+    ]
+   }
+  },
+  "/pattern-optional": {
+   "get": {
+    "operationId": "patternOptional",
+    "summary": "patternOptional",
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "id": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     }
+    },
+    "parameters": [
+     {
+      "name": "v",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "string",
+       "pattern": "^[a-z]+$"
+      }
+     }
+    ]
+   }
+  },
+  "/format-optional": {
+   "get": {
+    "operationId": "formatOptional",
+    "summary": "formatOptional",
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "id": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     }
+    },
+    "parameters": [
+     {
+      "name": "host",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "string",
+       "format": "hostname"
+      }
+     }
+    ]
+   }
+  },
+  "/format-password": {
+   "post": {
+    "operationId": "formatPassword",
+    "summary": "formatPassword",
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "id": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     }
+    },
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "object",
+        "properties": {
+         "user": {
+          "type": "string"
+         },
+         "password": {
+          "type": "string",
+          "format": "password"
+         }
+        },
+        "required": [
+         "user",
+         "password"
+        ],
+        "additionalProperties": false
+       }
+      }
+     }
+    }
+   }
+  },
+  "/readonly": {
+   "post": {
+    "operationId": "readOnlyRequired",
+    "summary": "readOnlyRequired",
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "id": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     }
+    },
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "object",
+        "properties": {
+         "id": {
+          "type": "string",
+          "readOnly": true
+         },
+         "name": {
+          "type": "string"
+         }
+        },
+        "required": [
+         "id",
+         "name"
+        ],
+        "additionalProperties": false
+       }
+      }
+     }
+    }
+   }
+  },
+  "/writeonly": {
+   "post": {
+    "operationId": "writeOnlySecret",
+    "summary": "writeOnlySecret",
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "id": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     }
+    },
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "object",
+        "properties": {
+         "name": {
+          "type": "string"
+         },
+         "api_key": {
+          "type": "string",
+          "writeOnly": true
+         }
+        },
+        "additionalProperties": false
+       }
+      }
+     }
+    }
+   }
+  },
+  "/header": {
+   "get": {
+    "operationId": "headerRequired",
+    "summary": "headerRequired",
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "id": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     }
+    },
+    "parameters": [
+     {
+      "name": "X-Request-Id",
+      "in": "header",
+      "required": true,
+      "schema": {
+       "type": "string"
+      }
+     }
+    ]
+   }
+  },
+  "/header-optional": {
+   "get": {
+    "operationId": "headerOptional",
+    "summary": "headerOptional",
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "id": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     }
+    },
+    "parameters": [
+     {
+      "name": "If-Match",
+      "in": "header",
+      "required": false,
+      "schema": {
+       "type": "string"
+      }
+     }
+    ]
+   }
+  },
+  "/impersonate": {
+   "get": {
+    "operationId": "impersonationHeader",
+    "summary": "impersonationHeader",
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "id": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     }
+    },
+    "parameters": [
+     {
+      "name": "X-As-User-Email",
+      "in": "header",
+      "required": false,
+      "schema": {
+       "type": "string"
+      }
+     }
+    ]
+   }
+  },
+  "/cookie": {
+   "get": {
+    "operationId": "cookieParam",
+    "summary": "cookieParam",
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "id": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     }
+    },
+    "parameters": [
+     {
+      "name": "session",
+      "in": "cookie",
+      "required": false,
+      "schema": {
+       "type": "string"
+      }
+     }
+    ]
+   }
+  },
+  "/form": {
+   "post": {
+    "operationId": "formBody",
+    "summary": "formBody",
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "id": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     }
+    },
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/x-www-form-urlencoded": {
+       "schema": {
+        "type": "object",
+        "properties": {
+         "name": {
+          "type": "string"
+         }
+        },
+        "required": [
+         "name"
+        ]
+       }
+      }
+     }
+    }
+   }
+  },
+  "/multi-media": {
+   "post": {
+    "operationId": "multipleMediaTypes",
+    "summary": "multipleMediaTypes",
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "id": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     }
+    },
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "object",
+        "properties": {
+         "name": {
+          "type": "string"
+         }
+        },
+        "additionalProperties": false
+       }
+      },
+      "application/xml": {
+       "schema": {
+        "type": "object",
+        "properties": {
+         "name": {
+          "type": "string"
+         }
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/empty-get-body": {
+   "get": {
+    "operationId": "emptyBodyOnGet",
+    "summary": "emptyBodyOnGet",
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "id": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     }
+    },
+    "requestBody": {
+     "required": false,
+     "content": {
+      "application/x-www-form-urlencoded": {
+       "schema": {
+        "type": "object",
+        "properties": {}
+       }
+      }
+     }
+    }
+   }
+  },
+  "/get-with-body": {
+   "get": {
+    "operationId": "getWithJsonBody",
+    "summary": "getWithJsonBody",
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "id": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     }
+    },
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "object",
+        "properties": {
+         "q": {
+          "type": "string"
+         }
+        },
+        "additionalProperties": false
+       }
+      }
+     }
+    }
+   }
+  },
+  "/map-body": {
+   "post": {
+    "operationId": "mapBody",
+    "summary": "mapBody",
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "id": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     }
+    },
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "object",
+        "additionalProperties": {
+         "type": "string"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/recursive": {
+   "post": {
+    "operationId": "recursiveBody",
+    "summary": "recursiveBody",
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "id": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     }
+    },
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/Node"
+       }
+      }
+     }
+    }
+   }
+  },
+  "/per-path-server": {
+   "servers": [
+    {
+     "url": "https://api.coverage.example.com/v1"
+    }
+   ],
+   "get": {
+    "operationId": "perPathServer",
+    "summary": "perPathServer",
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "id": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/items/{Sid}.json": {
+   "get": {
+    "operationId": "literalInSegment",
+    "summary": "literalInSegment",
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "id": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     }
+    },
+    "parameters": [
+     {
+      "name": "Sid",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string"
+      }
+     }
+    ]
+   }
+  },
+  "/variant#one": {
+   "get": {
+    "operationId": "variantPath",
+    "summary": "variantPath",
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "id": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api-key-header": {
+   "get": {
+    "operationId": "apiKeyHeaderOnly",
+    "summary": "apiKeyHeaderOnly",
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "id": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "apiKeyHeader": []
+     }
+    ]
+   }
+  },
+  "/api-key-query": {
+   "get": {
+    "operationId": "apiKeyQueryOnly",
+    "summary": "apiKeyQueryOnly",
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "id": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "apiKeyQuery": []
+     }
+    ]
+   }
+  },
+  "/basic": {
+   "get": {
+    "operationId": "basicOnly",
+    "summary": "basicOnly",
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "id": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "basic": []
+     }
+    ]
+   }
+  },
+  "/basic-or-bearer": {
+   "get": {
+    "operationId": "basicOrBearer",
+    "summary": "basicOrBearer",
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "id": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "basic": []
+     },
+     {
+      "bearer": []
+     }
+    ]
+   }
+  },
+  "/bearer-capital": {
+   "get": {
+    "operationId": "bearerCapital",
+    "summary": "bearerCapital",
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "id": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "bearerCapital": []
+     }
+    ]
+   }
+  },
+  "/undefined-scheme": {
+   "get": {
+    "operationId": "undefinedScheme",
+    "summary": "undefinedScheme",
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "id": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "nope": []
+     }
+    ]
+   }
+  },
+  "/anonymous": {
+   "get": {
+    "operationId": "anonymousAllowed",
+    "summary": "anonymousAllowed",
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "id": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {}
+    ]
+   }
+  },
+  "/credential-required": {
+   "get": {
+    "operationId": "credentialParamRequired",
+    "summary": "credentialParamRequired",
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "id": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     }
+    },
+    "parameters": [
+     {
+      "name": "AuthToken",
+      "in": "query",
+      "required": true,
+      "schema": {
+       "type": "string"
+      }
+     }
+    ]
+   }
+  },
+  "/credential-optional": {
+   "get": {
+    "operationId": "credentialParamOptional",
+    "summary": "credentialParamOptional",
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "id": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     }
+    },
+    "parameters": [
+     {
+      "name": "appKey",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "string"
+      }
+     }
+    ]
+   }
+  },
+  "/declared-key-param": {
+   "get": {
+    "operationId": "declaredKeyParam",
+    "summary": "declaredKeyParam",
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "id": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     }
+    },
+    "parameters": [
+     {
+      "name": "appid",
+      "in": "query",
+      "required": true,
+      "schema": {
+       "type": "string"
+      }
+     }
+    ]
+   }
+  },
+  "/keys/{key}": {
+   "get": {
+    "operationId": "keyPathParam",
+    "summary": "keyPathParam",
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "id": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     }
+    },
+    "parameters": [
+     {
+      "name": "key",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string"
+      }
+     }
+    ]
+   }
+  },
+  "/csv": {
+   "get": {
+    "operationId": "csvQuery",
+    "summary": "csvQuery",
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "id": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     }
+    },
+    "parameters": [
+     {
+      "name": "fields",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "array",
+       "items": {
+        "type": "string"
+       }
+      },
+      "style": "form",
+      "explode": false
+     }
+    ]
+   }
+  },
+  "/deep-object": {
+   "get": {
+    "operationId": "deepObjectQuery",
+    "summary": "deepObjectQuery",
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "id": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     }
+    },
+    "parameters": [
+     {
+      "name": "filter",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "object",
+       "properties": {
+        "status": {
+         "type": "string"
+        }
+       },
+       "additionalProperties": false
+      },
+      "style": "deepObject",
+      "explode": true
+     }
+    ]
+   }
+  },
+  "/blank-summary": {
+   "get": {
+    "operationId": "blankSummary",
+    "summary": "   ",
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "id": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/trailing-summary": {
+   "get": {
+    "operationId": "trailingSummary",
+    "summary": "List things ",
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "id": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/accounts/{sid}": {
+   "get": {
+    "operationId": "getAccount",
+    "summary": "Fetch an account",
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "sid": {
+           "type": "string"
+          },
+          "auth_token": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     }
+    },
+    "parameters": [
+     {
+      "name": "sid",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string"
+      }
+     }
+    ]
+   }
+  },
+  "/keys": {
+   "post": {
+    "operationId": "createKey",
+    "summary": "Create a key",
+    "responses": {
+     "201": {
+      "description": "Created",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "sid": {
+           "type": "string"
+          },
+          "secret": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     }
+    },
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "object",
+        "properties": {
+         "name": {
+          "type": "string"
+         }
+        },
+        "additionalProperties": false
+       }
+      }
+     }
+    }
+   }
+  },
+  "/things/delete": {
+   "get": {
+    "operationId": "deleteThing",
+    "summary": "Delete a thing",
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "id": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     }
+    },
+    "parameters": [
+     {
+      "name": "thingId",
+      "in": "query",
+      "required": true,
+      "schema": {
+       "type": "string"
+      }
+     }
+    ]
+   }
+  },
+  "/token-exchange": {
+   "post": {
+    "operationId": "tokenExchange",
+    "summary": "Exchange a code",
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "id": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     }
+    },
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "object",
+        "properties": {
+         "grant_type": {
+          "type": "string"
+         },
+         "code": {
+          "type": "string"
+         },
+         "client_secret": {
+          "type": "string"
+         }
+        },
+        "additionalProperties": false
+       }
+      }
+     }
+    }
+   }
+  },
+  "/oauth2/token": {
+   "post": {
+    "operationId": "tokenUrlMatch",
+    "summary": "Token endpoint",
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "id": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     }
+    },
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "object",
+        "properties": {
+         "name": {
+          "type": "string"
+         }
+        },
+        "additionalProperties": false
+       }
+      }
+     }
+    }
+   }
+  }
+ }
+}

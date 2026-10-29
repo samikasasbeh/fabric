@@ -1,0 +1,22 @@
+{
+ "schemaVersion": 2,
+ "appId": "gmail",
+ "reviewed": "F10.9 part i: a Gmail choice source for actions, in the options version 2 format, to show that a version 2 file never reaches the version 1 readers (R10). Test data: no app ships a choices file in F10.9.",
+ "sources": [
+  {
+   "id": "user-labels",
+   "kind": "directory",
+   "read": {"operation": "gmail.users.labels.list"},
+   "row": "gmail.labels.read",
+   "args": {},
+   "items": "/labels",
+   "value": "/id",
+   "valueType": "string",
+   "label": ["/name"],
+   "page": null,
+   "search": {"mode": "local"},
+   "exclude": ["SENT", "DRAFT", "TRASH", "SPAM"],
+   "maxItems": 500
+  }
+ ]
+}

@@ -1,0 +1,24 @@
+{
+ "schemaVersion": 1,
+ "appId": "notion",
+ "simulator": "test/fixtures/provider-simulators/notion.mjs",
+ "tests": ["test/actions-notion.test.mjs"],
+ "cases": {
+  "search v1": ["succeeds", "refused", "provider-refusal"],
+  "read-page v1": ["succeeds", "refused", "provider-refusal"],
+  "describe-database v1": ["succeeds", "refused", "provider-refusal"],
+  "find-rows v1": ["succeeds", "refused", "provider-refusal"],
+  "create-page v1": ["succeeds", "refused", "provider-refusal", "unverified", "lost-answer"],
+  "add-row v1": ["succeeds", "refused", "provider-refusal", "unverified", "lost-answer"],
+  "rename-page v1": ["succeeds", "refused", "provider-refusal", "unverified", "lost-answer"],
+  "update-row v1": ["succeeds", "refused", "provider-refusal", "unverified", "lost-answer"],
+  "add-to-page v1": ["succeeds", "refused", "provider-refusal", "unverified", "lost-answer"],
+  "edit-page-text v1": ["succeeds", "refused", "provider-refusal", "unverified", "lost-answer"],
+  "move-page v1": ["succeeds", "refused", "provider-refusal", "unverified", "lost-answer"],
+  "trash-page v1": ["succeeds", "refused", "provider-refusal", "unverified", "lost-answer"],
+  "restore-page v1": ["succeeds", "refused", "provider-refusal", "unverified", "lost-answer"],
+  "comment v1": ["succeeds", "refused", "provider-refusal", "unverified", "lost-answer"],
+  "read-comments v1": ["succeeds", "refused", "provider-refusal"],
+  "find-person v1": ["succeeds", "refused", "provider-refusal"]
+ }
+}

@@ -1,0 +1,29 @@
+{
+ "schemaVersion": 1,
+ "appId": "github",
+ "apiBase": "https://api.github.com",
+ "style": "rest",
+ "pathPrefixes": [
+  "/"
+ ],
+ "acceptTypes": [
+  "application/json",
+  "application/vnd.github+json",
+  "application/vnd.github.raw+json"
+ ],
+ "reservedParameters": [],
+ "reservedBodyFields": [],
+ "arrayParameters": [],
+ "aliases": [
+  {
+   "from": "/repos/{owner}/{repo}",
+   "to": "/repositories/{repository_id}"
+  }
+ ],
+ "inheritFamilies": [],
+ "documentedRoutes": "github.routes.json",
+ "proxyAllowable": [
+  "github.notifications.manage"
+ ],
+ "typedOnly": []
+}

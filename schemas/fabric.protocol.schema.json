@@ -1,0 +1,35 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "title": "Fabric protocol request envelope",
+ "description": "Experimental Fabric 0.1 envelope. Method-specific fields, grants, immutable operation bindings and runtime permissions are additionally enforced by lib/fabric-protocol.mjs.",
+ "type": "object",
+ "additionalProperties": false,
+ "required": [
+  "protocol",
+  "id",
+  "method"
+ ],
+ "properties": {
+  "protocol": {
+   "const": "fabric/0.1"
+  },
+  "id": {
+   "type": "string",
+   "minLength": 1,
+   "maxLength": 128,
+   "pattern": "^[A-Za-z0-9_.:-]+$"
+  },
+  "method": {
+   "enum": [
+    "fabric.discover",
+    "capabilities.list",
+    "calls.create",
+    "calls.get",
+    "calls.cancel"
+   ]
+  },
+  "params": {
+   "type": "object"
+  }
+ }
+}

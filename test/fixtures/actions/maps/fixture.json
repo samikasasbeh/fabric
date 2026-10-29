@@ -1,0 +1,6 @@
+{
+ "appId": "fixture",
+ "operations": [
+  {"id": "fixture.items.list", "method": "GET", "path": "/items"}
+ ]
+}

@@ -1,0 +1,75 @@
+{
+ "schemaVersion": 1,
+ "appId": "google-calendar",
+ "note": "Live sign-in evidence (exit gate check 7). Session 1 ran on 2026-10-29 (docs/MANUAL-TESTS.md, the S7.13 session): Sami signed in and the test operator recorded what each screen showed, from his reports and screenshots. Phase A ran version 1 code (54c85bd), Phase B the main line (03e290d). Corrected after the branch review of step 14: a record says passed only where the session notes show exactly the kind the exit gate names. Fields the notes did not record say so. No email, name, account id, login, page name or token is kept. The partial grant and the renewal for Gmail and Calendar ran on 2026-10-29 after the live passes, done by the test operator in the test Google account with Sami's OK; the renewal used the page's new Sign in again.",
+ "full-consent": {
+  "passed": true,
+  "date": "2026-10-29",
+  "runtime": "npm start, single owner",
+  "folder": "live session 1 parent folder",
+  "clientGrant": "not recorded",
+  "phase": "B",
+  "step": "B6.4",
+  "codeRevision": "03e290d",
+  "consentPolicy": "Google full level for Calendar",
+  "cardRows": "three rows",
+  "observed": "Google listed sharing, calendar properties, the calendar list, settings and availability, all ticked; the result was Full access, the upgrade button gone, no \"Needs more access\" row. The live pass then used sharing, calendar creation and free time on this access.",
+  "scopesRecorded": "not recorded by name",
+  "settings": "not recorded",
+  "notices": "none shown",
+  "auditTypes": "not recorded"
+ },
+ "partial-grant-add-access": {
+  "passed": true,
+  "date": "2026-10-29",
+  "phase": "Google sign-in session after the live passes",
+  "codeRevision": "28ff662",
+  "runtime": "node server.mjs, single owner",
+  "port": 4320,
+  "folder": "live session 1 parent folder",
+  "actor": "The test operator, in the test Google account, with Sami's OK",
+  "clientGrant": "not recorded",
+  "steps": [
+   "Add account, availability unticked",
+   "Add on Check your availability"
+  ],
+  "setup": "Fabric (development)'s access was first removed in the test Google account (Linked apps, Delete all), so Google showed its boxes again.",
+  "consentPolicy": "Google boxes, one unticked",
+  "scopesRecorded": "five of the six Calendar permissions, then all six",
+  "observed": "Add account with \"View your availability in your calendars\" unticked: a new account read \"Partial access (1 permission not granted)\", one notice named Check your availability, and that row read \"Needs more access\" with Add. Add showed Fabric's card (\"After this sign-in the agent can do these without asking you first: Check your availability... anything set to Never stays off\"); Google asked for availability only; afterwards Full access, no notice, no \"Needs more access\" row.",
+  "settingsBefore": {
+   "Access events": "Never",
+   "Create, edit and invite people to events": "Never"
+  },
+  "settingsAfter": {
+   "Access events": "Never",
+   "Create, edit and invite people to events": "Never"
+  },
+  "notices": "one not-granted notice, gone after Add",
+  "auditTypes": [
+   "connection.connected",
+   "connection.upgraded"
+  ]
+ },
+ "renewal-kept-settings": {
+  "passed": true,
+  "date": "2026-10-29",
+  "phase": "Google sign-in session after the live passes",
+  "codeRevision": "28ff662",
+  "runtime": "node server.mjs, single owner",
+  "port": 4320,
+  "folder": "live session 1 parent folder",
+  "actor": "The test operator, in the test Google account, with Sami's OK",
+  "clientGrant": "not recorded",
+  "steps": [
+   "Sign in again (new on 28ff662)"
+  ],
+  "setup": "Fabric (development)'s access was first removed in the test Google account (Linked apps, Delete all), so Google showed its boxes again. It was removed once more after the Add, so this account had to sign in again.",
+  "observed": "The account from the partial grant, with Access events and Create, edit and invite people to events at Never, read \"Reconnect needed\". \"Sign in again\": Google showed the six boxes, all ticked, the same access it held. The same account was ready again with all 12 settings exactly as before, both Nevers included.",
+  "settingsBefore": "saved before, 12 rows",
+  "settingsAfter": "the same 12 rows, unchanged",
+  "auditTypes": [
+   "connection.reconsented"
+  ]
+ }
+}

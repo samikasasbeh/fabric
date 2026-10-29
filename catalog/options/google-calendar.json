@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "appId": "google-calendar",
+  "reviewed": "2026-10-13: the calendars a person can pick from, read through the reviewed calendar list (row Read calendars).",
+  "sources": [
+    {
+      "id": "calendars",
+      "operation": "calendar.calendarList.list",
+      "row": "google-calendar.calendars.read",
+      "serves": ["calendarId"],
+      "args": {},
+      "items": "/items",
+      "value": "/id",
+      "label": ["/summaryOverride", "/summary"],
+      "pageToken": {"response": "/nextPageToken", "parameter": "pageToken"},
+      "maxItems": 250
+    }
+  ]
+}

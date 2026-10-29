@@ -1,0 +1,885 @@
+{
+ "gmail:read": {
+  "summary": {
+   "rows": 14,
+   "works": 4,
+   "partial": 0,
+   "blocked": 8,
+   "unknown": 0,
+   "locked": 1,
+   "unavailable": 1,
+   "members": 79,
+   "coveredMembers": 26,
+   "unavailableMembers": 24
+  },
+  "unjustified": [],
+  "gaps": [
+   {
+    "row": "gmail.drafts.write",
+    "status": "blocked",
+    "missing": [
+     "gmail.users.drafts.create",
+     "gmail.users.drafts.update"
+    ],
+    "cannotWork": [],
+    "unmapped": [],
+    "noScopes": [],
+    "unavailable": []
+   },
+   {
+    "row": "gmail.messages.send",
+    "status": "blocked",
+    "missing": [
+     "gmail.users.messages.send",
+     "gmail.users.drafts.send"
+    ],
+    "cannotWork": [],
+    "unmapped": [],
+    "noScopes": [],
+    "unavailable": []
+   },
+   {
+    "row": "gmail.labels.manage",
+    "status": "blocked",
+    "missing": [
+     "gmail.users.labels.create",
+     "gmail.users.labels.update",
+     "gmail.users.labels.patch"
+    ],
+    "cannotWork": [],
+    "unmapped": [],
+    "noScopes": [],
+    "unavailable": []
+   },
+   {
+    "row": "gmail.messages.mark",
+    "status": "blocked",
+    "missing": [
+     "gmail.users.messages.modify",
+     "gmail.users.threads.modify",
+     "gmail.users.messages.batchModify"
+    ],
+    "cannotWork": [],
+    "unmapped": [],
+    "noScopes": [],
+    "unavailable": []
+   },
+   {
+    "row": "gmail.messages.import",
+    "status": "blocked",
+    "missing": [
+     "gmail.users.messages.import",
+     "gmail.users.messages.insert"
+    ],
+    "cannotWork": [],
+    "unmapped": [],
+    "noScopes": [],
+    "unavailable": []
+   },
+   {
+    "row": "gmail.messages.trash",
+    "status": "blocked",
+    "missing": [
+     "gmail.users.messages.trash",
+     "gmail.users.messages.untrash",
+     "gmail.users.threads.trash",
+     "gmail.users.threads.untrash"
+    ],
+    "cannotWork": [],
+    "unmapped": [],
+    "noScopes": [],
+    "unavailable": []
+   },
+   {
+    "row": "gmail.settings.write",
+    "status": "blocked",
+    "missing": [
+     "gmail.users.settings.filters.create",
+     "gmail.users.settings.updateVacation",
+     "gmail.users.settings.updateImap",
+     "gmail.users.settings.updatePop",
+     "gmail.users.settings.updateLanguage",
+     "gmail.users.settings.sendAs.smimeInfo.insert",
+     "gmail.users.settings.sendAs.smimeInfo.delete",
+     "gmail.users.settings.sendAs.smimeInfo.setDefault"
+    ],
+    "cannotWork": [],
+    "unmapped": [],
+    "noScopes": [],
+    "unavailable": [
+     "gmail.users.settings.cse.identities.create",
+     "gmail.users.settings.cse.identities.delete",
+     "gmail.users.settings.cse.identities.patch",
+     "gmail.users.settings.cse.keypairs.create",
+     "gmail.users.settings.cse.keypairs.disable",
+     "gmail.users.settings.cse.keypairs.enable"
+    ]
+   },
+   {
+    "row": "gmail.items.delete",
+    "status": "blocked",
+    "missing": [
+     "gmail.users.drafts.delete",
+     "gmail.users.labels.delete",
+     "gmail.users.settings.filters.delete"
+    ],
+    "cannotWork": [],
+    "unmapped": [],
+    "noScopes": [],
+    "unavailable": []
+   },
+   {
+    "row": "gmail.permanent.delete",
+    "status": "unavailable",
+    "missing": [],
+    "cannotWork": [],
+    "unmapped": [],
+    "noScopes": [],
+    "unavailable": [
+     "gmail.users.messages.delete",
+     "gmail.users.messages.batchDelete",
+     "gmail.users.threads.delete",
+     "gmail.users.settings.cse.keypairs.obliterate"
+    ]
+   },
+   {
+    "row": "gmail.access.grant",
+    "status": "locked",
+    "missing": [
+     "gmail.users.settings.sendAs.patch",
+     "gmail.users.settings.sendAs.update"
+    ],
+    "cannotWork": [],
+    "unmapped": [],
+    "noScopes": [],
+    "unavailable": [
+     "gmail.users.settings.sendAs.create",
+     "gmail.users.settings.sendAs.delete",
+     "gmail.users.settings.sendAs.verify",
+     "gmail.users.settings.updateAutoForwarding",
+     "gmail.users.settings.forwardingAddresses.create",
+     "gmail.users.settings.forwardingAddresses.delete",
+     "gmail.users.settings.delegates.create",
+     "gmail.users.settings.delegates.delete"
+    ]
+   }
+  ]
+ },
+ "gmail:write": {
+  "summary": {
+   "rows": 14,
+   "works": 6,
+   "partial": 1,
+   "blocked": 5,
+   "unknown": 0,
+   "locked": 1,
+   "unavailable": 1,
+   "members": 79,
+   "coveredMembers": 31,
+   "unavailableMembers": 24
+  },
+  "unjustified": [],
+  "gaps": [
+   {
+    "row": "gmail.labels.manage",
+    "status": "blocked",
+    "missing": [
+     "gmail.users.labels.create",
+     "gmail.users.labels.update",
+     "gmail.users.labels.patch"
+    ],
+    "cannotWork": [],
+    "unmapped": [],
+    "noScopes": [],
+    "unavailable": []
+   },
+   {
+    "row": "gmail.messages.mark",
+    "status": "blocked",
+    "missing": [
+     "gmail.users.messages.modify",
+     "gmail.users.threads.modify",
+     "gmail.users.messages.batchModify"
+    ],
+    "cannotWork": [],
+    "unmapped": [],
+    "noScopes": [],
+    "unavailable": []
+   },
+   {
+    "row": "gmail.messages.import",
+    "status": "blocked",
+    "missing": [
+     "gmail.users.messages.import",
+     "gmail.users.messages.insert"
+    ],
+    "cannotWork": [],
+    "unmapped": [],
+    "noScopes": [],
+    "unavailable": []
+   },
+   {
+    "row": "gmail.messages.trash",
+    "status": "blocked",
+    "missing": [
+     "gmail.users.messages.trash",
+     "gmail.users.messages.untrash",
+     "gmail.users.threads.trash",
+     "gmail.users.threads.untrash"
+    ],
+    "cannotWork": [],
+    "unmapped": [],
+    "noScopes": [],
+    "unavailable": []
+   },
+   {
+    "row": "gmail.settings.write",
+    "status": "blocked",
+    "missing": [
+     "gmail.users.settings.filters.create",
+     "gmail.users.settings.updateVacation",
+     "gmail.users.settings.updateImap",
+     "gmail.users.settings.updatePop",
+     "gmail.users.settings.updateLanguage",
+     "gmail.users.settings.sendAs.smimeInfo.insert",
+     "gmail.users.settings.sendAs.smimeInfo.delete",
+     "gmail.users.settings.sendAs.smimeInfo.setDefault"
+    ],
+    "cannotWork": [],
+    "unmapped": [],
+    "noScopes": [],
+    "unavailable": [
+     "gmail.users.settings.cse.identities.create",
+     "gmail.users.settings.cse.identities.delete",
+     "gmail.users.settings.cse.identities.patch",
+     "gmail.users.settings.cse.keypairs.create",
+     "gmail.users.settings.cse.keypairs.disable",
+     "gmail.users.settings.cse.keypairs.enable"
+    ]
+   },
+   {
+    "row": "gmail.items.delete",
+    "status": "partial",
+    "missing": [
+     "gmail.users.labels.delete",
+     "gmail.users.settings.filters.delete"
+    ],
+    "cannotWork": [],
+    "unmapped": [],
+    "noScopes": [],
+    "unavailable": []
+   },
+   {
+    "row": "gmail.permanent.delete",
+    "status": "unavailable",
+    "missing": [],
+    "cannotWork": [],
+    "unmapped": [],
+    "noScopes": [],
+    "unavailable": [
+     "gmail.users.messages.delete",
+     "gmail.users.messages.batchDelete",
+     "gmail.users.threads.delete",
+     "gmail.users.settings.cse.keypairs.obliterate"
+    ]
+   },
+   {
+    "row": "gmail.access.grant",
+    "status": "locked",
+    "missing": [
+     "gmail.users.settings.sendAs.patch",
+     "gmail.users.settings.sendAs.update"
+    ],
+    "cannotWork": [],
+    "unmapped": [],
+    "noScopes": [],
+    "unavailable": [
+     "gmail.users.settings.sendAs.create",
+     "gmail.users.settings.sendAs.delete",
+     "gmail.users.settings.sendAs.verify",
+     "gmail.users.settings.updateAutoForwarding",
+     "gmail.users.settings.forwardingAddresses.create",
+     "gmail.users.settings.forwardingAddresses.delete",
+     "gmail.users.settings.delegates.create",
+     "gmail.users.settings.delegates.delete"
+    ]
+   }
+  ]
+ },
+ "gmail:full-proposed": {
+  "summary": {
+   "rows": 14,
+   "works": 12,
+   "partial": 0,
+   "blocked": 0,
+   "unknown": 0,
+   "locked": 1,
+   "unavailable": 1,
+   "members": 79,
+   "coveredMembers": 55,
+   "unavailableMembers": 24
+  },
+  "unjustified": [],
+  "gaps": [
+   {
+    "row": "gmail.permanent.delete",
+    "status": "unavailable",
+    "missing": [],
+    "cannotWork": [],
+    "unmapped": [],
+    "noScopes": [],
+    "unavailable": [
+     "gmail.users.messages.delete",
+     "gmail.users.messages.batchDelete",
+     "gmail.users.threads.delete",
+     "gmail.users.settings.cse.keypairs.obliterate"
+    ]
+   },
+   {
+    "row": "gmail.access.grant",
+    "status": "locked",
+    "missing": [],
+    "cannotWork": [],
+    "unmapped": [],
+    "noScopes": [],
+    "unavailable": [
+     "gmail.users.settings.sendAs.create",
+     "gmail.users.settings.sendAs.delete",
+     "gmail.users.settings.sendAs.verify",
+     "gmail.users.settings.updateAutoForwarding",
+     "gmail.users.settings.forwardingAddresses.create",
+     "gmail.users.settings.forwardingAddresses.delete",
+     "gmail.users.settings.delegates.create",
+     "gmail.users.settings.delegates.delete"
+    ]
+   }
+  ]
+ },
+ "google-calendar:read": {
+  "summary": {
+   "rows": 12,
+   "works": 2,
+   "partial": 0,
+   "blocked": 9,
+   "unknown": 0,
+   "locked": 1,
+   "unavailable": 0,
+   "members": 38,
+   "coveredMembers": 9,
+   "unavailableMembers": 0
+  },
+  "unjustified": [],
+  "gaps": [
+   {
+    "row": "google-calendar.availability.read",
+    "status": "blocked",
+    "missing": [
+     "calendar.freebusy.query"
+    ],
+    "cannotWork": [],
+    "unmapped": [],
+    "noScopes": [],
+    "unavailable": []
+   },
+   {
+    "row": "google-calendar.settings.read",
+    "status": "blocked",
+    "missing": [
+     "calendar.settings.list",
+     "calendar.settings.get",
+     "calendar.calendars.get",
+     "calendar.acl.list",
+     "calendar.acl.get"
+    ],
+    "cannotWork": [],
+    "unmapped": [],
+    "noScopes": [],
+    "unavailable": []
+   },
+   {
+    "row": "google-calendar.events.write",
+    "status": "blocked",
+    "missing": [
+     "calendar.events.insert",
+     "calendar.events.quickAdd",
+     "calendar.events.import",
+     "calendar.events.patch",
+     "calendar.events.update",
+     "calendar.events.move"
+    ],
+    "cannotWork": [],
+    "unmapped": [],
+    "noScopes": [],
+    "unavailable": []
+   },
+   {
+    "row": "google-calendar.events.delete",
+    "status": "blocked",
+    "missing": [
+     "calendar.events.delete"
+    ],
+    "cannotWork": [],
+    "unmapped": [],
+    "noScopes": [],
+    "unavailable": []
+   },
+   {
+    "row": "google-calendar.calendarlist.write",
+    "status": "blocked",
+    "missing": [
+     "calendar.calendarList.insert",
+     "calendar.calendarList.patch",
+     "calendar.calendarList.update"
+    ],
+    "cannotWork": [],
+    "unmapped": [],
+    "noScopes": [],
+    "unavailable": []
+   },
+   {
+    "row": "google-calendar.calendars.write",
+    "status": "blocked",
+    "missing": [
+     "calendar.calendars.insert",
+     "calendar.calendars.patch",
+     "calendar.calendars.update"
+    ],
+    "cannotWork": [],
+    "unmapped": [],
+    "noScopes": [],
+    "unavailable": []
+   },
+   {
+    "row": "google-calendar.calendarlist.remove",
+    "status": "blocked",
+    "missing": [
+     "calendar.calendarList.delete"
+    ],
+    "cannotWork": [],
+    "unmapped": [],
+    "noScopes": [],
+    "unavailable": []
+   },
+   {
+    "row": "google-calendar.sharing.write",
+    "status": "blocked",
+    "missing": [
+     "calendar.acl.delete"
+    ],
+    "cannotWork": [],
+    "unmapped": [],
+    "noScopes": [],
+    "unavailable": []
+   },
+   {
+    "row": "google-calendar.permanent.delete",
+    "status": "blocked",
+    "missing": [
+     "calendar.calendars.delete",
+     "calendar.calendars.clear"
+    ],
+    "cannotWork": [],
+    "unmapped": [],
+    "noScopes": [],
+    "unavailable": []
+   },
+   {
+    "row": "google-calendar.access.grant",
+    "status": "locked",
+    "missing": [
+     "calendar.settings.watch",
+     "calendar.acl.watch",
+     "calendar.acl.insert",
+     "calendar.acl.patch",
+     "calendar.acl.update",
+     "calendar.calendars.transferOwnership"
+    ],
+    "cannotWork": [],
+    "unmapped": [],
+    "noScopes": [],
+    "unavailable": []
+   }
+  ]
+ },
+ "google-calendar:write": {
+  "summary": {
+   "rows": 12,
+   "works": 4,
+   "partial": 0,
+   "blocked": 7,
+   "unknown": 0,
+   "locked": 1,
+   "unavailable": 0,
+   "members": 38,
+   "coveredMembers": 16,
+   "unavailableMembers": 0
+  },
+  "unjustified": [],
+  "gaps": [
+   {
+    "row": "google-calendar.availability.read",
+    "status": "blocked",
+    "missing": [
+     "calendar.freebusy.query"
+    ],
+    "cannotWork": [],
+    "unmapped": [],
+    "noScopes": [],
+    "unavailable": []
+   },
+   {
+    "row": "google-calendar.settings.read",
+    "status": "blocked",
+    "missing": [
+     "calendar.settings.list",
+     "calendar.settings.get",
+     "calendar.calendars.get",
+     "calendar.acl.list",
+     "calendar.acl.get"
+    ],
+    "cannotWork": [],
+    "unmapped": [],
+    "noScopes": [],
+    "unavailable": []
+   },
+   {
+    "row": "google-calendar.calendarlist.write",
+    "status": "blocked",
+    "missing": [
+     "calendar.calendarList.insert",
+     "calendar.calendarList.patch",
+     "calendar.calendarList.update"
+    ],
+    "cannotWork": [],
+    "unmapped": [],
+    "noScopes": [],
+    "unavailable": []
+   },
+   {
+    "row": "google-calendar.calendars.write",
+    "status": "blocked",
+    "missing": [
+     "calendar.calendars.insert",
+     "calendar.calendars.patch",
+     "calendar.calendars.update"
+    ],
+    "cannotWork": [],
+    "unmapped": [],
+    "noScopes": [],
+    "unavailable": []
+   },
+   {
+    "row": "google-calendar.calendarlist.remove",
+    "status": "blocked",
+    "missing": [
+     "calendar.calendarList.delete"
+    ],
+    "cannotWork": [],
+    "unmapped": [],
+    "noScopes": [],
+    "unavailable": []
+   },
+   {
+    "row": "google-calendar.sharing.write",
+    "status": "blocked",
+    "missing": [
+     "calendar.acl.delete"
+    ],
+    "cannotWork": [],
+    "unmapped": [],
+    "noScopes": [],
+    "unavailable": []
+   },
+   {
+    "row": "google-calendar.permanent.delete",
+    "status": "blocked",
+    "missing": [
+     "calendar.calendars.delete",
+     "calendar.calendars.clear"
+    ],
+    "cannotWork": [],
+    "unmapped": [],
+    "noScopes": [],
+    "unavailable": []
+   },
+   {
+    "row": "google-calendar.access.grant",
+    "status": "locked",
+    "missing": [
+     "calendar.settings.watch",
+     "calendar.acl.watch",
+     "calendar.acl.insert",
+     "calendar.acl.patch",
+     "calendar.acl.update",
+     "calendar.calendars.transferOwnership"
+    ],
+    "cannotWork": [],
+    "unmapped": [],
+    "noScopes": [],
+    "unavailable": []
+   }
+  ]
+ },
+ "google-calendar:full-proposed": {
+  "summary": {
+   "rows": 12,
+   "works": 11,
+   "partial": 0,
+   "blocked": 0,
+   "unknown": 0,
+   "locked": 1,
+   "unavailable": 0,
+   "members": 38,
+   "coveredMembers": 38,
+   "unavailableMembers": 0
+  },
+  "unjustified": [],
+  "gaps": [
+   {
+    "row": "google-calendar.access.grant",
+    "status": "locked",
+    "missing": [],
+    "cannotWork": [],
+    "unmapped": [],
+    "noScopes": [],
+    "unavailable": []
+   }
+  ]
+ },
+ "google-calendar:six-scopes": {
+  "summary": {
+   "rows": 12,
+   "works": 11,
+   "partial": 0,
+   "blocked": 0,
+   "unknown": 0,
+   "locked": 1,
+   "unavailable": 0,
+   "members": 38,
+   "coveredMembers": 38,
+   "unavailableMembers": 0
+  },
+  "unjustified": [],
+  "gaps": [
+   {
+    "row": "google-calendar.access.grant",
+    "status": "locked",
+    "missing": [],
+    "cannotWork": [],
+    "unmapped": [],
+    "noScopes": [],
+    "unavailable": []
+   }
+  ]
+ },
+ "gmail:full": {
+  "summary": {
+   "rows": 14,
+   "works": 12,
+   "partial": 0,
+   "blocked": 0,
+   "unknown": 0,
+   "locked": 1,
+   "unavailable": 1,
+   "members": 79,
+   "coveredMembers": 55,
+   "unavailableMembers": 24
+  },
+  "unjustified": [],
+  "gaps": [
+   {
+    "row": "gmail.permanent.delete",
+    "status": "unavailable",
+    "missing": [],
+    "cannotWork": [],
+    "unmapped": [],
+    "noScopes": [],
+    "unavailable": [
+     "gmail.users.messages.delete",
+     "gmail.users.messages.batchDelete",
+     "gmail.users.threads.delete",
+     "gmail.users.settings.cse.keypairs.obliterate"
+    ]
+   },
+   {
+    "row": "gmail.access.grant",
+    "status": "locked",
+    "missing": [],
+    "cannotWork": [],
+    "unmapped": [],
+    "noScopes": [],
+    "unavailable": [
+     "gmail.users.settings.sendAs.create",
+     "gmail.users.settings.sendAs.delete",
+     "gmail.users.settings.sendAs.verify",
+     "gmail.users.settings.updateAutoForwarding",
+     "gmail.users.settings.forwardingAddresses.create",
+     "gmail.users.settings.forwardingAddresses.delete",
+     "gmail.users.settings.delegates.create",
+     "gmail.users.settings.delegates.delete"
+    ]
+   }
+  ]
+ },
+ "google-calendar:full": {
+  "summary": {
+   "rows": 12,
+   "works": 11,
+   "partial": 0,
+   "blocked": 0,
+   "unknown": 0,
+   "locked": 1,
+   "unavailable": 0,
+   "members": 38,
+   "coveredMembers": 38,
+   "unavailableMembers": 0
+  },
+  "unjustified": [],
+  "gaps": [
+   {
+    "row": "google-calendar.access.grant",
+    "status": "locked",
+    "missing": [],
+    "cannotWork": [],
+    "unmapped": [],
+    "noScopes": [],
+    "unavailable": []
+   }
+  ]
+ },
+ "github:full": {
+  "summary": {
+   "rows": 13,
+   "works": 12,
+   "partial": 0,
+   "blocked": 0,
+   "unknown": 0,
+   "locked": 1,
+   "unavailable": 0,
+   "members": 424,
+   "coveredMembers": 356,
+   "unavailableMembers": 68
+  },
+  "unjustified": [],
+  "gaps": [
+   {
+    "row": "github.access.grant",
+    "status": "locked",
+    "missing": [],
+    "cannotWork": [],
+    "unmapped": [],
+    "noScopes": [],
+    "unavailable": [
+     "POST /orgs/{org}/hooks",
+     "PATCH /orgs/{org}/hooks/{hook_id}",
+     "DELETE /orgs/{org}/hooks/{hook_id}",
+     "PATCH /orgs/{org}/hooks/{hook_id}/config",
+     "POST /orgs/{org}/hooks/{hook_id}/pings",
+     "POST /orgs/{org}/hooks/{hook_id}/deliveries/{delivery_id}/attempts",
+     "PUT /orgs/{org}/memberships/{username}",
+     "POST /user/keys",
+     "PUT /orgs/{org}/actions/secrets/{secret_name}",
+     "PUT /orgs/{org}/dependabot/secrets/{secret_name}",
+     "PUT /orgs/{org}/codespaces/secrets/{secret_name}",
+     "PUT /user/codespaces/secrets/{secret_name}",
+     "POST /orgs/{org}/actions/runners/registration-token",
+     "POST /orgs/{org}/actions/runners/generate-jitconfig",
+     "POST /organizations/{organization_id}/hooks",
+     "PATCH /organizations/{organization_id}/hooks/{hook_id}",
+     "DELETE /organizations/{organization_id}/hooks/{hook_id}",
+     "PATCH /organizations/{organization_id}/hooks/{hook_id}/config",
+     "POST /organizations/{organization_id}/hooks/{hook_id}/pings",
+     "POST /organizations/{organization_id}/hooks/{hook_id}/deliveries/{delivery_id}/attempts",
+     "PUT /organizations/{organization_id}/memberships/{username}",
+     "PUT /organizations/{organization_id}/actions/secrets/{secret_name}",
+     "PUT /organizations/{organization_id}/dependabot/secrets/{secret_name}",
+     "PUT /organizations/{organization_id}/codespaces/secrets/{secret_name}",
+     "POST /organizations/{organization_id}/actions/runners/registration-token",
+     "POST /organizations/{organization_id}/actions/runners/generate-jitconfig",
+     "PUT /orgs/{org}/agents/secrets/{secret_name}",
+     "PUT /orgs/{org}/actions/secrets/{secret_name}/repositories",
+     "PUT /orgs/{org}/actions/secrets/{secret_name}/repositories/{repository_id}",
+     "PUT /orgs/{org}/dependabot/secrets/{secret_name}/repositories",
+     "PUT /orgs/{org}/dependabot/secrets/{secret_name}/repositories/{repository_id}",
+     "PUT /orgs/{org}/codespaces/secrets/{secret_name}/repositories",
+     "PUT /orgs/{org}/codespaces/secrets/{secret_name}/repositories/{repository_id}",
+     "PUT /orgs/{org}/agents/secrets/{secret_name}/repositories",
+     "PUT /orgs/{org}/agents/secrets/{secret_name}/repositories/{repository_id}",
+     "PUT /user/codespaces/secrets/{secret_name}/repositories",
+     "PUT /user/codespaces/secrets/{secret_name}/repositories/{repository_id}",
+     "PUT /orgs/{org}/organization-roles/teams/{team_slug}/{role_id}",
+     "PUT /orgs/{org}/organization-roles/users/{username}/{role_id}",
+     "PUT /orgs/{org}/security-managers/teams/{team_slug}",
+     "POST /orgs/{org}/copilot-spaces/{space_number}/collaborators",
+     "PUT /orgs/{org}/copilot-spaces/{space_number}/collaborators/{actor_type}/{actor_identifier}",
+     "POST /users/{username}/copilot-spaces/{space_number}/collaborators",
+     "PUT /users/{username}/copilot-spaces/{space_number}/collaborators/{actor_type}/{actor_identifier}",
+     "POST /orgs/{org}/private-registries",
+     "PATCH /orgs/{org}/private-registries/{secret_name}",
+     "PUT /organizations/{organization_id}/agents/secrets/{secret_name}",
+     "PUT /organizations/{organization_id}/actions/secrets/{secret_name}/repositories",
+     "PUT /organizations/{organization_id}/actions/secrets/{secret_name}/repositories/{repository_id}",
+     "PUT /organizations/{organization_id}/dependabot/secrets/{secret_name}/repositories",
+     "PUT /organizations/{organization_id}/dependabot/secrets/{secret_name}/repositories/{repository_id}",
+     "PUT /organizations/{organization_id}/codespaces/secrets/{secret_name}/repositories",
+     "PUT /organizations/{organization_id}/codespaces/secrets/{secret_name}/repositories/{repository_id}",
+     "PUT /organizations/{organization_id}/agents/secrets/{secret_name}/repositories",
+     "PUT /organizations/{organization_id}/agents/secrets/{secret_name}/repositories/{repository_id}",
+     "PUT /organizations/{organization_id}/organization-roles/teams/{team_slug}/{role_id}",
+     "PUT /organizations/{organization_id}/organization-roles/users/{username}/{role_id}",
+     "PUT /organizations/{organization_id}/security-managers/teams/{team_slug}",
+     "POST /organizations/{organization_id}/copilot-spaces/{space_number}/collaborators",
+     "PUT /organizations/{organization_id}/copilot-spaces/{space_number}/collaborators/{actor_type}/{actor_identifier}",
+     "POST /organizations/{organization_id}/private-registries",
+     "PATCH /organizations/{organization_id}/private-registries/{secret_name}"
+    ]
+   }
+  ]
+ },
+ "notion:full": {
+  "summary": {
+   "rows": 13,
+   "works": 12,
+   "partial": 0,
+   "blocked": 0,
+   "unknown": 0,
+   "locked": 0,
+   "unavailable": 1,
+   "members": 64,
+   "coveredMembers": 61,
+   "unavailableMembers": 3
+  },
+  "unjustified": [],
+  "gaps": [
+   {
+    "row": "notion.connection.manage",
+    "status": "unavailable",
+    "missing": [],
+    "cannotWork": [],
+    "unmapped": [],
+    "noScopes": [],
+    "unavailable": [
+     "POST /v1/oauth/token",
+     "POST /v1/oauth/revoke",
+     "POST /v1/oauth/introspect"
+    ]
+   }
+  ]
+ },
+ "slack:full": {
+  "summary": {
+   "rows": 12,
+   "works": 12,
+   "partial": 0,
+   "blocked": 0,
+   "unknown": 0,
+   "locked": 0,
+   "unavailable": 0,
+   "members": 282,
+   "coveredMembers": 100,
+   "unavailableMembers": 182
+  },
+  "unjustified": [],
+  "gaps": []
+ }
+}

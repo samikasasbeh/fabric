@@ -1,0 +1,103 @@
+{
+ "schemaVersion": 1,
+ "appId": "slack",
+ "note": "Slack's live tests S0 to S6 (spec section 5.5, step 22), in #fabric-test and your own direct message, after Muse's Slack checklist and with FABRIC_SLACK_DISTRIBUTION=internal. Every text starts with the synthetic marker and Slack reads it for no mention or link; nothing is ever deleted with chat.delete. Checked offline by node scripts/live-certify.mjs slack --check.",
+ "recorded": {
+  "fabricTest": "The id of #fabric-test, the channel the app's tests write in (C followed by letters and digits).",
+  "selfDm": "The id of your direct message with yourself (D followed by letters and digits).",
+  "ownerUser": "Your own Slack member id (U or W followed by letters and digits).",
+  "synthetic1": "The ts of the first synthetic message in #fabric-test, [SYNTHETIC] Fabric message 1: S3 replies in its thread.",
+  "synthetic2": "The ts of the second synthetic message in #fabric-test, [SYNTHETIC] Fabric message 2: S4 reacts to it.",
+  "canvas": "The id of the [SYNTHETIC] Fabric canvas (F followed by letters and digits)."
+ },
+ "readRows": ["slack.messages.read", "slack.files.read", "slack.workspace.read"],
+ "tests": [
+  {
+   "id": "S0",
+   "name": "Read pass: conversations, recent messages, a thread, a search, yourself and the synthetic canvas",
+   "steps": [
+    {"call": {"action": "list-conversations@1", "args": {}, "checks": [{"pointer": "/channels", "present": true}]}},
+    {"call": {"action": "read-messages@1", "args": {"channel": {"$recorded": "fabricTest"}}, "checks": [{"pointer": "/messages", "present": true}]}},
+    {"call": {"action": "read-thread@1", "args": {"channel": {"$recorded": "fabricTest"}, "ts": {"$recorded": "synthetic1"}}, "checks": [{"pointer": "/messages/0/ts", "equals": {"$recorded": "synthetic1"}}]}},
+    {"call": {"action": "search-messages@1", "args": {"words": "[SYNTHETIC] Fabric message", "channel": {"$recorded": "fabricTest"}}, "checks": [{"pointer": "/matches", "present": true}]}},
+    {"call": {"action": "find-person@1", "args": {"user": {"$recorded": "ownerUser"}}, "checks": [{"pointer": "/people/0/id", "equals": {"$recorded": "ownerUser"}}]}},
+    {"call": {"action": "read-canvas@1", "args": {"canvas": {"$recorded": "canvas"}}, "checks": [{"pointer": "/canvas", "equals": {"$recorded": "canvas"}}, {"pointer": "/content", "present": true}]}}
+   ]
+  },
+  {
+   "id": "S1",
+   "name": "Schedule a message in #fabric-test two hours ahead, then cancel it",
+   "steps": [
+    {"call": {"action": "schedule-message@1", "args": {"do": "schedule", "channel": {"$recorded": "fabricTest"}, "text": {"$text": "scheduled"}, "at": {"$in": {"minutes": 120}}},
+     "save": {"scheduled": "/scheduledMessageId"}, "checks": [{"pointer": "/postAt", "present": true}]}},
+    {"read": {"path": "/chat.scheduledMessages.list", "query": {"channel": {"$recorded": "fabricTest"}},
+     "checks": [{"status": 200}, {"pointer": "/scheduled_messages", "where": {"/id": {"$saved": "scheduled"}}, "field": "/text", "equals": {"$text": "scheduled"}}]}}
+   ],
+   "undo": {"steps": [
+    {"call": {"action": "schedule-message@1", "args": {"do": "cancel", "channel": {"$recorded": "fabricTest"}, "text": {"$text": "scheduled"}, "scheduledMessageId": {"$saved": "scheduled"}},
+     "checks": [{"pointer": "/scheduledMessageId", "equals": {"$saved": "scheduled"}}]}}
+   ]}
+  },
+  {
+   "id": "S2",
+   "name": "Send to #fabric-test, edit it to v2, then back to v1",
+   "steps": [
+    {"call": {"action": "send-message@1", "args": {"channel": {"$recorded": "fabricTest"}, "text": {"$text": "v1"}}, "save": {"sent": "/ts"}, "checks": [{"pointer": "/channel", "equals": {"$recorded": "fabricTest"}}]}},
+    {"call": {"action": "edit-message@1", "args": {"channel": {"$recorded": "fabricTest"}, "ts": {"$saved": "sent"}, "text": {"$text": "v2"}}}},
+    {"read": {"path": "/conversations.replies", "query": {"channel": {"$recorded": "fabricTest"}, "ts": {"$saved": "sent"}},
+     "checks": [{"status": 200}, {"pointer": "/messages", "where": {"/ts": {"$saved": "sent"}}, "field": "/text", "equals": {"$text": "v2"}}]}},
+    {"call": {"action": "edit-message@1", "args": {"channel": {"$recorded": "fabricTest"}, "ts": {"$saved": "sent"}, "text": {"$text": "v1"}}}},
+    {"read": {"path": "/conversations.replies", "query": {"channel": {"$recorded": "fabricTest"}, "ts": {"$saved": "sent"}},
+     "checks": [{"status": 200}, {"pointer": "/messages", "where": {"/ts": {"$saved": "sent"}}, "field": "/text", "equals": {"$text": "v1"}}]}}
+   ],
+   "undo": {"none": "The message stays in #fabric-test, marked synthetic (spec line 1572): chat.delete is on the Never row and the guard refuses it."}
+  },
+  {
+   "id": "S3",
+   "name": "Reply in the thread of the first synthetic message",
+   "steps": [
+    {"call": {"action": "reply-thread@1", "args": {"channel": {"$recorded": "fabricTest"}, "ts": {"$recorded": "synthetic1"}, "text": {"$text": "reply"}}, "save": {"reply": "/ts"},
+     "checks": [{"pointer": "/threadTs", "equals": {"$recorded": "synthetic1"}}]}},
+    {"read": {"path": "/conversations.replies", "query": {"channel": {"$recorded": "fabricTest"}, "ts": {"$recorded": "synthetic1"}},
+     "checks": [{"status": 200}, {"pointer": "/messages", "where": {"/ts": {"$saved": "reply"}}, "field": "/text", "equals": {"$text": "reply"}}]}}
+   ],
+   "undo": {"none": "The reply stays in the synthetic thread, marked synthetic, as S2's message does: chat.delete is on the Never row and the guard refuses it."}
+  },
+  {
+   "id": "S4",
+   "name": "React with white_check_mark to the second synthetic message, then remove it",
+   "steps": [
+    {"call": {"action": "react@1", "args": {"do": "add", "channel": {"$recorded": "fabricTest"}, "ts": {"$recorded": "synthetic2"}, "emoji": "white_check_mark"},
+     "checks": [{"pointer": "/emoji", "equals": "white_check_mark"}]}},
+    {"read": {"path": "/reactions.get", "query": {"channel": {"$recorded": "fabricTest"}, "timestamp": {"$recorded": "synthetic2"}, "full": "true"},
+     "checks": [{"status": 200}, {"pointer": "/message/reactions", "where": {"/name": "white_check_mark"}, "field": "/users", "equals": [{"$recorded": "ownerUser"}]}]}}
+   ],
+   "undo": {"steps": [
+    {"call": {"action": "react@1", "args": {"do": "remove", "channel": {"$recorded": "fabricTest"}, "ts": {"$recorded": "synthetic2"}, "emoji": "white_check_mark"}}}
+   ]}
+  },
+  {
+   "id": "S5",
+   "name": "Send a direct message to yourself",
+   "steps": [
+    {"call": {"action": "send-dm@1", "args": {"user": {"$recorded": "ownerUser"}, "text": {"$text": "direct message"}}, "save": {"direct": "/ts"},
+     "checks": [{"pointer": "/channel", "equals": {"$recorded": "selfDm"}}]}},
+    {"read": {"path": "/conversations.history", "query": {"channel": {"$recorded": "selfDm"}, "limit": "15"},
+     "checks": [{"status": 200}, {"pointer": "/messages", "where": {"/ts": {"$saved": "direct"}}, "field": "/text", "equals": {"$text": "direct message"}}]}}
+   ],
+   "undo": {"none": "The message stays in your self-DM, marked synthetic, as S2's message does: chat.delete is on the Never row and the guard refuses it."}
+  },
+  {
+   "id": "S6",
+   "name": "Set a status that clears in ten minutes, then clear it",
+   "steps": [
+    {"call": {"action": "set-status@1", "args": {"do": "set", "text": {"$text": "status"}, "emoji": "calendar", "until": {"$in": {"minutes": 10}}},
+     "checks": [{"pointer": "/statusText", "equals": {"$text": "status"}}, {"pointer": "/statusEmoji", "equals": ":calendar:"}]}},
+    {"read": {"path": "/users.profile.get", "checks": [{"status": 200}, {"pointer": "/profile/status_text", "equals": {"$text": "status"}}]}}
+   ],
+   "undo": {"steps": [
+    {"call": {"action": "set-status@1", "args": {"do": "clear"}, "checks": [{"pointer": "/statusText", "equals": ""}]}}
+   ]}
+  }
+ ]
+}

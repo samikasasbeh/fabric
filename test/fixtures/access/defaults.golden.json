@@ -1,0 +1,5016 @@
+{
+ "note": "F10.7 defaults golden (docs/F10.7-BUILD-MAP.md part i). Per app: the table of what every permission does before anyone changes it, its dataHash (the hash of that table, which a sign-off binds) and a filesHash over its auth, permissions, proxy and routes files, for information. Written by node scripts/defaults-golden.mjs --write, which never signs. signedOff is written only by --sign, after Sami's explicit approval of that app.",
+ "schema": 1,
+ "apps": {
+  "github": {
+   "name": "GitHub",
+   "provider": "github",
+   "signedOff": {
+    "by": "Sami",
+    "date": "2026-10-29",
+    "dataHash": "41aa471a274f6acc8faca70f0e2b10a0b98686bdad5d457a30624a4e9769f8c8"
+   },
+   "previousSignedOff": {
+    "by": "Sami",
+    "date": "2026-10-20",
+    "dataHash": "8e8689ca1f508db2985fa48c978bf42964fceaba8a452f9120e35a7598074f26"
+   },
+   "dataHash": "41aa471a274f6acc8faca70f0e2b10a0b98686bdad5d457a30624a4e9769f8c8",
+   "filesHash": "c48e0868850577c6cde2d057b8df91378b8c0eaa639ff23f7a1c9bddf40b842d",
+   "files": {
+    "catalog/auth/github.json": "774843f5504579636027143e544ca7d633cdce532ec5fe9fb4283aa793acdc4f",
+    "catalog/permissions/github.json": "91ff6d539065aeea18334294f81bc30368f489c91cb2fd8f27aac78a1e80a157",
+    "catalog/proxy/github.json": "8c3fd40f77d6fbc83b764197db03ceec9f9a3a9a77088e4c659ce3a7648fc665",
+    "catalog/proxy/github.routes.json": "3fb927bb736af514bc3cdcc5d58a1a61b41f9aff4b42c83b2440313b39cefc74"
+   },
+   "table": {
+    "signIn": {
+     "version": 2,
+     "grant": "scope",
+     "consentPolicy": {
+      "testing": "full",
+      "production": "full"
+     },
+     "identityScopes": [],
+     "required": [
+      "read:user",
+      "repo"
+     ],
+     "optional": [
+      "read:org",
+      "gist",
+      "workflow"
+     ],
+     "inContext": [],
+     "read": null,
+     "neverRequest": [
+      "admin:gpg_key",
+      "admin:public_key",
+      "admin:ssh_signing_key",
+      "delete_repo",
+      "user"
+     ],
+     "implications": {
+      "admin:org": [
+       "read:org",
+       "write:org"
+      ],
+      "admin:repo_hook": [
+       "read:repo_hook",
+       "write:repo_hook"
+      ],
+      "repo": [
+       "public_repo",
+       "repo:invite",
+       "repo:status",
+       "repo_deployment",
+       "security_events"
+      ],
+      "user": [
+       "read:user",
+       "user:email",
+       "user:follow"
+      ],
+      "write:org": [
+       "read:org"
+      ]
+     }
+    },
+    "rows": [
+     {
+      "id": "github.profile.read",
+      "label": "Access profiles, activity and notifications",
+      "effect": "read",
+      "stayInAccount": false,
+      "defaults": {
+       "declared": "allow",
+       "typed": "allow",
+       "raw": "allow"
+      },
+      "rawModes": [
+       "allow",
+       "ask",
+       "deny"
+      ],
+      "locked": false,
+      "audience": false,
+      "proxyAllowable": false,
+      "members": 35,
+      "typedMembers": 0,
+      "typedOnly": [],
+      "reviewedReads": [],
+      "unavailable": [],
+      "unsupported": [],
+      "conditions": [],
+      "conditionalScopes": {},
+      "access": {
+       "signIn": {
+        "status": "works",
+        "covered": 35,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "full": {
+        "status": "works",
+        "covered": 35,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "required": {
+        "status": "partial",
+        "covered": 32,
+        "missing": 3,
+        "cannotWork": 0,
+        "noScopeData": 0
+       }
+      }
+     },
+     {
+      "id": "github.repos.read",
+      "label": "Access repositories and code",
+      "effect": "read",
+      "stayInAccount": false,
+      "defaults": {
+       "declared": "allow",
+       "typed": "allow",
+       "raw": "allow"
+      },
+      "rawModes": [
+       "allow",
+       "ask",
+       "deny"
+      ],
+      "locked": false,
+      "audience": false,
+      "proxyAllowable": false,
+      "members": 102,
+      "typedMembers": 0,
+      "typedOnly": [],
+      "reviewedReads": [
+       "POST /repos/{owner}/{repo}/releases/generate-notes"
+      ],
+      "unavailable": [],
+      "unsupported": [],
+      "conditions": [],
+      "conditionalScopes": {},
+      "access": {
+       "signIn": {
+        "status": "works",
+        "covered": 102,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "full": {
+        "status": "works",
+        "covered": 102,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "required": {
+        "status": "works",
+        "covered": 102,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       }
+      }
+     },
+     {
+      "id": "github.issues.read",
+      "label": "Access issues and pull requests",
+      "effect": "read",
+      "stayInAccount": false,
+      "defaults": {
+       "declared": "allow",
+       "typed": "allow",
+       "raw": "allow"
+      },
+      "rawModes": [
+       "allow",
+       "ask",
+       "deny"
+      ],
+      "locked": false,
+      "audience": false,
+      "proxyAllowable": false,
+      "members": 49,
+      "typedMembers": 0,
+      "typedOnly": [],
+      "reviewedReads": [],
+      "unavailable": [],
+      "unsupported": [],
+      "conditions": [],
+      "conditionalScopes": {},
+      "access": {
+       "signIn": {
+        "status": "works",
+        "covered": 49,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "full": {
+        "status": "works",
+        "covered": 49,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "required": {
+        "status": "works",
+        "covered": 49,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       }
+      }
+     },
+     {
+      "id": "github.gists.read",
+      "label": "Access gists",
+      "effect": "read",
+      "stayInAccount": false,
+      "defaults": {
+       "declared": "allow",
+       "typed": "allow",
+       "raw": "allow"
+      },
+      "rawModes": [
+       "allow",
+       "ask",
+       "deny"
+      ],
+      "locked": false,
+      "audience": false,
+      "proxyAllowable": false,
+      "members": 11,
+      "typedMembers": 0,
+      "typedOnly": [],
+      "reviewedReads": [],
+      "unavailable": [],
+      "unsupported": [],
+      "conditions": [],
+      "conditionalScopes": {},
+      "access": {
+       "signIn": {
+        "status": "works",
+        "covered": 11,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "full": {
+        "status": "works",
+        "covered": 11,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "required": {
+        "status": "blocked",
+        "covered": 0,
+        "missing": 11,
+        "cannotWork": 0,
+        "noScopeData": 0
+       }
+      }
+     },
+     {
+      "id": "github.notifications.manage",
+      "label": "Mark notifications as read or done",
+      "effect": "write",
+      "stayInAccount": true,
+      "defaults": {
+       "declared": "allow",
+       "typed": "allow",
+       "raw": "ask"
+      },
+      "rawModes": [
+       "allow",
+       "ask",
+       "deny"
+      ],
+      "locked": false,
+      "audience": false,
+      "proxyAllowable": true,
+      "members": 6,
+      "typedMembers": 0,
+      "typedOnly": [],
+      "reviewedReads": [],
+      "unavailable": [],
+      "unsupported": [],
+      "conditions": [],
+      "conditionalScopes": {},
+      "access": {
+       "signIn": {
+        "status": "works",
+        "covered": 6,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "full": {
+        "status": "works",
+        "covered": 6,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "required": {
+        "status": "works",
+        "covered": 6,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       }
+      }
+     },
+     {
+      "id": "github.issues.write",
+      "label": "Create and edit issues",
+      "effect": "write",
+      "stayInAccount": false,
+      "defaults": {
+       "declared": "ask",
+       "typed": "ask",
+       "raw": "ask"
+      },
+      "rawModes": [
+       "ask",
+       "deny"
+      ],
+      "locked": false,
+      "audience": false,
+      "proxyAllowable": false,
+      "members": 26,
+      "typedMembers": 0,
+      "typedOnly": [],
+      "reviewedReads": [],
+      "unavailable": [],
+      "unsupported": [],
+      "conditions": [],
+      "conditionalScopes": {},
+      "access": {
+       "signIn": {
+        "status": "works",
+        "covered": 26,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "full": {
+        "status": "works",
+        "covered": 26,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "required": {
+        "status": "works",
+        "covered": 26,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       }
+      }
+     },
+     {
+      "id": "github.comments.write",
+      "label": "Comment and review",
+      "effect": "write",
+      "stayInAccount": false,
+      "defaults": {
+       "declared": "ask",
+       "typed": "ask",
+       "raw": "ask"
+      },
+      "rawModes": [
+       "ask",
+       "deny"
+      ],
+      "locked": false,
+      "audience": true,
+      "proxyAllowable": false,
+      "members": 23,
+      "typedMembers": 0,
+      "typedOnly": [],
+      "reviewedReads": [],
+      "unavailable": [],
+      "unsupported": [],
+      "conditions": [],
+      "conditionalScopes": {},
+      "access": {
+       "signIn": {
+        "status": "works",
+        "covered": 23,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "full": {
+        "status": "works",
+        "covered": 23,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "required": {
+        "status": "works",
+        "covered": 23,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       }
+      }
+     },
+     {
+      "id": "github.pulls.write",
+      "label": "Open and merge pull requests",
+      "effect": "write",
+      "stayInAccount": false,
+      "defaults": {
+       "declared": "ask",
+       "typed": "ask",
+       "raw": "ask"
+      },
+      "rawModes": [
+       "ask",
+       "deny"
+      ],
+      "locked": false,
+      "audience": false,
+      "proxyAllowable": false,
+      "members": 11,
+      "typedMembers": 0,
+      "typedOnly": [],
+      "reviewedReads": [],
+      "unavailable": [],
+      "unsupported": [],
+      "conditions": [],
+      "conditionalScopes": {},
+      "bindContent": [
+       {
+        "member": "PUT /repos/{owner}/{repo}/pulls/{pull_number}/merge",
+        "kind": "sha",
+        "at": "body:/sha"
+       }
+      ],
+      "access": {
+       "signIn": {
+        "status": "works",
+        "covered": 11,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "full": {
+        "status": "works",
+        "covered": 11,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "required": {
+        "status": "works",
+        "covered": 11,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       }
+      }
+     },
+     {
+      "id": "github.code.write",
+      "label": "Push code and manage repositories",
+      "effect": "write",
+      "stayInAccount": false,
+      "defaults": {
+       "declared": "ask",
+       "typed": "ask",
+       "raw": "ask"
+      },
+      "rawModes": [
+       "ask",
+       "deny"
+      ],
+      "locked": false,
+      "audience": false,
+      "proxyAllowable": false,
+      "members": 23,
+      "typedMembers": 0,
+      "typedOnly": [],
+      "reviewedReads": [],
+      "unavailable": [],
+      "unsupported": [],
+      "conditions": [],
+      "conditionalScopes": {
+       "workflow": "Needed only to change files under .github/workflows/."
+      },
+      "bindContent": [
+       {
+        "member": "PUT /repos/{owner}/{repo}/contents/{path}",
+        "kind": "sha",
+        "at": "body:/sha"
+       }
+      ],
+      "access": {
+       "signIn": {
+        "status": "works",
+        "covered": 23,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "full": {
+        "status": "works",
+        "covered": 23,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "required": {
+        "status": "works",
+        "covered": 23,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       }
+      }
+     },
+     {
+      "id": "github.actions.run",
+      "label": "Run workflows",
+      "effect": "write",
+      "stayInAccount": false,
+      "defaults": {
+       "declared": "ask",
+       "typed": "ask",
+       "raw": "ask"
+      },
+      "rawModes": [
+       "ask",
+       "deny"
+      ],
+      "locked": false,
+      "audience": false,
+      "proxyAllowable": false,
+      "members": 10,
+      "typedMembers": 0,
+      "typedOnly": [],
+      "reviewedReads": [],
+      "unavailable": [],
+      "unsupported": [],
+      "conditions": [],
+      "conditionalScopes": {},
+      "access": {
+       "signIn": {
+        "status": "works",
+        "covered": 10,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "full": {
+        "status": "works",
+        "covered": 10,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "required": {
+        "status": "works",
+        "covered": 10,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       }
+      }
+     },
+     {
+      "id": "github.gists.write",
+      "label": "Create and edit gists",
+      "effect": "write",
+      "stayInAccount": false,
+      "defaults": {
+       "declared": "ask",
+       "typed": "ask",
+       "raw": "ask"
+      },
+      "rawModes": [
+       "ask",
+       "deny"
+      ],
+      "locked": false,
+      "audience": false,
+      "proxyAllowable": false,
+      "members": 5,
+      "typedMembers": 0,
+      "typedOnly": [],
+      "reviewedReads": [],
+      "unavailable": [],
+      "unsupported": [],
+      "conditions": [],
+      "conditionalScopes": {},
+      "access": {
+       "signIn": {
+        "status": "works",
+        "covered": 5,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "full": {
+        "status": "works",
+        "covered": 5,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "required": {
+        "status": "blocked",
+        "covered": 0,
+        "missing": 5,
+        "cannotWork": 0,
+        "noScopeData": 0
+       }
+      }
+     },
+     {
+      "id": "github.permanent.delete",
+      "label": "Permanently delete repos, comments, releases and gists",
+      "effect": "delete",
+      "stayInAccount": false,
+      "defaults": {
+       "declared": "deny",
+       "typed": "deny",
+       "raw": "deny"
+      },
+      "rawModes": [
+       "ask",
+       "deny"
+      ],
+      "locked": false,
+      "audience": false,
+      "proxyAllowable": false,
+      "members": 28,
+      "typedMembers": 0,
+      "typedOnly": [],
+      "reviewedReads": [],
+      "unavailable": [
+       {
+        "member": "DELETE /repos/{owner}/{repo}",
+        "reason": "not-requested"
+       },
+       {
+        "member": "DELETE /user/gpg_keys/{gpg_key_id}",
+        "reason": "not-requested"
+       },
+       {
+        "member": "DELETE /user/keys/{key_id}",
+        "reason": "not-requested"
+       },
+       {
+        "member": "DELETE /user/ssh_signing_keys/{ssh_signing_key_id}",
+        "reason": "not-requested"
+       },
+       {
+        "member": "DELETE /users/{username}/attestations/digest/{subject_digest}",
+        "reason": "no-oauth-scope"
+       },
+       {
+        "member": "DELETE /users/{username}/attestations/{attestation_id}",
+        "reason": "no-oauth-scope"
+       }
+      ],
+      "unsupported": [],
+      "conditions": [],
+      "conditionalScopes": {},
+      "access": {
+       "signIn": {
+        "status": "works",
+        "covered": 22,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "full": {
+        "status": "works",
+        "covered": 22,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "required": {
+        "status": "partial",
+        "covered": 20,
+        "missing": 2,
+        "cannotWork": 0,
+        "noScopeData": 0
+       }
+      }
+     },
+     {
+      "id": "github.access.grant",
+      "label": "Give access to other people or services",
+      "effect": "write",
+      "stayInAccount": false,
+      "defaults": {
+       "declared": "deny",
+       "typed": "deny",
+       "raw": "deny"
+      },
+      "rawModes": [
+       "deny"
+      ],
+      "locked": true,
+      "audience": false,
+      "proxyAllowable": false,
+      "members": 95,
+      "typedMembers": 0,
+      "typedOnly": [],
+      "reviewedReads": [],
+      "unavailable": [
+       {
+        "member": "DELETE /organizations/{organization_id}/hooks/{hook_id}",
+        "reason": "not-requested"
+       },
+       {
+        "member": "DELETE /orgs/{org}/hooks/{hook_id}",
+        "reason": "not-requested"
+       },
+       {
+        "member": "PATCH /organizations/{organization_id}/hooks/{hook_id}",
+        "reason": "not-requested"
+       },
+       {
+        "member": "PATCH /organizations/{organization_id}/hooks/{hook_id}/config",
+        "reason": "not-requested"
+       },
+       {
+        "member": "PATCH /organizations/{organization_id}/private-registries/{secret_name}",
+        "reason": "not-requested"
+       },
+       {
+        "member": "PATCH /orgs/{org}/hooks/{hook_id}",
+        "reason": "not-requested"
+       },
+       {
+        "member": "PATCH /orgs/{org}/hooks/{hook_id}/config",
+        "reason": "not-requested"
+       },
+       {
+        "member": "PATCH /orgs/{org}/private-registries/{secret_name}",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /organizations/{organization_id}/actions/runners/generate-jitconfig",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /organizations/{organization_id}/actions/runners/registration-token",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /organizations/{organization_id}/copilot-spaces/{space_number}/collaborators",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /organizations/{organization_id}/hooks",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /organizations/{organization_id}/hooks/{hook_id}/deliveries/{delivery_id}/attempts",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /organizations/{organization_id}/hooks/{hook_id}/pings",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /organizations/{organization_id}/private-registries",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /orgs/{org}/actions/runners/generate-jitconfig",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /orgs/{org}/actions/runners/registration-token",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /orgs/{org}/copilot-spaces/{space_number}/collaborators",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /orgs/{org}/hooks",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /orgs/{org}/hooks/{hook_id}/deliveries/{delivery_id}/attempts",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /orgs/{org}/hooks/{hook_id}/pings",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /orgs/{org}/private-registries",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /user/keys",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /users/{username}/copilot-spaces/{space_number}/collaborators",
+        "reason": "not-requested"
+       },
+       {
+        "member": "PUT /organizations/{organization_id}/actions/secrets/{secret_name}",
+        "reason": "not-requested"
+       },
+       {
+        "member": "PUT /organizations/{organization_id}/actions/secrets/{secret_name}/repositories",
+        "reason": "not-requested"
+       },
+       {
+        "member": "PUT /organizations/{organization_id}/actions/secrets/{secret_name}/repositories/{repository_id}",
+        "reason": "not-requested"
+       },
+       {
+        "member": "PUT /organizations/{organization_id}/agents/secrets/{secret_name}",
+        "reason": "not-requested"
+       },
+       {
+        "member": "PUT /organizations/{organization_id}/agents/secrets/{secret_name}/repositories",
+        "reason": "not-requested"
+       },
+       {
+        "member": "PUT /organizations/{organization_id}/agents/secrets/{secret_name}/repositories/{repository_id}",
+        "reason": "not-requested"
+       },
+       {
+        "member": "PUT /organizations/{organization_id}/codespaces/secrets/{secret_name}",
+        "reason": "not-requested"
+       },
+       {
+        "member": "PUT /organizations/{organization_id}/codespaces/secrets/{secret_name}/repositories",
+        "reason": "not-requested"
+       },
+       {
+        "member": "PUT /organizations/{organization_id}/codespaces/secrets/{secret_name}/repositories/{repository_id}",
+        "reason": "not-requested"
+       },
+       {
+        "member": "PUT /organizations/{organization_id}/copilot-spaces/{space_number}/collaborators/{actor_type}/{actor_identifier}",
+        "reason": "not-requested"
+       },
+       {
+        "member": "PUT /organizations/{organization_id}/dependabot/secrets/{secret_name}",
+        "reason": "not-requested"
+       },
+       {
+        "member": "PUT /organizations/{organization_id}/dependabot/secrets/{secret_name}/repositories",
+        "reason": "not-requested"
+       },
+       {
+        "member": "PUT /organizations/{organization_id}/dependabot/secrets/{secret_name}/repositories/{repository_id}",
+        "reason": "not-requested"
+       },
+       {
+        "member": "PUT /organizations/{organization_id}/memberships/{username}",
+        "reason": "not-requested"
+       },
+       {
+        "member": "PUT /organizations/{organization_id}/organization-roles/teams/{team_slug}/{role_id}",
+        "reason": "not-requested"
+       },
+       {
+        "member": "PUT /organizations/{organization_id}/organization-roles/users/{username}/{role_id}",
+        "reason": "not-requested"
+       },
+       {
+        "member": "PUT /organizations/{organization_id}/security-managers/teams/{team_slug}",
+        "reason": "not-requested"
+       },
+       {
+        "member": "PUT /orgs/{org}/actions/secrets/{secret_name}",
+        "reason": "not-requested"
+       },
+       {
+        "member": "PUT /orgs/{org}/actions/secrets/{secret_name}/repositories",
+        "reason": "not-requested"
+       },
+       {
+        "member": "PUT /orgs/{org}/actions/secrets/{secret_name}/repositories/{repository_id}",
+        "reason": "not-requested"
+       },
+       {
+        "member": "PUT /orgs/{org}/agents/secrets/{secret_name}",
+        "reason": "not-requested"
+       },
+       {
+        "member": "PUT /orgs/{org}/agents/secrets/{secret_name}/repositories",
+        "reason": "not-requested"
+       },
+       {
+        "member": "PUT /orgs/{org}/agents/secrets/{secret_name}/repositories/{repository_id}",
+        "reason": "not-requested"
+       },
+       {
+        "member": "PUT /orgs/{org}/codespaces/secrets/{secret_name}",
+        "reason": "not-requested"
+       },
+       {
+        "member": "PUT /orgs/{org}/codespaces/secrets/{secret_name}/repositories",
+        "reason": "not-requested"
+       },
+       {
+        "member": "PUT /orgs/{org}/codespaces/secrets/{secret_name}/repositories/{repository_id}",
+        "reason": "not-requested"
+       },
+       {
+        "member": "PUT /orgs/{org}/copilot-spaces/{space_number}/collaborators/{actor_type}/{actor_identifier}",
+        "reason": "not-requested"
+       },
+       {
+        "member": "PUT /orgs/{org}/dependabot/secrets/{secret_name}",
+        "reason": "not-requested"
+       },
+       {
+        "member": "PUT /orgs/{org}/dependabot/secrets/{secret_name}/repositories",
+        "reason": "not-requested"
+       },
+       {
+        "member": "PUT /orgs/{org}/dependabot/secrets/{secret_name}/repositories/{repository_id}",
+        "reason": "not-requested"
+       },
+       {
+        "member": "PUT /orgs/{org}/memberships/{username}",
+        "reason": "not-requested"
+       },
+       {
+        "member": "PUT /orgs/{org}/organization-roles/teams/{team_slug}/{role_id}",
+        "reason": "not-requested"
+       },
+       {
+        "member": "PUT /orgs/{org}/organization-roles/users/{username}/{role_id}",
+        "reason": "not-requested"
+       },
+       {
+        "member": "PUT /orgs/{org}/security-managers/teams/{team_slug}",
+        "reason": "not-requested"
+       },
+       {
+        "member": "PUT /user/codespaces/secrets/{secret_name}",
+        "reason": "not-requested"
+       },
+       {
+        "member": "PUT /user/codespaces/secrets/{secret_name}/repositories",
+        "reason": "not-requested"
+       },
+       {
+        "member": "PUT /user/codespaces/secrets/{secret_name}/repositories/{repository_id}",
+        "reason": "not-requested"
+       },
+       {
+        "member": "PUT /users/{username}/copilot-spaces/{space_number}/collaborators/{actor_type}/{actor_identifier}",
+        "reason": "not-requested"
+       }
+      ],
+      "unsupported": [],
+      "conditions": [],
+      "conditionalScopes": {},
+      "access": {
+       "signIn": {
+        "status": "locked",
+        "covered": 33,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "full": {
+        "status": "locked",
+        "covered": 33,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "required": {
+        "status": "locked",
+        "covered": 24,
+        "missing": 9,
+        "cannotWork": 0,
+        "noScopeData": 0
+       }
+      }
+     }
+    ],
+    "otherRows": [
+     {
+      "row": "other-reads",
+      "label": "Other reads",
+      "effect": "read",
+      "default": "ask",
+      "modes": [
+       "allow",
+       "ask",
+       "deny"
+      ]
+     },
+     {
+      "row": "other-changes",
+      "label": "Other changes",
+      "effect": "write",
+      "default": "ask",
+      "modes": [
+       "ask",
+       "deny"
+      ]
+     },
+     {
+      "row": "other-deletes",
+      "label": "Other deletes",
+      "effect": "delete",
+      "default": "deny",
+      "modes": [
+       "ask",
+       "deny"
+      ]
+     },
+     {
+      "row": "graphql",
+      "label": "GraphQL requests",
+      "effect": "write",
+      "default": "deny",
+      "modes": [
+       "deny"
+      ]
+     }
+    ],
+    "unjustified": [],
+    "upgrade": {
+     "fromV1ReadWrite": [
+      "github.profile.read",
+      "github.gists.read"
+     ],
+     "fromRequired": [
+      "github.profile.read",
+      "github.gists.read"
+     ],
+     "fromRead": null
+    }
+   }
+  },
+  "gmail": {
+   "name": "Gmail",
+   "provider": "google",
+   "signedOff": {
+    "by": "Sami",
+    "date": "2026-10-29",
+    "dataHash": "d6e5afd2364e8b966bb6e457e00d69a3480253ef13637c94402be76793db6f2b"
+   },
+   "previousSignedOff": {
+    "by": "Sami",
+    "date": "2026-10-20",
+    "dataHash": "12b50a7bc996b592fa910e872e143a1ea931688b4aec7309a61cd200c94e92fe"
+   },
+   "dataHash": "d6e5afd2364e8b966bb6e457e00d69a3480253ef13637c94402be76793db6f2b",
+   "filesHash": "b4f330a4982e54c4051f9a502cf6319483c38708eff51cfad951c715eb4a0c96",
+   "files": {
+    "catalog/auth/google.json": "0130a4d143111bd82fb860679aee69ada6910abec143fd54dd3065eb9209842d",
+    "catalog/permissions/gmail.json": "3483135959539a6a87ce86e69db5724134328d416758e064ae1f3cff1285f8ab",
+    "catalog/proxy/gmail.json": "23ee5845023d466590c64e2299c19bc4502967be9d1b1133725f306acc44a852"
+   },
+   "table": {
+    "signIn": {
+     "version": 2,
+     "grant": "scope",
+     "consentPolicy": {
+      "testing": "full",
+      "production": "required"
+     },
+     "identityScopes": [
+      "openid",
+      "email"
+     ],
+     "required": [
+      "https://www.googleapis.com/auth/gmail.modify"
+     ],
+     "optional": [
+      "https://www.googleapis.com/auth/gmail.settings.basic"
+     ],
+     "inContext": [],
+     "read": {
+      "required": [
+       "https://www.googleapis.com/auth/gmail.readonly"
+      ],
+      "optional": []
+     },
+     "neverRequest": [
+      "https://mail.google.com/",
+      "https://www.googleapis.com/auth/gmail.insert",
+      "https://www.googleapis.com/auth/gmail.metadata",
+      "https://www.googleapis.com/auth/gmail.settings.sharing"
+     ],
+     "implications": {}
+    },
+    "rows": [
+     {
+      "id": "gmail.drafts.read",
+      "label": "Access drafts",
+      "effect": "read",
+      "stayInAccount": false,
+      "defaults": {
+       "declared": "allow",
+       "typed": "allow",
+       "raw": "allow"
+      },
+      "rawModes": [
+       "allow",
+       "ask",
+       "deny"
+      ],
+      "locked": false,
+      "audience": false,
+      "proxyAllowable": false,
+      "members": 2,
+      "typedMembers": 2,
+      "typedOnly": [],
+      "reviewedReads": [],
+      "unavailable": [],
+      "unsupported": [],
+      "conditions": [],
+      "conditionalScopes": {},
+      "access": {
+       "signIn": {
+        "status": "works",
+        "covered": 2,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "full": {
+        "status": "works",
+        "covered": 2,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "required": {
+        "status": "works",
+        "covered": 2,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       }
+      }
+     },
+     {
+      "id": "gmail.labels.read",
+      "label": "Access labels, filters and settings",
+      "effect": "read",
+      "stayInAccount": false,
+      "defaults": {
+       "declared": "allow",
+       "typed": "allow",
+       "raw": "allow"
+      },
+      "rawModes": [
+       "allow",
+       "ask",
+       "deny"
+      ],
+      "locked": false,
+      "audience": false,
+      "proxyAllowable": false,
+      "members": 21,
+      "typedMembers": 21,
+      "typedOnly": [],
+      "reviewedReads": [],
+      "unavailable": [
+       {
+        "member": "gmail.users.settings.cse.identities.get",
+        "reason": "workspace-cse-only"
+       },
+       {
+        "member": "gmail.users.settings.cse.identities.list",
+        "reason": "workspace-cse-only"
+       },
+       {
+        "member": "gmail.users.settings.cse.keypairs.get",
+        "reason": "workspace-cse-only"
+       },
+       {
+        "member": "gmail.users.settings.cse.keypairs.list",
+        "reason": "workspace-cse-only"
+       },
+       {
+        "member": "gmail.users.settings.delegates.get",
+        "reason": "service-account-only"
+       },
+       {
+        "member": "gmail.users.settings.delegates.list",
+        "reason": "service-account-only"
+       }
+      ],
+      "unsupported": [],
+      "conditions": [],
+      "conditionalScopes": {},
+      "access": {
+       "signIn": {
+        "status": "works",
+        "covered": 15,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "full": {
+        "status": "works",
+        "covered": 15,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "required": {
+        "status": "works",
+        "covered": 15,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       }
+      }
+     },
+     {
+      "id": "gmail.messages.read",
+      "label": "Access emails",
+      "effect": "read",
+      "stayInAccount": false,
+      "defaults": {
+       "declared": "allow",
+       "typed": "allow",
+       "raw": "allow"
+      },
+      "rawModes": [
+       "allow",
+       "ask",
+       "deny"
+      ],
+      "locked": false,
+      "audience": false,
+      "proxyAllowable": false,
+      "members": 5,
+      "typedMembers": 5,
+      "typedOnly": [],
+      "reviewedReads": [],
+      "unavailable": [],
+      "unsupported": [],
+      "conditions": [],
+      "conditionalScopes": {},
+      "access": {
+       "signIn": {
+        "status": "works",
+        "covered": 5,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "full": {
+        "status": "works",
+        "covered": 5,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "required": {
+        "status": "works",
+        "covered": 5,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       }
+      }
+     },
+     {
+      "id": "gmail.messages.search",
+      "label": "Search emails",
+      "effect": "read",
+      "stayInAccount": false,
+      "defaults": {
+       "declared": "allow",
+       "typed": "allow",
+       "raw": "allow"
+      },
+      "rawModes": [
+       "allow",
+       "ask",
+       "deny"
+      ],
+      "locked": false,
+      "audience": false,
+      "proxyAllowable": false,
+      "members": 2,
+      "typedMembers": 2,
+      "typedOnly": [],
+      "reviewedReads": [],
+      "unavailable": [],
+      "unsupported": [],
+      "conditions": [],
+      "conditionalScopes": {},
+      "access": {
+       "signIn": {
+        "status": "works",
+        "covered": 2,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "full": {
+        "status": "works",
+        "covered": 2,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "required": {
+        "status": "works",
+        "covered": 2,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       }
+      }
+     },
+     {
+      "id": "gmail.drafts.write",
+      "label": "Draft emails",
+      "effect": "write",
+      "stayInAccount": true,
+      "defaults": {
+       "declared": "allow",
+       "typed": "allow",
+       "raw": "ask"
+      },
+      "rawModes": [
+       "ask",
+       "deny"
+      ],
+      "locked": false,
+      "audience": false,
+      "proxyAllowable": false,
+      "members": 2,
+      "typedMembers": 2,
+      "typedOnly": [],
+      "reviewedReads": [],
+      "unavailable": [],
+      "unsupported": [
+       {
+        "member": "gmail.users.drafts.create",
+        "words": "Fabric's plain form of this operation cannot carry a whole message, so it would save an empty draft or blank one. Fabric writes drafts through its reviewed Gmail actions."
+       },
+       {
+        "member": "gmail.users.drafts.update",
+        "words": "Fabric's plain form of this operation cannot carry a whole message, so it would save an empty draft or blank one. Fabric writes drafts through its reviewed Gmail actions."
+       }
+      ],
+      "conditions": [],
+      "conditionalScopes": {},
+      "access": {
+       "signIn": {
+        "status": "works",
+        "covered": 2,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "full": {
+        "status": "works",
+        "covered": 2,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "required": {
+        "status": "works",
+        "covered": 2,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       }
+      }
+     },
+     {
+      "id": "gmail.messages.send",
+      "label": "Send emails",
+      "effect": "write",
+      "stayInAccount": false,
+      "defaults": {
+       "declared": "ask",
+       "typed": "ask",
+       "raw": "ask"
+      },
+      "rawModes": [
+       "ask",
+       "deny"
+      ],
+      "locked": false,
+      "audience": true,
+      "proxyAllowable": false,
+      "members": 2,
+      "typedMembers": 2,
+      "typedOnly": [
+       "gmail.users.drafts.send",
+       "gmail.users.messages.send"
+      ],
+      "reviewedReads": [],
+      "unavailable": [],
+      "unsupported": [
+       {
+        "member": "gmail.users.drafts.send",
+        "words": "It sends a draft by its id alone, so a draft changed after approval would go out. Fabric sends drafts through its reviewed Send draft action, which binds the message."
+       }
+      ],
+      "conditions": [],
+      "conditionalScopes": {},
+      "bindContent": [
+       {
+        "member": "gmail.users.drafts.send",
+        "kind": "resend",
+        "at": "body:/message/raw"
+       }
+      ],
+      "access": {
+       "signIn": {
+        "status": "works",
+        "covered": 2,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "full": {
+        "status": "works",
+        "covered": 2,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "required": {
+        "status": "works",
+        "covered": 2,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       }
+      }
+     },
+     {
+      "id": "gmail.labels.manage",
+      "label": "Manage labels",
+      "effect": "write",
+      "stayInAccount": true,
+      "defaults": {
+       "declared": "allow",
+       "typed": "allow",
+       "raw": "ask"
+      },
+      "rawModes": [
+       "allow",
+       "ask",
+       "deny"
+      ],
+      "locked": false,
+      "audience": false,
+      "proxyAllowable": true,
+      "members": 3,
+      "typedMembers": 3,
+      "typedOnly": [],
+      "reviewedReads": [],
+      "unavailable": [],
+      "unsupported": [],
+      "conditions": [],
+      "conditionalScopes": {},
+      "access": {
+       "signIn": {
+        "status": "works",
+        "covered": 3,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "full": {
+        "status": "works",
+        "covered": 3,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "required": {
+        "status": "works",
+        "covered": 3,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       }
+      }
+     },
+     {
+      "id": "gmail.messages.mark",
+      "label": "Mark as read or unread, archive or label emails",
+      "effect": "write",
+      "stayInAccount": false,
+      "defaults": {
+       "declared": "ask",
+       "typed": "ask",
+       "raw": "ask"
+      },
+      "rawModes": [
+       "ask",
+       "deny"
+      ],
+      "locked": false,
+      "audience": false,
+      "proxyAllowable": false,
+      "members": 3,
+      "typedMembers": 3,
+      "typedOnly": [],
+      "reviewedReads": [],
+      "unavailable": [],
+      "unsupported": [],
+      "conditions": [],
+      "conditionalScopes": {},
+      "access": {
+       "signIn": {
+        "status": "works",
+        "covered": 3,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "full": {
+        "status": "works",
+        "covered": 3,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "required": {
+        "status": "works",
+        "covered": 3,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       }
+      }
+     },
+     {
+      "id": "gmail.messages.import",
+      "label": "Import emails",
+      "effect": "write",
+      "stayInAccount": false,
+      "defaults": {
+       "declared": "ask",
+       "typed": "ask",
+       "raw": "ask"
+      },
+      "rawModes": [
+       "ask",
+       "deny"
+      ],
+      "locked": false,
+      "audience": false,
+      "proxyAllowable": false,
+      "members": 2,
+      "typedMembers": 2,
+      "typedOnly": [
+       "gmail.users.messages.import",
+       "gmail.users.messages.insert"
+      ],
+      "reviewedReads": [],
+      "unavailable": [],
+      "unsupported": [
+       {
+        "member": "gmail.users.messages.import",
+        "words": "Fabric's plain form of this operation cannot carry a message, so it would import nothing. No reviewed action imports email."
+       }
+      ],
+      "conditions": [],
+      "conditionalScopes": {},
+      "access": {
+       "signIn": {
+        "status": "works",
+        "covered": 2,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "full": {
+        "status": "works",
+        "covered": 2,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "required": {
+        "status": "works",
+        "covered": 2,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       }
+      }
+     },
+     {
+      "id": "gmail.messages.trash",
+      "label": "Move emails to or from trash",
+      "effect": "delete",
+      "stayInAccount": false,
+      "defaults": {
+       "declared": "ask",
+       "typed": "ask",
+       "raw": "ask"
+      },
+      "rawModes": [
+       "ask",
+       "deny"
+      ],
+      "locked": false,
+      "audience": false,
+      "proxyAllowable": false,
+      "members": 4,
+      "typedMembers": 4,
+      "typedOnly": [],
+      "reviewedReads": [],
+      "unavailable": [],
+      "unsupported": [],
+      "conditions": [],
+      "conditionalScopes": {},
+      "access": {
+       "signIn": {
+        "status": "works",
+        "covered": 4,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "full": {
+        "status": "works",
+        "covered": 4,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "required": {
+        "status": "works",
+        "covered": 4,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       }
+      }
+     },
+     {
+      "id": "gmail.settings.write",
+      "label": "Change mail settings, filters and vacation reply",
+      "effect": "write",
+      "stayInAccount": false,
+      "defaults": {
+       "declared": "ask",
+       "typed": "ask",
+       "raw": "ask"
+      },
+      "rawModes": [
+       "ask",
+       "deny"
+      ],
+      "locked": false,
+      "audience": false,
+      "proxyAllowable": false,
+      "members": 14,
+      "typedMembers": 14,
+      "typedOnly": [],
+      "reviewedReads": [],
+      "unavailable": [
+       {
+        "member": "gmail.users.settings.cse.identities.create",
+        "reason": "workspace-cse-only"
+       },
+       {
+        "member": "gmail.users.settings.cse.identities.delete",
+        "reason": "workspace-cse-only"
+       },
+       {
+        "member": "gmail.users.settings.cse.identities.patch",
+        "reason": "workspace-cse-only"
+       },
+       {
+        "member": "gmail.users.settings.cse.keypairs.create",
+        "reason": "workspace-cse-only"
+       },
+       {
+        "member": "gmail.users.settings.cse.keypairs.disable",
+        "reason": "workspace-cse-only"
+       },
+       {
+        "member": "gmail.users.settings.cse.keypairs.enable",
+        "reason": "workspace-cse-only"
+       }
+      ],
+      "unsupported": [],
+      "conditions": [],
+      "conditionalScopes": {},
+      "access": {
+       "signIn": {
+        "status": "works",
+        "covered": 8,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "full": {
+        "status": "works",
+        "covered": 8,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "required": {
+        "status": "blocked",
+        "covered": 0,
+        "missing": 8,
+        "cannotWork": 0,
+        "noScopeData": 0
+       }
+      }
+     },
+     {
+      "id": "gmail.items.delete",
+      "label": "Delete drafts, labels or filters",
+      "effect": "delete",
+      "stayInAccount": false,
+      "defaults": {
+       "declared": "ask",
+       "typed": "ask",
+       "raw": "ask"
+      },
+      "rawModes": [
+       "ask",
+       "deny"
+      ],
+      "locked": false,
+      "audience": false,
+      "proxyAllowable": false,
+      "members": 3,
+      "typedMembers": 3,
+      "typedOnly": [],
+      "reviewedReads": [],
+      "unavailable": [],
+      "unsupported": [],
+      "conditions": [],
+      "conditionalScopes": {},
+      "access": {
+       "signIn": {
+        "status": "works",
+        "covered": 3,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "full": {
+        "status": "works",
+        "covered": 3,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "required": {
+        "status": "partial",
+        "covered": 2,
+        "missing": 1,
+        "cannotWork": 0,
+        "noScopeData": 0
+       }
+      }
+     },
+     {
+      "id": "gmail.permanent.delete",
+      "label": "Permanently delete emails",
+      "effect": "delete",
+      "stayInAccount": false,
+      "defaults": {
+       "declared": "deny",
+       "typed": "deny",
+       "raw": "deny"
+      },
+      "rawModes": [
+       "ask",
+       "deny"
+      ],
+      "locked": false,
+      "audience": false,
+      "proxyAllowable": false,
+      "members": 4,
+      "typedMembers": 4,
+      "typedOnly": [],
+      "reviewedReads": [],
+      "unavailable": [
+       {
+        "member": "gmail.users.messages.batchDelete",
+        "reason": "not-requested"
+       },
+       {
+        "member": "gmail.users.messages.delete",
+        "reason": "not-requested"
+       },
+       {
+        "member": "gmail.users.settings.cse.keypairs.obliterate",
+        "reason": "workspace-cse-only"
+       },
+       {
+        "member": "gmail.users.threads.delete",
+        "reason": "not-requested"
+       }
+      ],
+      "unsupported": [],
+      "conditions": [],
+      "conditionalScopes": {},
+      "access": {
+       "signIn": {
+        "status": "unavailable",
+        "covered": 0,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "full": {
+        "status": "unavailable",
+        "covered": 0,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "required": {
+        "status": "unavailable",
+        "covered": 0,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       }
+      }
+     },
+     {
+      "id": "gmail.access.grant",
+      "label": "Give access to other people or services",
+      "effect": "write",
+      "stayInAccount": false,
+      "defaults": {
+       "declared": "deny",
+       "typed": "deny",
+       "raw": "deny"
+      },
+      "rawModes": [
+       "deny"
+      ],
+      "locked": true,
+      "audience": false,
+      "proxyAllowable": false,
+      "members": 12,
+      "typedMembers": 12,
+      "typedOnly": [],
+      "reviewedReads": [],
+      "unavailable": [
+       {
+        "member": "gmail.users.settings.delegates.create",
+        "reason": "service-account-only"
+       },
+       {
+        "member": "gmail.users.settings.delegates.delete",
+        "reason": "service-account-only"
+       },
+       {
+        "member": "gmail.users.settings.forwardingAddresses.create",
+        "reason": "service-account-only"
+       },
+       {
+        "member": "gmail.users.settings.forwardingAddresses.delete",
+        "reason": "service-account-only"
+       },
+       {
+        "member": "gmail.users.settings.sendAs.create",
+        "reason": "service-account-only"
+       },
+       {
+        "member": "gmail.users.settings.sendAs.delete",
+        "reason": "service-account-only"
+       },
+       {
+        "member": "gmail.users.settings.sendAs.verify",
+        "reason": "service-account-only"
+       },
+       {
+        "member": "gmail.users.settings.updateAutoForwarding",
+        "reason": "service-account-only"
+       }
+      ],
+      "unsupported": [],
+      "conditions": [],
+      "conditionalScopes": {},
+      "access": {
+       "signIn": {
+        "status": "locked",
+        "covered": 4,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "full": {
+        "status": "locked",
+        "covered": 4,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "required": {
+        "status": "locked",
+        "covered": 2,
+        "missing": 2,
+        "cannotWork": 0,
+        "noScopeData": 0
+       }
+      }
+     }
+    ],
+    "otherRows": [
+     {
+      "row": "other-reads",
+      "label": "Other reads",
+      "effect": "read",
+      "default": "ask",
+      "modes": [
+       "allow",
+       "ask",
+       "deny"
+      ]
+     },
+     {
+      "row": "other-changes",
+      "label": "Other changes",
+      "effect": "write",
+      "default": "ask",
+      "modes": [
+       "ask",
+       "deny"
+      ]
+     },
+     {
+      "row": "other-deletes",
+      "label": "Other deletes",
+      "effect": "delete",
+      "default": "deny",
+      "modes": [
+       "ask",
+       "deny"
+      ]
+     },
+     {
+      "row": "graphql",
+      "label": "GraphQL requests",
+      "effect": "write",
+      "default": "deny",
+      "modes": [
+       "deny"
+      ]
+     }
+    ],
+    "unjustified": [],
+    "upgrade": {
+     "fromV1ReadWrite": [
+      "gmail.labels.manage"
+     ],
+     "fromRequired": [],
+     "fromRead": [
+      "gmail.drafts.write",
+      "gmail.labels.manage"
+     ]
+    }
+   }
+  },
+  "google-calendar": {
+   "name": "Google Calendar",
+   "provider": "google",
+   "signedOff": {
+    "by": "Sami",
+    "date": "2026-10-24",
+    "dataHash": "11c31be5c85edefbdfa84f87b5bfcbe302bc36971a7d933a9830789dc2999da9"
+   },
+   "previousSignedOff": {
+    "by": "Sami",
+    "date": "2026-10-20",
+    "dataHash": "5cee8759b2526fe0316d600270d3206ddc34d5bec6af4f1d5187803deff7809d"
+   },
+   "dataHash": "11c31be5c85edefbdfa84f87b5bfcbe302bc36971a7d933a9830789dc2999da9",
+   "filesHash": "c4f94675d06c45e53dcb955e7851b1d7e5fbedca91f9cdb923acb720f5159235",
+   "files": {
+    "catalog/auth/google.json": "0130a4d143111bd82fb860679aee69ada6910abec143fd54dd3065eb9209842d",
+    "catalog/permissions/google-calendar.json": "bca5be0c1e99c5826d0344f8ab2bc6c3496c33f5500233274ef4370ac013d1f8",
+    "catalog/proxy/google-calendar.json": "3e31d4f0c6cbdd33f38c885e6caba999629f83464babf55638723be48a5e0b58"
+   },
+   "table": {
+    "signIn": {
+     "version": 2,
+     "grant": "scope",
+     "consentPolicy": {
+      "testing": "full",
+      "production": "required"
+     },
+     "identityScopes": [
+      "openid",
+      "email"
+     ],
+     "required": [
+      "https://www.googleapis.com/auth/calendar.events",
+      "https://www.googleapis.com/auth/calendar.calendarlist"
+     ],
+     "optional": [
+      "https://www.googleapis.com/auth/calendar.calendars",
+      "https://www.googleapis.com/auth/calendar.acls",
+      "https://www.googleapis.com/auth/calendar.settings.readonly",
+      "https://www.googleapis.com/auth/calendar.freebusy"
+     ],
+     "inContext": [],
+     "read": null,
+     "neverRequest": [
+      "https://www.googleapis.com/auth/calendar"
+     ],
+     "implications": {}
+    },
+    "rows": [
+     {
+      "id": "google-calendar.calendars.read",
+      "label": "Access your calendars",
+      "effect": "read",
+      "stayInAccount": false,
+      "defaults": {
+       "declared": "allow",
+       "typed": "allow",
+       "raw": "allow"
+      },
+      "rawModes": [
+       "allow",
+       "ask",
+       "deny"
+      ],
+      "locked": false,
+      "audience": false,
+      "proxyAllowable": false,
+      "members": 3,
+      "typedMembers": 3,
+      "typedOnly": [],
+      "reviewedReads": [],
+      "unavailable": [],
+      "unsupported": [],
+      "conditions": [],
+      "conditionalScopes": {},
+      "access": {
+       "signIn": {
+        "status": "works",
+        "covered": 3,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "full": {
+        "status": "works",
+        "covered": 3,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "required": {
+        "status": "works",
+        "covered": 3,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       }
+      }
+     },
+     {
+      "id": "google-calendar.events.read",
+      "label": "Access events",
+      "effect": "read",
+      "stayInAccount": false,
+      "defaults": {
+       "declared": "allow",
+       "typed": "allow",
+       "raw": "allow"
+      },
+      "rawModes": [
+       "allow",
+       "ask",
+       "deny"
+      ],
+      "locked": false,
+      "audience": false,
+      "proxyAllowable": false,
+      "members": 3,
+      "typedMembers": 3,
+      "typedOnly": [],
+      "reviewedReads": [],
+      "unavailable": [],
+      "unsupported": [],
+      "conditions": [],
+      "conditionalScopes": {},
+      "access": {
+       "signIn": {
+        "status": "works",
+        "covered": 3,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "full": {
+        "status": "works",
+        "covered": 3,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "required": {
+        "status": "works",
+        "covered": 3,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       }
+      }
+     },
+     {
+      "id": "google-calendar.availability.read",
+      "label": "Check your availability",
+      "effect": "read",
+      "stayInAccount": false,
+      "defaults": {
+       "declared": "allow",
+       "typed": "allow",
+       "raw": "allow"
+      },
+      "rawModes": [
+       "allow",
+       "ask",
+       "deny"
+      ],
+      "locked": false,
+      "audience": false,
+      "proxyAllowable": false,
+      "members": 1,
+      "typedMembers": 1,
+      "typedOnly": [],
+      "reviewedReads": [
+       "calendar.freebusy.query"
+      ],
+      "unavailable": [],
+      "unsupported": [],
+      "conditions": [],
+      "conditionalScopes": {},
+      "access": {
+       "signIn": {
+        "status": "works",
+        "covered": 1,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "full": {
+        "status": "works",
+        "covered": 1,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "required": {
+        "status": "blocked",
+        "covered": 0,
+        "missing": 1,
+        "cannotWork": 0,
+        "noScopeData": 0
+       }
+      }
+     },
+     {
+      "id": "google-calendar.settings.read",
+      "label": "Access settings and calendar sharing",
+      "effect": "read",
+      "stayInAccount": false,
+      "defaults": {
+       "declared": "allow",
+       "typed": "allow",
+       "raw": "allow"
+      },
+      "rawModes": [
+       "allow",
+       "ask",
+       "deny"
+      ],
+      "locked": false,
+      "audience": false,
+      "proxyAllowable": false,
+      "members": 5,
+      "typedMembers": 5,
+      "typedOnly": [],
+      "reviewedReads": [],
+      "unavailable": [],
+      "unsupported": [],
+      "conditions": [],
+      "conditionalScopes": {},
+      "access": {
+       "signIn": {
+        "status": "works",
+        "covered": 5,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "full": {
+        "status": "works",
+        "covered": 5,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "required": {
+        "status": "blocked",
+        "covered": 0,
+        "missing": 5,
+        "cannotWork": 0,
+        "noScopeData": 0
+       }
+      }
+     },
+     {
+      "id": "google-calendar.events.write",
+      "label": "Create, edit and invite people to events",
+      "effect": "write",
+      "stayInAccount": false,
+      "defaults": {
+       "declared": "ask",
+       "typed": "ask",
+       "raw": "ask"
+      },
+      "rawModes": [
+       "ask",
+       "deny"
+      ],
+      "locked": false,
+      "audience": true,
+      "proxyAllowable": false,
+      "members": 6,
+      "typedMembers": 6,
+      "typedOnly": [],
+      "reviewedReads": [],
+      "unavailable": [],
+      "unsupported": [],
+      "conditions": [],
+      "conditionalScopes": {},
+      "bindContent": [
+       {
+        "member": "calendar.events.patch",
+        "kind": "etag",
+        "at": "header:If-Match"
+       },
+       {
+        "member": "calendar.events.update",
+        "kind": "etag",
+        "at": "header:If-Match"
+       }
+      ],
+      "access": {
+       "signIn": {
+        "status": "works",
+        "covered": 6,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "full": {
+        "status": "works",
+        "covered": 6,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "required": {
+        "status": "works",
+        "covered": 6,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       }
+      }
+     },
+     {
+      "id": "google-calendar.events.delete",
+      "label": "Delete events",
+      "effect": "delete",
+      "stayInAccount": false,
+      "defaults": {
+       "declared": "ask",
+       "typed": "ask",
+       "raw": "ask"
+      },
+      "rawModes": [
+       "ask",
+       "deny"
+      ],
+      "locked": false,
+      "audience": true,
+      "proxyAllowable": false,
+      "members": 1,
+      "typedMembers": 1,
+      "typedOnly": [],
+      "reviewedReads": [],
+      "unavailable": [],
+      "unsupported": [],
+      "conditions": [],
+      "conditionalScopes": {},
+      "access": {
+       "signIn": {
+        "status": "works",
+        "covered": 1,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "full": {
+        "status": "works",
+        "covered": 1,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "required": {
+        "status": "works",
+        "covered": 1,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       }
+      }
+     },
+     {
+      "id": "google-calendar.calendarlist.write",
+      "label": "Organize your calendar list",
+      "effect": "write",
+      "stayInAccount": true,
+      "defaults": {
+       "declared": "allow",
+       "typed": "allow",
+       "raw": "ask"
+      },
+      "rawModes": [
+       "allow",
+       "ask",
+       "deny"
+      ],
+      "locked": false,
+      "audience": false,
+      "proxyAllowable": true,
+      "members": 3,
+      "typedMembers": 3,
+      "typedOnly": [],
+      "reviewedReads": [],
+      "unavailable": [],
+      "unsupported": [],
+      "conditions": [],
+      "conditionalScopes": {},
+      "access": {
+       "signIn": {
+        "status": "works",
+        "covered": 3,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "full": {
+        "status": "works",
+        "covered": 3,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "required": {
+        "status": "works",
+        "covered": 3,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       }
+      }
+     },
+     {
+      "id": "google-calendar.calendars.write",
+      "label": "Create and edit calendars",
+      "effect": "write",
+      "stayInAccount": false,
+      "defaults": {
+       "declared": "ask",
+       "typed": "ask",
+       "raw": "ask"
+      },
+      "rawModes": [
+       "ask",
+       "deny"
+      ],
+      "locked": false,
+      "audience": false,
+      "proxyAllowable": false,
+      "members": 3,
+      "typedMembers": 3,
+      "typedOnly": [],
+      "reviewedReads": [],
+      "unavailable": [],
+      "unsupported": [],
+      "conditions": [],
+      "conditionalScopes": {},
+      "access": {
+       "signIn": {
+        "status": "works",
+        "covered": 3,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "full": {
+        "status": "works",
+        "covered": 3,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "required": {
+        "status": "blocked",
+        "covered": 0,
+        "missing": 3,
+        "cannotWork": 0,
+        "noScopeData": 0
+       }
+      }
+     },
+     {
+      "id": "google-calendar.calendarlist.remove",
+      "label": "Remove calendars from your list",
+      "effect": "delete",
+      "stayInAccount": false,
+      "defaults": {
+       "declared": "ask",
+       "typed": "ask",
+       "raw": "ask"
+      },
+      "rawModes": [
+       "ask",
+       "deny"
+      ],
+      "locked": false,
+      "audience": false,
+      "proxyAllowable": false,
+      "members": 1,
+      "typedMembers": 1,
+      "typedOnly": [],
+      "reviewedReads": [],
+      "unavailable": [],
+      "unsupported": [],
+      "conditions": [],
+      "conditionalScopes": {},
+      "access": {
+       "signIn": {
+        "status": "works",
+        "covered": 1,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "full": {
+        "status": "works",
+        "covered": 1,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "required": {
+        "status": "works",
+        "covered": 1,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       }
+      }
+     },
+     {
+      "id": "google-calendar.sharing.write",
+      "label": "Stop sharing calendars",
+      "effect": "write",
+      "stayInAccount": false,
+      "defaults": {
+       "declared": "ask",
+       "typed": "ask",
+       "raw": "ask"
+      },
+      "rawModes": [
+       "ask",
+       "deny"
+      ],
+      "locked": false,
+      "audience": true,
+      "proxyAllowable": false,
+      "members": 1,
+      "typedMembers": 1,
+      "typedOnly": [],
+      "reviewedReads": [],
+      "unavailable": [],
+      "unsupported": [],
+      "conditions": [],
+      "conditionalScopes": {},
+      "access": {
+       "signIn": {
+        "status": "works",
+        "covered": 1,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "full": {
+        "status": "works",
+        "covered": 1,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "required": {
+        "status": "blocked",
+        "covered": 0,
+        "missing": 1,
+        "cannotWork": 0,
+        "noScopeData": 0
+       }
+      }
+     },
+     {
+      "id": "google-calendar.permanent.delete",
+      "label": "Permanently delete calendars or clear all events",
+      "effect": "delete",
+      "stayInAccount": false,
+      "defaults": {
+       "declared": "deny",
+       "typed": "deny",
+       "raw": "deny"
+      },
+      "rawModes": [
+       "ask",
+       "deny"
+      ],
+      "locked": false,
+      "audience": false,
+      "proxyAllowable": false,
+      "members": 2,
+      "typedMembers": 2,
+      "typedOnly": [],
+      "reviewedReads": [],
+      "unavailable": [],
+      "unsupported": [],
+      "conditions": [],
+      "conditionalScopes": {},
+      "access": {
+       "signIn": {
+        "status": "works",
+        "covered": 2,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "full": {
+        "status": "works",
+        "covered": 2,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "required": {
+        "status": "blocked",
+        "covered": 0,
+        "missing": 2,
+        "cannotWork": 0,
+        "noScopeData": 0
+       }
+      }
+     },
+     {
+      "id": "google-calendar.access.grant",
+      "label": "Give access to other people or services",
+      "effect": "write",
+      "stayInAccount": false,
+      "defaults": {
+       "declared": "deny",
+       "typed": "deny",
+       "raw": "deny"
+      },
+      "rawModes": [
+       "deny"
+      ],
+      "locked": true,
+      "audience": false,
+      "proxyAllowable": false,
+      "members": 9,
+      "typedMembers": 9,
+      "typedOnly": [],
+      "reviewedReads": [],
+      "unavailable": [],
+      "unsupported": [],
+      "conditions": [],
+      "conditionalScopes": {},
+      "access": {
+       "signIn": {
+        "status": "locked",
+        "covered": 9,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "full": {
+        "status": "locked",
+        "covered": 9,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "required": {
+        "status": "locked",
+        "covered": 3,
+        "missing": 6,
+        "cannotWork": 0,
+        "noScopeData": 0
+       }
+      }
+     }
+    ],
+    "otherRows": [
+     {
+      "row": "other-reads",
+      "label": "Other reads",
+      "effect": "read",
+      "default": "ask",
+      "modes": [
+       "allow",
+       "ask",
+       "deny"
+      ]
+     },
+     {
+      "row": "other-changes",
+      "label": "Other changes",
+      "effect": "write",
+      "default": "ask",
+      "modes": [
+       "ask",
+       "deny"
+      ]
+     },
+     {
+      "row": "other-deletes",
+      "label": "Other deletes",
+      "effect": "delete",
+      "default": "deny",
+      "modes": [
+       "ask",
+       "deny"
+      ]
+     },
+     {
+      "row": "graphql",
+      "label": "GraphQL requests",
+      "effect": "write",
+      "default": "deny",
+      "modes": [
+       "deny"
+      ]
+     }
+    ],
+    "unjustified": [],
+    "upgrade": {
+     "fromV1ReadWrite": [
+      "google-calendar.availability.read",
+      "google-calendar.settings.read",
+      "google-calendar.calendarlist.write"
+     ],
+     "fromRequired": [
+      "google-calendar.availability.read",
+      "google-calendar.settings.read"
+     ],
+     "fromRead": null
+    }
+   }
+  },
+  "notion": {
+   "name": "Notion",
+   "provider": "notion",
+   "signedOff": {
+    "by": "Sami",
+    "date": "2026-10-20",
+    "dataHash": "33fee7708e0dda65c2ea5a6f1ea3a9832d5bfd7794cad67d609e0bd6f65c5e81"
+   },
+   "dataHash": "33fee7708e0dda65c2ea5a6f1ea3a9832d5bfd7794cad67d609e0bd6f65c5e81",
+   "filesHash": "c4ad629ba73b7b9f0f90fd18d6c24048c88d5adc0dcd8b591c2f6e11fc5b7aed",
+   "files": {
+    "catalog/auth/notion.json": "9ca7ba790476d628a04319c283e75e5a15b2b042c83df6c9b6e4d8510cc99f60",
+    "catalog/permissions/notion.json": "b5ddeb24828cc1cef9e8dd3afd234e690e2ec8061da4e7855989222ae734d1a9",
+    "catalog/proxy/notion.json": "ecbf485566325ae28d0a9793cd31c8b84dc54d8f233975352a7696a70e7b3252"
+   },
+   "table": {
+    "signIn": {
+     "version": 2,
+     "grant": "pages",
+     "consentPolicy": {
+      "testing": "full",
+      "production": "full"
+     },
+     "identityScopes": [],
+     "required": [],
+     "optional": [],
+     "inContext": [],
+     "read": null,
+     "neverRequest": [],
+     "implications": {}
+    },
+    "rows": [
+     {
+      "id": "notion.content.read",
+      "label": "Access pages and databases",
+      "effect": "read",
+      "stayInAccount": false,
+      "defaults": {
+       "declared": "allow",
+       "typed": "allow",
+       "raw": "allow"
+      },
+      "rawModes": [
+       "allow",
+       "ask",
+       "deny"
+      ],
+      "locked": false,
+      "audience": false,
+      "proxyAllowable": false,
+      "members": 21,
+      "typedMembers": 0,
+      "typedOnly": [],
+      "reviewedReads": [
+       "POST /v1/blocks/meeting_notes/query",
+       "POST /v1/data_sources/{data_source_id}/query"
+      ],
+      "unavailable": [],
+      "unsupported": [],
+      "conditions": [
+       {
+        "member": "POST /v1/blocks/meeting_notes/query",
+        "conditions": [
+         "plan-dependent"
+        ]
+       }
+      ],
+      "conditionalScopes": {},
+      "access": {
+       "signIn": {
+        "status": "works",
+        "covered": 21,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "full": {
+        "status": "works",
+        "covered": 21,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "required": {
+        "status": "works",
+        "covered": 21,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       }
+      }
+     },
+     {
+      "id": "notion.search.read",
+      "label": "Search pages and databases",
+      "effect": "read",
+      "stayInAccount": false,
+      "defaults": {
+       "declared": "allow",
+       "typed": "allow",
+       "raw": "allow"
+      },
+      "rawModes": [
+       "allow",
+       "ask",
+       "deny"
+      ],
+      "locked": false,
+      "audience": false,
+      "proxyAllowable": false,
+      "members": 1,
+      "typedMembers": 0,
+      "typedOnly": [],
+      "reviewedReads": [
+       "POST /v1/search"
+      ],
+      "unavailable": [],
+      "unsupported": [],
+      "conditions": [],
+      "conditionalScopes": {},
+      "access": {
+       "signIn": {
+        "status": "works",
+        "covered": 1,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "full": {
+        "status": "works",
+        "covered": 1,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "required": {
+        "status": "works",
+        "covered": 1,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       }
+      }
+     },
+     {
+      "id": "notion.users.read",
+      "label": "Access people in the workspace",
+      "effect": "read",
+      "stayInAccount": false,
+      "defaults": {
+       "declared": "allow",
+       "typed": "allow",
+       "raw": "allow"
+      },
+      "rawModes": [
+       "allow",
+       "ask",
+       "deny"
+      ],
+      "locked": false,
+      "audience": false,
+      "proxyAllowable": false,
+      "members": 3,
+      "typedMembers": 0,
+      "typedOnly": [],
+      "reviewedReads": [],
+      "unavailable": [],
+      "unsupported": [],
+      "conditions": [],
+      "conditionalScopes": {},
+      "access": {
+       "signIn": {
+        "status": "works",
+        "covered": 3,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "full": {
+        "status": "works",
+        "covered": 3,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "required": {
+        "status": "works",
+        "covered": 3,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       }
+      }
+     },
+     {
+      "id": "notion.comments.read",
+      "label": "Access comments",
+      "effect": "read",
+      "stayInAccount": false,
+      "defaults": {
+       "declared": "allow",
+       "typed": "allow",
+       "raw": "allow"
+      },
+      "rawModes": [
+       "allow",
+       "ask",
+       "deny"
+      ],
+      "locked": false,
+      "audience": false,
+      "proxyAllowable": false,
+      "members": 2,
+      "typedMembers": 0,
+      "typedOnly": [],
+      "reviewedReads": [],
+      "unavailable": [],
+      "unsupported": [],
+      "conditions": [],
+      "conditionalScopes": {},
+      "access": {
+       "signIn": {
+        "status": "works",
+        "covered": 2,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "full": {
+        "status": "works",
+        "covered": 2,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "required": {
+        "status": "works",
+        "covered": 2,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       }
+      }
+     },
+     {
+      "id": "notion.agents.read",
+      "label": "Access Notion agents and their chats",
+      "effect": "read",
+      "stayInAccount": false,
+      "defaults": {
+       "declared": "allow",
+       "typed": "allow",
+       "raw": "allow"
+      },
+      "rawModes": [
+       "allow",
+       "ask",
+       "deny"
+      ],
+      "locked": false,
+      "audience": false,
+      "proxyAllowable": false,
+      "members": 6,
+      "typedMembers": 0,
+      "typedOnly": [],
+      "reviewedReads": [
+       "POST /v1/agents/query",
+       "POST /v1/sessions/query",
+       "POST /v1/sessions/{session_id}/events/query"
+      ],
+      "unavailable": [],
+      "unsupported": [],
+      "conditions": [
+       {
+        "member": "GET /v1/agents/{agent_id}",
+        "conditions": [
+         "beta",
+         "plan-dependent"
+        ]
+       },
+       {
+        "member": "GET /v1/agents/{agent_id}/insights",
+        "conditions": [
+         "beta",
+         "plan-dependent"
+        ]
+       },
+       {
+        "member": "GET /v1/sessions/{session_id}",
+        "conditions": [
+         "beta",
+         "plan-dependent"
+        ]
+       },
+       {
+        "member": "POST /v1/agents/query",
+        "conditions": [
+         "beta",
+         "plan-dependent"
+        ]
+       },
+       {
+        "member": "POST /v1/sessions/query",
+        "conditions": [
+         "beta",
+         "plan-dependent"
+        ]
+       },
+       {
+        "member": "POST /v1/sessions/{session_id}/events/query",
+        "conditions": [
+         "beta",
+         "plan-dependent"
+        ]
+       }
+      ],
+      "conditionalScopes": {},
+      "access": {
+       "signIn": {
+        "status": "works",
+        "covered": 6,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "full": {
+        "status": "works",
+        "covered": 6,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "required": {
+        "status": "works",
+        "covered": 6,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       }
+      }
+     },
+     {
+      "id": "notion.content.create",
+      "label": "Create pages and databases",
+      "effect": "write",
+      "stayInAccount": false,
+      "defaults": {
+       "declared": "ask",
+       "typed": "ask",
+       "raw": "ask"
+      },
+      "rawModes": [
+       "ask",
+       "deny"
+      ],
+      "locked": false,
+      "audience": false,
+      "proxyAllowable": false,
+      "members": 7,
+      "typedMembers": 0,
+      "typedOnly": [],
+      "reviewedReads": [],
+      "unavailable": [],
+      "unsupported": [],
+      "conditions": [
+       {
+        "member": "POST /v1/blocks/meeting_notes",
+        "conditions": [
+         "plan-dependent"
+        ]
+       }
+      ],
+      "conditionalScopes": {},
+      "access": {
+       "signIn": {
+        "status": "works",
+        "covered": 7,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "full": {
+        "status": "works",
+        "covered": 7,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "required": {
+        "status": "works",
+        "covered": 7,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       }
+      }
+     },
+     {
+      "id": "notion.content.edit",
+      "label": "Edit pages and databases",
+      "effect": "write",
+      "stayInAccount": false,
+      "defaults": {
+       "declared": "ask",
+       "typed": "ask",
+       "raw": "ask"
+      },
+      "rawModes": [
+       "ask",
+       "deny"
+      ],
+      "locked": false,
+      "audience": true,
+      "proxyAllowable": false,
+      "members": 9,
+      "typedMembers": 0,
+      "typedOnly": [],
+      "reviewedReads": [],
+      "unavailable": [],
+      "unsupported": [],
+      "conditions": [],
+      "conditionalScopes": {},
+      "access": {
+       "signIn": {
+        "status": "works",
+        "covered": 9,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "full": {
+        "status": "works",
+        "covered": 9,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "required": {
+        "status": "works",
+        "covered": 9,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       }
+      }
+     },
+     {
+      "id": "notion.comments.write",
+      "label": "Comment on pages",
+      "effect": "write",
+      "stayInAccount": false,
+      "defaults": {
+       "declared": "ask",
+       "typed": "ask",
+       "raw": "ask"
+      },
+      "rawModes": [
+       "ask",
+       "deny"
+      ],
+      "locked": false,
+      "audience": true,
+      "proxyAllowable": false,
+      "members": 2,
+      "typedMembers": 0,
+      "typedOnly": [],
+      "reviewedReads": [],
+      "unavailable": [],
+      "unsupported": [],
+      "conditions": [],
+      "conditionalScopes": {},
+      "access": {
+       "signIn": {
+        "status": "works",
+        "covered": 2,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "full": {
+        "status": "works",
+        "covered": 2,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "required": {
+        "status": "works",
+        "covered": 2,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       }
+      }
+     },
+     {
+      "id": "notion.content.trash",
+      "label": "Trash or restore pages, or replace content",
+      "effect": "delete",
+      "stayInAccount": false,
+      "defaults": {
+       "declared": "ask",
+       "typed": "ask",
+       "raw": "ask"
+      },
+      "rawModes": [
+       "ask",
+       "deny"
+      ],
+      "locked": false,
+      "audience": false,
+      "proxyAllowable": false,
+      "members": 1,
+      "typedMembers": 0,
+      "typedOnly": [],
+      "reviewedReads": [],
+      "unavailable": [],
+      "unsupported": [],
+      "conditions": [],
+      "conditionalScopes": {},
+      "access": {
+       "signIn": {
+        "status": "works",
+        "covered": 1,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "full": {
+        "status": "works",
+        "covered": 1,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "required": {
+        "status": "works",
+        "covered": 1,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       }
+      }
+     },
+     {
+      "id": "notion.permanent.delete",
+      "label": "Permanently delete comments and views",
+      "effect": "delete",
+      "stayInAccount": false,
+      "defaults": {
+       "declared": "deny",
+       "typed": "deny",
+       "raw": "deny"
+      },
+      "rawModes": [
+       "ask",
+       "deny"
+      ],
+      "locked": false,
+      "audience": false,
+      "proxyAllowable": false,
+      "members": 3,
+      "typedMembers": 0,
+      "typedOnly": [],
+      "reviewedReads": [],
+      "unavailable": [],
+      "unsupported": [],
+      "conditions": [],
+      "conditionalScopes": {},
+      "access": {
+       "signIn": {
+        "status": "works",
+        "covered": 3,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "full": {
+        "status": "works",
+        "covered": 3,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "required": {
+        "status": "works",
+        "covered": 3,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       }
+      }
+     },
+     {
+      "id": "notion.agents.chat",
+      "label": "Chat with Notion agents",
+      "effect": "write",
+      "stayInAccount": false,
+      "defaults": {
+       "declared": "ask",
+       "typed": "ask",
+       "raw": "ask"
+      },
+      "rawModes": [
+       "ask",
+       "deny"
+      ],
+      "locked": false,
+      "audience": false,
+      "proxyAllowable": false,
+      "members": 2,
+      "typedMembers": 0,
+      "typedOnly": [],
+      "reviewedReads": [],
+      "unavailable": [],
+      "unsupported": [],
+      "conditions": [
+       {
+        "member": "POST /v1/sessions",
+        "conditions": [
+         "beta",
+         "plan-dependent"
+        ]
+       },
+       {
+        "member": "POST /v1/sessions/{session_id}/cancel",
+        "conditions": [
+         "beta",
+         "plan-dependent"
+        ]
+       }
+      ],
+      "conditionalScopes": {},
+      "access": {
+       "signIn": {
+        "status": "works",
+        "covered": 2,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "full": {
+        "status": "works",
+        "covered": 2,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "required": {
+        "status": "works",
+        "covered": 2,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       }
+      }
+     },
+     {
+      "id": "notion.agents.manage",
+      "label": "Manage Notion agents",
+      "effect": "write",
+      "stayInAccount": false,
+      "defaults": {
+       "declared": "ask",
+       "typed": "ask",
+       "raw": "ask"
+      },
+      "rawModes": [
+       "ask",
+       "deny"
+      ],
+      "locked": false,
+      "audience": false,
+      "proxyAllowable": false,
+      "members": 4,
+      "typedMembers": 0,
+      "typedOnly": [],
+      "reviewedReads": [],
+      "unavailable": [],
+      "unsupported": [],
+      "conditions": [
+       {
+        "member": "DELETE /v1/agents/{agent_id}",
+        "conditions": [
+         "beta",
+         "plan-dependent"
+        ]
+       },
+       {
+        "member": "PATCH /v1/agents/{agent_id}/credit_limit",
+        "conditions": [
+         "beta",
+         "plan-dependent"
+        ]
+       },
+       {
+        "member": "PATCH /v1/agents/{agent_id}/status",
+        "conditions": [
+         "beta",
+         "plan-dependent"
+        ]
+       },
+       {
+        "member": "POST /v1/agents/batch",
+        "conditions": [
+         "beta",
+         "plan-dependent"
+        ]
+       }
+      ],
+      "conditionalScopes": {},
+      "access": {
+       "signIn": {
+        "status": "works",
+        "covered": 4,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "full": {
+        "status": "works",
+        "covered": 4,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "required": {
+        "status": "works",
+        "covered": 4,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       }
+      }
+     },
+     {
+      "id": "notion.connection.manage",
+      "label": "Change this connection's sign-in",
+      "effect": "write",
+      "stayInAccount": false,
+      "defaults": {
+       "declared": "deny",
+       "typed": "deny",
+       "raw": "deny"
+      },
+      "rawModes": [
+       "ask",
+       "deny"
+      ],
+      "locked": false,
+      "audience": false,
+      "proxyAllowable": false,
+      "members": 3,
+      "typedMembers": 0,
+      "typedOnly": [],
+      "reviewedReads": [],
+      "unavailable": [
+       {
+        "member": "POST /v1/oauth/introspect",
+        "reason": "client-credentials-only"
+       },
+       {
+        "member": "POST /v1/oauth/revoke",
+        "reason": "client-credentials-only"
+       },
+       {
+        "member": "POST /v1/oauth/token",
+        "reason": "client-credentials-only"
+       }
+      ],
+      "unsupported": [],
+      "conditions": [],
+      "conditionalScopes": {},
+      "access": {
+       "signIn": {
+        "status": "unavailable",
+        "covered": 0,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "full": {
+        "status": "unavailable",
+        "covered": 0,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "required": {
+        "status": "unavailable",
+        "covered": 0,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       }
+      }
+     }
+    ],
+    "otherRows": [
+     {
+      "row": "other-reads",
+      "label": "Other reads",
+      "effect": "read",
+      "default": "ask",
+      "modes": [
+       "allow",
+       "ask",
+       "deny"
+      ]
+     },
+     {
+      "row": "other-changes",
+      "label": "Other changes",
+      "effect": "write",
+      "default": "ask",
+      "modes": [
+       "ask",
+       "deny"
+      ]
+     },
+     {
+      "row": "other-deletes",
+      "label": "Other deletes",
+      "effect": "delete",
+      "default": "deny",
+      "modes": [
+       "ask",
+       "deny"
+      ]
+     },
+     {
+      "row": "graphql",
+      "label": "GraphQL requests",
+      "effect": "write",
+      "default": "deny",
+      "modes": [
+       "ask",
+       "deny"
+      ]
+     }
+    ],
+    "unjustified": [],
+    "upgrade": {
+     "fromV1ReadWrite": [],
+     "fromRequired": [],
+     "fromRead": null
+    }
+   }
+  },
+  "slack": {
+   "name": "Slack",
+   "provider": "slack",
+   "signedOff": {
+    "by": "Sami",
+    "date": "2026-10-20",
+    "dataHash": "244d633bced5054bcfe409061a5a4c853f98520c3754a76c003f1f73b4fd5d54"
+   },
+   "dataHash": "244d633bced5054bcfe409061a5a4c853f98520c3754a76c003f1f73b4fd5d54",
+   "filesHash": "d553a33e16912ff5fafcc897d57147e3b9d344571b78b545174c9c9055e95c88",
+   "files": {
+    "catalog/auth/slack.json": "ca64b3db93302fb0d7318f9993c56fa52f7d71ea9085ae8f83d1d49186471881",
+    "catalog/permissions/slack.json": "a8578c6af8f0b057fec6d8ec2ca9f866b6309651e0ad1ae34487e13e02771267",
+    "catalog/proxy/slack.json": "aeba6af0bda14e448df8114ed861a66baf3b3057fbd5d1b47eefe1064ba775f8"
+   },
+   "table": {
+    "signIn": {
+     "version": 2,
+     "grant": "user_scope",
+     "consentPolicy": {
+      "testing": "full",
+      "production": "full"
+     },
+     "identityScopes": [],
+     "required": [
+      "channels:read",
+      "groups:read",
+      "im:read",
+      "mpim:read",
+      "channels:history",
+      "groups:history",
+      "im:history",
+      "mpim:history",
+      "users:read",
+      "chat:write",
+      "im:write"
+     ],
+     "optional": [
+      "users:read.email",
+      "users.profile:read",
+      "users.profile:write",
+      "search:read",
+      "reactions:read",
+      "reactions:write",
+      "canvases:read",
+      "files:read",
+      "pins:read",
+      "bookmarks:read",
+      "usergroups:read",
+      "team:read",
+      "emoji:read",
+      "dnd:read",
+      "pins:write",
+      "files:write",
+      "canvases:write",
+      "bookmarks:write",
+      "usergroups:write",
+      "users:write",
+      "dnd:write",
+      "mpim:write"
+     ],
+     "inContext": [
+      {
+       "scope": "channels:write",
+       "rows": [
+        "slack.channels.manage"
+       ]
+      },
+      {
+       "scope": "groups:write",
+       "rows": [
+        "slack.channels.manage"
+       ]
+      }
+     ],
+     "read": null,
+     "neverRequest": [
+      "admin",
+      "conversations.connect:manage",
+      "remote_files:share",
+      "search:read.files",
+      "search:read.im",
+      "search:read.mpim",
+      "search:read.private",
+      "search:read.public",
+      "search:read.users"
+     ],
+     "implications": {}
+    },
+    "rows": [
+     {
+      "id": "slack.channels.read",
+      "label": "Access channels and people",
+      "effect": "read",
+      "stayInAccount": false,
+      "defaults": {
+       "declared": "allow",
+       "typed": "allow",
+       "raw": "allow"
+      },
+      "rawModes": [
+       "allow",
+       "ask",
+       "deny"
+      ],
+      "locked": false,
+      "audience": false,
+      "proxyAllowable": false,
+      "members": 8,
+      "typedMembers": 0,
+      "typedOnly": [],
+      "reviewedReads": [],
+      "unavailable": [],
+      "unsupported": [],
+      "conditions": [],
+      "conditionalScopes": {},
+      "access": {
+       "signIn": {
+        "status": "works",
+        "covered": 8,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "full": {
+        "status": "works",
+        "covered": 8,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "required": {
+        "status": "works",
+        "covered": 8,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       }
+      }
+     },
+     {
+      "id": "slack.messages.read",
+      "label": "Access messages",
+      "effect": "read",
+      "stayInAccount": false,
+      "defaults": {
+       "declared": "allow",
+       "typed": "allow",
+       "raw": "allow"
+      },
+      "rawModes": [
+       "allow",
+       "ask",
+       "deny"
+      ],
+      "locked": false,
+      "audience": false,
+      "proxyAllowable": false,
+      "members": 4,
+      "typedMembers": 0,
+      "typedOnly": [],
+      "reviewedReads": [],
+      "unavailable": [],
+      "unsupported": [],
+      "conditions": [],
+      "conditionalScopes": {},
+      "access": {
+       "signIn": {
+        "status": "works",
+        "covered": 4,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "full": {
+        "status": "works",
+        "covered": 4,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "required": {
+        "status": "works",
+        "covered": 4,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       }
+      }
+     },
+     {
+      "id": "slack.messages.search",
+      "label": "Search messages and files",
+      "effect": "read",
+      "stayInAccount": false,
+      "defaults": {
+       "declared": "allow",
+       "typed": "allow",
+       "raw": "allow"
+      },
+      "rawModes": [
+       "allow",
+       "ask",
+       "deny"
+      ],
+      "locked": false,
+      "audience": false,
+      "proxyAllowable": false,
+      "members": 5,
+      "typedMembers": 0,
+      "typedOnly": [],
+      "reviewedReads": [
+       "POST /assistant.search.context",
+       "POST /assistant.search.info"
+      ],
+      "unavailable": [
+       {
+        "member": "POST /assistant.search.context",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /assistant.search.info",
+        "reason": "not-requested"
+       }
+      ],
+      "unsupported": [],
+      "conditions": [],
+      "conditionalScopes": {},
+      "access": {
+       "signIn": {
+        "status": "works",
+        "covered": 3,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "full": {
+        "status": "works",
+        "covered": 3,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "required": {
+        "status": "blocked",
+        "covered": 0,
+        "missing": 3,
+        "cannotWork": 0,
+        "noScopeData": 0
+       }
+      }
+     },
+     {
+      "id": "slack.files.read",
+      "label": "Access files, canvases, pins and reactions",
+      "effect": "read",
+      "stayInAccount": false,
+      "defaults": {
+       "declared": "allow",
+       "typed": "allow",
+       "raw": "allow"
+      },
+      "rawModes": [
+       "allow",
+       "ask",
+       "deny"
+      ],
+      "locked": false,
+      "audience": false,
+      "proxyAllowable": false,
+      "members": 8,
+      "typedMembers": 0,
+      "typedOnly": [],
+      "reviewedReads": [
+       "POST /bookmarks.list",
+       "POST /canvases.getContent",
+       "POST /canvases.sections.lookup"
+      ],
+      "unavailable": [],
+      "unsupported": [],
+      "conditions": [],
+      "conditionalScopes": {},
+      "access": {
+       "signIn": {
+        "status": "works",
+        "covered": 8,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "full": {
+        "status": "works",
+        "covered": 8,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "required": {
+        "status": "blocked",
+        "covered": 0,
+        "missing": 8,
+        "cannotWork": 0,
+        "noScopeData": 0
+       }
+      }
+     },
+     {
+      "id": "slack.workspace.read",
+      "label": "Access profiles, user groups and workspace details",
+      "effect": "read",
+      "stayInAccount": false,
+      "defaults": {
+       "declared": "allow",
+       "typed": "allow",
+       "raw": "allow"
+      },
+      "rawModes": [
+       "allow",
+       "ask",
+       "deny"
+      ],
+      "locked": false,
+      "audience": false,
+      "proxyAllowable": false,
+      "members": 9,
+      "typedMembers": 0,
+      "typedOnly": [],
+      "reviewedReads": [],
+      "unavailable": [],
+      "unsupported": [],
+      "conditions": [],
+      "conditionalScopes": {},
+      "access": {
+       "signIn": {
+        "status": "works",
+        "covered": 9,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "full": {
+        "status": "works",
+        "covered": 9,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "required": {
+        "status": "blocked",
+        "covered": 0,
+        "missing": 9,
+        "cannotWork": 0,
+        "noScopeData": 0
+       }
+      }
+     },
+     {
+      "id": "slack.messages.send",
+      "label": "Send, edit and react to messages",
+      "effect": "write",
+      "stayInAccount": false,
+      "defaults": {
+       "declared": "ask",
+       "typed": "ask",
+       "raw": "ask"
+      },
+      "rawModes": [
+       "ask",
+       "deny"
+      ],
+      "locked": false,
+      "audience": true,
+      "proxyAllowable": false,
+      "members": 10,
+      "typedMembers": 0,
+      "typedOnly": [],
+      "reviewedReads": [],
+      "unavailable": [],
+      "unsupported": [],
+      "conditions": [],
+      "conditionalScopes": {},
+      "access": {
+       "signIn": {
+        "status": "works",
+        "covered": 10,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "full": {
+        "status": "works",
+        "covered": 10,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "required": {
+        "status": "partial",
+        "covered": 6,
+        "missing": 4,
+        "cannotWork": 0,
+        "noScopeData": 0
+       }
+      }
+     },
+     {
+      "id": "slack.files.write",
+      "label": "Upload and share files and canvases",
+      "effect": "write",
+      "stayInAccount": false,
+      "defaults": {
+       "declared": "ask",
+       "typed": "ask",
+       "raw": "ask"
+      },
+      "rawModes": [
+       "ask",
+       "deny"
+      ],
+      "locked": false,
+      "audience": true,
+      "proxyAllowable": false,
+      "members": 9,
+      "typedMembers": 0,
+      "typedOnly": [],
+      "reviewedReads": [],
+      "unavailable": [],
+      "unsupported": [],
+      "conditions": [],
+      "conditionalScopes": {},
+      "access": {
+       "signIn": {
+        "status": "works",
+        "covered": 9,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "full": {
+        "status": "works",
+        "covered": 9,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "required": {
+        "status": "blocked",
+        "covered": 0,
+        "missing": 9,
+        "cannotWork": 0,
+        "noScopeData": 0
+       }
+      }
+     },
+     {
+      "id": "slack.channels.manage",
+      "label": "Manage channels and user groups",
+      "effect": "write",
+      "stayInAccount": false,
+      "defaults": {
+       "declared": "ask",
+       "typed": "ask",
+       "raw": "ask"
+      },
+      "rawModes": [
+       "ask",
+       "deny"
+      ],
+      "locked": false,
+      "audience": true,
+      "proxyAllowable": false,
+      "members": 18,
+      "typedMembers": 0,
+      "typedOnly": [],
+      "reviewedReads": [],
+      "unavailable": [],
+      "unsupported": [],
+      "conditions": [],
+      "conditionalScopes": {},
+      "access": {
+       "signIn": {
+        "status": "partial",
+        "covered": 16,
+        "missing": 2,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "full": {
+        "status": "works",
+        "covered": 18,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "required": {
+        "status": "partial",
+        "covered": 8,
+        "missing": 10,
+        "cannotWork": 0,
+        "noScopeData": 0
+       }
+      }
+     },
+     {
+      "id": "slack.conversations.mark",
+      "label": "Mark as read and open direct messages",
+      "effect": "write",
+      "stayInAccount": true,
+      "defaults": {
+       "declared": "allow",
+       "typed": "allow",
+       "raw": "ask"
+      },
+      "rawModes": [
+       "allow",
+       "ask",
+       "deny"
+      ],
+      "locked": false,
+      "audience": false,
+      "proxyAllowable": true,
+      "members": 3,
+      "typedMembers": 0,
+      "typedOnly": [],
+      "reviewedReads": [],
+      "unavailable": [],
+      "unsupported": [],
+      "conditions": [],
+      "conditionalScopes": {},
+      "access": {
+       "signIn": {
+        "status": "works",
+        "covered": 3,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "full": {
+        "status": "works",
+        "covered": 3,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "required": {
+        "status": "works",
+        "covered": 3,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       }
+      }
+     },
+     {
+      "id": "slack.profile.write",
+      "label": "Update your profile, status and Do Not Disturb",
+      "effect": "write",
+      "stayInAccount": false,
+      "defaults": {
+       "declared": "ask",
+       "typed": "ask",
+       "raw": "ask"
+      },
+      "rawModes": [
+       "ask",
+       "deny"
+      ],
+      "locked": false,
+      "audience": false,
+      "proxyAllowable": false,
+      "members": 7,
+      "typedMembers": 0,
+      "typedOnly": [],
+      "reviewedReads": [],
+      "unavailable": [],
+      "unsupported": [],
+      "conditions": [],
+      "conditionalScopes": {},
+      "access": {
+       "signIn": {
+        "status": "works",
+        "covered": 7,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "full": {
+        "status": "works",
+        "covered": 7,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "required": {
+        "status": "blocked",
+        "covered": 0,
+        "missing": 7,
+        "cannotWork": 0,
+        "noScopeData": 0
+       }
+      }
+     },
+     {
+      "id": "slack.permanent.delete",
+      "label": "Permanently delete messages, files and canvases",
+      "effect": "delete",
+      "stayInAccount": false,
+      "defaults": {
+       "declared": "deny",
+       "typed": "deny",
+       "raw": "deny"
+      },
+      "rawModes": [
+       "ask",
+       "deny"
+      ],
+      "locked": false,
+      "audience": false,
+      "proxyAllowable": false,
+      "members": 4,
+      "typedMembers": 0,
+      "typedOnly": [],
+      "reviewedReads": [],
+      "unavailable": [],
+      "unsupported": [],
+      "conditions": [],
+      "conditionalScopes": {},
+      "access": {
+       "signIn": {
+        "status": "works",
+        "covered": 4,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "full": {
+        "status": "works",
+        "covered": 4,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "required": {
+        "status": "partial",
+        "covered": 1,
+        "missing": 3,
+        "cannotWork": 0,
+        "noScopeData": 0
+       }
+      }
+     },
+     {
+      "id": "slack.admin",
+      "label": "Workspace admin, app setup and retired methods",
+      "effect": "write",
+      "stayInAccount": false,
+      "defaults": {
+       "declared": "deny",
+       "typed": "deny",
+       "raw": "deny"
+      },
+      "rawModes": [
+       "ask",
+       "deny"
+      ],
+      "locked": false,
+      "audience": false,
+      "proxyAllowable": false,
+      "members": 197,
+      "typedMembers": 0,
+      "typedOnly": [],
+      "reviewedReads": [],
+      "unavailable": [
+       {
+        "member": "GET /admin.analytics.getFile",
+        "reason": "not-requested"
+       },
+       {
+        "member": "GET /admin.analytics.messages.activity",
+        "reason": "not-requested"
+       },
+       {
+        "member": "GET /admin.analytics.messages.metadata",
+        "reason": "not-requested"
+       },
+       {
+        "member": "GET /admin.apps.approved.list",
+        "reason": "not-requested"
+       },
+       {
+        "member": "GET /admin.apps.requests.list",
+        "reason": "not-requested"
+       },
+       {
+        "member": "GET /admin.apps.restricted.list",
+        "reason": "not-requested"
+       },
+       {
+        "member": "GET /admin.barriers.list",
+        "reason": "not-requested"
+       },
+       {
+        "member": "GET /admin.conversations.bulkSetExcludeFromSlackAi",
+        "reason": "not-requested"
+       },
+       {
+        "member": "GET /admin.conversations.ekm.listOriginalConnectedChannelInfo",
+        "reason": "not-requested"
+       },
+       {
+        "member": "GET /admin.conversations.getConversationPrefs",
+        "reason": "not-requested"
+       },
+       {
+        "member": "GET /admin.conversations.getTeams",
+        "reason": "not-requested"
+       },
+       {
+        "member": "GET /admin.conversations.restrictAccess.listGroups",
+        "reason": "not-requested"
+       },
+       {
+        "member": "GET /admin.conversations.search",
+        "reason": "not-requested"
+       },
+       {
+        "member": "GET /admin.emoji.list",
+        "reason": "not-requested"
+       },
+       {
+        "member": "GET /admin.inviteRequests.approved.list",
+        "reason": "not-requested"
+       },
+       {
+        "member": "GET /admin.inviteRequests.denied.list",
+        "reason": "not-requested"
+       },
+       {
+        "member": "GET /admin.inviteRequests.list",
+        "reason": "not-requested"
+       },
+       {
+        "member": "GET /admin.roles.listAssignments",
+        "reason": "not-requested"
+       },
+       {
+        "member": "GET /admin.teams.admins.list",
+        "reason": "not-requested"
+       },
+       {
+        "member": "GET /admin.teams.list",
+        "reason": "not-requested"
+       },
+       {
+        "member": "GET /admin.teams.owners.list",
+        "reason": "not-requested"
+       },
+       {
+        "member": "GET /admin.teams.settings.info",
+        "reason": "not-requested"
+       },
+       {
+        "member": "GET /admin.usergroups.listChannels",
+        "reason": "not-requested"
+       },
+       {
+        "member": "GET /admin.users.getExpiration",
+        "reason": "not-requested"
+       },
+       {
+        "member": "GET /admin.users.list",
+        "reason": "not-requested"
+       },
+       {
+        "member": "GET /apps.event.authorizations.list",
+        "reason": "client-credentials-only"
+       },
+       {
+        "member": "GET /apps.permissions.info",
+        "reason": "no-oauth-scope"
+       },
+       {
+        "member": "GET /apps.permissions.request",
+        "reason": "no-oauth-scope"
+       },
+       {
+        "member": "GET /apps.permissions.resources.list",
+        "reason": "no-oauth-scope"
+       },
+       {
+        "member": "GET /apps.permissions.scopes.list",
+        "reason": "no-oauth-scope"
+       },
+       {
+        "member": "GET /apps.permissions.users.list",
+        "reason": "no-oauth-scope"
+       },
+       {
+        "member": "GET /apps.permissions.users.request",
+        "reason": "no-oauth-scope"
+       },
+       {
+        "member": "GET /apps.uninstall",
+        "reason": "client-credentials-only"
+       },
+       {
+        "member": "GET /conversations.declineSharedInvite",
+        "reason": "bot-token-only"
+       },
+       {
+        "member": "GET /files.remote.share",
+        "reason": "not-requested"
+       },
+       {
+        "member": "GET /migration.exchange",
+        "reason": "not-requested"
+       },
+       {
+        "member": "GET /oauth.access",
+        "reason": "client-credentials-only"
+       },
+       {
+        "member": "GET /oauth.token",
+        "reason": "client-credentials-only"
+       },
+       {
+        "member": "GET /oauth.v2.access",
+        "reason": "client-credentials-only"
+       },
+       {
+        "member": "GET /rtm.connect",
+        "reason": "no-oauth-scope"
+       },
+       {
+        "member": "GET /rtm.start",
+        "reason": "no-oauth-scope"
+       },
+       {
+        "member": "GET /workflows.stepCompleted",
+        "reason": "no-oauth-scope"
+       },
+       {
+        "member": "GET /workflows.stepFailed",
+        "reason": "no-oauth-scope"
+       },
+       {
+        "member": "GET /workflows.updateStep",
+        "reason": "no-oauth-scope"
+       },
+       {
+        "member": "POST /admin.apps.activities.list",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.apps.approve",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.apps.clearResolution",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.apps.config.lookup",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.apps.config.set",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.apps.mcp.servers.list",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.apps.mcp.servers.permissions.list",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.apps.mcp.servers.permissions.set",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.apps.permissions.add",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.apps.permissions.list",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.apps.permissions.remove",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.apps.permissions.set",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.apps.requests.cancel",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.apps.restrict",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.apps.uninstall",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.audit.anomaly.allow.getItem",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.audit.anomaly.allow.updateItem",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.auth.policy.assignEntities",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.auth.policy.getEntities",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.auth.policy.removeEntities",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.barriers.create",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.barriers.delete",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.barriers.update",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.conversations.archive",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.conversations.bulkArchive",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.conversations.bulkDelete",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.conversations.bulkMove",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.conversations.bulkSetProperties",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.conversations.convertToPrivate",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.conversations.convertToPublic",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.conversations.create",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.conversations.createForObjects",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.conversations.delete",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.conversations.disconnectShared",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.conversations.getCustomRetention",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.conversations.invite",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.conversations.linkObjects",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.conversations.lookup",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.conversations.removeCustomRetention",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.conversations.rename",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.conversations.restrictAccess.addGroup",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.conversations.restrictAccess.removeGroup",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.conversations.setConversationPrefs",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.conversations.setCustomRetention",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.conversations.setTeams",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.conversations.unarchive",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.conversations.unlinkObjects",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.emoji.add",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.emoji.addAlias",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.emoji.remove",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.emoji.rename",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.functions.list",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.functions.permissions.lookup",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.functions.permissions.set",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.inviteRequests.approve",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.inviteRequests.deny",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.roles.addAssignments",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.roles.removeAssignments",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.teams.create",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.teams.settings.setDefaultChannels",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.teams.settings.setDescription",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.teams.settings.setDiscoverability",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.teams.settings.setIcon",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.teams.settings.setName",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.usergroups.addChannels",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.usergroups.addTeams",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.usergroups.addUsers",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.usergroups.create",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.usergroups.fetch",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.usergroups.removeChannels",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.usergroups.removeTeams",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.usergroups.removeUsers",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.usergroups.update",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.usergroups.uploadUsers",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.users.assign",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.users.invite",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.users.remove",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.users.session.clearSettings",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.users.session.getSettings",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.users.session.invalidate",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.users.session.list",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.users.session.reset",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.users.session.resetBulk",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.users.session.setSettings",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.users.setAdmin",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.users.setExpiration",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.users.setOwner",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.users.setRegular",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.users.unsupportedVersions.export",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.workflows.collaborators.add",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.workflows.collaborators.remove",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.workflows.permissions.lookup",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.workflows.search",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.workflows.triggers.types.permissions.lookup",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.workflows.triggers.types.permissions.set",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /admin.workflows.unpublish",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /apps.activities.list",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /apps.connections.open",
+        "reason": "client-credentials-only"
+       },
+       {
+        "member": "POST /apps.datastore.bulkDelete",
+        "reason": "bot-token-only"
+       },
+       {
+        "member": "POST /apps.datastore.bulkGet",
+        "reason": "bot-token-only"
+       },
+       {
+        "member": "POST /apps.datastore.bulkPut",
+        "reason": "bot-token-only"
+       },
+       {
+        "member": "POST /apps.datastore.count",
+        "reason": "bot-token-only"
+       },
+       {
+        "member": "POST /apps.datastore.delete",
+        "reason": "bot-token-only"
+       },
+       {
+        "member": "POST /apps.datastore.get",
+        "reason": "bot-token-only"
+       },
+       {
+        "member": "POST /apps.datastore.put",
+        "reason": "bot-token-only"
+       },
+       {
+        "member": "POST /apps.datastore.query",
+        "reason": "bot-token-only"
+       },
+       {
+        "member": "POST /apps.datastore.update",
+        "reason": "bot-token-only"
+       },
+       {
+        "member": "POST /apps.icon.set",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /apps.managed.permissions.set",
+        "reason": "client-credentials-only"
+       },
+       {
+        "member": "POST /apps.manifest.create",
+        "reason": "client-credentials-only"
+       },
+       {
+        "member": "POST /apps.manifest.delete",
+        "reason": "client-credentials-only"
+       },
+       {
+        "member": "POST /apps.manifest.export",
+        "reason": "client-credentials-only"
+       },
+       {
+        "member": "POST /apps.manifest.update",
+        "reason": "client-credentials-only"
+       },
+       {
+        "member": "POST /apps.manifest.validate",
+        "reason": "client-credentials-only"
+       },
+       {
+        "member": "POST /files.remote.remove",
+        "reason": "bot-token-only"
+       },
+       {
+        "member": "POST /files.upload",
+        "reason": "no-oauth-scope"
+       },
+       {
+        "member": "POST /functions.distributions.permissions.add",
+        "reason": "client-credentials-only"
+       },
+       {
+        "member": "POST /functions.distributions.permissions.list",
+        "reason": "client-credentials-only"
+       },
+       {
+        "member": "POST /functions.distributions.permissions.remove",
+        "reason": "client-credentials-only"
+       },
+       {
+        "member": "POST /functions.distributions.permissions.set",
+        "reason": "client-credentials-only"
+       },
+       {
+        "member": "POST /oauth.v2.beginShortTokenRotation",
+        "reason": "client-credentials-only"
+       },
+       {
+        "member": "POST /oauth.v2.completeShortTokenRotation",
+        "reason": "client-credentials-only"
+       },
+       {
+        "member": "POST /oauth.v2.exchange",
+        "reason": "client-credentials-only"
+       },
+       {
+        "member": "POST /oauth.v2.user.access",
+        "reason": "client-credentials-only"
+       },
+       {
+        "member": "POST /openid.connect.token",
+        "reason": "client-credentials-only"
+       },
+       {
+        "member": "POST /openid.connect.userInfo",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /reminders.delete",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /slackLists.items.delete",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /slackLists.items.deleteMultiple",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /team.billing.info",
+        "reason": "not-requested"
+       },
+       {
+        "member": "POST /tooling.tokens.rotate",
+        "reason": "client-credentials-only"
+       },
+       {
+        "member": "POST /users.discoverableContacts.lookup",
+        "reason": "bot-token-only"
+       },
+       {
+        "member": "POST /workflows.triggers.permissions.add",
+        "reason": "bot-token-only"
+       },
+       {
+        "member": "POST /workflows.triggers.permissions.list",
+        "reason": "bot-token-only"
+       },
+       {
+        "member": "POST /workflows.triggers.permissions.remove",
+        "reason": "bot-token-only"
+       },
+       {
+        "member": "POST /workflows.triggers.permissions.set",
+        "reason": "bot-token-only"
+       }
+      ],
+      "unsupported": [],
+      "conditions": [],
+      "conditionalScopes": {},
+      "access": {
+       "signIn": {
+        "status": "works",
+        "covered": 17,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "full": {
+        "status": "works",
+        "covered": 17,
+        "missing": 0,
+        "cannotWork": 0,
+        "noScopeData": 0
+       },
+       "required": {
+        "status": "partial",
+        "covered": 12,
+        "missing": 5,
+        "cannotWork": 0,
+        "noScopeData": 0
+       }
+      }
+     }
+    ],
+    "otherRows": [
+     {
+      "row": "other-changes",
+      "label": "Other changes",
+      "effect": "write",
+      "default": "ask",
+      "modes": [
+       "ask",
+       "deny"
+      ]
+     }
+    ],
+    "unjustified": [],
+    "upgrade": {
+     "fromV1ReadWrite": [
+      "slack.messages.search",
+      "slack.files.read",
+      "slack.workspace.read"
+     ],
+     "fromRequired": [
+      "slack.messages.search",
+      "slack.files.read",
+      "slack.workspace.read"
+     ],
+     "fromRead": null
+    }
+   }
+  }
+ }
+}

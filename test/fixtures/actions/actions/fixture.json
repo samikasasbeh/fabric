@@ -1,0 +1,316 @@
+{
+ "schemaVersion": 1,
+ "appId": "fixture",
+ "specVersion": "fabric/0.2",
+ "reviewStatus": "candidate",
+ "pinnedParameters": {"account": "me"},
+ "superseded": [
+  {"id": "fixture.action.list-items.v1.0123456789abcdef01234567", "replacedBy": {"key": "list-items", "version": 1}, "reason": "change", "stopsAfter": "2026-12-31"}
+ ],
+ "actions": [
+  {
+   "id": "fixture.action.list-items.v1.f4275b116c7968cfc43f563d",
+   "key": "list-items",
+   "version": 1,
+   "name": "List items",
+   "description": "Lists your items, newest first, optionally only those with one label.",
+   "effect": "read",
+   "row": "fixture.items.read",
+   "hints": {"readOnly": true, "destructive": false, "idempotent": true, "openWorld": true},
+   "inputSchema": {"type": "object", "properties": {
+     "kind": {"type": "string", "enum": ["all", "open"]},
+     "labelId": {"type": "string", "minLength": 1, "maxLength": 64}
+    }, "required": ["kind"], "additionalProperties": false},
+   "outputSchema": {"type": "object", "properties": {
+     "account": {"type": "string", "maxLength": 200},
+     "items": {"type": "array", "maxItems": 100, "items": {"type": "object", "properties": {
+       "id": {"type": "string", "maxLength": 64}, "name": {"type": "string", "maxLength": 200}, "updated": {"type": "string", "maxLength": 64}
+      }, "required": ["id", "name", "updated"], "additionalProperties": false}}
+    }, "required": ["account", "items"], "additionalProperties": false},
+   "choices": [{"input": "labelId", "source": "labels", "lookup": "label"}],
+   "guards": [],
+   "prepare": [
+    {"id": "profile", "method": "GET", "path": "/accounts/{account}/profile", "expect": {"status": [200], "require": []}}
+   ],
+   "perform": [
+    {"id": "list", "method": "GET", "path": "/items",
+     "query": {
+      "kind": {"input": "/kind"},
+      "labelIds": {"when": {"present": {"input": "/labelId"}}, "then": {"array": [{"input": "/labelId"}]}},
+      "updatedAfter": {"cursor": "since"}
+     },
+     "page": {"next": {"pointer": "/nextPageToken"}, "into": {"query": "pageToken"}, "items": "/items", "while": "/hasMore", "max": 3},
+     "maxResponseBytes": 262144,
+     "expect": {"status": [200], "require": []}}
+   ],
+   "output": {
+    "account": {"step": "profile", "pointer": "/name"},
+    "items": {"each": {"step": "list", "pointer": ""}, "as": "entry", "max": 100, "do": {"object": {
+     "id": {"pick": {"var": "entry"}, "pointer": "/id"},
+     "name": {"pick": {"var": "entry"}, "pointer": "/name"},
+     "updated": {"pick": {"var": "entry"}, "pointer": "/updated"}
+    }}}
+   },
+   "preview": [
+    {"label": "Show", "expr": {"input": "/kind"}},
+    {"label": "Label", "expr": {"input": "/labelId"}, "truncate": 64}
+   ],
+   "definitive": [400, 404],
+   "poll": {"step": "list", "items": "/items", "itemId": {"item": "/id"}, "itemVersion": "/updated", "itemTime": {"pointer": "/updated", "format": "rfc3339"}, "order": "desc",
+    "cursors": [{"name": "since", "kind": "high-water-time@1", "next": {"max": "itemTime"}, "compare": "time.rfc3339ToEpochSeconds@1", "overlapSeconds": 60}],
+    "resync": {"statusIn": []}, "resourceKey": [], "filterInputs": ["kind", "labelId"], "minIntervalSeconds": 60},
+   "servesSource": "items",
+   "certified": {"evidence": "docs/live-evidence/fixture/actions.json", "definitionHash": "63800a1366904c3a91dce145e4ee81be51029b1fa272deb84134c09c3c2ef627"}
+  },
+  {
+   "id": "fixture.action.update-item.v1.b298bcf427f013ff49d8a0b0",
+   "key": "update-item",
+   "version": 1,
+   "name": "Rename or label an item",
+   "description": "Renames one open item, or adds labels to it, after reading it.",
+   "effect": "write",
+   "row": "fixture.items.edit",
+   "hints": {"readOnly": false, "destructive": false, "idempotent": false, "openWorld": true},
+   "inputSchema": {"type": "object", "properties": {
+     "itemId": {"type": "string", "minLength": 1, "maxLength": 64},
+     "change": {"type": "string", "enum": ["rename", "label"]},
+     "name": {"type": "string", "minLength": 1, "maxLength": 200},
+     "labels": {"type": "array", "maxItems": 10, "items": {"type": "string", "minLength": 1, "maxLength": 100}}
+    }, "required": ["itemId", "change"], "additionalProperties": false},
+   "outputSchema": {"type": "object", "properties": {
+     "id": {"type": "string", "maxLength": 64}, "name": {"type": "string", "maxLength": 200}
+    }, "required": ["id", "name"], "additionalProperties": false},
+   "choices": [{"input": "itemId", "source": "items"}, {"input": "labels", "source": "labels", "dependsOn": ["itemId"]}],
+   "guards": [
+    {"transform": "collections.oneOf@1", "args": {"value": {"step": "item", "pointer": "/status"}, "set": {"const": ["open"]}, "fold": {"const": "none"}}, "refuse": "wrong_state", "after": "item"}
+   ],
+   "prepare": [
+    {"id": "item", "method": "GET", "path": "/items/{item_id}", "params": {"item_id": {"input": "/itemId"}}, "expect": {"status": [200], "require": []}},
+    {"id": "labels", "method": "GET", "path": "/labels", "when": {"equals": [{"input": "/change"}, {"const": "label"}]}, "expect": {"status": [200], "require": []}}
+   ],
+   "perform": [
+    {"id": "rename", "method": "PATCH", "path": "/items/{item_id}", "params": {"item_id": {"input": "/itemId"}},
+     "when": {"equals": [{"input": "/change"}, {"const": "rename"}]},
+     "body": {"object": {"name": {"input": "/name"}}},
+     "expect": {"status": [200], "require": []}},
+    {"id": "label", "method": "PATCH", "path": "/items/{item_id}", "params": {"item_id": {"input": "/itemId"}},
+     "when": {"equals": [{"input": "/change"}, {"const": "label"}]},
+     "body": {"object": {"labels": {"pick": {"transform": "collections.labelIds@1", "args": {"list": {"step": "labels", "pointer": ""}, "names": {"input": "/labels"}}}, "pointer": "/ids"}}},
+     "expect": {"status": [200], "require": []}}
+   ],
+   "verify": {
+    "requests": [
+     {"id": "check", "method": "GET", "path": "/items/{item_id}", "params": {"item_id": {"input": "/itemId"}}, "expect": {"status": [200], "require": []}}
+    ],
+    "identity": [{"kind": "readback", "step": "check", "pointer": "/id", "equals": {"input": "/itemId"}}],
+    "assert": [
+     {"step": "check", "equals": {"pointer": "/name", "value": {"input": "/name"}}, "when": {"equals": [{"input": "/change"}, {"const": "rename"}]}},
+     {"step": "check", "contains": {"pointer": "/labels", "value": {"pick": {"transform": "collections.labelIds@1", "args": {"list": {"step": "labels", "pointer": ""}, "names": {"input": "/labels"}}}, "pointer": "/ids"}}, "when": {"equals": [{"input": "/change"}, {"const": "label"}]}}
+    ]
+   },
+   "askUnless": {"createdByFabric": {"kind": "item", "input": "itemId"}},
+   "output": {
+    "id": {"step": "check", "pointer": "/id"},
+    "name": {"either": [{"step": "rename", "pointer": "/name"}, {"step": "item", "pointer": "/name"}]}
+   },
+   "preview": [
+    {"label": "Item", "expr": {"concat": [{"step": "item", "pointer": "/name"}, {"const": " ("}, {"input": "/itemId"}, {"const": ")"}], "max": 300}},
+    {"label": "New name", "expr": {"input": "/name"}},
+    {"label": "Labels", "expr": {"pick": {"transform": "text.joinList@1", "args": {"items": {"input": "/labels"}}}, "pointer": "/text"}}
+   ],
+   "definitive": [400, 404, 409, 412, 422]
+  },
+  {
+   "id": "fixture.action.remove-labels.v1.c1d338b2a6149e0d752baeb5",
+   "key": "remove-labels",
+   "version": 1,
+   "name": "Remove labels from an item",
+   "description": "Removes each named label from one item.",
+   "effect": "delete",
+   "row": "fixture.items.delete",
+   "hints": {"readOnly": false, "destructive": true, "idempotent": true, "openWorld": true},
+   "inputSchema": {"type": "object", "properties": {
+     "itemId": {"type": "string", "minLength": 1, "maxLength": 64},
+     "names": {"type": "array", "minItems": 1, "maxItems": 10, "items": {"type": "string", "minLength": 1, "maxLength": 100}}
+    }, "required": ["itemId", "names"], "additionalProperties": false},
+   "outputSchema": {"type": "object", "properties": {"removed": {"type": "integer", "minimum": 0, "maximum": 10}}, "required": ["removed"], "additionalProperties": false},
+   "guards": [],
+   "prepare": [],
+   "perform": [
+    {"id": "unlabel", "method": "DELETE", "path": "/items/{item_id}/labels/{name}", "params": {"item_id": {"input": "/itemId"}, "name": {"item": ""}},
+     "forEach": {"over": {"input": "/names"}, "max": 10}, "maxResponseBytes": 65536,
+     "expect": {"status": [204], "require": []}}
+   ],
+   "verify": {
+    "requests": [
+     {"id": "check", "method": "GET", "path": "/items/{item_id}", "params": {"item_id": {"input": "/itemId"}}, "expect": {"status": [200], "require": []}}
+    ],
+    "identity": [{"kind": "membership", "step": "check", "listLacks": {"list": "/labels", "where": [{"field": "/name", "equals": {"item": ""}}]}, "forEach": "unlabel"}],
+    "assert": [{"step": "check", "statusIn": [200]}]
+   },
+   "output": {"removed": {"pick": {"transform": "text.joinList@1", "args": {"items": {"input": "/names"}}}, "pointer": "/count"}},
+   "preview": [{"label": "Labels to remove", "expr": {"pick": {"transform": "text.joinList@1", "args": {"items": {"input": "/names"}}}, "pointer": "/text"}}],
+   "definitive": [400, 404]
+  },
+  {
+   "id": "fixture.action.put-file.v1.4f95fad35eb51291b5ddd55d",
+   "key": "put-file",
+   "version": 1,
+   "name": "Create or update a file",
+   "description": "Writes a file, replacing exactly the version read first when one exists.",
+   "effect": "write",
+   "row": "fixture.messages.send",
+   "hints": {"readOnly": false, "destructive": false, "idempotent": true, "openWorld": true},
+   "inputSchema": {"type": "object", "properties": {
+     "path": {"type": "string", "minLength": 1, "maxLength": 400},
+     "content": {"type": "string", "maxLength": 500000},
+     "message": {"type": "string", "minLength": 1, "maxLength": 200},
+     "kind": {"type": "string", "enum": ["file", "workflow"]}
+    }, "required": ["path", "content", "message", "kind"], "additionalProperties": false},
+   "outputSchema": {"type": "object", "properties": {"sha": {"type": "string", "maxLength": 64}}, "required": ["sha"], "additionalProperties": false},
+   "guards": [],
+   "prepare": [
+    {"id": "current", "method": "GET", "path": "/files/{+path}", "params": {"path": {"input": "/path"}}, "headers": {"Accept": {"const": "application/json"}},
+     "expect": {"status": [200, 404], "require": []}}
+   ],
+   "perform": [
+    {"id": "put", "method": "PUT", "path": "/files/{+path}", "params": {"path": {"input": "/path"}},
+     "body": {"object": {
+      "message": {"input": "/message"},
+      "content": {"pick": {"transform": "encoding.base64Encode@1", "args": {"text": {"input": "/content"}}}, "pointer": "/encoded"},
+      "sha": {"when": {"present": {"step": "current", "pointer": "/sha"}}, "then": {"step": "current", "pointer": "/sha"}}
+     }},
+     "bindContent": "sha",
+     "requiresScope": {"scope": "files.workflow", "when": {"equals": [{"input": "/kind"}, {"const": "workflow"}]}},
+     "expect": {"status": [200, 201], "require": []}}
+   ],
+   "verify": {
+    "requests": [
+     {"id": "check", "method": "GET", "path": "/files/{+path}", "params": {"path": {"input": "/path"}}, "expect": {"status": [200], "require": []}}
+    ],
+    "identity": [{"kind": "readback", "step": "check", "pointer": "/sha", "equals": {"step": "put", "pointer": "/content/sha"}}],
+    "assert": [{"step": "check", "statusIn": [200]}]
+   },
+   "askUnless": {"createdByFabric": {"kind": "file", "input": "path"}},
+   "records": {"kind": "file", "pointer": "/sha"},
+   "output": {"sha": {"step": "put", "pointer": "/content/sha"}},
+   "preview": [{"label": "File", "expr": {"input": "/path"}}, {"label": "Message", "expr": {"input": "/message"}}],
+   "definitive": [400, 404, 409, 422]
+  },
+  {
+   "id": "fixture.action.reschedule-event.v1.beaa5c53f94a1b74a052f14c",
+   "key": "reschedule-event",
+   "version": 1,
+   "name": "Move an event",
+   "description": "Moves one event to a new start and end within the next year, replacing exactly the version read first.",
+   "effect": "write",
+   "row": "fixture.messages.send",
+   "hints": {"readOnly": false, "destructive": false, "idempotent": true, "openWorld": true},
+   "inputSchema": {"type": "object", "properties": {
+     "eventId": {"type": "string", "minLength": 1, "maxLength": 64},
+     "start": {"type": "string", "format": "date-time", "maxLength": 64},
+     "end": {"type": "string", "format": "date-time", "maxLength": 64}
+    }, "required": ["eventId", "start", "end"], "additionalProperties": false},
+   "outputSchema": {"type": "object", "properties": {"etag": {"type": "string", "maxLength": 200}}, "required": ["etag"], "additionalProperties": false},
+   "guards": [
+    {"transform": "time.window@1", "args": {"start": {"input": "/start"}, "end": {"input": "/end"}, "maxDays": {"const": 366}, "now": {"now": {}}}, "refuse": "time_window"}
+   ],
+   "prepare": [
+    {"id": "event", "method": "GET", "path": "/events/{event_id}", "params": {"event_id": {"input": "/eventId"}}, "expect": {"status": [200], "require": []}}
+   ],
+   "perform": [
+    {"id": "move", "method": "PATCH", "path": "/events/{event_id}", "params": {"event_id": {"input": "/eventId"}},
+     "headers": {"If-Match": {"step": "event", "header": "etag"}},
+     "body": {"object": {"start": {"input": "/start"}, "end": {"input": "/end"}, "requestId": {"jobKey": "move"}}},
+     "bindContent": "etag",
+     "expect": {"status": [200], "require": []}}
+   ],
+   "verify": {
+    "requests": [
+     {"id": "check", "method": "GET", "path": "/events/{event_id}", "params": {"event_id": {"input": "/eventId"}}, "expect": {"status": [200], "require": []}}
+    ],
+    "identity": [{"kind": "readback", "step": "check", "pointer": "/id", "equals": {"step": "move", "pointer": "/id"}}],
+    "assert": [{"step": "check", "equals": {"pointer": "/start", "value": {"input": "/start"}}}]
+   },
+   "output": {"etag": {"step": "move", "header": "etag"}},
+   "preview": [{"label": "Event", "expr": {"input": "/eventId"}}, {"label": "New start", "expr": {"input": "/start"}}, {"label": "New end", "expr": {"input": "/end"}}],
+   "definitive": [400, 404, 412]
+  },
+  {
+   "id": "fixture.action.send-draft.v1.9a52839d814cc4451f391096",
+   "key": "send-draft",
+   "version": 1,
+   "name": "Send a draft",
+   "description": "Sends one draft exactly as it was read.",
+   "effect": "write",
+   "row": "fixture.messages.send",
+   "hints": {"readOnly": false, "destructive": false, "idempotent": false, "openWorld": true},
+   "inputSchema": {"type": "object", "properties": {"draftId": {"type": "string", "minLength": 1, "maxLength": 64}}, "required": ["draftId"], "additionalProperties": false},
+   "outputSchema": {"type": "object", "properties": {"id": {"type": "string", "maxLength": 64}}, "required": ["id"], "additionalProperties": false},
+   "guards": [],
+   "prepare": [
+    {"id": "draft", "method": "GET", "path": "/drafts/{draft_id}", "params": {"draft_id": {"input": "/draftId"}}, "expect": {"status": [200], "require": []}}
+   ],
+   "perform": [
+    {"id": "send", "method": "POST", "path": "/drafts/{draft_id}/send", "params": {"draft_id": {"input": "/draftId"}},
+     "body": {"object": {"raw": {"step": "draft", "pointer": "/raw"}, "sender": {"account": "id"}}},
+     "bindContent": "resend",
+     "expect": {"status": [200], "require": []}}
+   ],
+   "verify": {
+    "requests": [
+     {"id": "sent", "method": "GET", "path": "/items/{item_id}", "params": {"item_id": {"step": "send", "pointer": "/id"}}, "expect": {"status": [200], "require": []}},
+     {"id": "gone", "method": "GET", "path": "/drafts/{draft_id}", "params": {"draft_id": {"input": "/draftId"}}, "expect": {"status": [404], "require": []}}
+    ],
+    "identity": [{"kind": "readback", "step": "sent", "pointer": "/id", "equals": {"step": "send", "pointer": "/id"}}],
+    "assert": [{"anyOf": [{"step": "gone", "statusIn": [404]}, {"step": "gone", "statusIn": [410]}]}]
+   },
+   "output": {"id": {"step": "send", "pointer": "/id"}},
+   "preview": [{"label": "Draft", "expr": {"input": "/draftId"}}, {"label": "Subject", "expr": {"step": "draft", "pointer": "/subject"}, "truncate": 120}],
+   "definitive": [400, 404]
+  },
+  {
+   "id": "fixture.action.add-row.v1.9e1887a67b1af2f89d4e20ce",
+   "key": "add-row",
+   "version": 1,
+   "name": "Add a row",
+   "description": "Adds one row to a table, with the values the table's own fields take.",
+   "effect": "write",
+   "row": "fixture.items.edit",
+   "hints": {"readOnly": false, "destructive": false, "idempotent": false, "openWorld": true},
+   "inputSchema": {"type": "object", "properties": {
+     "tableId": {"type": "string", "minLength": 1, "maxLength": 64},
+     "values": {"type": "object", "properties": {}, "additionalProperties": false}
+    }, "required": ["tableId", "values"], "additionalProperties": false},
+   "outputSchema": {"type": "object", "properties": {"id": {"type": "string", "maxLength": 64}}, "required": ["id"], "additionalProperties": false},
+   "choices": [{"input": "tableId", "source": "items"}],
+   "resolvedInputs": [
+    {"input": "values", "dependsOn": ["tableId"],
+     "schema": {"steps": [{"id": "table", "method": "GET", "path": "/items/{item_id}", "params": {"item_id": {"input": "/tableId"}}, "expect": {"status": [200], "require": []}}],
+      "derive": {"transform": "notion.schema@1", "args": {"dataSource": {"step": "table", "pointer": ""}}}},
+     "maxProperties": 100}
+   ],
+   "guards": [],
+   "prepare": [],
+   "perform": [
+    {"id": "add", "method": "POST", "path": "/items",
+     "body": {"object": {
+      "parent": {"object": {"id": {"input": "/tableId"}}},
+      "properties": {"transform": "notion.propertyValues@1", "args": {"schema": {"resolved": "values"}, "values": {"input": "/values"}}}
+     }},
+     "expect": {"status": [200], "require": []}}
+   ],
+   "verify": {
+    "requests": [
+     {"id": "check", "method": "GET", "path": "/items/{item_id}", "params": {"item_id": {"step": "add", "pointer": "/id"}}, "expect": {"status": [200], "require": []}}
+    ],
+    "identity": [{"kind": "readback", "step": "check", "pointer": "/id", "equals": {"step": "add", "pointer": "/id"}}],
+    "assert": []
+   },
+   "records": {"kind": "item", "pointer": "/id"},
+   "output": {"id": {"step": "add", "pointer": "/id"}},
+   "preview": [{"label": "Table", "expr": {"input": "/tableId"}}],
+   "definitive": [400, 404, 409]
+  }
+ ]
+}

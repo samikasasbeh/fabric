@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "appId": "gmail",
+  "reviewed": "2026-10-13: the labels a person can pick from, read through the reviewed labels list (row Read labels).",
+  "sources": [
+    {
+      "id": "labels",
+      "operation": "gmail.users.labels.list",
+      "row": "gmail.labels.read",
+      "serves": ["labelIds", "addLabelIds", "removeLabelIds", "labelId"],
+      "args": {"userId": "me"},
+      "items": "/labels",
+      "value": "/id",
+      "label": ["/name"],
+      "pageToken": null,
+      "maxItems": 500
+    }
+  ]
+}

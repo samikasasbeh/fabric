@@ -1,0 +1,2019 @@
+{
+ "gmail.action.auto-label.v1.f96f1269d1bd2a63539aac0d": {
+  "definitionHash": "643b91aeb6f2b4ac7ae179497780349025107817f956dbeb8efeba3550f34681",
+  "harnessHash": "7486366c59d0f96b08bcc8ea30ec3943954645aa102528f3f6900b15f8fccba2",
+  "passed": true,
+  "ranAt": "2026-10-29T18:27:14.793Z",
+  "runId": "ISRREHKN",
+  "runtime": {
+   "icu": "78.2",
+   "node": "25.8.1",
+   "tz": "2026a",
+   "unicode": "17.0"
+  },
+  "schemaVersion": 1,
+  "tests": [
+   {
+    "checks": [
+     {
+      "name": "step 1: auto-label@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 1: saves filter10",
+      "passed": true
+     },
+     {
+      "name": "step 1: /labelId equals",
+      "passed": true
+     },
+     {
+      "name": "step 2: status",
+      "passed": true
+     },
+     {
+      "name": "step 2: /criteria/from equals",
+      "passed": true
+     }
+    ],
+    "jobs": [
+     {
+      "approvals": [
+       {
+        "at": "2026-10-29T18:27:13.103Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "a8156209-86e7-419c-9e3d-9b85ea320906",
+      "status": "succeeded"
+     }
+    ],
+    "passed": true,
+    "requests": [
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/labels"
+     },
+     {
+      "bodyHmac": "94f56287667fef4ae64b44f769bc72a8c71b791afd1a4f12989d845b64b72886",
+      "identity": "ANe1Bmh7mLEDCgDp_vjU23EzT0IJBgiPzZ8XVg",
+      "method": "POST",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/settings/filters"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/settings/filters/{id}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/settings/filters/{id}"
+     }
+    ],
+    "test": "G10",
+    "undo": {
+     "test": "G11"
+    }
+   }
+  ],
+  "transforms": {
+   "collections.labelIds@1": "24c366154e1ccc88278b91e08ba5e3fef8535adc040267686ffd3c92844e4962"
+  }
+ },
+ "gmail.action.create-draft.v1.b7db5b6fe00ca0419687d7a2": {
+  "definitionHash": "d2732de29ad3ea2e2f8894168b386f7a1be9418ab7dc7792f076fb43bceb131a",
+  "harnessHash": "7486366c59d0f96b08bcc8ea30ec3943954645aa102528f3f6900b15f8fccba2",
+  "passed": true,
+  "ranAt": "2026-10-29T18:27:14.793Z",
+  "runId": "ISRREHKN",
+  "runtime": {
+   "icu": "78.2",
+   "node": "25.8.1",
+   "tz": "2026a",
+   "unicode": "17.0"
+  },
+  "schemaVersion": 1,
+  "tests": [
+   {
+    "checks": [
+     {
+      "name": "step 1: create-draft@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 1: saves draft1",
+      "passed": true
+     },
+     {
+      "name": "step 1: /to/0 equals",
+      "passed": true
+     },
+     {
+      "name": "step 1: /subject equals",
+      "passed": true
+     }
+    ],
+    "jobs": [
+     {
+      "approvals": [
+       {
+        "at": "2026-10-29T18:22:45.563Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "0e5cd1d1-db0e-4147-b009-4c132658e844",
+      "status": "succeeded"
+     }
+    ],
+    "passed": true,
+    "requests": [
+     {
+      "bodyHmac": "9ceb4168de037f2e7828747489a72312e59c1f4f102bec678170a23c4f4a8605",
+      "identity": "r-5643734471993474590",
+      "method": "POST",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/drafts"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/drafts/{id}"
+     }
+    ],
+    "test": "G1",
+    "undo": {
+     "test": "G11"
+    }
+   },
+   {
+    "checks": [
+     {
+      "name": "step 1: create-draft@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 1: saves draft8",
+      "passed": true
+     },
+     {
+      "name": "step 3: send-draft@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 3: saves sent8",
+      "passed": true
+     },
+     {
+      "name": "step 4: read-email@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 4: /text equals",
+      "passed": true
+     },
+     {
+      "name": "step 5: gone",
+      "passed": true
+     }
+    ],
+    "jobs": [
+     {
+      "approvals": [
+       {
+        "at": "2026-10-29T18:25:06.573Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "ae44ef47-bf88-4111-b2ed-73ddaf2af196",
+      "status": "succeeded"
+     }
+    ],
+    "passed": true,
+    "requests": [
+     {
+      "bodyHmac": "77e90e2567f7ecd6327bc2428d64f57436ebe83f688f75503683a2dad6def7f7",
+      "identity": "r360647607818092281",
+      "method": "POST",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/drafts"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/drafts/{id}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/drafts/{id}"
+     },
+     {
+      "bodyHmac": "40fee7ba9ebaf14422e9d7ac353813d40acf60cf7535eaccf01bbd58f85128a3",
+      "identity": "1a188e950bb0c856",
+      "method": "POST",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/drafts/send"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/messages/{id}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 404,
+      "template": "/gmail/v1/users/{userId}/drafts/{id}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/messages/{id}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 404,
+      "template": "/gmail/v1/users/{userId}/drafts/{id}"
+     }
+    ],
+    "test": "G8",
+    "undo": {
+     "checks": [
+      {
+       "name": "step 1: move-to-trash@1 succeeded",
+       "passed": true
+      },
+      {
+       "name": "step 1: /messageId equals",
+       "passed": true
+      }
+     ],
+     "jobs": [
+      {
+       "approvals": [
+        {
+         "at": "2026-10-29T18:26:20.508Z",
+         "phase": "final"
+        }
+       ],
+       "errorCode": null,
+       "id": "318a8f20-2ccc-427a-8b62-1447b93e05b5",
+       "status": "succeeded"
+      }
+     ],
+     "passed": true,
+     "requests": [
+      {
+       "bodyHmac": null,
+       "identity": null,
+       "method": "GET",
+       "status": 200,
+       "template": "/gmail/v1/users/{userId}/messages/{id}"
+      },
+      {
+       "bodyHmac": null,
+       "identity": null,
+       "method": "POST",
+       "status": 200,
+       "template": "/gmail/v1/users/{userId}/messages/{id}/trash"
+      },
+      {
+       "bodyHmac": null,
+       "identity": null,
+       "method": "GET",
+       "status": 200,
+       "template": "/gmail/v1/users/{userId}/messages/{id}"
+      }
+     ]
+    }
+   }
+  ],
+  "transforms": {
+   "rfc5322.build@1": "c891bf74a412bf2efe4be93d1954851d866f3cf59d718ca2e4c66f4e0228339e",
+   "rfc5322.decodeRaw@1": "9cdd4354c03e55b53e4af2ed6337d3ed616ea2db3a7a41df9d8613b5eac38a69",
+   "text.joinList@1": "1f75825537a4063657cd6dbd224bce5b4af8e05a651ff3738ea9c2eacf736053"
+  }
+ },
+ "gmail.action.create-label.v1.b91c91e247217dd1e3214154": {
+  "definitionHash": "4101dcfde9f106942c04dd76d156951b81f3984c101f237ac7007295c83dea12",
+  "harnessHash": "7486366c59d0f96b08bcc8ea30ec3943954645aa102528f3f6900b15f8fccba2",
+  "passed": true,
+  "ranAt": "2026-10-29T18:27:14.793Z",
+  "runId": "ISRREHKN",
+  "runtime": {
+   "icu": "78.2",
+   "node": "25.8.1",
+   "tz": "2026a",
+   "unicode": "17.0"
+  },
+  "schemaVersion": 1,
+  "tests": [
+   {
+    "checks": [
+     {
+      "name": "step 1: create-label@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 1: saves label5",
+      "passed": true
+     },
+     {
+      "name": "step 1: /created equals",
+      "passed": true
+     },
+     {
+      "name": "step 1: /name equals",
+      "passed": true
+     },
+     {
+      "name": "step 2: status",
+      "passed": true
+     },
+     {
+      "name": "step 2: /name equals",
+      "passed": true
+     }
+    ],
+    "jobs": [
+     {
+      "approvals": [
+       {
+        "at": "2026-10-29T18:23:49.882Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "e3ad3a8c-c7cc-4b2c-b638-364fb86c2e9f",
+      "status": "succeeded"
+     }
+    ],
+    "passed": true,
+    "requests": [
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/labels"
+     },
+     {
+      "bodyHmac": "4d916173f5f4d52120011af99704ffc386168add991fc060fe074e0a84db7549",
+      "identity": "Label_2",
+      "method": "POST",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/labels"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/labels"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/gmail/v1/users/me/labels/{label}"
+     }
+    ],
+    "test": "G5",
+    "undo": {
+     "test": "G11"
+    }
+   }
+  ],
+  "transforms": {
+   "collections.findBy@1": "760b99d7eba9c7dce198ff884594903c03fede7f5f3b6c5cf892cb176a04618c",
+   "collections.missing@1": "9004c3db33ea80d98555fe5d3d5e10b9453510f3a45e417e549caf7a84828df8"
+  }
+ },
+ "gmail.action.edit-draft.v1.d668a500e6991607e0db8786": {
+  "definitionHash": "fd26069131643d365eb34f0bb209effe297a84dbe7ca6b112b9565beda67856c",
+  "harnessHash": "7486366c59d0f96b08bcc8ea30ec3943954645aa102528f3f6900b15f8fccba2",
+  "passed": true,
+  "ranAt": "2026-10-29T18:27:14.793Z",
+  "runId": "ISRREHKN",
+  "runtime": {
+   "icu": "78.2",
+   "node": "25.8.1",
+   "tz": "2026a",
+   "unicode": "17.0"
+  },
+  "schemaVersion": 1,
+  "tests": [
+   {
+    "checks": [
+     {
+      "name": "step 1: edit-draft@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 1: /id equals",
+      "passed": true
+     },
+     {
+      "name": "step 2: status",
+      "passed": true
+     },
+     {
+      "name": "step 2: /id equals",
+      "passed": true
+     },
+     {
+      "name": "step 4: edit-draft@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 4: /id equals",
+      "passed": true
+     }
+    ],
+    "jobs": [
+     {
+      "approvals": [
+       {
+        "at": "2026-10-29T18:22:57.092Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "f8003622-abdc-4211-bb4e-54adc091729b",
+      "status": "succeeded"
+     },
+     {
+      "approvals": [
+       {
+        "at": "2026-10-29T18:23:15.416Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "7b78b5d8-194c-428c-8ed0-fc03fcea9f77",
+      "status": "succeeded"
+     }
+    ],
+    "passed": true,
+    "requests": [
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/drafts/{id}"
+     },
+     {
+      "bodyHmac": "b82b6642c15abb6657207a976b102f20297ccbfc778171c3808ec1aaccab2b0d",
+      "identity": null,
+      "method": "PUT",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/drafts/{id}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/drafts/{id}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/drafts/{id}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/drafts/{id}"
+     },
+     {
+      "bodyHmac": "856a35c0bdc364757b74cd5fd60d01be6caf8cb2f1568fdfd7116db3ad5394a9",
+      "identity": null,
+      "method": "PUT",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/drafts/{id}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/drafts/{id}"
+     }
+    ],
+    "test": "G2",
+    "undo": {
+     "test": "G11"
+    }
+   }
+  ],
+  "transforms": {
+   "encoding.base64urlDecode@1": "34eb5a18539852ddf760e210fa0dae20f752728061671b8ef4d044d8294f45d1",
+   "rfc5322.build@1": "c891bf74a412bf2efe4be93d1954851d866f3cf59d718ca2e4c66f4e0228339e",
+   "text.joinList@1": "1f75825537a4063657cd6dbd224bce5b4af8e05a651ff3738ea9c2eacf736053"
+  }
+ },
+ "gmail.action.find-emails.v1.3b7968758003c06b3cf44648": {
+  "definitionHash": "c8bf5a23742108bdc85cb965ab0d7c97413238e32d5b2d1a6bf26d15e6e4677b",
+  "harnessHash": "7486366c59d0f96b08bcc8ea30ec3943954645aa102528f3f6900b15f8fccba2",
+  "passed": true,
+  "ranAt": "2026-10-29T18:27:14.793Z",
+  "runId": "ISRREHKN",
+  "runtime": {
+   "icu": "78.2",
+   "node": "25.8.1",
+   "tz": "2026a",
+   "unicode": "17.0"
+  },
+  "schemaVersion": 1,
+  "tests": [
+   {
+    "checks": [
+     {
+      "name": "step 1: find-emails@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 1: /messages present",
+      "passed": true
+     },
+     {
+      "name": "step 2: read-email@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 2: /id equals",
+      "passed": true
+     },
+     {
+      "name": "step 2: /subject equals",
+      "passed": true
+     },
+     {
+      "name": "step 3: read-conversation@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 3: /id equals",
+      "passed": true
+     },
+     {
+      "name": "step 3: /messages/0/subject equals",
+      "passed": true
+     }
+    ],
+    "jobs": [
+     {
+      "approvals": [
+       {
+        "at": "2026-10-29T18:22:09.785Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "ae02bc7c-9e9d-489d-82a9-3fd874d8335a",
+      "status": "succeeded"
+     }
+    ],
+    "passed": true,
+    "requests": [
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/messages"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/messages/{id}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/messages/{id}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/messages/{id}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/messages/{id}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/threads/{id}"
+     }
+    ],
+    "test": "G0",
+    "undo": {
+     "none": "The test changes nothing."
+    }
+   }
+  ],
+  "transforms": {
+   "collections.diff@1": "41177c0c1eadf6fa855852f8d378cfe49cf1dc4b6236bf880b2fc11f5d0b5a3d",
+   "rfc5322.decodeGmailPayload@1": "6f3fe116e1e9123c67dc663784bb32382e13c65f5d7a3bd6796a84f6bed5f8f9",
+   "text.gmailQuery@1": "47df0f20b7cc18451fc5fb3a99d4e924dcd4a3756c97e6abd8ebb1a4deb1824d",
+   "time.rfc3339ToEpochSeconds@1": "cddf0ded3c0c7f9009f19a381ce34914248d1b4a7b87a6907be28d8906db82f0"
+  }
+ },
+ "gmail.action.move-to-trash.v1.631a729928e2d4b7da2d26db": {
+  "definitionHash": "446dee28bf9a3e3d489d53d113010d264b3fdfe34e3eb1aec5efbd222ba40f72",
+  "harnessHash": "7486366c59d0f96b08bcc8ea30ec3943954645aa102528f3f6900b15f8fccba2",
+  "passed": true,
+  "ranAt": "2026-10-29T18:27:14.793Z",
+  "runId": "ISRREHKN",
+  "runtime": {
+   "icu": "78.2",
+   "node": "25.8.1",
+   "tz": "2026a",
+   "unicode": "17.0"
+  },
+  "schemaVersion": 1,
+  "tests": [
+   {
+    "checks": [
+     {
+      "name": "step 1: move-to-trash@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 1: /move equals",
+      "passed": true
+     },
+     {
+      "name": "step 2: move-to-trash@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 2: /move equals",
+      "passed": true
+     }
+    ],
+    "jobs": [
+     {
+      "approvals": [
+       {
+        "at": "2026-10-29T18:24:27.832Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "81ad215d-c894-44bf-86bb-83564634a5fa",
+      "status": "succeeded"
+     },
+     {
+      "approvals": [
+       {
+        "at": "2026-10-29T18:24:40.319Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "fdbbf18c-30b2-41a2-971e-abac5d1377a8",
+      "status": "succeeded"
+     }
+    ],
+    "passed": true,
+    "requests": [
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/messages/{id}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "POST",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/messages/{id}/trash"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/messages/{id}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/messages/{id}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "POST",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/messages/{id}/untrash"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/messages/{id}"
+     }
+    ],
+    "test": "G7",
+    "undo": {
+     "checks": [
+      {
+       "name": "step 1: move-to-trash@1 succeeded",
+       "passed": true
+      },
+      {
+       "name": "step 1: /threadId equals",
+       "passed": true
+      }
+     ],
+     "jobs": [
+      {
+       "approvals": [
+        {
+         "at": "2026-10-29T18:24:52.346Z",
+         "phase": "final"
+        }
+       ],
+       "errorCode": null,
+       "id": "48a9741e-2483-4ae3-9256-a17a35ba0867",
+       "status": "succeeded"
+      }
+     ],
+     "passed": true,
+     "requests": [
+      {
+       "bodyHmac": null,
+       "identity": null,
+       "method": "GET",
+       "status": 200,
+       "template": "/gmail/v1/users/{userId}/threads/{id}"
+      },
+      {
+       "bodyHmac": null,
+       "identity": null,
+       "method": "POST",
+       "status": 200,
+       "template": "/gmail/v1/users/{userId}/threads/{id}/trash"
+      },
+      {
+       "bodyHmac": null,
+       "identity": null,
+       "method": "GET",
+       "status": 200,
+       "template": "/gmail/v1/users/{userId}/threads/{id}"
+      }
+     ]
+    }
+   },
+   {
+    "checks": [
+     {
+      "name": "step 1: create-draft@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 1: saves draft8",
+      "passed": true
+     },
+     {
+      "name": "step 3: send-draft@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 3: saves sent8",
+      "passed": true
+     },
+     {
+      "name": "step 4: read-email@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 4: /text equals",
+      "passed": true
+     },
+     {
+      "name": "step 5: gone",
+      "passed": true
+     }
+    ],
+    "jobs": [],
+    "passed": true,
+    "requests": [
+     {
+      "bodyHmac": "77e90e2567f7ecd6327bc2428d64f57436ebe83f688f75503683a2dad6def7f7",
+      "identity": "r360647607818092281",
+      "method": "POST",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/drafts"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/drafts/{id}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/drafts/{id}"
+     },
+     {
+      "bodyHmac": "40fee7ba9ebaf14422e9d7ac353813d40acf60cf7535eaccf01bbd58f85128a3",
+      "identity": "1a188e950bb0c856",
+      "method": "POST",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/drafts/send"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/messages/{id}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 404,
+      "template": "/gmail/v1/users/{userId}/drafts/{id}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/messages/{id}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 404,
+      "template": "/gmail/v1/users/{userId}/drafts/{id}"
+     }
+    ],
+    "test": "G8",
+    "undo": {
+     "checks": [
+      {
+       "name": "step 1: move-to-trash@1 succeeded",
+       "passed": true
+      },
+      {
+       "name": "step 1: /messageId equals",
+       "passed": true
+      }
+     ],
+     "jobs": [
+      {
+       "approvals": [
+        {
+         "at": "2026-10-29T18:26:20.508Z",
+         "phase": "final"
+        }
+       ],
+       "errorCode": null,
+       "id": "318a8f20-2ccc-427a-8b62-1447b93e05b5",
+       "status": "succeeded"
+      }
+     ],
+     "passed": true,
+     "requests": [
+      {
+       "bodyHmac": null,
+       "identity": null,
+       "method": "GET",
+       "status": 200,
+       "template": "/gmail/v1/users/{userId}/messages/{id}"
+      },
+      {
+       "bodyHmac": null,
+       "identity": null,
+       "method": "POST",
+       "status": 200,
+       "template": "/gmail/v1/users/{userId}/messages/{id}/trash"
+      },
+      {
+       "bodyHmac": null,
+       "identity": null,
+       "method": "GET",
+       "status": 200,
+       "template": "/gmail/v1/users/{userId}/messages/{id}"
+      }
+     ]
+    }
+   }
+  ],
+  "transforms": {
+   "collections.oneOf@1": "e334ed47a5a88b64baa44b7cf147d86149641db988385d0bed626e89491ad644",
+   "text.joinList@1": "1f75825537a4063657cd6dbd224bce5b4af8e05a651ff3738ea9c2eacf736053"
+  }
+ },
+ "gmail.action.organize-email.v1.3587aa301e430ff83f8a8b6a": {
+  "definitionHash": "d0251025b54349efdf14ac2cbb632275c3b863c040e686278d92f0a0908c4182",
+  "harnessHash": "7486366c59d0f96b08bcc8ea30ec3943954645aa102528f3f6900b15f8fccba2",
+  "passed": true,
+  "ranAt": "2026-10-29T18:27:14.793Z",
+  "runId": "ISRREHKN",
+  "runtime": {
+   "icu": "78.2",
+   "node": "25.8.1",
+   "tz": "2026a",
+   "unicode": "17.0"
+  },
+  "schemaVersion": 1,
+  "tests": [
+   {
+    "checks": [
+     {
+      "name": "step 1: organize-email@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 1: /added/0 equals",
+      "passed": true
+     },
+     {
+      "name": "step 1: /removed count",
+      "passed": true
+     },
+     {
+      "name": "step 2: status",
+      "passed": true
+     }
+    ],
+    "jobs": [
+     {
+      "approvals": [
+       {
+        "at": "2026-10-29T18:24:02.667Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "040bc51d-55f5-4321-b13c-06a4d83b5366",
+      "status": "succeeded"
+     }
+    ],
+    "passed": true,
+    "requests": [
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/labels"
+     },
+     {
+      "bodyHmac": "485fb4014034871be5565a670794bc5e3465e018ed4914852be63f333ebcf7fa",
+      "identity": null,
+      "method": "POST",
+      "status": 204,
+      "template": "/gmail/v1/users/{userId}/messages/batchModify"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/messages/{id}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/messages/{id}"
+     }
+    ],
+    "test": "G6",
+    "undo": {
+     "checks": [
+      {
+       "name": "step 1: organize-email@1 succeeded",
+       "passed": true
+      },
+      {
+       "name": "step 1: /removed/0 equals",
+       "passed": true
+      }
+     ],
+     "jobs": [
+      {
+       "approvals": [
+        {
+         "at": "2026-10-29T18:24:15.817Z",
+         "phase": "final"
+        }
+       ],
+       "errorCode": null,
+       "id": "6711516b-b690-46fd-8577-ba0106c6ee8b",
+       "status": "succeeded"
+      }
+     ],
+     "passed": true,
+     "requests": [
+      {
+       "bodyHmac": null,
+       "identity": null,
+       "method": "GET",
+       "status": 200,
+       "template": "/gmail/v1/users/{userId}/labels"
+      },
+      {
+       "bodyHmac": "3ebd6ed530f3f0a812ca7ba501c5f6703f30efd2b739a5ad99a2c02b35371a4b",
+       "identity": null,
+       "method": "POST",
+       "status": 204,
+       "template": "/gmail/v1/users/{userId}/messages/batchModify"
+      },
+      {
+       "bodyHmac": null,
+       "identity": null,
+       "method": "GET",
+       "status": 200,
+       "template": "/gmail/v1/users/{userId}/messages/{id}"
+      }
+     ]
+    }
+   }
+  ],
+  "transforms": {
+   "collections.labelIds@1": "24c366154e1ccc88278b91e08ba5e3fef8535adc040267686ffd3c92844e4962",
+   "collections.oneOf@1": "e334ed47a5a88b64baa44b7cf147d86149641db988385d0bed626e89491ad644",
+   "text.joinList@1": "1f75825537a4063657cd6dbd224bce5b4af8e05a651ff3738ea9c2eacf736053"
+  }
+ },
+ "gmail.action.read-conversation.v1.9e1ef3473eaf76c0b1e77ef5": {
+  "definitionHash": "3c90f38c3643bcc1b2cb78d59266405909318b157456b32630c3a21d6230e655",
+  "harnessHash": "7486366c59d0f96b08bcc8ea30ec3943954645aa102528f3f6900b15f8fccba2",
+  "passed": true,
+  "ranAt": "2026-10-29T18:27:14.793Z",
+  "runId": "ISRREHKN",
+  "runtime": {
+   "icu": "78.2",
+   "node": "25.8.1",
+   "tz": "2026a",
+   "unicode": "17.0"
+  },
+  "schemaVersion": 1,
+  "tests": [
+   {
+    "checks": [
+     {
+      "name": "step 1: find-emails@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 1: /messages present",
+      "passed": true
+     },
+     {
+      "name": "step 2: read-email@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 2: /id equals",
+      "passed": true
+     },
+     {
+      "name": "step 2: /subject equals",
+      "passed": true
+     },
+     {
+      "name": "step 3: read-conversation@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 3: /id equals",
+      "passed": true
+     },
+     {
+      "name": "step 3: /messages/0/subject equals",
+      "passed": true
+     }
+    ],
+    "jobs": [
+     {
+      "approvals": [
+       {
+        "at": "2026-10-29T18:22:34.029Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "5de2bc1b-3379-40ce-ae98-ab10cc2fa4e2",
+      "status": "succeeded"
+     }
+    ],
+    "passed": true,
+    "requests": [
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/messages"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/messages/{id}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/messages/{id}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/messages/{id}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/messages/{id}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/threads/{id}"
+     }
+    ],
+    "test": "G0",
+    "undo": {
+     "none": "The test changes nothing."
+    }
+   }
+  ],
+  "transforms": {
+   "rfc5322.decodeGmailPayload@1": "6f3fe116e1e9123c67dc663784bb32382e13c65f5d7a3bd6796a84f6bed5f8f9",
+   "text.truncate@1": "5cc13c14d60ef8c526e4d907e86559cf6d451b0d22012cd38dae19875ae625e6"
+  }
+ },
+ "gmail.action.read-email.v1.9c2b3b302531287513ee5345": {
+  "definitionHash": "58c042a950d36064d3c37a9b8863b332534ef777f6194f20279dbb37c2285d85",
+  "harnessHash": "7486366c59d0f96b08bcc8ea30ec3943954645aa102528f3f6900b15f8fccba2",
+  "passed": true,
+  "ranAt": "2026-10-29T18:27:14.793Z",
+  "runId": "ISRREHKN",
+  "runtime": {
+   "icu": "78.2",
+   "node": "25.8.1",
+   "tz": "2026a",
+   "unicode": "17.0"
+  },
+  "schemaVersion": 1,
+  "tests": [
+   {
+    "checks": [
+     {
+      "name": "step 1: find-emails@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 1: /messages present",
+      "passed": true
+     },
+     {
+      "name": "step 2: read-email@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 2: /id equals",
+      "passed": true
+     },
+     {
+      "name": "step 2: /subject equals",
+      "passed": true
+     },
+     {
+      "name": "step 3: read-conversation@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 3: /id equals",
+      "passed": true
+     },
+     {
+      "name": "step 3: /messages/0/subject equals",
+      "passed": true
+     }
+    ],
+    "jobs": [
+     {
+      "approvals": [
+       {
+        "at": "2026-10-29T18:22:23.456Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "c4c6a0d3-2f2f-4ea1-bd1c-bf7f337d67d9",
+      "status": "succeeded"
+     }
+    ],
+    "passed": true,
+    "requests": [
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/messages"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/messages/{id}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/messages/{id}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/messages/{id}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/messages/{id}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/threads/{id}"
+     }
+    ],
+    "test": "G0",
+    "undo": {
+     "none": "The test changes nothing."
+    }
+   },
+   {
+    "checks": [
+     {
+      "name": "step 1: create-draft@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 1: saves draft8",
+      "passed": true
+     },
+     {
+      "name": "step 3: send-draft@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 3: saves sent8",
+      "passed": true
+     },
+     {
+      "name": "step 4: read-email@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 4: /text equals",
+      "passed": true
+     },
+     {
+      "name": "step 5: gone",
+      "passed": true
+     }
+    ],
+    "jobs": [
+     {
+      "approvals": [
+       {
+        "at": "2026-10-29T18:26:07.990Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "3296d9e5-e2c1-4aa2-9cd5-1c48daa25ed5",
+      "status": "succeeded"
+     }
+    ],
+    "passed": true,
+    "requests": [
+     {
+      "bodyHmac": "77e90e2567f7ecd6327bc2428d64f57436ebe83f688f75503683a2dad6def7f7",
+      "identity": "r360647607818092281",
+      "method": "POST",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/drafts"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/drafts/{id}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/drafts/{id}"
+     },
+     {
+      "bodyHmac": "40fee7ba9ebaf14422e9d7ac353813d40acf60cf7535eaccf01bbd58f85128a3",
+      "identity": "1a188e950bb0c856",
+      "method": "POST",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/drafts/send"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/messages/{id}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 404,
+      "template": "/gmail/v1/users/{userId}/drafts/{id}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/messages/{id}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 404,
+      "template": "/gmail/v1/users/{userId}/drafts/{id}"
+     }
+    ],
+    "test": "G8",
+    "undo": {
+     "checks": [
+      {
+       "name": "step 1: move-to-trash@1 succeeded",
+       "passed": true
+      },
+      {
+       "name": "step 1: /messageId equals",
+       "passed": true
+      }
+     ],
+     "jobs": [
+      {
+       "approvals": [
+        {
+         "at": "2026-10-29T18:26:20.508Z",
+         "phase": "final"
+        }
+       ],
+       "errorCode": null,
+       "id": "318a8f20-2ccc-427a-8b62-1447b93e05b5",
+       "status": "succeeded"
+      }
+     ],
+     "passed": true,
+     "requests": [
+      {
+       "bodyHmac": null,
+       "identity": null,
+       "method": "GET",
+       "status": 200,
+       "template": "/gmail/v1/users/{userId}/messages/{id}"
+      },
+      {
+       "bodyHmac": null,
+       "identity": null,
+       "method": "POST",
+       "status": 200,
+       "template": "/gmail/v1/users/{userId}/messages/{id}/trash"
+      },
+      {
+       "bodyHmac": null,
+       "identity": null,
+       "method": "GET",
+       "status": 200,
+       "template": "/gmail/v1/users/{userId}/messages/{id}"
+      }
+     ]
+    }
+   }
+  ],
+  "transforms": {
+   "collections.diff@1": "41177c0c1eadf6fa855852f8d378cfe49cf1dc4b6236bf880b2fc11f5d0b5a3d",
+   "html.toText@1": "9c1f3bfe1e4d1f15a74c95908d8f63f721314b6bc4e950f08684032456ccd0b7",
+   "rfc5322.decodeGmailPayload@1": "6f3fe116e1e9123c67dc663784bb32382e13c65f5d7a3bd6796a84f6bed5f8f9",
+   "text.joinList@1": "1f75825537a4063657cd6dbd224bce5b4af8e05a651ff3738ea9c2eacf736053",
+   "text.truncate@1": "5cc13c14d60ef8c526e4d907e86559cf6d451b0d22012cd38dae19875ae625e6"
+  }
+ },
+ "gmail.action.reply.v1.1032d845b2b376926425b801": {
+  "definitionHash": "5df3f0d37f91a41bab3e8b2b199afc0fc119d74384390cf2b43e1e13703fceb6",
+  "harnessHash": "7486366c59d0f96b08bcc8ea30ec3943954645aa102528f3f6900b15f8fccba2",
+  "passed": true,
+  "ranAt": "2026-10-29T18:27:14.793Z",
+  "runId": "ISRREHKN",
+  "runtime": {
+   "icu": "78.2",
+   "node": "25.8.1",
+   "tz": "2026a",
+   "unicode": "17.0"
+  },
+  "schemaVersion": 1,
+  "tests": [
+   {
+    "checks": [
+     {
+      "name": "step 1: reply@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 1: saves m4",
+      "passed": true
+     },
+     {
+      "name": "step 1: /threadId equals",
+      "passed": true
+     }
+    ],
+    "jobs": [
+     {
+      "approvals": [
+       {
+        "at": "2026-10-29T18:23:37.850Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "32704cde-0425-4624-912e-e6b29b75a031",
+      "status": "succeeded"
+     }
+    ],
+    "passed": true,
+    "requests": [
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/messages/{id}"
+     },
+     {
+      "bodyHmac": "ff195f2c52befedb2bcc8202ac3297d7a8becd0b10beff517f9e43edcea375d9",
+      "identity": "1a188e73c80915b0",
+      "method": "POST",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/messages/send"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/messages/{id}"
+     }
+    ],
+    "test": "G4",
+    "undo": {
+     "test": "G7"
+    }
+   }
+  ],
+  "transforms": {
+   "rfc5322.build@1": "c891bf74a412bf2efe4be93d1954851d866f3cf59d718ca2e4c66f4e0228339e",
+   "rfc5322.decodeGmailPayload@1": "6f3fe116e1e9123c67dc663784bb32382e13c65f5d7a3bd6796a84f6bed5f8f9",
+   "rfc5322.replyHeaders@1": "54b97d16a9504c87fd9083cb56e941c981e4d6707088bbdd9f49e8ba32862f70",
+   "text.joinList@1": "1f75825537a4063657cd6dbd224bce5b4af8e05a651ff3738ea9c2eacf736053"
+  }
+ },
+ "gmail.action.send-draft.v1.48eff5b85986e81aa6951082": {
+  "definitionHash": "fc88133a1190d86eb529875e2734083543b4fbbc53d713917e2bcb9f9a4382d3",
+  "harnessHash": "7486366c59d0f96b08bcc8ea30ec3943954645aa102528f3f6900b15f8fccba2",
+  "passed": true,
+  "ranAt": "2026-10-29T18:27:14.793Z",
+  "runId": "ISRREHKN",
+  "runtime": {
+   "icu": "78.2",
+   "node": "25.8.1",
+   "tz": "2026a",
+   "unicode": "17.0"
+  },
+  "schemaVersion": 1,
+  "tests": [
+   {
+    "checks": [
+     {
+      "name": "step 1: create-draft@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 1: saves draft8",
+      "passed": true
+     },
+     {
+      "name": "step 3: send-draft@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 3: saves sent8",
+      "passed": true
+     },
+     {
+      "name": "step 4: read-email@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 4: /text equals",
+      "passed": true
+     },
+     {
+      "name": "step 5: gone",
+      "passed": true
+     }
+    ],
+    "jobs": [
+     {
+      "approvals": [
+       {
+        "at": "2026-10-29T18:25:54.054Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "f79e5a8b-6040-4f8b-a6c0-05beba219163",
+      "status": "succeeded"
+     }
+    ],
+    "passed": true,
+    "requests": [
+     {
+      "bodyHmac": "77e90e2567f7ecd6327bc2428d64f57436ebe83f688f75503683a2dad6def7f7",
+      "identity": "r360647607818092281",
+      "method": "POST",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/drafts"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/drafts/{id}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/drafts/{id}"
+     },
+     {
+      "bodyHmac": "40fee7ba9ebaf14422e9d7ac353813d40acf60cf7535eaccf01bbd58f85128a3",
+      "identity": "1a188e950bb0c856",
+      "method": "POST",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/drafts/send"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/messages/{id}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 404,
+      "template": "/gmail/v1/users/{userId}/drafts/{id}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/messages/{id}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 404,
+      "template": "/gmail/v1/users/{userId}/drafts/{id}"
+     }
+    ],
+    "test": "G8",
+    "undo": {
+     "checks": [
+      {
+       "name": "step 1: move-to-trash@1 succeeded",
+       "passed": true
+      },
+      {
+       "name": "step 1: /messageId equals",
+       "passed": true
+      }
+     ],
+     "jobs": [
+      {
+       "approvals": [
+        {
+         "at": "2026-10-29T18:26:20.508Z",
+         "phase": "final"
+        }
+       ],
+       "errorCode": null,
+       "id": "318a8f20-2ccc-427a-8b62-1447b93e05b5",
+       "status": "succeeded"
+      }
+     ],
+     "passed": true,
+     "requests": [
+      {
+       "bodyHmac": null,
+       "identity": null,
+       "method": "GET",
+       "status": 200,
+       "template": "/gmail/v1/users/{userId}/messages/{id}"
+      },
+      {
+       "bodyHmac": null,
+       "identity": null,
+       "method": "POST",
+       "status": 200,
+       "template": "/gmail/v1/users/{userId}/messages/{id}/trash"
+      },
+      {
+       "bodyHmac": null,
+       "identity": null,
+       "method": "GET",
+       "status": 200,
+       "template": "/gmail/v1/users/{userId}/messages/{id}"
+      }
+     ]
+    }
+   }
+  ],
+  "transforms": {
+   "collections.oneOf@1": "e334ed47a5a88b64baa44b7cf147d86149641db988385d0bed626e89491ad644",
+   "encoding.base64urlDecode@1": "34eb5a18539852ddf760e210fa0dae20f752728061671b8ef4d044d8294f45d1",
+   "rfc5322.decodeRaw@1": "9cdd4354c03e55b53e4af2ed6337d3ed616ea2db3a7a41df9d8613b5eac38a69",
+   "text.joinList@1": "1f75825537a4063657cd6dbd224bce5b4af8e05a651ff3738ea9c2eacf736053",
+   "text.truncate@1": "5cc13c14d60ef8c526e4d907e86559cf6d451b0d22012cd38dae19875ae625e6"
+  }
+ },
+ "gmail.action.send-email.v1.5639ebadb0d9e2f1ce1d9ad2": {
+  "definitionHash": "6b425aede14d6a8ff6fdbda54d822d3513d375027184cec8336aea9938a2cbcb",
+  "harnessHash": "7486366c59d0f96b08bcc8ea30ec3943954645aa102528f3f6900b15f8fccba2",
+  "passed": true,
+  "ranAt": "2026-10-29T18:27:14.793Z",
+  "runId": "ISRREHKN",
+  "runtime": {
+   "icu": "78.2",
+   "node": "25.8.1",
+   "tz": "2026a",
+   "unicode": "17.0"
+  },
+  "schemaVersion": 1,
+  "tests": [
+   {
+    "checks": [
+     {
+      "name": "step 1: send-email@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 1: saves m3",
+      "passed": true
+     },
+     {
+      "name": "step 1: saves t3",
+      "passed": true
+     },
+     {
+      "name": "step 2: status",
+      "passed": true
+     },
+     {
+      "name": "step 2: /id equals",
+      "passed": true
+     }
+    ],
+    "jobs": [
+     {
+      "approvals": [
+       {
+        "at": "2026-10-29T18:23:26.365Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "f29e655c-8930-47d1-ad0d-6037f617162c",
+      "status": "succeeded"
+     }
+    ],
+    "passed": true,
+    "requests": [
+     {
+      "bodyHmac": "1b9d2dd9dd0ae88bbe8c91878f052e39980eee8f3ff0820dfa2fd843a07c41ad",
+      "identity": "1a188e710014b869",
+      "method": "POST",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/messages/send"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/messages/{id}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/messages/{id}"
+     }
+    ],
+    "test": "G3",
+    "undo": {
+     "test": "G7"
+    }
+   }
+  ],
+  "transforms": {
+   "rfc5322.build@1": "c891bf74a412bf2efe4be93d1954851d866f3cf59d718ca2e4c66f4e0228339e",
+   "text.joinList@1": "1f75825537a4063657cd6dbd224bce5b4af8e05a651ff3738ea9c2eacf736053"
+  }
+ },
+ "gmail.action.set-out-of-office.v1.d139f63b468d9e1ce04b2ac0": {
+  "definitionHash": "745411d237f6c25fe0976d64a6e69f329a3870bd5326960d7af3781ea7b9dc51",
+  "harnessHash": "7486366c59d0f96b08bcc8ea30ec3943954645aa102528f3f6900b15f8fccba2",
+  "passed": true,
+  "ranAt": "2026-10-29T18:27:14.793Z",
+  "runId": "ISRREHKN",
+  "runtime": {
+   "icu": "78.2",
+   "node": "25.8.1",
+   "tz": "2026a",
+   "unicode": "17.0"
+  },
+  "schemaVersion": 1,
+  "tests": [
+   {
+    "checks": [
+     {
+      "name": "step 1: what Muse did reads back",
+      "passed": true
+     },
+     {
+      "name": "step 2: set-out-of-office@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 2: /enabled equals",
+      "passed": true
+     },
+     {
+      "name": "step 2: /contactsOnly equals",
+      "passed": true
+     },
+     {
+      "name": "step 3: /enableAutoReply equals",
+      "passed": true
+     },
+     {
+      "name": "step 3: /restrictToContacts equals",
+      "passed": true
+     },
+     {
+      "name": "step 3: /responseSubject equals",
+      "passed": true
+     }
+    ],
+    "jobs": [
+     {
+      "approvals": [
+       {
+        "at": "2026-10-29T18:26:44.110Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "ae6048c3-86c8-45a9-8822-43450bfb1756",
+      "status": "succeeded"
+     }
+    ],
+    "passed": true,
+    "requests": [
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/settings/vacation"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/settings/vacation"
+     },
+     {
+      "bodyHmac": "9a34a2b0cd3774bec80df6e3efbeccd4ec07ed9dce7be95b9cb73611fc8d9904",
+      "identity": null,
+      "method": "PUT",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/settings/vacation"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/settings/vacation"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/gmail/v1/users/{userId}/settings/vacation"
+     }
+    ],
+    "test": "G9",
+    "undo": {
+     "checks": [
+      {
+       "name": "step 1: set-out-of-office@1 succeeded",
+       "passed": true
+      },
+      {
+       "name": "step 1: /enabled equals",
+       "passed": true
+      },
+      {
+       "name": "step 2: /enableAutoReply equals",
+       "passed": true
+      }
+     ],
+     "jobs": [
+      {
+       "approvals": [
+        {
+         "at": "2026-10-29T18:26:59.772Z",
+         "phase": "final"
+        }
+       ],
+       "errorCode": null,
+       "id": "280a77f0-f69d-4296-beac-4d2d5cc6b194",
+       "status": "succeeded"
+      }
+     ],
+     "passed": true,
+     "requests": [
+      {
+       "bodyHmac": null,
+       "identity": null,
+       "method": "GET",
+       "status": 200,
+       "template": "/gmail/v1/users/{userId}/settings/vacation"
+      },
+      {
+       "bodyHmac": "9ad06140ae415fcb24859f8078c39532598c37c3e7bf8f8ee8eef2d1067a29a1",
+       "identity": null,
+       "method": "PUT",
+       "status": 200,
+       "template": "/gmail/v1/users/{userId}/settings/vacation"
+      },
+      {
+       "bodyHmac": null,
+       "identity": null,
+       "method": "GET",
+       "status": 200,
+       "template": "/gmail/v1/users/{userId}/settings/vacation"
+      },
+      {
+       "bodyHmac": null,
+       "identity": null,
+       "method": "GET",
+       "status": 200,
+       "template": "/gmail/v1/users/{userId}/settings/vacation"
+      }
+     ]
+    }
+   }
+  ],
+  "transforms": {
+   "collections.oneOf@1": "e334ed47a5a88b64baa44b7cf147d86149641db988385d0bed626e89491ad644",
+   "text.joinList@1": "1f75825537a4063657cd6dbd224bce5b4af8e05a651ff3738ea9c2eacf736053",
+   "time.epochMillisStringToRfc3339@1": "208fc5d369654a8b086393d9d2bfb416d19b30dc4957ab4957c86dc1d6a10d0f",
+   "time.rfc3339ToEpochMillisString@1": "147eb0fd1977421116e1545a5a14122186711169950d5358eec4f24637da2218",
+   "time.window@1": "82d7a00a21c9653b84e4e61f93f7ad497a371c751167b789efe81c6c0bf76ef0"
+  }
+ },
+ "run": {
+  "appId": "gmail",
+  "finishedAt": "2026-10-29T18:27:14.793Z",
+  "harnessHash": "7486366c59d0f96b08bcc8ea30ec3943954645aa102528f3f6900b15f8fccba2",
+  "rows": [],
+  "runId": "ISRREHKN",
+  "runtime": {
+   "icu": "78.2",
+   "node": "25.8.1",
+   "tz": "2026a",
+   "unicode": "17.0"
+  },
+  "startedAt": "2026-10-29T18:21:54.365Z",
+  "tests": []
+ }
+}

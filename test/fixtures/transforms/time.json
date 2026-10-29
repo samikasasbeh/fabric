@@ -1,0 +1,647 @@
+{
+ "source": "RFC 3339, the tz database (2026a) and the Google Calendar API; refusals of malformed values are Fabric adversarial",
+ "cases": [
+  {
+   "name": "an offset time gives its epoch seconds",
+   "source": "RFC 3339 section 5.6",
+   "transform": "time.rfc3339ToEpochSeconds@1",
+   "input": {
+    "time": "2026-10-20T10:00:00-04:00"
+   },
+   "output": {
+    "seconds": 1792504800
+   }
+  },
+  {
+   "name": "the same instant in UTC gives the same seconds",
+   "source": "RFC 3339 section 5.6",
+   "transform": "time.rfc3339ToEpochSeconds@1",
+   "input": {
+    "time": "2026-10-20T14:00:00Z"
+   },
+   "output": {
+    "seconds": 1792504800
+   }
+  },
+  {
+   "name": "refuses February 30",
+   "source": "Fabric adversarial",
+   "transform": "time.rfc3339ToEpochSeconds@1",
+   "input": {
+    "time": "2026-02-30T00:00:00Z"
+   },
+   "refuses": "time_invalid"
+  },
+  {
+   "name": "refuses month 13",
+   "source": "Fabric adversarial",
+   "transform": "time.rfc3339ToEpochSeconds@1",
+   "input": {
+    "time": "2026-13-01T00:00:00Z"
+   },
+   "refuses": "time_invalid"
+  },
+  {
+   "name": "refuses second 60",
+   "source": "Fabric adversarial",
+   "transform": "time.rfc3339ToEpochSeconds@1",
+   "input": {
+    "time": "2026-10-20T10:00:60Z"
+   },
+   "refuses": "time_invalid"
+  },
+  {
+   "name": "refuses hour 24, which Date.parse reads as the next midnight",
+   "source": "Fabric adversarial",
+   "transform": "time.rfc3339ToEpochSeconds@1",
+   "input": {
+    "time": "2026-10-20T24:00:00Z"
+   },
+   "refuses": "time_invalid"
+  },
+  {
+   "name": "refuses minute 60",
+   "source": "Fabric adversarial",
+   "transform": "time.rfc3339ToEpochSeconds@1",
+   "input": {
+    "time": "2026-10-20T10:60:00Z"
+   },
+   "refuses": "time_invalid"
+  },
+  {
+   "name": "refuses a missing offset, which Date reads as local time",
+   "source": "Fabric adversarial",
+   "transform": "time.rfc3339ToEpochSeconds@1",
+   "input": {
+    "time": "2026-10-20T10:00:00"
+   },
+   "refuses": "time_invalid"
+  },
+  {
+   "name": "refuses an offset of +24:00",
+   "source": "Fabric adversarial",
+   "transform": "time.rfc3339ToEpochSeconds@1",
+   "input": {
+    "time": "2026-10-20T10:00:00+24:00"
+   },
+   "refuses": "time_invalid"
+  },
+  {
+   "name": "an offset time gives its epoch milliseconds as a decimal string",
+   "source": "Gmail API, users.settings.updateVacation (startTime and endTime are epoch milliseconds)",
+   "transform": "time.rfc3339ToEpochMillisString@1",
+   "input": {
+    "time": "2026-10-20T10:00:00.123-04:00"
+   },
+   "output": {
+    "millis": "1792504800123"
+   }
+  },
+  {
+   "name": "all-day end of a one-day event",
+   "source": "Google Calendar API, events: an all-day end date is exclusive",
+   "transform": "time.allDayEnd@1",
+   "input": {
+    "date": "2026-10-20",
+    "days": 1
+   },
+   "output": {
+    "end": "2026-10-21"
+   }
+  },
+  {
+   "name": "all-day end of the last day of a year",
+   "source": "Google Calendar API, events: an all-day end date is exclusive",
+   "transform": "time.allDayEnd@1",
+   "input": {
+    "date": "2026-12-31",
+    "days": 1
+   },
+   "output": {
+    "end": "2027-01-01"
+   }
+  },
+  {
+   "name": "all-day end of the day before a leap day",
+   "source": "Google Calendar API, events: an all-day end date is exclusive",
+   "transform": "time.allDayEnd@1",
+   "input": {
+    "date": "2028-02-28",
+    "days": 1
+   },
+   "output": {
+    "end": "2028-02-29"
+   }
+  },
+  {
+   "name": "all-day end of a 3-day event",
+   "source": "Google Calendar API, events: an all-day end date is exclusive",
+   "transform": "time.allDayEnd@1",
+   "input": {
+    "date": "2026-10-01",
+    "days": 3
+   },
+   "output": {
+    "end": "2026-10-04"
+   }
+  },
+  {
+   "name": "all-day end refuses February 30",
+   "source": "Fabric adversarial",
+   "transform": "time.allDayEnd@1",
+   "input": {
+    "date": "2026-02-30",
+    "days": 1
+   },
+   "refuses": "time_invalid"
+  },
+  {
+   "name": "zone America/Toronto comes back exactly as given",
+   "source": "IANA tz database names",
+   "transform": "time.zone@1",
+   "input": {
+    "zone": "America/Toronto"
+   },
+   "output": {
+    "zone": "America/Toronto"
+   }
+  },
+  {
+   "name": "zone US/Eastern comes back exactly as given",
+   "source": "IANA tz database names",
+   "transform": "time.zone@1",
+   "input": {
+    "zone": "US/Eastern"
+   },
+   "output": {
+    "zone": "US/Eastern"
+   }
+  },
+  {
+   "name": "zone Europe/Kyiv comes back exactly as given",
+   "source": "IANA tz database names",
+   "transform": "time.zone@1",
+   "input": {
+    "zone": "Europe/Kyiv"
+   },
+   "output": {
+    "zone": "Europe/Kyiv"
+   }
+  },
+  {
+   "name": "zone UTC comes back exactly as given",
+   "source": "IANA tz database names",
+   "transform": "time.zone@1",
+   "input": {
+    "zone": "UTC"
+   },
+   "output": {
+    "zone": "UTC"
+   }
+  },
+  {
+   "name": "zone +05:30 refuses",
+   "source": "Fabric adversarial",
+   "transform": "time.zone@1",
+   "input": {
+    "zone": "+05:30"
+   },
+   "refuses": "zone_invalid"
+  },
+  {
+   "name": "zone Not/AZone refuses",
+   "source": "Fabric adversarial",
+   "transform": "time.zone@1",
+   "input": {
+    "zone": "Not/AZone"
+   },
+   "refuses": "zone_invalid"
+  },
+  {
+   "name": "zone america/toronto refuses",
+   "source": "Fabric adversarial",
+   "transform": "time.zone@1",
+   "input": {
+    "zone": "america/toronto"
+   },
+   "refuses": "zone_invalid"
+  },
+  {
+   "name": "Toronto 01:59 before the spring change is -05:00",
+   "source": "tz database 2026a, America/Toronto",
+   "transform": "time.zonedToRfc3339@1",
+   "input": {
+    "local": "2026-03-08T01:59:00",
+    "zone": "America/Toronto"
+   },
+   "output": {
+    "time": "2026-03-08T01:59:00-05:00"
+   }
+  },
+  {
+   "name": "Toronto 02:30 in the spring gap refuses",
+   "source": "tz database 2026a, America/Toronto",
+   "transform": "time.zonedToRfc3339@1",
+   "input": {
+    "local": "2026-03-08T02:30:00",
+    "zone": "America/Toronto"
+   },
+   "refuses": "time_nonexistent"
+  },
+  {
+   "name": "Toronto 03:00 after the spring change is -04:00",
+   "source": "tz database 2026a, America/Toronto",
+   "transform": "time.zonedToRfc3339@1",
+   "input": {
+    "local": "2026-03-08T03:00:00",
+    "zone": "America/Toronto"
+   },
+   "output": {
+    "time": "2026-03-08T03:00:00-04:00"
+   }
+  },
+  {
+   "name": "Toronto 01:30 in the autumn fold refuses without an offset",
+   "source": "tz database 2026a, America/Toronto",
+   "transform": "time.zonedToRfc3339@1",
+   "input": {
+    "local": "2026-11-01T01:30:00",
+    "zone": "America/Toronto"
+   },
+   "refuses": "time_ambiguous"
+  },
+  {
+   "name": "Toronto 01:30 in the fold with -04:00 is the first one",
+   "source": "tz database 2026a, America/Toronto",
+   "transform": "time.zonedToRfc3339@1",
+   "input": {
+    "local": "2026-11-01T01:30:00",
+    "zone": "America/Toronto",
+    "offset": "-04:00"
+   },
+   "output": {
+    "time": "2026-11-01T01:30:00-04:00"
+   }
+  },
+  {
+   "name": "Toronto 01:30 in the fold with -05:00 is the second one",
+   "source": "tz database 2026a, America/Toronto",
+   "transform": "time.zonedToRfc3339@1",
+   "input": {
+    "local": "2026-11-01T01:30:00",
+    "zone": "America/Toronto",
+    "offset": "-05:00"
+   },
+   "output": {
+    "time": "2026-11-01T01:30:00-05:00"
+   }
+  },
+  {
+   "name": "free slots merge overlapping and touching busy blocks of two calendars, in UTC",
+   "source": "Google Calendar API, freebusy.query response",
+   "transform": "time.freeSlots@1",
+   "input": {
+    "freeBusy": {
+     "kind": "calendar#freeBusy",
+     "timeMin": "2026-10-20T13:00:00.000Z",
+     "timeMax": "2026-10-20T21:00:00.000Z",
+     "calendars": {
+      "primary": {
+       "busy": [
+        {
+         "start": "2026-10-20T14:00:00Z",
+         "end": "2026-10-20T15:00:00Z"
+        },
+        {
+         "start": "2026-10-20T15:00:00Z",
+         "end": "2026-10-20T15:30:00Z"
+        }
+       ]
+      },
+      "team@example.com": {
+       "busy": [
+        {
+         "start": "2026-10-20T14:30:00Z",
+         "end": "2026-10-20T16:00:00Z"
+        },
+        {
+         "start": "2026-10-20T18:00:00Z",
+         "end": "2026-10-20T18:20:00Z"
+        },
+        {
+         "start": "2026-10-20T20:40:00Z",
+         "end": "2026-10-20T20:50:00Z"
+        }
+       ]
+      }
+     }
+    },
+    "start": "2026-10-20T09:00:00-04:00",
+    "end": "2026-10-20T21:00:00Z",
+    "minMinutes": 30
+   },
+   "output": {
+    "free": [
+     {
+      "start": "2026-10-20T13:00:00Z",
+      "end": "2026-10-20T14:00:00Z"
+     },
+     {
+      "start": "2026-10-20T16:00:00Z",
+      "end": "2026-10-20T18:00:00Z"
+     },
+     {
+      "start": "2026-10-20T18:20:00Z",
+      "end": "2026-10-20T20:40:00Z"
+     }
+    ]
+   }
+  },
+  {
+   "name": "a calendar that answers with errors is never free",
+   "source": "Google Calendar API, freebusy.query response (calendars.errors)",
+   "transform": "time.freeSlots@1",
+   "input": {
+    "freeBusy": {
+     "kind": "calendar#freeBusy",
+     "timeMin": "2026-10-20T13:00:00.000Z",
+     "timeMax": "2026-10-20T21:00:00.000Z",
+     "calendars": {
+      "primary": {
+       "busy": []
+      },
+      "other@example.com": {
+       "errors": [
+        {
+         "domain": "global",
+         "reason": "notFound"
+        }
+       ],
+       "busy": []
+      }
+     }
+    },
+    "start": "2026-10-20T13:00:00Z",
+    "end": "2026-10-20T21:00:00Z",
+    "minMinutes": 30
+   },
+   "refuses": "busy_unknown"
+  },
+  {
+   "name": "refuses an offset minute of 60",
+   "source": "Fabric adversarial",
+   "transform": "time.rfc3339ToEpochSeconds@1",
+   "input": {
+    "time": "2026-10-20T10:00:00+05:60"
+   },
+   "refuses": "time_invalid"
+  },
+  {
+   "name": "refuses hour 25",
+   "source": "Fabric adversarial",
+   "transform": "time.rfc3339ToEpochSeconds@1",
+   "input": {
+    "time": "2026-10-20T25:00:00Z"
+   },
+   "refuses": "time_invalid"
+  },
+  {
+   "name": "a fraction floors to the second",
+   "source": "RFC 3339 section 5.6",
+   "transform": "time.rfc3339ToEpochSeconds@1",
+   "input": {
+    "time": "2026-10-20T14:00:00.999Z"
+   },
+   "output": {
+    "seconds": 1792504800
+   }
+  },
+  {
+   "name": "epoch milliseconds come back as RFC 3339 in UTC",
+   "source": "Gmail API, users.settings.getVacation (startTime and endTime are epoch milliseconds)",
+   "transform": "time.epochMillisStringToRfc3339@1",
+   "input": {
+    "millis": "1792504800123"
+   },
+   "output": {
+    "time": "2026-10-20T14:00:00.123Z"
+   }
+  },
+  {
+   "name": "epoch milliseconds with a leading zero refuse",
+   "source": "Fabric adversarial",
+   "transform": "time.epochMillisStringToRfc3339@1",
+   "input": {
+    "millis": "01792504800123"
+   },
+   "refuses": "time_invalid"
+  },
+  {
+   "name": "zone America/TORONTO refuses as a case variant",
+   "source": "Fabric adversarial",
+   "transform": "time.zone@1",
+   "input": {
+    "zone": "America/TORONTO"
+   },
+   "refuses": "zone_invalid"
+  },
+  {
+   "name": "Toronto local hour 24 refuses",
+   "source": "Fabric adversarial",
+   "transform": "time.zonedToRfc3339@1",
+   "input": {
+    "local": "2026-10-20T24:00:00",
+    "zone": "America/Toronto"
+   },
+   "refuses": "time_invalid"
+  },
+  {
+   "name": "Toronto local minute 60 refuses",
+   "source": "Fabric adversarial",
+   "transform": "time.zonedToRfc3339@1",
+   "input": {
+    "local": "2026-10-20T10:60:00",
+    "zone": "America/Toronto"
+   },
+   "refuses": "time_invalid"
+  },
+  {
+   "name": "Slack ts parses into microseconds, one on for the cursor, and RFC 3339 with microseconds",
+   "source": "Slack API, message timestamps (ts)",
+   "transform": "time.slackTs@1",
+   "input": {
+    "ts": "1355517523.000005"
+   },
+   "output": {
+    "ts": "1355517523.000005",
+    "next": "1355517523.000006",
+    "time": "2012-12-14T20:38:43.000005Z"
+   }
+  },
+  {
+   "name": "Slack ts compares as BigInt, not as a string",
+   "source": "Fabric adversarial",
+   "transform": "time.slackTs@1",
+   "input": {
+    "ts": "999999999.999999",
+    "than": "1000000000.000000"
+   },
+   "expect": {
+    "/order": -1
+   }
+  },
+  {
+   "name": "Slack ts as a JSON number refuses",
+   "source": "Fabric adversarial",
+   "transform": "time.slackTs@1",
+   "input": {
+    "ts": 1355517523.000005
+   },
+   "refuses": "ts_invalid"
+  },
+  {
+   "name": "Slack ts with a seventh fraction digit refuses",
+   "source": "Fabric adversarial",
+   "transform": "time.slackTs@1",
+   "input": {
+    "ts": "1355517523.0000051"
+   },
+   "refuses": "ts_invalid"
+  },
+  {
+   "name": "decimal compare of Gmail historyIds",
+   "source": "Gmail API, users.history.list (historyId is an unsigned 64-bit integer written as a string)",
+   "transform": "time.decimalCompare@1",
+   "input": {
+    "a": "9",
+    "b": "10"
+   },
+   "output": {
+    "order": -1
+   }
+  },
+  {
+   "name": "window: an instant within 120 days of now passes",
+   "source": "Slack API, chat.scheduleMessage (at most 120 days ahead)",
+   "transform": "time.window@1",
+   "input": {
+    "instant": "2026-10-21T14:00:00Z",
+    "maxDays": 120,
+    "now": 1792504800000
+   },
+   "output": {}
+  },
+  {
+   "name": "window: exactly 120 days ahead passes",
+   "source": "Slack API, chat.scheduleMessage (at most 120 days ahead)",
+   "transform": "time.window@1",
+   "input": {
+    "instant": "2027-02-17T14:00:00Z",
+    "maxDays": 120,
+    "now": 1792504800000
+   },
+   "output": {}
+  },
+  {
+   "name": "window: one second past 120 days refuses",
+   "source": "Fabric adversarial",
+   "transform": "time.window@1",
+   "input": {
+    "instant": "2027-02-17T14:00:01Z",
+    "maxDays": 120,
+    "now": 1792504800000
+   },
+   "refuses": "window_too_far"
+  },
+  {
+   "name": "window: an instant before now refuses",
+   "source": "Fabric adversarial",
+   "transform": "time.window@1",
+   "input": {
+    "instant": "2026-10-20T13:59:59Z",
+    "maxDays": 120,
+    "now": 1792504800000
+   },
+   "refuses": "window_past"
+  },
+  {
+   "name": "window: a vacation that starts after it ends refuses",
+   "source": "Gmail API, users.settings.updateVacation",
+   "transform": "time.window@1",
+   "input": {
+    "start": "2026-12-31T00:00:00Z",
+    "end": "2026-12-20T00:00:00Z",
+    "now": 1792504800000
+   },
+   "refuses": "window_order"
+  },
+  {
+   "name": "window: nothing given passes, as the cancel path of Schedule or cancel needs",
+   "source": "Fabric open point Minor 4",
+   "transform": "time.window@1",
+   "input": {
+    "now": 1792504800000
+   },
+   "output": {}
+  },
+  {
+   "name": "rrule: a weekly rule with COUNT=3 passes",
+   "source": "RFC 5545 section 3.3.10",
+   "transform": "time.rrule@1",
+   "input": {
+    "recurrence": [
+     "RRULE:FREQ=WEEKLY;COUNT=3"
+    ]
+   },
+   "output": {
+    "recurrence": [
+     "RRULE:FREQ=WEEKLY;COUNT=3"
+    ]
+   }
+  },
+  {
+   "name": "rrule: a DTSTART line refuses",
+   "source": "Google Calendar API, events (recurrence holds RRULE, EXRULE, RDATE and EXDATE lines only)",
+   "transform": "time.rrule@1",
+   "input": {
+    "recurrence": [
+     "DTSTART:20261020T090000Z",
+     "RRULE:FREQ=WEEKLY;COUNT=3"
+    ]
+   },
+   "refuses": "time_invalid"
+  },
+  {
+   "name": "rrule: COUNT with UNTIL refuses",
+   "source": "RFC 5545 section 3.3.10",
+   "transform": "time.rrule@1",
+   "input": {
+    "recurrence": [
+     "RRULE:FREQ=DAILY;COUNT=3;UNTIL=20261231T000000Z"
+    ]
+   },
+   "refuses": "time_invalid"
+  },
+  {
+   "name": "free slots refuse a window the answer does not cover",
+   "source": "Google Calendar API, freebusy.query response (timeMin and timeMax)",
+   "transform": "time.freeSlots@1",
+   "input": {
+    "freeBusy": {
+     "kind": "calendar#freeBusy",
+     "timeMin": "2026-10-20T14:00:00.000Z",
+     "timeMax": "2026-10-20T21:00:00.000Z",
+     "calendars": {
+      "primary": {
+       "busy": []
+      }
+     }
+    },
+    "start": "2026-10-20T13:00:00Z",
+    "end": "2026-10-20T21:00:00Z",
+    "minMinutes": 30
+   },
+   "refuses": "busy_unknown"
+  }
+ ]
+}

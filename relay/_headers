@@ -1,0 +1,6 @@
+/*
+  Content-Security-Policy: default-src 'none'; script-src 'sha256-uSLUNTQu2GdnNhkz+BBd6dEugzA/hp2OiFoF22adDGY='; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
+  Referrer-Policy: no-referrer
+  Cache-Control: no-store
+  X-Content-Type-Options: nosniff
+  Strict-Transport-Security: max-age=31536000

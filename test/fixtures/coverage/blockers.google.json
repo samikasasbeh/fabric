@@ -1,0 +1,108 @@
+{
+ "kind": "discovery#restDescription",
+ "discoveryVersion": "v1",
+ "protocol": "rest",
+ "name": "coverage",
+ "version": "v1",
+ "description": "Written by hand for Fabric's compiler-coverage tests.",
+ "rootUrl": "https://coverage.googleapis.com/",
+ "servicePath": "",
+ "baseUrl": "https://coverage.googleapis.com/",
+ "parameters": {
+  "key": {
+   "type": "string",
+   "location": "query"
+  },
+  "alt": {
+   "type": "string",
+   "location": "query"
+  }
+ },
+ "schemas": {
+  "Topic": {
+   "id": "Topic",
+   "type": "object",
+   "properties": {
+    "name": {
+     "type": "string"
+    },
+    "labels": {
+     "type": "object",
+     "additionalProperties": {
+      "type": "string"
+     }
+    }
+   }
+  }
+ },
+ "resources": {
+  "topics": {
+   "methods": {
+    "list": {
+     "id": "coverage.topics.list",
+     "httpMethod": "GET",
+     "path": "v1/{+project}/topics",
+     "flatPath": "v1/projects/{projectsId}/topics",
+     "parameters": {
+      "project": {
+       "type": "string",
+       "location": "path",
+       "required": true,
+       "pattern": "^projects/[^/]+$"
+      }
+     },
+     "scopes": [
+      "https://www.googleapis.com/auth/coverage"
+     ]
+    },
+    "get": {
+     "id": "coverage.topics.get",
+     "httpMethod": "GET",
+     "path": "v1/topics/{topicId}",
+     "parameters": {
+      "topicId": {
+       "type": "string",
+       "location": "path",
+       "required": true
+      },
+      "view": {
+       "type": "string",
+       "location": "query",
+       "pattern": "^[A-Z]+$"
+      }
+     },
+     "scopes": [
+      "https://www.googleapis.com/auth/coverage.readonly",
+      "https://www.googleapis.com/auth/coverage"
+     ]
+    },
+    "create": {
+     "id": "coverage.topics.create",
+     "httpMethod": "POST",
+     "path": "v1/topics",
+     "request": {
+      "$ref": "Topic"
+     },
+     "scopes": [
+      "https://www.googleapis.com/auth/coverage"
+     ]
+    },
+    "verb": {
+     "id": "coverage.topics.publish",
+     "httpMethod": "POST",
+     "path": "v1/topics/{topicId}:publish",
+     "parameters": {
+      "topicId": {
+       "type": "string",
+       "location": "path",
+       "required": true
+      }
+     },
+     "scopes": [
+      "https://www.googleapis.com/auth/coverage"
+     ]
+    }
+   }
+  }
+ }
+}

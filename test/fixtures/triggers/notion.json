@@ -1,0 +1,65 @@
+{
+ "schemaVersion": 1,
+ "appId": "notion",
+ "specVersion": "fabric/0.2",
+ "reviewStatus": "candidate",
+ "pinnedParameters": {},
+ "triggers": [
+  {
+   "id": "notion.trigger.row-changed.v1.1a7140918522b5a5fe591f3b",
+   "key": "row-changed",
+   "version": 1,
+   "name": "A row changed in a database",
+   "description": "Tells you when a row of one data source is created, edited or trashed.",
+   "delivery": {
+    "method": "webhook",
+    "registration": "operator",
+    "fallback": "polling",
+    "admission": {"scheme": "notion-signature", "header": "x-notion-signature", "prefix": "sha256=", "secret": "operator:notion-verification-token",
+     "handshake": "notion-verification-token", "route": {"pointer": "/workspace_id", "to": "identity"},
+     "wake": {"pointer": "/data/parent/id", "equals": {"input": "/dataSourceId"}}, "trust": "doorbell"}
+   },
+   "inputSchema": {"type": "object", "properties": {"dataSourceId": {"type": "string", "minLength": 32, "maxLength": 36}}, "required": ["dataSourceId"], "additionalProperties": false},
+   "resource": ["dataSourceId"],
+   "poll": {
+    "source": {"steps": [
+     {"id": "rows", "method": "POST", "path": "/v1/data_sources/{data_source_id}/query", "params": {"data_source_id": {"input": "/dataSourceId"}},
+      "body": {"object": {
+       "filter": {"object": {"timestamp": {"const": "last_edited_time"}, "last_edited_time": {"object": {"on_or_after": {"cursor": "edited"}}}}},
+       "sorts": {"const": [{"timestamp": "last_edited_time", "direction": "ascending"}]},
+       "page_size": {"const": 100}
+      }},
+      "page": {"next": {"pointer": "/next_cursor"}, "into": {"body": "/start_cursor"}, "items": "/results", "while": "/has_more", "max": 10},
+      "expect": {"status": [200], "require": []}}
+    ]},
+    "items": {"step": "rows", "pointer": ""},
+    "itemId": {"item": "/id"},
+    "itemVersion": "/last_edited_time",
+    "itemTime": {"pointer": "/last_edited_time", "format": "rfc3339"},
+    "order": "asc",
+    "cursors": [{"name": "edited", "kind": "high-water-time@1", "next": {"max": "itemTime"}, "compare": "time.rfc3339ToEpochSeconds@1", "overlapSeconds": 120}],
+    "resync": {"statusIn": []},
+    "minIntervalSeconds": 60
+   },
+   "dedupe": {"kind": "id+version"},
+   "event": {
+    "schema": {"type": "object", "properties": {
+      "dataSourceId": {"type": "string", "maxLength": 36}, "pageId": {"type": "string", "maxLength": 36}, "trashed": {"type": "boolean"}, "lastEditedTime": {"type": "string", "maxLength": 64}
+     }, "required": ["dataSourceId", "pageId", "lastEditedTime"], "additionalProperties": false},
+    "id": {"concat": [{"item": "/id"}, {"const": ":"}, {"item": "/last_edited_time"}], "max": 120},
+    "occurredAt": {"item": "/last_edited_time"},
+    "fields": {
+     "dataSourceId": {"input": "/dataSourceId"},
+     "pageId": {"item": "/id"},
+     "trashed": {"when": {"equals": [{"item": "/in_trash"}, {"const": true}]}, "then": {"const": true}},
+     "lastEditedTime": {"item": "/last_edited_time"}
+    },
+    "summary": [{"label": "Row", "expr": {"item": "/id"}}, {"label": "Edited", "expr": {"item": "/last_edited_time"}}]
+   },
+   "backfill": {"default": 0, "max": 25},
+   "retention": {"days": 7},
+   "bounds": {"pages": 10, "items": 500, "pollSeconds": 10},
+   "rows": ["notion.content.read"]
+  }
+ ]
+}

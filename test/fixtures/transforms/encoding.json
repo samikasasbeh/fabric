@@ -1,0 +1,729 @@
+{
+ "source": "RFC 4648 (section 10 test vectors); the strict-decoding cases are Fabric adversarial",
+ "cases": [
+  {
+   "name": "base64 encodes \"\"",
+   "transform": "encoding.base64Encode@1",
+   "input": {
+    "text": ""
+   },
+   "output": {
+    "encoded": ""
+   }
+  },
+  {
+   "name": "base64url encodes \"\" with padding",
+   "transform": "encoding.base64urlEncode@1",
+   "input": {
+    "text": ""
+   },
+   "output": {
+    "encoded": ""
+   }
+  },
+  {
+   "name": "base64 decodes \"\"",
+   "transform": "encoding.base64Decode@1",
+   "input": {
+    "encoded": "",
+    "lineBreaks": "none"
+   },
+   "output": {
+    "text": ""
+   }
+  },
+  {
+   "name": "base64url decodes \"\"",
+   "transform": "encoding.base64urlDecode@1",
+   "input": {
+    "encoded": ""
+   },
+   "output": {
+    "text": ""
+   }
+  },
+  {
+   "name": "base64 encodes \"f\"",
+   "transform": "encoding.base64Encode@1",
+   "input": {
+    "text": "f"
+   },
+   "output": {
+    "encoded": "Zg=="
+   }
+  },
+  {
+   "name": "base64url encodes \"f\" with padding",
+   "transform": "encoding.base64urlEncode@1",
+   "input": {
+    "text": "f"
+   },
+   "output": {
+    "encoded": "Zg=="
+   }
+  },
+  {
+   "name": "base64 decodes \"Zg==\"",
+   "transform": "encoding.base64Decode@1",
+   "input": {
+    "encoded": "Zg==",
+    "lineBreaks": "none"
+   },
+   "output": {
+    "text": "f"
+   }
+  },
+  {
+   "name": "base64url decodes \"Zg==\"",
+   "transform": "encoding.base64urlDecode@1",
+   "input": {
+    "encoded": "Zg=="
+   },
+   "output": {
+    "text": "f"
+   }
+  },
+  {
+   "name": "base64 encodes \"fo\"",
+   "transform": "encoding.base64Encode@1",
+   "input": {
+    "text": "fo"
+   },
+   "output": {
+    "encoded": "Zm8="
+   }
+  },
+  {
+   "name": "base64url encodes \"fo\" with padding",
+   "transform": "encoding.base64urlEncode@1",
+   "input": {
+    "text": "fo"
+   },
+   "output": {
+    "encoded": "Zm8="
+   }
+  },
+  {
+   "name": "base64 decodes \"Zm8=\"",
+   "transform": "encoding.base64Decode@1",
+   "input": {
+    "encoded": "Zm8=",
+    "lineBreaks": "none"
+   },
+   "output": {
+    "text": "fo"
+   }
+  },
+  {
+   "name": "base64url decodes \"Zm8=\"",
+   "transform": "encoding.base64urlDecode@1",
+   "input": {
+    "encoded": "Zm8="
+   },
+   "output": {
+    "text": "fo"
+   }
+  },
+  {
+   "name": "base64 encodes \"foo\"",
+   "transform": "encoding.base64Encode@1",
+   "input": {
+    "text": "foo"
+   },
+   "output": {
+    "encoded": "Zm9v"
+   }
+  },
+  {
+   "name": "base64url encodes \"foo\" with padding",
+   "transform": "encoding.base64urlEncode@1",
+   "input": {
+    "text": "foo"
+   },
+   "output": {
+    "encoded": "Zm9v"
+   }
+  },
+  {
+   "name": "base64 decodes \"Zm9v\"",
+   "transform": "encoding.base64Decode@1",
+   "input": {
+    "encoded": "Zm9v",
+    "lineBreaks": "none"
+   },
+   "output": {
+    "text": "foo"
+   }
+  },
+  {
+   "name": "base64url decodes \"Zm9v\"",
+   "transform": "encoding.base64urlDecode@1",
+   "input": {
+    "encoded": "Zm9v"
+   },
+   "output": {
+    "text": "foo"
+   }
+  },
+  {
+   "name": "base64 encodes \"foob\"",
+   "transform": "encoding.base64Encode@1",
+   "input": {
+    "text": "foob"
+   },
+   "output": {
+    "encoded": "Zm9vYg=="
+   }
+  },
+  {
+   "name": "base64url encodes \"foob\" with padding",
+   "transform": "encoding.base64urlEncode@1",
+   "input": {
+    "text": "foob"
+   },
+   "output": {
+    "encoded": "Zm9vYg=="
+   }
+  },
+  {
+   "name": "base64 decodes \"Zm9vYg==\"",
+   "transform": "encoding.base64Decode@1",
+   "input": {
+    "encoded": "Zm9vYg==",
+    "lineBreaks": "none"
+   },
+   "output": {
+    "text": "foob"
+   }
+  },
+  {
+   "name": "base64url decodes \"Zm9vYg==\"",
+   "transform": "encoding.base64urlDecode@1",
+   "input": {
+    "encoded": "Zm9vYg=="
+   },
+   "output": {
+    "text": "foob"
+   }
+  },
+  {
+   "name": "base64 encodes \"fooba\"",
+   "transform": "encoding.base64Encode@1",
+   "input": {
+    "text": "fooba"
+   },
+   "output": {
+    "encoded": "Zm9vYmE="
+   }
+  },
+  {
+   "name": "base64url encodes \"fooba\" with padding",
+   "transform": "encoding.base64urlEncode@1",
+   "input": {
+    "text": "fooba"
+   },
+   "output": {
+    "encoded": "Zm9vYmE="
+   }
+  },
+  {
+   "name": "base64 decodes \"Zm9vYmE=\"",
+   "transform": "encoding.base64Decode@1",
+   "input": {
+    "encoded": "Zm9vYmE=",
+    "lineBreaks": "none"
+   },
+   "output": {
+    "text": "fooba"
+   }
+  },
+  {
+   "name": "base64url decodes \"Zm9vYmE=\"",
+   "transform": "encoding.base64urlDecode@1",
+   "input": {
+    "encoded": "Zm9vYmE="
+   },
+   "output": {
+    "text": "fooba"
+   }
+  },
+  {
+   "name": "base64 encodes \"foobar\"",
+   "transform": "encoding.base64Encode@1",
+   "input": {
+    "text": "foobar"
+   },
+   "output": {
+    "encoded": "Zm9vYmFy"
+   }
+  },
+  {
+   "name": "base64url encodes \"foobar\" with padding",
+   "transform": "encoding.base64urlEncode@1",
+   "input": {
+    "text": "foobar"
+   },
+   "output": {
+    "encoded": "Zm9vYmFy"
+   }
+  },
+  {
+   "name": "base64 decodes \"Zm9vYmFy\"",
+   "transform": "encoding.base64Decode@1",
+   "input": {
+    "encoded": "Zm9vYmFy",
+    "lineBreaks": "none"
+   },
+   "output": {
+    "text": "foobar"
+   }
+  },
+  {
+   "name": "base64url decodes \"Zm9vYmFy\"",
+   "transform": "encoding.base64urlDecode@1",
+   "input": {
+    "encoded": "Zm9vYmFy"
+   },
+   "output": {
+    "text": "foobar"
+   }
+  },
+  {
+   "name": "base64 encodes \"??>\" with + and /",
+   "source": "RFC 4648 section 4",
+   "transform": "encoding.base64Encode@1",
+   "input": {
+    "text": "??>"
+   },
+   "output": {
+    "encoded": "Pz8+"
+   }
+  },
+  {
+   "name": "base64url encodes \"??>\" with - and _",
+   "source": "RFC 4648 section 5",
+   "transform": "encoding.base64urlEncode@1",
+   "input": {
+    "text": "??>"
+   },
+   "output": {
+    "encoded": "Pz8-"
+   }
+  },
+  {
+   "name": "base64 decodes \"Pz8+\"",
+   "source": "RFC 4648 section 4",
+   "transform": "encoding.base64Decode@1",
+   "input": {
+    "encoded": "Pz8+",
+    "lineBreaks": "none"
+   },
+   "output": {
+    "text": "??>"
+   }
+  },
+  {
+   "name": "base64url decodes \"Pz8-\"",
+   "source": "RFC 4648 section 5",
+   "transform": "encoding.base64urlDecode@1",
+   "input": {
+    "encoded": "Pz8-"
+   },
+   "output": {
+    "text": "??>"
+   }
+  },
+  {
+   "name": "base64url refuses the other alphabet in \"Pz8+\"",
+   "source": "Fabric adversarial",
+   "transform": "encoding.base64urlDecode@1",
+   "input": {
+    "encoded": "Pz8+"
+   },
+   "refuses": "encoding_invalid"
+  },
+  {
+   "name": "base64 refuses the other alphabet in \"Pz8-\"",
+   "source": "Fabric adversarial",
+   "transform": "encoding.base64Decode@1",
+   "input": {
+    "encoded": "Pz8-",
+    "lineBreaks": "none"
+   },
+   "refuses": "encoding_invalid"
+  },
+  {
+   "name": "base64 encodes \"???\" with + and /",
+   "source": "RFC 4648 section 4",
+   "transform": "encoding.base64Encode@1",
+   "input": {
+    "text": "???"
+   },
+   "output": {
+    "encoded": "Pz8/"
+   }
+  },
+  {
+   "name": "base64url encodes \"???\" with - and _",
+   "source": "RFC 4648 section 5",
+   "transform": "encoding.base64urlEncode@1",
+   "input": {
+    "text": "???"
+   },
+   "output": {
+    "encoded": "Pz8_"
+   }
+  },
+  {
+   "name": "base64 decodes \"Pz8/\"",
+   "source": "RFC 4648 section 4",
+   "transform": "encoding.base64Decode@1",
+   "input": {
+    "encoded": "Pz8/",
+    "lineBreaks": "none"
+   },
+   "output": {
+    "text": "???"
+   }
+  },
+  {
+   "name": "base64url decodes \"Pz8_\"",
+   "source": "RFC 4648 section 5",
+   "transform": "encoding.base64urlDecode@1",
+   "input": {
+    "encoded": "Pz8_"
+   },
+   "output": {
+    "text": "???"
+   }
+  },
+  {
+   "name": "base64url refuses the other alphabet in \"Pz8/\"",
+   "source": "Fabric adversarial",
+   "transform": "encoding.base64urlDecode@1",
+   "input": {
+    "encoded": "Pz8/"
+   },
+   "refuses": "encoding_invalid"
+  },
+  {
+   "name": "base64 refuses the other alphabet in \"Pz8_\"",
+   "source": "Fabric adversarial",
+   "transform": "encoding.base64Decode@1",
+   "input": {
+    "encoded": "Pz8_",
+    "lineBreaks": "none"
+   },
+   "refuses": "encoding_invalid"
+  },
+  {
+   "name": "base64 encodes \"￿\" with + and /",
+   "source": "RFC 4648 section 4",
+   "transform": "encoding.base64Encode@1",
+   "input": {
+    "text": "￿"
+   },
+   "output": {
+    "encoded": "77+/"
+   }
+  },
+  {
+   "name": "base64url encodes \"￿\" with - and _",
+   "source": "RFC 4648 section 5",
+   "transform": "encoding.base64urlEncode@1",
+   "input": {
+    "text": "￿"
+   },
+   "output": {
+    "encoded": "77-_"
+   }
+  },
+  {
+   "name": "base64 decodes \"77+/\"",
+   "source": "RFC 4648 section 4",
+   "transform": "encoding.base64Decode@1",
+   "input": {
+    "encoded": "77+/",
+    "lineBreaks": "none"
+   },
+   "output": {
+    "text": "￿"
+   }
+  },
+  {
+   "name": "base64url decodes \"77-_\"",
+   "source": "RFC 4648 section 5",
+   "transform": "encoding.base64urlDecode@1",
+   "input": {
+    "encoded": "77-_"
+   },
+   "output": {
+    "text": "￿"
+   }
+  },
+  {
+   "name": "base64url refuses the other alphabet in \"77+/\"",
+   "source": "Fabric adversarial",
+   "transform": "encoding.base64urlDecode@1",
+   "input": {
+    "encoded": "77+/"
+   },
+   "refuses": "encoding_invalid"
+  },
+  {
+   "name": "base64 refuses the other alphabet in \"77-_\"",
+   "source": "Fabric adversarial",
+   "transform": "encoding.base64Decode@1",
+   "input": {
+    "encoded": "77-_",
+    "lineBreaks": "none"
+   },
+   "refuses": "encoding_invalid"
+  },
+  {
+   "name": "base64 refuses a character outside both alphabets, which Buffer would drop to give \"hello\"",
+   "source": "Fabric adversarial",
+   "transform": "encoding.base64Decode@1",
+   "input": {
+    "encoded": "aGVs*bG8",
+    "lineBreaks": "none"
+   },
+   "refuses": "encoding_invalid"
+  },
+  {
+   "name": "base64url refuses a character outside both alphabets, which Buffer would drop to give \"hello\"",
+   "source": "Fabric adversarial",
+   "transform": "encoding.base64urlDecode@1",
+   "input": {
+    "encoded": "aGVs*bG8"
+   },
+   "refuses": "encoding_invalid"
+  },
+  {
+   "name": "base64 refuses a space",
+   "source": "Fabric adversarial",
+   "transform": "encoding.base64Decode@1",
+   "input": {
+    "encoded": "Zm9v YmFy",
+    "lineBreaks": "none"
+   },
+   "refuses": "encoding_invalid"
+  },
+  {
+   "name": "base64url refuses a space",
+   "source": "Fabric adversarial",
+   "transform": "encoding.base64urlDecode@1",
+   "input": {
+    "encoded": "Zm9v YmFy"
+   },
+   "refuses": "encoding_invalid"
+  },
+  {
+   "name": "base64 refuses a line feed without lf mode",
+   "source": "Fabric adversarial",
+   "transform": "encoding.base64Decode@1",
+   "input": {
+    "encoded": "Zm9v\nYmFy",
+    "lineBreaks": "none"
+   },
+   "refuses": "encoding_invalid"
+  },
+  {
+   "name": "base64url refuses a line feed without lf mode",
+   "source": "Fabric adversarial",
+   "transform": "encoding.base64urlDecode@1",
+   "input": {
+    "encoded": "Zm9v\nYmFy"
+   },
+   "refuses": "encoding_invalid"
+  },
+  {
+   "name": "base64 refuses one padding character where two belong",
+   "source": "Fabric adversarial",
+   "transform": "encoding.base64Decode@1",
+   "input": {
+    "encoded": "Zm9vYg=",
+    "lineBreaks": "none"
+   },
+   "refuses": "encoding_invalid"
+  },
+  {
+   "name": "base64url refuses one padding character where two belong",
+   "source": "Fabric adversarial",
+   "transform": "encoding.base64urlDecode@1",
+   "input": {
+    "encoded": "Zm9vYg="
+   },
+   "refuses": "encoding_invalid"
+  },
+  {
+   "name": "base64 refuses padding after a full group",
+   "source": "Fabric adversarial",
+   "transform": "encoding.base64Decode@1",
+   "input": {
+    "encoded": "Zm8==",
+    "lineBreaks": "none"
+   },
+   "refuses": "encoding_invalid"
+  },
+  {
+   "name": "base64url refuses padding after a full group",
+   "source": "Fabric adversarial",
+   "transform": "encoding.base64urlDecode@1",
+   "input": {
+    "encoded": "Zm8=="
+   },
+   "refuses": "encoding_invalid"
+  },
+  {
+   "name": "base64 refuses non-canonical trailing bits before two padding characters",
+   "source": "Fabric adversarial",
+   "transform": "encoding.base64Decode@1",
+   "input": {
+    "encoded": "Zh==",
+    "lineBreaks": "none"
+   },
+   "refuses": "encoding_invalid"
+  },
+  {
+   "name": "base64url refuses non-canonical trailing bits before two padding characters",
+   "source": "Fabric adversarial",
+   "transform": "encoding.base64urlDecode@1",
+   "input": {
+    "encoded": "Zh=="
+   },
+   "refuses": "encoding_invalid"
+  },
+  {
+   "name": "base64 refuses non-canonical trailing bits before one padding character",
+   "source": "Fabric adversarial",
+   "transform": "encoding.base64Decode@1",
+   "input": {
+    "encoded": "Zm9=",
+    "lineBreaks": "none"
+   },
+   "refuses": "encoding_invalid"
+  },
+  {
+   "name": "base64url refuses non-canonical trailing bits before one padding character",
+   "source": "Fabric adversarial",
+   "transform": "encoding.base64urlDecode@1",
+   "input": {
+    "encoded": "Zm9="
+   },
+   "refuses": "encoding_invalid"
+  },
+  {
+   "name": "base64 refuses a length of one more than a multiple of four",
+   "source": "Fabric adversarial",
+   "transform": "encoding.base64Decode@1",
+   "input": {
+    "encoded": "Zm9vY",
+    "lineBreaks": "none"
+   },
+   "refuses": "encoding_invalid"
+  },
+  {
+   "name": "base64url refuses a length of one more than a multiple of four",
+   "source": "Fabric adversarial",
+   "transform": "encoding.base64urlDecode@1",
+   "input": {
+    "encoded": "Zm9vY"
+   },
+   "refuses": "encoding_invalid"
+  },
+  {
+   "name": "base64 refuses padding alone",
+   "source": "Fabric adversarial",
+   "transform": "encoding.base64Decode@1",
+   "input": {
+    "encoded": "=",
+    "lineBreaks": "none"
+   },
+   "refuses": "encoding_invalid"
+  },
+  {
+   "name": "base64url refuses padding alone",
+   "source": "Fabric adversarial",
+   "transform": "encoding.base64urlDecode@1",
+   "input": {
+    "encoded": "="
+   },
+   "refuses": "encoding_invalid"
+  },
+  {
+   "name": "base64 refuses padding inside the text",
+   "source": "Fabric adversarial",
+   "transform": "encoding.base64Decode@1",
+   "input": {
+    "encoded": "Zg==Zg==",
+    "lineBreaks": "none"
+   },
+   "refuses": "encoding_invalid"
+  },
+  {
+   "name": "base64url refuses padding inside the text",
+   "source": "Fabric adversarial",
+   "transform": "encoding.base64urlDecode@1",
+   "input": {
+    "encoded": "Zg==Zg=="
+   },
+   "refuses": "encoding_invalid"
+  },
+  {
+   "name": "base64 decodes text without its padding",
+   "source": "RFC 4648 section 3.2",
+   "transform": "encoding.base64Decode@1",
+   "input": {
+    "encoded": "Zm9vYg",
+    "lineBreaks": "none"
+   },
+   "output": {
+    "text": "foob"
+   }
+  },
+  {
+   "name": "base64url decodes text without its padding",
+   "source": "RFC 4648 section 3.2",
+   "transform": "encoding.base64urlDecode@1",
+   "input": {
+    "encoded": "Zm9vYg"
+   },
+   "output": {
+    "text": "foob"
+   }
+  },
+  {
+   "name": "base64 in lf mode decodes content wrapped with line feeds",
+   "source": "GitHub REST API, repository contents: content is base64 wrapped with line feeds",
+   "transform": "encoding.base64Decode@1",
+   "input": {
+    "encoded": "Zm9v\nYmFy\n",
+    "lineBreaks": "lf"
+   },
+   "output": {
+    "text": "foobar"
+   }
+  },
+  {
+   "name": "base64 in lf mode refuses a carriage return",
+   "source": "Fabric adversarial",
+   "transform": "encoding.base64Decode@1",
+   "input": {
+    "encoded": "Zm9v\r\nYmFy",
+    "lineBreaks": "lf"
+   },
+   "refuses": "encoding_invalid"
+  },
+  {
+   "name": "base64 in lf mode refuses a space",
+   "source": "Fabric adversarial",
+   "transform": "encoding.base64Decode@1",
+   "input": {
+    "encoded": "Zm9v YmFy",
+    "lineBreaks": "lf"
+   },
+   "refuses": "encoding_invalid"
+  }
+ ]
+}

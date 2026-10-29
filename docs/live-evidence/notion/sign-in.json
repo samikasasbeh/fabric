@@ -1,0 +1,21 @@
+{
+ "schemaVersion": 1,
+ "appId": "notion",
+ "note": "Live sign-in evidence (exit gate check 7). Session 1 ran on 2026-10-29 (docs/MANUAL-TESTS.md, the S7.13 session): Sami signed in and the test operator recorded what each screen showed, from his reports and screenshots. Phase A ran version 1 code (54c85bd), Phase B the main line (03e290d). Corrected after the branch review of step 14: a record says passed only where the session notes show exactly the kind the exit gate names. Fields the notes did not record say so. No email, name, account id, login, page name or token is kept.",
+ "full-consent": {
+  "passed": true,
+  "date": "2026-10-29",
+  "runtime": "npm start, single owner",
+  "folder": "live session 1 parent folder",
+  "clientGrant": "not recorded",
+  "phase": "A",
+  "step": "A7",
+  "codeRevision": "54c85bd",
+  "consentPolicy": "Notion page picker",
+  "observed": "Notion connected with only the pages Sami chose shared; under version 2 (B2) the app page read \"Pages you shared\" with 13 permission rows and Background sync.",
+  "scopesExpected": "Notion has no scopes: access is the pages shared",
+  "settings": "not recorded",
+  "notices": "none shown",
+  "auditTypes": "not recorded"
+ }
+}

@@ -1,0 +1,81 @@
+{
+ "schemaVersion": 1,
+ "appId": "fixture",
+ "note": "F10.12 part 2: the live test plan of the fake app (test/fixtures/actions), in the format of catalog/live-tests/README.md. It calls each of the app's seven actions once or more, on the provider simulator only. Test data: no real provider is ever named.",
+ "recorded": {
+  "draftId": "The draft Muse wrote by hand before the run, which T4 sends.",
+  "tableId": "The table Muse made by hand before the run, which T5 adds a row to.",
+  "eventStart": "The start of the event T3 moves, as it was before the run, which T6 puts back.",
+  "eventEnd": "The end of the event T3 moves, as it was before the run, which T6 puts back."
+ },
+ "readRows": ["fixture.items.read"],
+ "gone": {"pointer": "/in_trash", "equals": true},
+ "tests": [
+  {
+   "id": "T0",
+   "name": "Read pass: list the items",
+   "steps": [
+    {"call": {"action": "list-items@1", "args": {"kind": "all"}, "save": {"first": "/account"},
+     "checks": [{"pointer": "/items", "present": true}, {"pointer": "/account", "equals": "Fixture Owner"}]}}
+   ]
+  },
+  {
+   "id": "T1",
+   "name": "Label an item and read it back, then take the label off",
+   "steps": [
+    {"call": {"action": "update-item@1", "args": {"itemId": "I1", "change": "label", "labels": ["Later"]}, "save": {"item": "/id"}}},
+    {"read": {"path": "/items/{item}", "params": {"item": {"$saved": "item"}}, "save": {"label": "/labels/0"}, "checks": [{"status": 200}, {"pointer": "/labels", "count": 1}]}},
+    {"read": {"path": "/labels", "checks": [{"pointer": "/labels", "where": {"/name": "Later"}, "field": "/id", "equals": {"$saved": "label"}}]}}
+   ],
+   "undo": {"steps": [
+    {"call": {"action": "remove-labels@1", "args": {"itemId": {"$saved": "item"}, "names": ["Later"]}, "checks": [{"pointer": "/removed", "equals": 1}]}},
+    {"read": {"path": "/items/{item}", "params": {"item": {"$saved": "item"}}, "checks": [{"pointer": "/labels", "count": 0}]}}
+   ]}
+  },
+  {
+   "id": "T2",
+   "name": "Two writes on one version: one lands, one is refused",
+   "steps": [
+    {"race": {"action": "put-file@1", "args": {"path": "docs/a.md", "content": {"$text": "race"}, "message": {"$text": "race"}, "kind": "file"}, "status": 409,
+     "readback": {"path": "/files/{+path}", "params": {"path": "docs/a.md"}, "pointer": "/sha", "output": "/sha"}}}
+   ],
+   "undo": {"none": "The file is the fake app's own test data, made fresh for each run."}
+  },
+  {
+   "id": "T3",
+   "name": "Move an event inside the window",
+   "steps": [
+    {"call": {"action": "reschedule-event@1", "args": {"eventId": "E1", "start": {"$at": {"day": 9, "time": "10:00"}}, "end": {"$at": {"day": 9, "time": "10:30"}}}, "save": {"etag": "/etag"}}},
+    {"read": {"path": "/events/{event}", "params": {"event": "E1"}, "checks": [{"pointer": "/start", "equals": {"$at": {"day": 9, "time": "10:00"}}}, {"pointer": "/id", "oneOf": ["E1"]}]}}
+   ],
+   "undo": {"test": "T6"}
+  },
+  {
+   "id": "T4",
+   "name": "Send the hand-written draft",
+   "steps": [
+    {"call": {"action": "send-draft@1", "args": {"draftId": {"$recorded": "draftId"}}, "checks": [{"pointer": "/id", "present": true}]}},
+    {"read": {"path": "/drafts/{draft}", "params": {"draft": {"$recorded": "draftId"}}, "checks": [{"gone": true}]}}
+   ],
+   "undo": {"none": "A sent message cannot be unsent. It went to the fake app only."}
+  },
+  {
+   "id": "T5",
+   "name": "Add a row to the hand-made table",
+   "steps": [
+    {"call": {"action": "add-row@1", "args": {"tableId": {"$recorded": "tableId"}, "values": {"Name": {"$text": "row"}}}, "save": {"row": "/id"}}},
+    {"read": {"path": "/items/{item}", "params": {"item": {"$saved": "row"}}, "checks": [{"status": 200}, {"pointer": "/parent/id", "equals": {"$recorded": "tableId"}}]}}
+   ],
+   "undo": {"none": "The fake app starts fresh each run."}
+  },
+  {
+   "id": "T6",
+   "name": "Put T3's event back where it was",
+   "steps": [
+    {"call": {"action": "reschedule-event@1", "args": {"eventId": "E1", "start": {"$recorded": "eventStart"}, "end": {"$recorded": "eventEnd"}}}},
+    {"read": {"path": "/events/{event}", "params": {"event": "E1"}, "checks": [{"pointer": "/start", "equals": {"$recorded": "eventStart"}}]}}
+   ],
+   "undo": {"none": "It is the undo of T3."}
+  }
+ ]
+}

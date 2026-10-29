@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "integrations": [
+    {
+      "manifest": {
+        "schemaVersion": 1,
+        "appId": "github",
+        "version": "0.1.0",
+        "source": {
+          "kind": "openapi",
+          "url": "https://docs.github.com/en/rest",
+          "allowedOrigins": ["https://api.github.com"]
+        },
+        "auth": {"kind": "oauth2"},
+        "maintenance": {
+          "owner": "example-primary-owner",
+          "backupOwner": "example-backup-owner",
+          "tier": "pilot",
+          "reviewIntervalDays": 7
+        }
+      },
+      "documentPath": "github.openapi.json"
+    },
+    {
+      "manifest": {
+        "schemaVersion": 1,
+        "appId": "google-calendar",
+        "version": "0.1.0",
+        "source": {
+          "kind": "openapi",
+          "url": "https://developers.google.com/workspace/calendar/api/v3/reference",
+          "allowedOrigins": ["https://www.googleapis.com"]
+        },
+        "auth": {"kind": "oauth2"},
+        "maintenance": {
+          "owner": "example-primary-owner",
+          "backupOwner": "example-backup-owner",
+          "tier": "pilot",
+          "reviewIntervalDays": 7
+        }
+      },
+      "documentPath": "google-calendar.openapi.json"
+    }
+  ]
+}

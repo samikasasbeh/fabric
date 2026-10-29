@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "note": "Reviewed public links shown in the consent sheet's provider fine print (F03.1, docs/F03-DEVELOPER-LAYER.md section 6.5). Auth definitions are not edited, so authorization URLs do not change.",
+  "providers": {
+    "google": {"name": "Google", "termsUrl": "https://policies.google.com/terms", "privacyUrl": "https://policies.google.com/privacy"},
+    "github": {"name": "GitHub", "termsUrl": "https://docs.github.com/en/site-policy/github-terms/github-terms-of-service", "privacyUrl": "https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement"},
+    "notion": {"name": "Notion", "termsUrl": "https://www.notion.com/notion/terms-and-privacy", "privacyUrl": "https://www.notion.com/notion/privacy"},
+    "slack": {"name": "Slack", "termsUrl": "https://slack.com/terms-of-service", "privacyUrl": "https://slack.com/trust/privacy/privacy-policy"}
+  }
+}

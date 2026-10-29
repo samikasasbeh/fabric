@@ -1,0 +1,1039 @@
+{
+ "schemaVersion": 2,
+ "appId": "slack",
+ "reviewed": "2026-10-12: drafted from official machine-readable API descriptions, corrected by an independent critic; see docs/UI-0-SCREEN-CONTRACTS.md section 9",
+ "groups": [
+  {
+   "id": "slack.channels.read",
+   "label": "Access channels and people",
+   "effect": "read",
+   "defaultMode": "allow",
+   "requests": [
+    "GET /conversations.list",
+    "GET /conversations.info",
+    "GET /conversations.members",
+    "GET /users.conversations",
+    "GET /users.list",
+    "GET /users.info",
+    "GET /users.getPresence",
+    "GET /bots.info"
+   ],
+   "scopeSets": [
+    [
+     "users:read"
+    ]
+   ],
+   "memberScopeSets": {
+    "GET /conversations.list": [
+     [
+      "channels:read"
+     ],
+     [
+      "groups:read"
+     ],
+     [
+      "im:read"
+     ],
+     [
+      "mpim:read"
+     ]
+    ],
+    "GET /conversations.info": [
+     [
+      "channels:read"
+     ],
+     [
+      "groups:read"
+     ],
+     [
+      "im:read"
+     ],
+     [
+      "mpim:read"
+     ]
+    ],
+    "GET /conversations.members": [
+     [
+      "channels:read"
+     ],
+     [
+      "groups:read"
+     ],
+     [
+      "im:read"
+     ],
+     [
+      "mpim:read"
+     ]
+    ],
+    "GET /users.conversations": [
+     [
+      "channels:read"
+     ],
+     [
+      "groups:read"
+     ],
+     [
+      "im:read"
+     ],
+     [
+      "mpim:read"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "slack.messages.read",
+   "label": "Access messages",
+   "effect": "read",
+   "defaultMode": "allow",
+   "requests": [
+    "GET /conversations.history",
+    "GET /conversations.replies",
+    "GET /chat.getPermalink",
+    "GET /chat.scheduledMessages.list"
+   ],
+   "scopeSets": [
+    [
+     "channels:history"
+    ],
+    [
+     "groups:history"
+    ],
+    [
+     "im:history"
+    ],
+    [
+     "mpim:history"
+    ]
+   ],
+   "memberScopeSets": {
+    "GET /chat.getPermalink": [
+     []
+    ],
+    "GET /chat.scheduledMessages.list": [
+     [
+      "chat:write"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "slack.messages.search",
+   "label": "Search messages and files",
+   "effect": "read",
+   "defaultMode": "allow",
+   "requests": [
+    "GET /search.messages",
+    "GET /search.all",
+    "GET /search.files",
+    "POST /assistant.search.context",
+    "POST /assistant.search.info"
+   ],
+   "reviewedReads": [
+    "POST /assistant.search.context",
+    "POST /assistant.search.info"
+   ],
+   "scopeSets": [
+    [
+     "search:read"
+    ]
+   ],
+   "unavailable": {
+    "POST /assistant.search.context": "not-requested",
+    "POST /assistant.search.info": "not-requested"
+   }
+  },
+  {
+   "id": "slack.files.read",
+   "label": "Access files, canvases, pins and reactions",
+   "effect": "read",
+   "defaultMode": "allow",
+   "requests": [
+    "GET /files.info",
+    "GET /files.list",
+    "POST /canvases.getContent",
+    "POST /canvases.sections.lookup",
+    "GET /pins.list",
+    "GET /reactions.get",
+    "GET /reactions.list",
+    "POST /bookmarks.list"
+   ],
+   "reviewedReads": [
+    "POST /canvases.getContent",
+    "POST /canvases.sections.lookup",
+    "POST /bookmarks.list"
+   ],
+   "memberScopeSets": {
+    "GET /files.info": [
+     [
+      "files:read"
+     ]
+    ],
+    "GET /files.list": [
+     [
+      "files:read"
+     ]
+    ],
+    "POST /canvases.getContent": [
+     [
+      "canvases:read"
+     ]
+    ],
+    "POST /canvases.sections.lookup": [
+     [
+      "canvases:read"
+     ]
+    ],
+    "GET /pins.list": [
+     [
+      "pins:read"
+     ]
+    ],
+    "GET /reactions.get": [
+     [
+      "reactions:read"
+     ]
+    ],
+    "GET /reactions.list": [
+     [
+      "reactions:read"
+     ]
+    ],
+    "POST /bookmarks.list": [
+     [
+      "bookmarks:read"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "slack.workspace.read",
+   "label": "Access profiles, user groups and workspace details",
+   "effect": "read",
+   "defaultMode": "allow",
+   "requests": [
+    "GET /users.profile.get",
+    "GET /team.profile.get",
+    "GET /users.lookupByEmail",
+    "GET /usergroups.list",
+    "GET /usergroups.users.list",
+    "GET /team.info",
+    "GET /emoji.list",
+    "GET /dnd.info",
+    "GET /dnd.teamInfo"
+   ],
+   "memberScopeSets": {
+    "GET /users.profile.get": [
+     [
+      "users.profile:read"
+     ]
+    ],
+    "GET /team.profile.get": [
+     [
+      "users.profile:read"
+     ]
+    ],
+    "GET /users.lookupByEmail": [
+     [
+      "users:read.email"
+     ]
+    ],
+    "GET /usergroups.list": [
+     [
+      "usergroups:read"
+     ]
+    ],
+    "GET /usergroups.users.list": [
+     [
+      "usergroups:read"
+     ]
+    ],
+    "GET /team.info": [
+     [
+      "team:read"
+     ]
+    ],
+    "GET /emoji.list": [
+     [
+      "emoji:read"
+     ]
+    ],
+    "GET /dnd.info": [
+     [
+      "dnd:read"
+     ]
+    ],
+    "GET /dnd.teamInfo": [
+     [
+      "dnd:read"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "slack.messages.send",
+   "label": "Send, edit and react to messages",
+   "effect": "write",
+   "defaultMode": "ask",
+   "audience": true,
+   "requests": [
+    "POST /chat.postMessage",
+    "POST /chat.postEphemeral",
+    "POST /chat.meMessage",
+    "POST /chat.scheduleMessage",
+    "POST /chat.update",
+    "POST /reactions.add",
+    "POST /reactions.remove",
+    "POST /pins.add",
+    "POST /pins.remove",
+    "POST /chat.deleteScheduledMessage"
+   ],
+   "scopeSets": [
+    [
+     "chat:write"
+    ]
+   ],
+   "memberScopeSets": {
+    "POST /reactions.add": [
+     [
+      "reactions:write"
+     ]
+    ],
+    "POST /reactions.remove": [
+     [
+      "reactions:write"
+     ]
+    ],
+    "POST /pins.add": [
+     [
+      "pins:write"
+     ]
+    ],
+    "POST /pins.remove": [
+     [
+      "pins:write"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "slack.files.write",
+   "label": "Upload and share files and canvases",
+   "effect": "write",
+   "defaultMode": "ask",
+   "audience": true,
+   "requests": [
+    "POST /files.getUploadURLExternal",
+    "POST /files.completeUploadExternal",
+    "POST /files.sharedPublicURL",
+    "POST /files.revokePublicURL",
+    "POST /canvases.create",
+    "POST /canvases.edit",
+    "POST /conversations.canvases.create",
+    "POST /canvases.access.set",
+    "POST /canvases.access.delete"
+   ],
+   "scopeSets": [
+    [
+     "files:write"
+    ]
+   ],
+   "memberScopeSets": {
+    "POST /canvases.create": [
+     [
+      "canvases:write"
+     ]
+    ],
+    "POST /canvases.edit": [
+     [
+      "canvases:write"
+     ]
+    ],
+    "POST /conversations.canvases.create": [
+     [
+      "canvases:write"
+     ]
+    ],
+    "POST /canvases.access.set": [
+     [
+      "canvases:write"
+     ]
+    ],
+    "POST /canvases.access.delete": [
+     [
+      "canvases:write"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "slack.channels.manage",
+   "label": "Manage channels and user groups",
+   "effect": "write",
+   "defaultMode": "ask",
+   "audience": true,
+   "requests": [
+    "POST /conversations.create",
+    "POST /conversations.join",
+    "POST /conversations.leave",
+    "POST /conversations.invite",
+    "POST /conversations.kick",
+    "POST /conversations.rename",
+    "POST /conversations.setTopic",
+    "POST /conversations.setPurpose",
+    "POST /conversations.archive",
+    "POST /conversations.unarchive",
+    "POST /bookmarks.add",
+    "POST /bookmarks.edit",
+    "POST /bookmarks.remove",
+    "POST /usergroups.create",
+    "POST /usergroups.update",
+    "POST /usergroups.enable",
+    "POST /usergroups.disable",
+    "POST /usergroups.users.update"
+   ],
+   "scopeSets": [
+    [
+     "channels:write"
+    ],
+    [
+     "groups:write"
+    ],
+    [
+     "im:write"
+    ],
+    [
+     "mpim:write"
+    ]
+   ],
+   "memberScopeSets": {
+    "POST /conversations.create": [
+     [
+      "channels:write"
+     ],
+     [
+      "groups:write"
+     ]
+    ],
+    "POST /conversations.join": [
+     [
+      "channels:write"
+     ]
+    ],
+    "POST /bookmarks.add": [
+     [
+      "bookmarks:write"
+     ]
+    ],
+    "POST /bookmarks.edit": [
+     [
+      "bookmarks:write"
+     ]
+    ],
+    "POST /bookmarks.remove": [
+     [
+      "bookmarks:write"
+     ]
+    ],
+    "POST /usergroups.create": [
+     [
+      "usergroups:write"
+     ]
+    ],
+    "POST /usergroups.update": [
+     [
+      "usergroups:write"
+     ]
+    ],
+    "POST /usergroups.enable": [
+     [
+      "usergroups:write"
+     ]
+    ],
+    "POST /usergroups.disable": [
+     [
+      "usergroups:write"
+     ]
+    ],
+    "POST /usergroups.users.update": [
+     [
+      "usergroups:write"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "slack.conversations.mark",
+   "label": "Mark as read and open direct messages",
+   "effect": "write",
+   "defaultMode": "allow",
+   "stayInAccount": true,
+   "requests": [
+    "POST /conversations.mark",
+    "POST /conversations.open",
+    "POST /conversations.close"
+   ],
+   "scopeSets": [
+    [
+     "channels:write"
+    ],
+    [
+     "groups:write"
+    ],
+    [
+     "im:write"
+    ],
+    [
+     "mpim:write"
+    ]
+   ],
+   "memberScopeSets": {
+    "POST /conversations.open": [
+     [
+      "im:write"
+     ],
+     [
+      "mpim:write"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "slack.profile.write",
+   "label": "Update your profile, status and Do Not Disturb",
+   "effect": "write",
+   "defaultMode": "ask",
+   "requests": [
+    "POST /users.profile.set",
+    "POST /users.setPhoto",
+    "POST /users.setPresence",
+    "POST /dnd.setSnooze",
+    "POST /dnd.endSnooze",
+    "POST /dnd.endDnd",
+    "POST /users.deletePhoto"
+   ],
+   "memberScopeSets": {
+    "POST /users.profile.set": [
+     [
+      "users.profile:write"
+     ]
+    ],
+    "POST /users.setPhoto": [
+     [
+      "users.profile:write"
+     ]
+    ],
+    "POST /users.deletePhoto": [
+     [
+      "users.profile:write"
+     ]
+    ],
+    "POST /users.setPresence": [
+     [
+      "users:write"
+     ]
+    ],
+    "POST /dnd.setSnooze": [
+     [
+      "dnd:write"
+     ]
+    ],
+    "POST /dnd.endSnooze": [
+     [
+      "dnd:write"
+     ]
+    ],
+    "POST /dnd.endDnd": [
+     [
+      "dnd:write"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "slack.permanent.delete",
+   "label": "Permanently delete messages, files and canvases",
+   "effect": "delete",
+   "defaultMode": "deny",
+   "requests": [
+    "POST /chat.delete",
+    "POST /files.delete",
+    "POST /files.comments.delete",
+    "POST /canvases.delete"
+   ],
+   "memberScopeSets": {
+    "POST /chat.delete": [
+     [
+      "chat:write"
+     ]
+    ],
+    "POST /files.delete": [
+     [
+      "files:write"
+     ]
+    ],
+    "POST /files.comments.delete": [
+     [
+      "files:write"
+     ]
+    ],
+    "POST /canvases.delete": [
+     [
+      "canvases:write"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "slack.admin",
+   "label": "Workspace admin, app setup and retired methods",
+   "effect": "write",
+   "defaultMode": "deny",
+   "requests": [
+    "GET /admin.analytics.getFile",
+    "GET /admin.analytics.messages.activity",
+    "GET /admin.analytics.messages.metadata",
+    "POST /admin.apps.activities.list",
+    "POST /admin.apps.approve",
+    "GET /admin.apps.approved.list",
+    "POST /admin.apps.clearResolution",
+    "POST /admin.apps.config.lookup",
+    "POST /admin.apps.config.set",
+    "POST /admin.apps.mcp.servers.list",
+    "POST /admin.apps.mcp.servers.permissions.list",
+    "POST /admin.apps.mcp.servers.permissions.set",
+    "POST /admin.apps.permissions.add",
+    "POST /admin.apps.permissions.list",
+    "POST /admin.apps.permissions.remove",
+    "POST /admin.apps.permissions.set",
+    "POST /admin.apps.requests.cancel",
+    "GET /admin.apps.requests.list",
+    "POST /admin.apps.restrict",
+    "GET /admin.apps.restricted.list",
+    "POST /admin.apps.uninstall",
+    "POST /admin.audit.anomaly.allow.getItem",
+    "POST /admin.audit.anomaly.allow.updateItem",
+    "POST /admin.auth.policy.assignEntities",
+    "POST /admin.auth.policy.getEntities",
+    "POST /admin.auth.policy.removeEntities",
+    "POST /admin.barriers.create",
+    "POST /admin.barriers.delete",
+    "GET /admin.barriers.list",
+    "POST /admin.barriers.update",
+    "POST /admin.conversations.archive",
+    "POST /admin.conversations.bulkArchive",
+    "POST /admin.conversations.bulkDelete",
+    "POST /admin.conversations.bulkMove",
+    "GET /admin.conversations.bulkSetExcludeFromSlackAi",
+    "POST /admin.conversations.bulkSetProperties",
+    "POST /admin.conversations.convertToPrivate",
+    "POST /admin.conversations.convertToPublic",
+    "POST /admin.conversations.create",
+    "POST /admin.conversations.createForObjects",
+    "POST /admin.conversations.delete",
+    "POST /admin.conversations.disconnectShared",
+    "GET /admin.conversations.ekm.listOriginalConnectedChannelInfo",
+    "GET /admin.conversations.getConversationPrefs",
+    "POST /admin.conversations.getCustomRetention",
+    "GET /admin.conversations.getTeams",
+    "POST /admin.conversations.invite",
+    "POST /admin.conversations.linkObjects",
+    "POST /admin.conversations.lookup",
+    "POST /admin.conversations.removeCustomRetention",
+    "POST /admin.conversations.rename",
+    "POST /admin.conversations.restrictAccess.addGroup",
+    "GET /admin.conversations.restrictAccess.listGroups",
+    "POST /admin.conversations.restrictAccess.removeGroup",
+    "GET /admin.conversations.search",
+    "POST /admin.conversations.setConversationPrefs",
+    "POST /admin.conversations.setCustomRetention",
+    "POST /admin.conversations.setTeams",
+    "POST /admin.conversations.unarchive",
+    "POST /admin.conversations.unlinkObjects",
+    "POST /admin.emoji.add",
+    "POST /admin.emoji.addAlias",
+    "GET /admin.emoji.list",
+    "POST /admin.emoji.remove",
+    "POST /admin.emoji.rename",
+    "POST /admin.functions.list",
+    "POST /admin.functions.permissions.lookup",
+    "POST /admin.functions.permissions.set",
+    "POST /admin.inviteRequests.approve",
+    "GET /admin.inviteRequests.approved.list",
+    "GET /admin.inviteRequests.denied.list",
+    "POST /admin.inviteRequests.deny",
+    "GET /admin.inviteRequests.list",
+    "POST /admin.roles.addAssignments",
+    "GET /admin.roles.listAssignments",
+    "POST /admin.roles.removeAssignments",
+    "GET /admin.teams.admins.list",
+    "POST /admin.teams.create",
+    "GET /admin.teams.list",
+    "GET /admin.teams.owners.list",
+    "GET /admin.teams.settings.info",
+    "POST /admin.teams.settings.setDefaultChannels",
+    "POST /admin.teams.settings.setDescription",
+    "POST /admin.teams.settings.setDiscoverability",
+    "POST /admin.teams.settings.setIcon",
+    "POST /admin.teams.settings.setName",
+    "POST /admin.usergroups.addChannels",
+    "POST /admin.usergroups.addTeams",
+    "POST /admin.usergroups.addUsers",
+    "POST /admin.usergroups.create",
+    "POST /admin.usergroups.fetch",
+    "GET /admin.usergroups.listChannels",
+    "POST /admin.usergroups.removeChannels",
+    "POST /admin.usergroups.removeTeams",
+    "POST /admin.usergroups.removeUsers",
+    "POST /admin.usergroups.update",
+    "POST /admin.usergroups.uploadUsers",
+    "POST /admin.users.assign",
+    "GET /admin.users.getExpiration",
+    "POST /admin.users.invite",
+    "GET /admin.users.list",
+    "POST /admin.users.remove",
+    "POST /admin.users.session.clearSettings",
+    "POST /admin.users.session.getSettings",
+    "POST /admin.users.session.invalidate",
+    "POST /admin.users.session.list",
+    "POST /admin.users.session.reset",
+    "POST /admin.users.session.resetBulk",
+    "POST /admin.users.session.setSettings",
+    "POST /admin.users.setAdmin",
+    "POST /admin.users.setExpiration",
+    "POST /admin.users.setOwner",
+    "POST /admin.users.setRegular",
+    "POST /admin.users.unsupportedVersions.export",
+    "POST /admin.workflows.collaborators.add",
+    "POST /admin.workflows.collaborators.remove",
+    "POST /admin.workflows.permissions.lookup",
+    "POST /admin.workflows.search",
+    "POST /admin.workflows.triggers.types.permissions.lookup",
+    "POST /admin.workflows.triggers.types.permissions.set",
+    "POST /admin.workflows.unpublish",
+    "POST /apps.activities.list",
+    "POST /apps.auth.external.delete",
+    "POST /apps.auth.external.get",
+    "POST /apps.connections.open",
+    "POST /apps.datastore.bulkDelete",
+    "POST /apps.datastore.bulkGet",
+    "POST /apps.datastore.bulkPut",
+    "POST /apps.datastore.count",
+    "POST /apps.datastore.delete",
+    "POST /apps.datastore.get",
+    "POST /apps.datastore.put",
+    "POST /apps.datastore.query",
+    "POST /apps.datastore.update",
+    "GET /apps.event.authorizations.list",
+    "POST /apps.icon.set",
+    "POST /apps.managed.permissions.set",
+    "POST /apps.manifest.create",
+    "POST /apps.manifest.delete",
+    "POST /apps.manifest.export",
+    "POST /apps.manifest.update",
+    "POST /apps.manifest.validate",
+    "GET /apps.permissions.info",
+    "GET /apps.permissions.request",
+    "GET /apps.permissions.resources.list",
+    "GET /apps.permissions.scopes.list",
+    "GET /apps.permissions.users.list",
+    "GET /apps.permissions.users.request",
+    "GET /apps.uninstall",
+    "POST /apps.user.connection.update",
+    "GET /auth.revoke",
+    "GET /conversations.declineSharedInvite",
+    "GET /dialog.open",
+    "POST /files.remote.remove",
+    "GET /files.remote.share",
+    "POST /files.upload",
+    "POST /functions.completeError",
+    "POST /functions.completeSuccess",
+    "POST /functions.distributions.permissions.add",
+    "POST /functions.distributions.permissions.list",
+    "POST /functions.distributions.permissions.remove",
+    "POST /functions.distributions.permissions.set",
+    "POST /functions.workflows.steps.list",
+    "POST /functions.workflows.steps.responses.export",
+    "GET /migration.exchange",
+    "GET /oauth.access",
+    "GET /oauth.token",
+    "GET /oauth.v2.access",
+    "POST /oauth.v2.beginShortTokenRotation",
+    "POST /oauth.v2.completeShortTokenRotation",
+    "POST /oauth.v2.exchange",
+    "POST /oauth.v2.user.access",
+    "POST /openid.connect.token",
+    "POST /openid.connect.userInfo",
+    "POST /reminders.delete",
+    "GET /rtm.connect",
+    "GET /rtm.start",
+    "POST /slackLists.items.delete",
+    "POST /slackLists.items.deleteMultiple",
+    "POST /team.billing.info",
+    "POST /tooling.tokens.rotate",
+    "POST /users.discoverableContacts.lookup",
+    "GET /views.open",
+    "GET /views.publish",
+    "GET /views.push",
+    "GET /views.update",
+    "POST /workflows.featured.add",
+    "POST /workflows.featured.list",
+    "POST /workflows.featured.remove",
+    "POST /workflows.featured.set",
+    "GET /workflows.stepCompleted",
+    "GET /workflows.stepFailed",
+    "POST /workflows.triggers.permissions.add",
+    "POST /workflows.triggers.permissions.list",
+    "POST /workflows.triggers.permissions.remove",
+    "POST /workflows.triggers.permissions.set",
+    "GET /workflows.updateStep"
+   ],
+   "memberScopeSets": {
+    "POST /apps.auth.external.delete": [
+     []
+    ],
+    "POST /apps.auth.external.get": [
+     []
+    ],
+    "POST /apps.user.connection.update": [
+     [
+      "users:write"
+     ]
+    ],
+    "GET /auth.revoke": [
+     []
+    ],
+    "GET /dialog.open": [
+     []
+    ],
+    "POST /functions.completeError": [
+     []
+    ],
+    "POST /functions.completeSuccess": [
+     []
+    ],
+    "POST /functions.workflows.steps.list": [
+     []
+    ],
+    "POST /functions.workflows.steps.responses.export": [
+     []
+    ],
+    "GET /views.open": [
+     []
+    ],
+    "GET /views.publish": [
+     []
+    ],
+    "GET /views.push": [
+     []
+    ],
+    "GET /views.update": [
+     []
+    ],
+    "POST /workflows.featured.add": [
+     [
+      "bookmarks:write"
+     ]
+    ],
+    "POST /workflows.featured.list": [
+     [
+      "bookmarks:read"
+     ]
+    ],
+    "POST /workflows.featured.remove": [
+     [
+      "bookmarks:write"
+     ]
+    ],
+    "POST /workflows.featured.set": [
+     [
+      "bookmarks:write"
+     ]
+    ]
+   },
+   "unavailable": {
+    "GET /admin.analytics.getFile": "not-requested",
+    "GET /admin.analytics.messages.activity": "not-requested",
+    "GET /admin.analytics.messages.metadata": "not-requested",
+    "POST /admin.apps.activities.list": "not-requested",
+    "POST /admin.apps.approve": "not-requested",
+    "GET /admin.apps.approved.list": "not-requested",
+    "POST /admin.apps.clearResolution": "not-requested",
+    "POST /admin.apps.config.lookup": "not-requested",
+    "POST /admin.apps.config.set": "not-requested",
+    "POST /admin.apps.mcp.servers.list": "not-requested",
+    "POST /admin.apps.mcp.servers.permissions.list": "not-requested",
+    "POST /admin.apps.mcp.servers.permissions.set": "not-requested",
+    "POST /admin.apps.permissions.add": "not-requested",
+    "POST /admin.apps.permissions.list": "not-requested",
+    "POST /admin.apps.permissions.remove": "not-requested",
+    "POST /admin.apps.permissions.set": "not-requested",
+    "POST /admin.apps.requests.cancel": "not-requested",
+    "GET /admin.apps.requests.list": "not-requested",
+    "POST /admin.apps.restrict": "not-requested",
+    "GET /admin.apps.restricted.list": "not-requested",
+    "POST /admin.apps.uninstall": "not-requested",
+    "POST /admin.audit.anomaly.allow.getItem": "not-requested",
+    "POST /admin.audit.anomaly.allow.updateItem": "not-requested",
+    "POST /admin.auth.policy.assignEntities": "not-requested",
+    "POST /admin.auth.policy.getEntities": "not-requested",
+    "POST /admin.auth.policy.removeEntities": "not-requested",
+    "POST /admin.barriers.create": "not-requested",
+    "POST /admin.barriers.delete": "not-requested",
+    "GET /admin.barriers.list": "not-requested",
+    "POST /admin.barriers.update": "not-requested",
+    "POST /admin.conversations.archive": "not-requested",
+    "POST /admin.conversations.bulkArchive": "not-requested",
+    "POST /admin.conversations.bulkDelete": "not-requested",
+    "POST /admin.conversations.bulkMove": "not-requested",
+    "GET /admin.conversations.bulkSetExcludeFromSlackAi": "not-requested",
+    "POST /admin.conversations.bulkSetProperties": "not-requested",
+    "POST /admin.conversations.convertToPrivate": "not-requested",
+    "POST /admin.conversations.convertToPublic": "not-requested",
+    "POST /admin.conversations.create": "not-requested",
+    "POST /admin.conversations.createForObjects": "not-requested",
+    "POST /admin.conversations.delete": "not-requested",
+    "POST /admin.conversations.disconnectShared": "not-requested",
+    "GET /admin.conversations.ekm.listOriginalConnectedChannelInfo": "not-requested",
+    "GET /admin.conversations.getConversationPrefs": "not-requested",
+    "POST /admin.conversations.getCustomRetention": "not-requested",
+    "GET /admin.conversations.getTeams": "not-requested",
+    "POST /admin.conversations.invite": "not-requested",
+    "POST /admin.conversations.linkObjects": "not-requested",
+    "POST /admin.conversations.lookup": "not-requested",
+    "POST /admin.conversations.removeCustomRetention": "not-requested",
+    "POST /admin.conversations.rename": "not-requested",
+    "POST /admin.conversations.restrictAccess.addGroup": "not-requested",
+    "GET /admin.conversations.restrictAccess.listGroups": "not-requested",
+    "POST /admin.conversations.restrictAccess.removeGroup": "not-requested",
+    "GET /admin.conversations.search": "not-requested",
+    "POST /admin.conversations.setConversationPrefs": "not-requested",
+    "POST /admin.conversations.setCustomRetention": "not-requested",
+    "POST /admin.conversations.setTeams": "not-requested",
+    "POST /admin.conversations.unarchive": "not-requested",
+    "POST /admin.conversations.unlinkObjects": "not-requested",
+    "POST /admin.emoji.add": "not-requested",
+    "POST /admin.emoji.addAlias": "not-requested",
+    "GET /admin.emoji.list": "not-requested",
+    "POST /admin.emoji.remove": "not-requested",
+    "POST /admin.emoji.rename": "not-requested",
+    "POST /admin.functions.list": "not-requested",
+    "POST /admin.functions.permissions.lookup": "not-requested",
+    "POST /admin.functions.permissions.set": "not-requested",
+    "POST /admin.inviteRequests.approve": "not-requested",
+    "GET /admin.inviteRequests.approved.list": "not-requested",
+    "GET /admin.inviteRequests.denied.list": "not-requested",
+    "POST /admin.inviteRequests.deny": "not-requested",
+    "GET /admin.inviteRequests.list": "not-requested",
+    "POST /admin.roles.addAssignments": "not-requested",
+    "GET /admin.roles.listAssignments": "not-requested",
+    "POST /admin.roles.removeAssignments": "not-requested",
+    "GET /admin.teams.admins.list": "not-requested",
+    "POST /admin.teams.create": "not-requested",
+    "GET /admin.teams.list": "not-requested",
+    "GET /admin.teams.owners.list": "not-requested",
+    "GET /admin.teams.settings.info": "not-requested",
+    "POST /admin.teams.settings.setDefaultChannels": "not-requested",
+    "POST /admin.teams.settings.setDescription": "not-requested",
+    "POST /admin.teams.settings.setDiscoverability": "not-requested",
+    "POST /admin.teams.settings.setIcon": "not-requested",
+    "POST /admin.teams.settings.setName": "not-requested",
+    "POST /admin.usergroups.addChannels": "not-requested",
+    "POST /admin.usergroups.addTeams": "not-requested",
+    "POST /admin.usergroups.addUsers": "not-requested",
+    "POST /admin.usergroups.create": "not-requested",
+    "POST /admin.usergroups.fetch": "not-requested",
+    "GET /admin.usergroups.listChannels": "not-requested",
+    "POST /admin.usergroups.removeChannels": "not-requested",
+    "POST /admin.usergroups.removeTeams": "not-requested",
+    "POST /admin.usergroups.removeUsers": "not-requested",
+    "POST /admin.usergroups.update": "not-requested",
+    "POST /admin.usergroups.uploadUsers": "not-requested",
+    "POST /admin.users.assign": "not-requested",
+    "GET /admin.users.getExpiration": "not-requested",
+    "POST /admin.users.invite": "not-requested",
+    "GET /admin.users.list": "not-requested",
+    "POST /admin.users.remove": "not-requested",
+    "POST /admin.users.session.clearSettings": "not-requested",
+    "POST /admin.users.session.getSettings": "not-requested",
+    "POST /admin.users.session.invalidate": "not-requested",
+    "POST /admin.users.session.list": "not-requested",
+    "POST /admin.users.session.reset": "not-requested",
+    "POST /admin.users.session.resetBulk": "not-requested",
+    "POST /admin.users.session.setSettings": "not-requested",
+    "POST /admin.users.setAdmin": "not-requested",
+    "POST /admin.users.setExpiration": "not-requested",
+    "POST /admin.users.setOwner": "not-requested",
+    "POST /admin.users.setRegular": "not-requested",
+    "POST /admin.users.unsupportedVersions.export": "not-requested",
+    "POST /admin.workflows.collaborators.add": "not-requested",
+    "POST /admin.workflows.collaborators.remove": "not-requested",
+    "POST /admin.workflows.permissions.lookup": "not-requested",
+    "POST /admin.workflows.search": "not-requested",
+    "POST /admin.workflows.triggers.types.permissions.lookup": "not-requested",
+    "POST /admin.workflows.triggers.types.permissions.set": "not-requested",
+    "POST /admin.workflows.unpublish": "not-requested",
+    "POST /apps.activities.list": "not-requested",
+    "POST /apps.connections.open": "client-credentials-only",
+    "POST /apps.datastore.bulkDelete": "bot-token-only",
+    "POST /apps.datastore.bulkGet": "bot-token-only",
+    "POST /apps.datastore.bulkPut": "bot-token-only",
+    "POST /apps.datastore.count": "bot-token-only",
+    "POST /apps.datastore.delete": "bot-token-only",
+    "POST /apps.datastore.get": "bot-token-only",
+    "POST /apps.datastore.put": "bot-token-only",
+    "POST /apps.datastore.query": "bot-token-only",
+    "POST /apps.datastore.update": "bot-token-only",
+    "GET /apps.event.authorizations.list": "client-credentials-only",
+    "POST /apps.icon.set": "not-requested",
+    "POST /apps.managed.permissions.set": "client-credentials-only",
+    "POST /apps.manifest.create": "client-credentials-only",
+    "POST /apps.manifest.delete": "client-credentials-only",
+    "POST /apps.manifest.export": "client-credentials-only",
+    "POST /apps.manifest.update": "client-credentials-only",
+    "POST /apps.manifest.validate": "client-credentials-only",
+    "GET /apps.permissions.info": "no-oauth-scope",
+    "GET /apps.permissions.request": "no-oauth-scope",
+    "GET /apps.permissions.resources.list": "no-oauth-scope",
+    "GET /apps.permissions.scopes.list": "no-oauth-scope",
+    "GET /apps.permissions.users.list": "no-oauth-scope",
+    "GET /apps.permissions.users.request": "no-oauth-scope",
+    "GET /apps.uninstall": "client-credentials-only",
+    "GET /conversations.declineSharedInvite": "bot-token-only",
+    "POST /files.remote.remove": "bot-token-only",
+    "GET /files.remote.share": "not-requested",
+    "POST /files.upload": "no-oauth-scope",
+    "POST /functions.distributions.permissions.add": "client-credentials-only",
+    "POST /functions.distributions.permissions.list": "client-credentials-only",
+    "POST /functions.distributions.permissions.remove": "client-credentials-only",
+    "POST /functions.distributions.permissions.set": "client-credentials-only",
+    "GET /migration.exchange": "not-requested",
+    "GET /oauth.access": "client-credentials-only",
+    "GET /oauth.token": "client-credentials-only",
+    "GET /oauth.v2.access": "client-credentials-only",
+    "POST /oauth.v2.beginShortTokenRotation": "client-credentials-only",
+    "POST /oauth.v2.completeShortTokenRotation": "client-credentials-only",
+    "POST /oauth.v2.exchange": "client-credentials-only",
+    "POST /oauth.v2.user.access": "client-credentials-only",
+    "POST /openid.connect.token": "client-credentials-only",
+    "POST /openid.connect.userInfo": "not-requested",
+    "POST /reminders.delete": "not-requested",
+    "GET /rtm.connect": "no-oauth-scope",
+    "GET /rtm.start": "no-oauth-scope",
+    "POST /slackLists.items.delete": "not-requested",
+    "POST /slackLists.items.deleteMultiple": "not-requested",
+    "POST /team.billing.info": "not-requested",
+    "POST /tooling.tokens.rotate": "client-credentials-only",
+    "POST /users.discoverableContacts.lookup": "bot-token-only",
+    "GET /workflows.stepCompleted": "no-oauth-scope",
+    "GET /workflows.stepFailed": "no-oauth-scope",
+    "POST /workflows.triggers.permissions.add": "bot-token-only",
+    "POST /workflows.triggers.permissions.list": "bot-token-only",
+    "POST /workflows.triggers.permissions.remove": "bot-token-only",
+    "POST /workflows.triggers.permissions.set": "bot-token-only",
+    "GET /workflows.updateStep": "no-oauth-scope"
+   }
+  }
+ ]
+}

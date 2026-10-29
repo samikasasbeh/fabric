@@ -1,0 +1,150 @@
+{
+  "schemaVersion": 1,
+  "providerId": "google",
+  "displayName": "Google",
+  "reviewStatus": "reviewed",
+  "credentialEnvironment": {
+    "clientId": "FABRIC_GOOGLE_CLIENT_ID",
+    "clientSecret": "FABRIC_GOOGLE_CLIENT_SECRET"
+  },
+  "authorization": {
+    "url": "https://accounts.google.com/o/oauth2/v2/auth",
+    "pkce": "S256",
+    "scopeParameter": "scope",
+    "userScopeParameter": null,
+    "loopbackRedirect": "allowed",
+    "scopeSeparator": " ",
+    "identityScopes": [
+      "openid",
+      "email"
+    ],
+    "extraParameters": {
+      "access_type": "offline",
+      "prompt": "consent"
+    }
+  },
+  "token": {
+    "url": "https://oauth2.googleapis.com/token",
+    "encoding": "form",
+    "clientAuthentication": "body",
+    "responseFormat": "oauth2",
+    "scopeSeparator": " ",
+    "acceptedTokenTypes": [
+      "bearer"
+    ],
+    "reconnectErrors": [
+      "invalid_grant",
+      "invalid_token"
+    ],
+    "requireExpiry": true,
+    "maxLifetimeSeconds": 86400,
+    "quirks": {
+      "errorInSuccessBody": false,
+      "errorCodeField": "error",
+      "nullRefreshMeansNone": false,
+      "basicEncoding": "form-urlencoded"
+    }
+  },
+  "refresh": {
+    "supported": true,
+    "keepPreviousWhenOmitted": true
+  },
+  "revocation": {
+    "url": "https://oauth2.googleapis.com/revoke",
+    "method": "POST",
+    "encoding": "form",
+    "clientAuthentication": "none",
+    "tokenParameter": "token",
+    "preferredToken": "refresh",
+    "successStatuses": [
+      200
+    ],
+    "successRequire": [],
+    "covers": "grant"
+  },
+  "apiHeaders": {},
+  "identity": {
+    "request": {
+      "url": "https://openidconnect.googleapis.com/v1/userinfo",
+      "method": "GET",
+      "headers": {},
+      "body": "none"
+    },
+    "require": [],
+    "requireFailure": "unverifiable",
+    "id": {
+      "pointers": [
+        "/sub"
+      ],
+      "separator": "",
+      "allowNumbers": false
+    },
+    "alternateId": null,
+    "displayName": {
+      "pointers": [
+        "/email",
+        "/name"
+      ],
+      "fallback": "Google account"
+    },
+    "email": "/email",
+    "attributes": {}
+  },
+  "apps": [
+    {
+      "appId": "google-calendar",
+      "scopes": {
+        "read": [
+          "https://www.googleapis.com/auth/calendar.calendarlist.readonly",
+          "https://www.googleapis.com/auth/calendar.events.readonly"
+        ],
+        "write": [
+          "https://www.googleapis.com/auth/calendar.calendarlist.readonly",
+          "https://www.googleapis.com/auth/calendar.events"
+        ]
+      },
+      "userScopes": {
+        "read": [],
+        "write": []
+      },
+      "upgradeScopes": {
+        "prefixes": [
+          "https://www.googleapis.com/auth/calendar"
+        ],
+        "exact": []
+      },
+      "accessProbe": {
+        "url": "https://www.googleapis.com/calendar/v3/users/me/calendarList?maxResults=1&fields=kind",
+        "method": "GET"
+      }
+    },
+    {
+      "appId": "gmail",
+      "scopes": {
+        "read": [
+          "https://www.googleapis.com/auth/gmail.readonly"
+        ],
+        "write": [
+          "https://www.googleapis.com/auth/gmail.readonly",
+          "https://www.googleapis.com/auth/gmail.compose"
+        ]
+      },
+      "userScopes": {
+        "read": [],
+        "write": []
+      },
+      "upgradeScopes": {
+        "prefixes": [
+          "https://www.googleapis.com/auth/gmail."
+        ],
+        "exact": [
+          "https://mail.google.com/"
+        ]
+      },
+      "accessProbe": {
+        "url": "https://gmail.googleapis.com/gmail/v1/users/me/profile?fields=emailAddress",
+        "method": "GET"
+      }
+    }
+  ]
+}

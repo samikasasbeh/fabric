@@ -1,0 +1,16 @@
+{
+ "schemaVersion": 1,
+ "appId": "fixture-rpc",
+ "apiBase": "https://rpc.fixture.test/api",
+ "style": "rpc",
+ "pathPrefixes": ["/"],
+ "acceptTypes": ["application/json"],
+ "reservedParameters": ["token"],
+ "reservedBodyFields": ["token"],
+ "arrayParameters": [],
+ "aliases": [],
+ "inheritFamilies": [],
+ "documentedRoutes": null,
+ "proxyAllowable": [],
+ "typedOnly": []
+}

@@ -1,0 +1,30 @@
+{
+ "schemaVersion": 1,
+ "appId": "google-calendar",
+ "apiBase": "https://www.googleapis.com/calendar/v3",
+ "style": "rest",
+ "pathPrefixes": [
+  "/"
+ ],
+ "acceptTypes": [
+  "application/json"
+ ],
+ "reservedParameters": [
+  "key",
+  "quotaUser",
+  "userIp"
+ ],
+ "reservedBodyFields": [],
+ "arrayParameters": [
+  "eventTypes",
+  "privateExtendedProperty",
+  "sharedExtendedProperty"
+ ],
+ "aliases": [],
+ "inheritFamilies": [],
+ "documentedRoutes": null,
+ "proxyAllowable": [
+  "google-calendar.calendarlist.write"
+ ],
+ "typedOnly": []
+}

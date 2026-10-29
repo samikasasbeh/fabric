@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Saved browser connections · Fabric</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header><span class="brand" aria-hidden="true">F</span><div><h1>Fabric browser helper</h1><p>Connections saved in this browser profile.</p></div></header>
+  <button id="open-fabric" type="button">Open Fabric</button>
+  <p class="hint">Choose an app in Fabric, then approve its connection. You can close app tabs; an approved read can reopen a tab in this browser profile. Opening a tab does not sign you in.</p>
+  <section id="saved-section" class="panel" aria-labelledby="saved-label" hidden>
+    <h2 id="saved-label">Saved app connections</h2>
+    <div id="saved-connections"></div>
+  </section>
+  <section class="panel" aria-labelledby="target-label">
+    <h2 id="target-label">Selected tab</h2>
+    <strong id="tab-title">Checking this tab…</strong>
+    <p id="tab-origin" class="origin"></p>
+    <p id="tab-help" class="hint">Open the application tab, then click the Fabric extension there.</p>
+  </section>
+  <details>
+  <summary>Advanced recovery</summary>
+  <form id="pair-form">
+    <label for="code">Pairing code from Fabric</label>
+    <input id="code" autocomplete="off" spellcheck="false" maxlength="12" required pattern="[A-Fa-f0-9]{12}" aria-describedby="code-help" placeholder="12-character code">
+    <p id="code-help" class="hint">Tab-only recovery: this older route stops working when the selected tab closes. It does not create a saved app connection. Otherwise choose Open Fabric above.</p>
+    <p id="replace-note" class="notice" hidden>A recovery pairing replaces only the previous tab-only pairing. Saved app connections stay connected. Revoke the old tab-only connection in Fabric.</p>
+    <button id="pair" type="submit" disabled>Pair this tab only</button>
+  </form>
+  </details>
+  <section id="paired-section" class="panel" aria-labelledby="paired-label" hidden>
+    <h2 id="paired-label">Older tab-only pairing</h2>
+    <strong id="paired-origin" class="origin"></strong>
+    <p id="paired-detail" class="hint"></p>
+    <p id="last-check" class="hint"></p>
+    <button id="check" type="button">Check for a requested operation</button>
+    <button id="disconnect" type="button" class="subtle">Remove this tab-only pairing</button>
+  </section>
+  <p id="status" role="status" aria-live="polite"></p>
+  <details>
+    <summary>What can Fabric do?</summary>
+    <ul>
+      <li>Read rendered page text and discover a limited list of currently visible controls, or read one selected page element.</li>
+      <li>After inspection and separate exact-action approval in Fabric, click a discovered control or fill a non-sensitive field. This can change application data; a dispatched action does not prove the change was saved.</li>
+      <li>It does not access cookies or password fields. Read text can still contain private information.</li>
+      <li>Saved connections authorize the app’s origin in this browser profile, not a verified account identity. Browser reads need an authorized request in Fabric.</li>
+    </ul>
+    <p class="hint">Keep the browser and Fabric running. Checks normally happen every 30 seconds and do not open tabs. Up to three helper-owned execution tabs can be open; unused tabs close after three minutes unless you activate or navigate them. A sleeping computer cannot respond.</p>
+  </details>
+  <footer>Local Fabric: <span class="origin">127.0.0.1:4188</span></footer>
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,110 @@
+{
+ "openapi": "3.1.0",
+ "info": {
+  "title": "Fabric coverage fixture, OpenAPI 3.1",
+  "version": "1",
+  "description": "Written by hand for Fabric's compiler-coverage tests."
+ },
+ "servers": [
+  {
+   "url": "https://api.coverage.example.com/v1"
+  }
+ ],
+ "paths": {
+  "/type-array": {
+   "get": {
+    "operationId": "typeArrayRequired",
+    "summary": "typeArrayRequired",
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "id": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     }
+    },
+    "parameters": [
+     {
+      "name": "v",
+      "in": "query",
+      "required": true,
+      "schema": {
+       "type": [
+        "string",
+        "null"
+       ]
+      }
+     }
+    ]
+   }
+  },
+  "/type-array-optional": {
+   "get": {
+    "operationId": "typeArrayOptional",
+    "summary": "typeArrayOptional",
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "id": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     }
+    },
+    "parameters": [
+     {
+      "name": "v",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": [
+        "string",
+        "null"
+       ]
+      }
+     }
+    ]
+   }
+  },
+  "/plain31": {
+   "get": {
+    "operationId": "getPlain31",
+    "summary": "Get a plain item",
+    "responses": {
+     "200": {
+      "description": "OK",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "object",
+         "properties": {
+          "id": {
+           "type": "string"
+          }
+         }
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+ }
+}

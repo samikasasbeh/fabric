@@ -1,0 +1,206 @@
+{
+ "source": "The HTML Living Standard (parsing) and Fabric adversarial cases",
+ "cases": [
+  {
+   "name": "script and style are removed with their contents",
+   "source": "spec line 691; HTML Living Standard, raw text elements",
+   "transform": "html.toText@1",
+   "input": {
+    "html": "<p>Hello</p><script>alert(1)</script><style>p{color:red}</style><p>there</p>"
+   },
+   "output": {
+    "text": "Hello\n\nthere"
+   }
+  },
+  {
+   "name": "head, title and noscript go with their contents",
+   "source": "HTML Living Standard (parsing)",
+   "transform": "html.toText@1",
+   "input": {
+    "html": "<html><head><title>Subject</title></head><body>Body<noscript>Enable scripts</noscript></body></html>"
+   },
+   "output": {
+    "text": "Body"
+   }
+  },
+  {
+   "name": "template content goes, nested templates included",
+   "source": "HTML Living Standard (parsing)",
+   "transform": "html.toText@1",
+   "input": {
+    "html": "<template><p>a</p><template>b</template></template>c"
+   },
+   "output": {
+    "text": "c"
+   }
+  },
+  {
+   "name": "comments and CDATA go",
+   "source": "HTML Living Standard (parsing)",
+   "transform": "html.toText@1",
+   "input": {
+    "html": "a<!-- b -->c<![CDATA[d]]>e"
+   },
+   "output": {
+    "text": "ace"
+   }
+  },
+  {
+   "name": "named and numeric references decode",
+   "source": "HTML Living Standard (parsing)",
+   "transform": "html.toText@1",
+   "input": {
+    "html": "Fish &amp; chips &#8364;5 caf&eacute; &#x1F600;"
+   },
+   "output": {
+    "text": "Fish & chips €5 café 😀"
+   }
+  },
+  {
+   "name": "an unknown named reference stays as written",
+   "source": "Fabric adversarial",
+   "transform": "html.toText@1",
+   "input": {
+    "html": "&zzz; and &amp"
+   },
+   "output": {
+    "text": "&zzz; and &amp"
+   }
+  },
+  {
+   "name": "block elements and br become line breaks",
+   "source": "HTML Living Standard (parsing)",
+   "transform": "html.toText@1",
+   "input": {
+    "html": "<div>one</div><div>two<br>three</div>"
+   },
+   "output": {
+    "text": "one\ntwo\nthree"
+   }
+  },
+  {
+   "name": "a paragraph leaves a blank line",
+   "source": "HTML Living Standard (parsing)",
+   "transform": "html.toText@1",
+   "input": {
+    "html": "<p>a</p><p>b</p>"
+   },
+   "output": {
+    "text": "a\n\nb"
+   }
+  },
+  {
+   "name": "white space collapses outside pre and stays inside it",
+   "source": "HTML Living Standard (parsing)",
+   "transform": "html.toText@1",
+   "input": {
+    "html": "  a \n\t b <pre>  x\n  y</pre>"
+   },
+   "output": {
+    "text": "a b\n  x\n  y"
+   }
+  },
+  {
+   "name": "a less-than sign that starts no tag is text",
+   "source": "HTML Living Standard (parsing)",
+   "transform": "html.toText@1",
+   "input": {
+    "html": "1 < 2 and 3 > 2"
+   },
+   "output": {
+    "text": "1 < 2 and 3 > 2"
+   }
+  },
+  {
+   "name": "a quoted attribute value may hold a greater-than sign",
+   "source": "HTML Living Standard (parsing)",
+   "transform": "html.toText@1",
+   "input": {
+    "html": "<a title=\"a>b\">link</a>"
+   },
+   "output": {
+    "text": "link"
+   }
+  },
+  {
+   "name": "an unclosed script takes the rest",
+   "source": "Fabric adversarial",
+   "transform": "html.toText@1",
+   "input": {
+    "html": "before<script>x"
+   },
+   "output": {
+    "text": "before"
+   }
+  },
+  {
+   "name": "the output is cut at 500,000 code points",
+   "source": "Fabric adversarial",
+   "transform": "html.toText@1",
+   "input": {
+    "html": {
+     "$repeat": [
+      "a",
+      500001
+     ]
+    }
+   },
+   "expect": {
+    "/truncated": true,
+    "/text": {
+     "$repeat": [
+      "a",
+      500000
+     ]
+    }
+   }
+  },
+  {
+   "name": "an empty document gives empty text",
+   "source": "Fabric adversarial",
+   "transform": "html.toText@1",
+   "input": {
+    "html": ""
+   },
+   "output": {
+    "text": ""
+   }
+  },
+  {
+   "name": "html over 1,000,000 code points refuses",
+   "source": "Fabric adversarial",
+   "transform": "html.toText@1",
+   "input": {
+    "html": {
+     "$repeat": [
+      "a",
+      1000001
+     ]
+    }
+   },
+   "refuses": "input_invalid"
+  },
+  {
+   "name": "a comment inside a script that opens a script holds the next end tag",
+   "source": "HTML Living Standard (tokenization: the script data escaped and double escaped states)",
+   "transform": "html.toText@1",
+   "input": {
+    "html": "a<script><!--<script>x</script>hidden</script>b"
+   },
+   "output": {
+    "text": "ab"
+   }
+  },
+  {
+   "name": "HTML 4 symbol names decode",
+   "source": "HTML 4.01 (HTMLsymbol.ent) and the HTML Living Standard (named character references)",
+   "transform": "html.toText@1",
+   "input": {
+    "html": "&alpha;&Omega; &rArr; &hearts; &sdot; &lang;x&rang;"
+   },
+   "output": {
+    "text": "αΩ ⇒ ♥ ⋅ ⟨x⟩"
+   }
+  }
+ ]
+}

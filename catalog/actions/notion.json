@@ -1,0 +1,468 @@
+{
+ "schemaVersion": 1,
+ "appId": "notion",
+ "specVersion": "fabric/0.2",
+ "reviewStatus": "reviewed",
+ "pinnedParameters": {},
+ "actions": [
+  {
+   "id": "notion.action.search.v1.bfcef3a29450395009b5883d",
+   "key": "search",
+   "version": 1,
+   "name": "Search",
+   "description": "Finds the pages and databases you shared with Fabric whose titles hold the words given, most recently edited first, 100 a page. Without words it lists them all. kind page finds pages only, and data_source databases only.",
+   "effect": "read",
+   "row": "notion.search.read",
+   "hints": {"readOnly":true,"destructive":false,"idempotent":true,"openWorld":true},
+   "inputSchema": {"type":"object","properties":{"query":{"type":"string","minLength":1,"maxLength":200,"description":"Words the titles hold, in any case."},"kind":{"type":"string","enum":["page","data_source"],"description":"page finds pages only; data_source finds databases only."},"cursor":{"type":"string","minLength":1,"maxLength":1024,"description":"nextCursor from the page before, for the next page."}},"required":[],"additionalProperties":false},
+   "outputSchema": {"type":"object","properties":{"results":{"type":"array","maxItems":100,"items":{"type":"object","properties":{"id":{"type":"string","maxLength":64},"object":{"type":"string","maxLength":32},"title":{"type":"string","maxLength":200000},"url":{"type":"string","maxLength":2048},"lastEditedTime":{"type":"string","maxLength":64}},"required":[],"additionalProperties":false}},"nextCursor":{"type":"string","maxLength":1024},"hasMore":{"type":"boolean"}},"required":["results"],"additionalProperties":false},
+   "guards": [],
+   "prepare": [],
+   "perform": [
+    {"id":"search","method":"POST","path":"/v1/search","body":{"object":{"query":{"when":{"present":{"input":"/query"}},"then":{"input":"/query"}},"filter":{"when":{"present":{"input":"/kind"}},"then":{"object":{"property":{"const":"object"},"value":{"input":"/kind"}}}},"page_size":{"const":100},"start_cursor":{"when":{"present":{"input":"/cursor"}},"then":{"input":"/cursor"}}}},"expect":{"status":[200],"require":[]}}
+   ],
+   "output": {"results":{"each":{"step":"search","pointer":"/results"},"as":"result","max":100,"do":{"object":{"id":{"pick":{"var":"result"},"pointer":"/id"},"object":{"pick":{"var":"result"},"pointer":"/object"},"title":{"pick":{"transform":"notion.title@1","args":{"object":{"var":"result"}}},"pointer":"/title"},"url":{"pick":{"var":"result"},"pointer":"/url"},"lastEditedTime":{"pick":{"var":"result"},"pointer":"/last_edited_time"}}}},"nextCursor":{"when":{"nonEmpty":{"step":"search","pointer":"/next_cursor"}},"then":{"step":"search","pointer":"/next_cursor"}},"hasMore":{"step":"search","pointer":"/has_more"}},
+   "preview": [
+    {"label":"Search","expr":{"input":"/query"}},
+    {"label":"Kind","expr":{"input":"/kind"}}
+   ],
+   "definitive": [400,403]
+  },
+  {
+   "id": "notion.action.read-page.v1.8f38544764cab1730f27ac80",
+   "key": "read-page",
+   "version": 1,
+   "name": "Read page",
+   "description": "Reads one page you shared: its title, link and parent, its properties as plain text, and its content as Notion markdown, cut at 200,000 characters (markdownTruncated). truncated says Notion left parts out of the markdown; an <unknown> tag marks each.",
+   "effect": "read",
+   "row": "notion.content.read",
+   "hints": {"readOnly":true,"destructive":false,"idempotent":true,"openWorld":true},
+   "inputSchema": {"type":"object","properties":{"page":{"type":"string","minLength":1,"maxLength":2048,"description":"The page: a Notion link or a page id."}},"required":["page"],"additionalProperties":false},
+   "outputSchema": {"type":"object","properties":{"id":{"type":"string","maxLength":64},"url":{"type":"string","maxLength":2048},"title":{"type":"string","maxLength":200000},"parentType":{"type":"string","maxLength":64},"parentPageId":{"type":"string","maxLength":64},"parentDataSourceId":{"type":"string","maxLength":64},"inTrash":{"type":"boolean"},"lastEditedTime":{"type":"string","maxLength":64},"properties":{"type":"array","maxItems":100,"items":{"type":"object","properties":{"name":{"type":"string","maxLength":1000},"id":{"type":"string","maxLength":256},"type":{"type":"string","maxLength":64},"text":{"type":"string","maxLength":200000},"line":{"type":"string","maxLength":200}},"required":["name","id","type","text","line"],"additionalProperties":false}},"markdown":{"type":"string","maxLength":200000},"truncated":{"type":"boolean"},"markdownTruncated":{"type":"boolean"}},"required":["id"],"additionalProperties":false},
+   "guards": [],
+   "prepare": [],
+   "perform": [
+    {"id":"page","method":"GET","path":"/v1/pages/{page_id}","params":{"page_id":{"pick":{"transform":"ids.notionId@1","args":{"value":{"input":"/page"}}},"pointer":"/id"}},"expect":{"status":[200],"require":[]}},
+    {"id":"markdown","method":"GET","path":"/v1/pages/{page_id}/markdown","params":{"page_id":{"pick":{"transform":"ids.notionId@1","args":{"value":{"input":"/page"}}},"pointer":"/id"}},"expect":{"status":[200],"require":[]}}
+   ],
+   "output": {"id":{"step":"page","pointer":"/id"},"url":{"step":"page","pointer":"/url"},"title":{"pick":{"transform":"notion.title@1","args":{"object":{"step":"page","pointer":""}}},"pointer":"/title"},"parentType":{"step":"page","pointer":"/parent/type"},"parentPageId":{"step":"page","pointer":"/parent/page_id"},"parentDataSourceId":{"step":"page","pointer":"/parent/data_source_id"},"inTrash":{"step":"page","pointer":"/in_trash"},"lastEditedTime":{"step":"page","pointer":"/last_edited_time"},"properties":{"pick":{"transform":"notion.plainValues@1","args":{"page":{"step":"page","pointer":""}}},"pointer":"/properties"},"markdown":{"pick":{"transform":"text.truncate@1","args":{"text":{"step":"markdown","pointer":"/markdown"},"max":{"const":200000}}},"pointer":"/text"},"truncated":{"step":"markdown","pointer":"/truncated"},"markdownTruncated":{"pick":{"transform":"text.truncate@1","args":{"text":{"step":"markdown","pointer":"/markdown"},"max":{"const":200000}}},"pointer":"/truncated"}},
+   "preview": [
+    {"label":"Page","expr":{"input":"/page"}}
+   ],
+   "definitive": [400,403,404]
+  },
+  {
+   "id": "notion.action.describe-database.v1.eca377131fbe90c1441c3643",
+   "key": "describe-database",
+   "version": 1,
+   "name": "Describe database",
+   "description": "Reads one database you shared and up to 5 of its data sources: each property's name, id and type, whether an agent may write it (and why not), and the options of select, status and multi-select properties. Find rows, Add database row and Update database row take these names.",
+   "effect": "read",
+   "row": "notion.content.read",
+   "hints": {"readOnly":true,"destructive":false,"idempotent":true,"openWorld":true},
+   "inputSchema": {"type":"object","properties":{"database":{"type":"string","minLength":1,"maxLength":2048,"description":"The database: a Notion link or a database id."}},"required":["database"],"additionalProperties":false},
+   "outputSchema": {"type":"object","properties":{"id":{"type":"string","maxLength":64},"title":{"type":"string","maxLength":200000},"url":{"type":"string","maxLength":2048},"dataSources":{"type":"array","maxItems":5,"items":{"type":"object","properties":{"id":{"type":"string","maxLength":64},"name":{"type":"string","maxLength":200000},"properties":{"type":"array","maxItems":100,"items":{"type":"object","properties":{"name":{"type":"string","maxLength":1000},"id":{"type":"string","maxLength":256},"type":{"type":"string","maxLength":64},"writable":{"type":"boolean"},"reason":{"type":"string","enum":["read_only","unsupported_type","no_options"]},"options":{"type":"array","maxItems":256,"items":{"type":"string","maxLength":1000}}},"required":["name","id","type","writable"],"additionalProperties":false}}},"required":["id"],"additionalProperties":false}}},"required":["id"],"additionalProperties":false},
+   "guards": [],
+   "prepare": [
+    {"id":"database","method":"GET","path":"/v1/databases/{database_id}","params":{"database_id":{"pick":{"transform":"ids.notionId@1","args":{"value":{"input":"/database"}}},"pointer":"/id"}},"expect":{"status":[200],"require":[]}}
+   ],
+   "perform": [
+    {"id":"sources","method":"GET","path":"/v1/data_sources/{data_source_id}","params":{"data_source_id":{"item":"/id"}},"forEach":{"over":{"step":"database","pointer":"/data_sources"},"max":5},"maxResponseBytes":1048576,"expect":{"status":[200],"require":[]}}
+   ],
+   "output": {"id":{"step":"database","pointer":"/id"},"title":{"pick":{"transform":"notion.title@1","args":{"object":{"step":"database","pointer":""}}},"pointer":"/title"},"url":{"step":"database","pointer":"/url"},"dataSources":{"each":{"step":"sources","pointer":""},"as":"source","max":5,"do":{"object":{"id":{"pick":{"var":"source"},"pointer":"/id"},"name":{"pick":{"transform":"notion.title@1","args":{"object":{"var":"source"}}},"pointer":"/title"},"properties":{"pick":{"transform":"notion.describe@1","args":{"dataSource":{"var":"source"}}},"pointer":"/properties"}}}}},
+   "preview": [
+    {"label":"Database","expr":{"input":"/database"}}
+   ],
+   "definitive": [400,403,404]
+  },
+  {
+   "id": "notion.action.find-rows.v1.06ec3edae91fa7cef7460b69",
+   "key": "find-rows",
+   "version": 1,
+   "name": "Find rows",
+   "description": "Finds the rows of one data source, 25 a page, in Notion's order, each with its title and values as plain text. match all reads every row. match where reads the rows its where values match, by property name: text, link, email and phone values as contains, each item of a multi-select, people or relation list as contains, and the other types as equals.",
+   "effect": "read",
+   "row": "notion.content.read",
+   "hints": {"readOnly":true,"destructive":false,"idempotent":true,"openWorld":true},
+   "inputSchema": {"type":"object","properties":{"dataSource":{"type":"string","minLength":1,"maxLength":64,"description":"The data source: an id from Describe database."},"match":{"type":"string","enum":["all","where"],"description":"all reads every row; where reads only the rows the where values match, and needs where."},"where":{"type":"object","properties":{},"additionalProperties":false},"cursor":{"type":"string","minLength":1,"maxLength":1024,"description":"nextCursor from the page before, for the next page."}},"required":["dataSource","match"],"additionalProperties":false},
+   "outputSchema": {"type":"object","properties":{"rows":{"type":"array","maxItems":25,"items":{"type":"object","properties":{"id":{"type":"string","maxLength":64},"url":{"type":"string","maxLength":2048},"title":{"type":"string","maxLength":200000},"values":{"type":"array","maxItems":100,"items":{"type":"object","properties":{"name":{"type":"string","maxLength":1000},"id":{"type":"string","maxLength":256},"type":{"type":"string","maxLength":64},"text":{"type":"string","maxLength":200000},"line":{"type":"string","maxLength":200}},"required":["name","id","type","text","line"],"additionalProperties":false}}},"required":["id"],"additionalProperties":false}},"nextCursor":{"type":"string","maxLength":1024},"hasMore":{"type":"boolean"}},"required":["rows"],"additionalProperties":false},
+   "resolvedInputs": [
+    {"input":"where","dependsOn":["dataSource"],"schema":{"steps":[{"id":"source","method":"GET","path":"/v1/data_sources/{data_source_id}","params":{"data_source_id":{"input":"/dataSource"}},"expect":{"status":[200],"require":[]}}],"derive":{"transform":"notion.schema@1","args":{"dataSource":{"step":"source","pointer":""}}}},"maxProperties":100}
+   ],
+   "guards": [],
+   "prepare": [],
+   "perform": [
+    {"id":"query","method":"POST","path":"/v1/data_sources/{data_source_id}/query","params":{"data_source_id":{"step":"source","pointer":"/id"}},"body":{"object":{"filter":{"when":{"equals":[{"input":"/match"},{"const":"where"}]},"then":{"pick":{"transform":"notion.filter@1","args":{"schema":{"resolved":"where"},"where":{"input":"/where"}}},"pointer":"/filter"}},"page_size":{"const":25},"start_cursor":{"when":{"present":{"input":"/cursor"}},"then":{"input":"/cursor"}}}},"expect":{"status":[200],"require":[]}}
+   ],
+   "output": {"rows":{"each":{"step":"query","pointer":"/results"},"as":"row","max":25,"do":{"object":{"id":{"pick":{"var":"row"},"pointer":"/id"},"url":{"pick":{"var":"row"},"pointer":"/url"},"title":{"pick":{"transform":"notion.title@1","args":{"object":{"var":"row"}}},"pointer":"/title"},"values":{"pick":{"transform":"notion.plainValues@1","args":{"page":{"var":"row"}}},"pointer":"/properties"}}}},"nextCursor":{"when":{"nonEmpty":{"step":"query","pointer":"/next_cursor"}},"then":{"step":"query","pointer":"/next_cursor"}},"hasMore":{"step":"query","pointer":"/has_more"}},
+   "preview": [
+    {"label":"Database","expr":{"pick":{"transform":"notion.title@1","args":{"object":{"step":"source","pointer":""}}},"pointer":"/title"},"truncate":200},
+    {"label":"Data source","expr":{"input":"/dataSource"}}
+   ],
+   "definitive": [400,403,404]
+  },
+  {
+   "id": "notion.action.create-page.v1.eef93754644dcae501d65b0b",
+   "key": "create-page",
+   "version": 1,
+   "name": "Create page",
+   "description": "Creates a page under a page you shared, with a title and, if given, its text as Notion markdown. A long title is split at Notion's limits, never cut.",
+   "effect": "write",
+   "row": "notion.content.create",
+   "hints": {"readOnly":false,"destructive":false,"idempotent":false,"openWorld":true},
+   "inputSchema": {"type":"object","properties":{"parent":{"type":"string","minLength":1,"maxLength":2048,"description":"The page to create it under: a Notion link or a page id."},"title":{"type":"string","minLength":1,"maxLength":200000,"description":"The new page's title."},"content":{"type":"string","minLength":1,"maxLength":50000,"description":"The page's text, as Notion markdown."}},"required":["parent","title"],"additionalProperties":false},
+   "outputSchema": {"type":"object","properties":{"id":{"type":"string","maxLength":64},"url":{"type":"string","maxLength":2048},"title":{"type":"string","maxLength":200000},"parentType":{"type":"string","maxLength":64},"parentPageId":{"type":"string","maxLength":64},"parentDataSourceId":{"type":"string","maxLength":64},"inTrash":{"type":"boolean"},"lastEditedTime":{"type":"string","maxLength":64}},"required":["id"],"additionalProperties":false},
+   "guards": [],
+   "prepare": [
+    {"id":"under","method":"GET","path":"/v1/pages/{page_id}","params":{"page_id":{"pick":{"transform":"ids.notionId@1","args":{"value":{"input":"/parent"}}},"pointer":"/id"}},"expect":{"status":[200],"require":[]}}
+   ],
+   "perform": [
+    {"id":"create","method":"POST","path":"/v1/pages","body":{"object":{"parent":{"object":{"page_id":{"step":"under","pointer":"/id"}}},"properties":{"object":{"title":{"object":{"title":{"each":{"pick":{"transform":"text.chunk@1","args":{"text":{"input":"/title"}}},"pointer":"/chunks"},"as":"chunk","max":100,"do":{"object":{"text":{"object":{"content":{"var":"chunk"}}}}}}}}}},"markdown":{"when":{"present":{"input":"/content"}},"then":{"input":"/content"}}}},"expect":{"status":[200],"require":[]}}
+   ],
+   "verify": {
+    "requests": [{"id":"check","method":"GET","path":"/v1/pages/{page_id}","params":{"page_id":{"step":"create","pointer":"/id"}},"expect":{"status":[200],"require":[]}}],
+    "identity": [{"kind":"readback","step":"check","pointer":"/id","equals":{"step":"create","pointer":"/id"}}],
+    "assert": [{"step":"check","equals":{"pointer":"/parent/page_id","value":{"step":"create","pointer":"/parent/page_id"}}}]
+   },
+   "output": {"id":{"step":"create","pointer":"/id"},"url":{"step":"create","pointer":"/url"},"title":{"pick":{"transform":"notion.title@1","args":{"object":{"step":"create","pointer":""}}},"pointer":"/title"},"parentType":{"step":"create","pointer":"/parent/type"},"parentPageId":{"step":"create","pointer":"/parent/page_id"},"parentDataSourceId":{"step":"create","pointer":"/parent/data_source_id"},"inTrash":{"step":"create","pointer":"/in_trash"},"lastEditedTime":{"step":"create","pointer":"/last_edited_time"}},
+   "preview": [
+    {"label":"Under","expr":{"pick":{"transform":"notion.title@1","args":{"object":{"step":"under","pointer":""}}},"pointer":"/title"},"truncate":200},
+    {"label":"Link","expr":{"step":"under","pointer":"/url"}},
+    {"label":"Title","expr":{"input":"/title"},"truncate":200},
+    {"label":"Content","expr":{"input":"/content"},"truncate":500}
+   ],
+   "definitive": [400,403,404,409]
+  },
+  {
+   "id": "notion.action.add-row.v1.1552e76b5283f5494c3b6462",
+   "key": "add-row",
+   "version": 1,
+   "name": "Add database row",
+   "description": "Adds one row to a data source, with values keyed by property name as Describe database lists them. A value that does not fit the data source's properties as they are now is refused before anything is sent.",
+   "effect": "write",
+   "row": "notion.content.create",
+   "hints": {"readOnly":false,"destructive":false,"idempotent":false,"openWorld":true},
+   "inputSchema": {"type":"object","properties":{"dataSource":{"type":"string","minLength":1,"maxLength":64,"description":"The data source: an id from Describe database."},"values":{"type":"object","properties":{},"additionalProperties":false}},"required":["dataSource","values"],"additionalProperties":false},
+   "outputSchema": {"type":"object","properties":{"id":{"type":"string","maxLength":64},"url":{"type":"string","maxLength":2048},"title":{"type":"string","maxLength":200000},"parentType":{"type":"string","maxLength":64},"parentPageId":{"type":"string","maxLength":64},"parentDataSourceId":{"type":"string","maxLength":64},"inTrash":{"type":"boolean"},"lastEditedTime":{"type":"string","maxLength":64}},"required":["id"],"additionalProperties":false},
+   "resolvedInputs": [
+    {"input":"values","dependsOn":["dataSource"],"schema":{"steps":[{"id":"source","method":"GET","path":"/v1/data_sources/{data_source_id}","params":{"data_source_id":{"input":"/dataSource"}},"expect":{"status":[200],"require":[]}}],"derive":{"transform":"notion.schema@1","args":{"dataSource":{"step":"source","pointer":""}}}},"maxProperties":100}
+   ],
+   "guards": [],
+   "prepare": [],
+   "perform": [
+    {"id":"create","method":"POST","path":"/v1/pages","body":{"object":{"parent":{"object":{"type":{"const":"data_source_id"},"data_source_id":{"step":"source","pointer":"/id"}}},"properties":{"transform":"notion.propertyValues@1","args":{"schema":{"resolved":"values"},"values":{"input":"/values"}}}}},"expect":{"status":[200],"require":[]}}
+   ],
+   "verify": {
+    "requests": [{"id":"check","method":"GET","path":"/v1/pages/{page_id}","params":{"page_id":{"step":"create","pointer":"/id"}},"expect":{"status":[200],"require":[]}}],
+    "identity": [{"kind":"readback","step":"check","pointer":"/id","equals":{"step":"create","pointer":"/id"}}],
+    "assert": [{"step":"check","equals":{"pointer":"/parent/data_source_id","value":{"step":"create","pointer":"/parent/data_source_id"}}},{"step":"check","equals":{"pointer":"/properties","value":{"step":"create","pointer":"/properties"}}}]
+   },
+   "output": {"id":{"step":"create","pointer":"/id"},"url":{"step":"create","pointer":"/url"},"title":{"pick":{"transform":"notion.title@1","args":{"object":{"step":"create","pointer":""}}},"pointer":"/title"},"parentType":{"step":"create","pointer":"/parent/type"},"parentPageId":{"step":"create","pointer":"/parent/page_id"},"parentDataSourceId":{"step":"create","pointer":"/parent/data_source_id"},"inTrash":{"step":"create","pointer":"/in_trash"},"lastEditedTime":{"step":"create","pointer":"/last_edited_time"}},
+   "preview": [
+    {"label":"Database","expr":{"pick":{"transform":"notion.title@1","args":{"object":{"step":"source","pointer":""}}},"pointer":"/title"},"truncate":200},
+    {"label":"Data source","expr":{"input":"/dataSource"}}
+   ],
+   "definitive": [400,403,404,409]
+  },
+  {
+   "id": "notion.action.rename-page.v1.0548a0a00121eb683b5c01b2",
+   "key": "rename-page",
+   "version": 1,
+   "name": "Rename page",
+   "description": "Renames a page or a database row you shared. It sends only the new title, split at Notion's limits, never cut. The card shows the title now and the new one.",
+   "effect": "write",
+   "row": "notion.content.edit",
+   "hints": {"readOnly":false,"destructive":false,"idempotent":false,"openWorld":true},
+   "inputSchema": {"type":"object","properties":{"page":{"type":"string","minLength":1,"maxLength":2048,"description":"The page: a Notion link or a page id."},"title":{"type":"string","minLength":1,"maxLength":200000,"description":"The new title."}},"required":["page","title"],"additionalProperties":false},
+   "outputSchema": {"type":"object","properties":{"id":{"type":"string","maxLength":64},"url":{"type":"string","maxLength":2048},"title":{"type":"string","maxLength":200000},"parentType":{"type":"string","maxLength":64},"parentPageId":{"type":"string","maxLength":64},"parentDataSourceId":{"type":"string","maxLength":64},"inTrash":{"type":"boolean"},"lastEditedTime":{"type":"string","maxLength":64}},"required":["id"],"additionalProperties":false},
+   "guards": [],
+   "prepare": [
+    {"id":"page","method":"GET","path":"/v1/pages/{page_id}","params":{"page_id":{"pick":{"transform":"ids.notionId@1","args":{"value":{"input":"/page"}}},"pointer":"/id"}},"expect":{"status":[200],"require":[]}}
+   ],
+   "perform": [
+    {"id":"rename","method":"PATCH","path":"/v1/pages/{page_id}","params":{"page_id":{"step":"page","pointer":"/id"}},"body":{"object":{"properties":{"object":{"title":{"object":{"title":{"each":{"pick":{"transform":"text.chunk@1","args":{"text":{"input":"/title"}}},"pointer":"/chunks"},"as":"chunk","max":100,"do":{"object":{"text":{"object":{"content":{"var":"chunk"}}}}}}}}}}}},"expect":{"status":[200],"require":[]}}
+   ],
+   "verify": {
+    "requests": [{"id":"check","method":"GET","path":"/v1/pages/{page_id}","params":{"page_id":{"step":"page","pointer":"/id"}},"expect":{"status":[200],"require":[]}}],
+    "identity": [{"kind":"readback","step":"check","pointer":"/id","equals":{"step":"rename","pointer":"/id"}}],
+    "assert": [{"step":"check","equals":{"pointer":"/properties","value":{"step":"rename","pointer":"/properties"}}}]
+   },
+   "output": {"id":{"step":"rename","pointer":"/id"},"url":{"step":"rename","pointer":"/url"},"title":{"pick":{"transform":"notion.title@1","args":{"object":{"step":"rename","pointer":""}}},"pointer":"/title"},"parentType":{"step":"rename","pointer":"/parent/type"},"parentPageId":{"step":"rename","pointer":"/parent/page_id"},"parentDataSourceId":{"step":"rename","pointer":"/parent/data_source_id"},"inTrash":{"step":"rename","pointer":"/in_trash"},"lastEditedTime":{"step":"rename","pointer":"/last_edited_time"}},
+   "preview": [
+    {"label":"Page","expr":{"pick":{"transform":"notion.title@1","args":{"object":{"step":"page","pointer":""}}},"pointer":"/title"},"truncate":200},
+    {"label":"Link","expr":{"step":"page","pointer":"/url"}},
+    {"label":"New title","expr":{"input":"/title"},"truncate":200}
+   ],
+   "definitive": [400,403,404,409]
+  },
+  {
+   "id": "notion.action.update-row.v1.faee38b11f08574b0ed1e553",
+   "key": "update-row",
+   "version": 1,
+   "name": "Update database row",
+   "description": "Changes values of one database row, keyed by property name as Describe database lists them; the others stay. A multi-select, people or relation value replaces the whole list, so give the full new list. Rows only: rename a plain page with Rename page.",
+   "effect": "write",
+   "row": "notion.content.edit",
+   "hints": {"readOnly":false,"destructive":false,"idempotent":false,"openWorld":true},
+   "inputSchema": {"type":"object","properties":{"page":{"type":"string","minLength":1,"maxLength":2048,"description":"The row: a Notion link or its page id, as Find rows gives it."},"values":{"type":"object","properties":{},"additionalProperties":false}},"required":["page","values"],"additionalProperties":false},
+   "outputSchema": {"type":"object","properties":{"id":{"type":"string","maxLength":64},"url":{"type":"string","maxLength":2048},"title":{"type":"string","maxLength":200000},"parentType":{"type":"string","maxLength":64},"parentPageId":{"type":"string","maxLength":64},"parentDataSourceId":{"type":"string","maxLength":64},"inTrash":{"type":"boolean"},"lastEditedTime":{"type":"string","maxLength":64}},"required":["id"],"additionalProperties":false},
+   "resolvedInputs": [
+    {"input":"values","dependsOn":["page"],"schema":{"steps":[{"id":"row","method":"GET","path":"/v1/pages/{page_id}","params":{"page_id":{"pick":{"transform":"ids.notionId@1","args":{"value":{"input":"/page"}}},"pointer":"/id"}},"expect":{"status":[200],"require":[]}},{"id":"source","method":"GET","path":"/v1/data_sources/{data_source_id}","params":{"data_source_id":{"step":"row","pointer":"/parent/data_source_id"}},"when":{"present":{"step":"row","pointer":"/parent/data_source_id"}},"expect":{"status":[200],"require":[]}}],"derive":{"transform":"notion.schema@1","args":{"dataSource":{"step":"source","pointer":""}}}},"maxProperties":100}
+   ],
+   "guards": [],
+   "prepare": [],
+   "perform": [
+    {"id":"update","method":"PATCH","path":"/v1/pages/{page_id}","params":{"page_id":{"step":"row","pointer":"/id"}},"body":{"object":{"properties":{"transform":"notion.propertyValues@1","args":{"schema":{"resolved":"values"},"values":{"input":"/values"}}}}},"expect":{"status":[200],"require":[]}}
+   ],
+   "verify": {
+    "requests": [{"id":"check","method":"GET","path":"/v1/pages/{page_id}","params":{"page_id":{"step":"row","pointer":"/id"}},"expect":{"status":[200],"require":[]}}],
+    "identity": [{"kind":"readback","step":"check","pointer":"/id","equals":{"step":"update","pointer":"/id"}}],
+    "assert": [{"step":"check","equals":{"pointer":"/properties","value":{"step":"update","pointer":"/properties"}}}]
+   },
+   "output": {"id":{"step":"update","pointer":"/id"},"url":{"step":"update","pointer":"/url"},"title":{"pick":{"transform":"notion.title@1","args":{"object":{"step":"update","pointer":""}}},"pointer":"/title"},"parentType":{"step":"update","pointer":"/parent/type"},"parentPageId":{"step":"update","pointer":"/parent/page_id"},"parentDataSourceId":{"step":"update","pointer":"/parent/data_source_id"},"inTrash":{"step":"update","pointer":"/in_trash"},"lastEditedTime":{"step":"update","pointer":"/last_edited_time"}},
+   "preview": [
+    {"label":"Page","expr":{"pick":{"transform":"notion.title@1","args":{"object":{"step":"row","pointer":""}}},"pointer":"/title"},"truncate":200},
+    {"label":"Link","expr":{"step":"row","pointer":"/url"}},
+    {"label":"Database","expr":{"pick":{"transform":"notion.title@1","args":{"object":{"step":"source","pointer":""}}},"pointer":"/title"},"truncate":200},
+    {"label":"Values now","expr":{"pick":{"transform":"notion.plainValues@1","args":{"page":{"step":"row","pointer":""}}},"pointer":"/lines"},"truncate":2000}
+   ],
+   "definitive": [400,403,404,409]
+  },
+  {
+   "id": "notion.action.add-to-page.v1.c5d1608beb7fb3943f20a533",
+   "key": "add-to-page",
+   "version": 1,
+   "name": "Add to page",
+   "description": "Adds text at the end of one page you shared, as Notion markdown, and reads the page back to see it there.",
+   "effect": "write",
+   "row": "notion.content.edit",
+   "hints": {"readOnly":false,"destructive":false,"idempotent":false,"openWorld":true},
+   "inputSchema": {"type":"object","properties":{"page":{"type":"string","minLength":1,"maxLength":2048,"description":"The page: a Notion link or a page id."},"content":{"type":"string","minLength":1,"maxLength":50000,"description":"The text to add at the end, as Notion markdown."}},"required":["page","content"],"additionalProperties":false},
+   "outputSchema": {"type":"object","properties":{"id":{"type":"string","maxLength":64},"url":{"type":"string","maxLength":2048},"title":{"type":"string","maxLength":200000}},"required":["id"],"additionalProperties":false},
+   "guards": [],
+   "prepare": [
+    {"id":"page","method":"GET","path":"/v1/pages/{page_id}","params":{"page_id":{"pick":{"transform":"ids.notionId@1","args":{"value":{"input":"/page"}}},"pointer":"/id"}},"expect":{"status":[200],"require":[]}}
+   ],
+   "perform": [
+    {"id":"add","method":"PATCH","path":"/v1/pages/{page_id}/markdown","params":{"page_id":{"step":"page","pointer":"/id"}},"body":{"object":{"type":{"const":"insert_content"},"insert_content":{"object":{"content":{"input":"/content"}}}}},"expect":{"status":[200],"require":[]}}
+   ],
+   "verify": {
+    "requests": [{"id":"check","method":"GET","path":"/v1/pages/{page_id}/markdown","params":{"page_id":{"step":"page","pointer":"/id"}},"expect":{"status":[200],"require":[]}}],
+    "identity": [{"kind":"readback","step":"check","pointer":"/id","equals":{"step":"page","pointer":"/id"}}],
+    "assert": [{"step":"check","contains":{"pointer":"/markdown","value":{"input":"/content"}}}]
+   },
+   "output": {"id":{"step":"page","pointer":"/id"},"url":{"step":"page","pointer":"/url"},"title":{"pick":{"transform":"notion.title@1","args":{"object":{"step":"page","pointer":""}}},"pointer":"/title"}},
+   "preview": [
+    {"label":"Page","expr":{"pick":{"transform":"notion.title@1","args":{"object":{"step":"page","pointer":""}}},"pointer":"/title"},"truncate":200},
+    {"label":"Link","expr":{"step":"page","pointer":"/url"}},
+    {"label":"Text added","expr":{"input":"/content"},"truncate":500}
+   ],
+   "definitive": [400,403,404,409]
+  },
+  {
+   "id": "notion.action.edit-page-text.v1.d46ebf5eae26b887f2252152",
+   "key": "edit-page-text",
+   "version": 1,
+   "name": "Edit page text",
+   "description": "Replaces one piece of text that occurs exactly once on a page you shared, or removes it when replace is empty. When the text is not found exactly once, nothing changes. It never deletes a child page or database.",
+   "effect": "write",
+   "row": "notion.content.edit",
+   "hints": {"readOnly":false,"destructive":false,"idempotent":false,"openWorld":true},
+   "inputSchema": {"type":"object","properties":{"page":{"type":"string","minLength":1,"maxLength":2048,"description":"The page: a Notion link or a page id."},"find":{"type":"string","minLength":1,"maxLength":10000,"description":"Text that occurs exactly once on the page, as its markdown reads."},"replace":{"type":"string","maxLength":10000,"description":"What replaces it; empty removes it."}},"required":["page","find","replace"],"additionalProperties":false},
+   "outputSchema": {"type":"object","properties":{"id":{"type":"string","maxLength":64},"url":{"type":"string","maxLength":2048},"title":{"type":"string","maxLength":200000}},"required":["id"],"additionalProperties":false},
+   "guards": [],
+   "prepare": [
+    {"id":"page","method":"GET","path":"/v1/pages/{page_id}","params":{"page_id":{"pick":{"transform":"ids.notionId@1","args":{"value":{"input":"/page"}}},"pointer":"/id"}},"expect":{"status":[200],"require":[]}}
+   ],
+   "perform": [
+    {"id":"edit","method":"PATCH","path":"/v1/pages/{page_id}/markdown","params":{"page_id":{"step":"page","pointer":"/id"}},"body":{"object":{"type":{"const":"update_content"},"update_content":{"object":{"content_updates":{"array":[{"object":{"old_str":{"input":"/find"},"new_str":{"input":"/replace"}}}]}}}}},"expect":{"status":[200],"require":[]}}
+   ],
+   "verify": {
+    "requests": [{"id":"check","method":"GET","path":"/v1/pages/{page_id}/markdown","params":{"page_id":{"step":"page","pointer":"/id"}},"expect":{"status":[200],"require":[]}}],
+    "identity": [{"kind":"readback","step":"check","pointer":"/id","equals":{"step":"page","pointer":"/id"}}],
+    "assert": [{"step":"check","contains":{"pointer":"/markdown","value":{"input":"/replace"}}}]
+   },
+   "output": {"id":{"step":"page","pointer":"/id"},"url":{"step":"page","pointer":"/url"},"title":{"pick":{"transform":"notion.title@1","args":{"object":{"step":"page","pointer":""}}},"pointer":"/title"}},
+   "preview": [
+    {"label":"Page","expr":{"pick":{"transform":"notion.title@1","args":{"object":{"step":"page","pointer":""}}},"pointer":"/title"},"truncate":200},
+    {"label":"Link","expr":{"step":"page","pointer":"/url"}},
+    {"label":"Find","expr":{"input":"/find"},"truncate":500},
+    {"label":"Replace with","expr":{"input":"/replace"},"truncate":500}
+   ],
+   "definitive": [400,403,404,409]
+  },
+  {
+   "id": "notion.action.move-page.v1.7e179049e60954a17a2a3ebe",
+   "key": "move-page",
+   "version": 1,
+   "name": "Move page",
+   "description": "Moves a page you shared under another page you shared. Only ordinary pages move: a database row, or a page inside another block, is refused.",
+   "effect": "write",
+   "row": "notion.content.edit",
+   "hints": {"readOnly":false,"destructive":false,"idempotent":false,"openWorld":true},
+   "inputSchema": {"type":"object","properties":{"page":{"type":"string","minLength":1,"maxLength":2048,"description":"The page: a Notion link or a page id."},"to":{"type":"string","minLength":1,"maxLength":2048,"description":"The page to move it under: a Notion link or a page id."}},"required":["page","to"],"additionalProperties":false},
+   "outputSchema": {"type":"object","properties":{"id":{"type":"string","maxLength":64},"url":{"type":"string","maxLength":2048},"title":{"type":"string","maxLength":200000},"parentType":{"type":"string","maxLength":64},"parentPageId":{"type":"string","maxLength":64},"parentDataSourceId":{"type":"string","maxLength":64},"inTrash":{"type":"boolean"},"lastEditedTime":{"type":"string","maxLength":64}},"required":["id"],"additionalProperties":false},
+   "guards": [
+    {"transform":"collections.oneOf@1","args":{"value":{"step":"page","pointer":"/parent/type"},"set":{"const":["page_id","workspace"]},"fold":{"const":"none"}},"refuse":"wrong_kind","after":"page"}
+   ],
+   "prepare": [
+    {"id":"page","method":"GET","path":"/v1/pages/{page_id}","params":{"page_id":{"pick":{"transform":"ids.notionId@1","args":{"value":{"input":"/page"}}},"pointer":"/id"}},"expect":{"status":[200],"require":[]}},
+    {"id":"target","method":"GET","path":"/v1/pages/{page_id}","params":{"page_id":{"pick":{"transform":"ids.notionId@1","args":{"value":{"input":"/to"}}},"pointer":"/id"}},"expect":{"status":[200],"require":[]}}
+   ],
+   "perform": [
+    {"id":"move","method":"POST","path":"/v1/pages/{page_id}/move","params":{"page_id":{"step":"page","pointer":"/id"}},"body":{"object":{"parent":{"object":{"type":{"const":"page_id"},"page_id":{"step":"target","pointer":"/id"}}}}},"expect":{"status":[200],"require":[]}}
+   ],
+   "verify": {
+    "requests": [{"id":"check","method":"GET","path":"/v1/pages/{page_id}","params":{"page_id":{"step":"page","pointer":"/id"}},"expect":{"status":[200],"require":[]}}],
+    "identity": [{"kind":"readback","step":"check","pointer":"/id","equals":{"step":"move","pointer":"/id"}}],
+    "assert": [{"step":"check","equals":{"pointer":"/parent/page_id","value":{"step":"target","pointer":"/id"}}}]
+   },
+   "output": {"id":{"step":"move","pointer":"/id"},"url":{"step":"move","pointer":"/url"},"title":{"pick":{"transform":"notion.title@1","args":{"object":{"step":"move","pointer":""}}},"pointer":"/title"},"parentType":{"step":"move","pointer":"/parent/type"},"parentPageId":{"step":"move","pointer":"/parent/page_id"},"parentDataSourceId":{"step":"move","pointer":"/parent/data_source_id"},"inTrash":{"step":"move","pointer":"/in_trash"},"lastEditedTime":{"step":"move","pointer":"/last_edited_time"}},
+   "preview": [
+    {"label":"Page","expr":{"pick":{"transform":"notion.title@1","args":{"object":{"step":"page","pointer":""}}},"pointer":"/title"},"truncate":200},
+    {"label":"Link","expr":{"step":"page","pointer":"/url"}},
+    {"label":"Move to","expr":{"pick":{"transform":"notion.title@1","args":{"object":{"step":"target","pointer":""}}},"pointer":"/title"},"truncate":200},
+    {"label":"Move to link","expr":{"step":"target","pointer":"/url"}}
+   ],
+   "definitive": [400,403,404,409]
+  },
+  {
+   "id": "notion.action.trash-page.v1.4f3ded9b25b1681ae4acac72",
+   "key": "trash-page",
+   "version": 1,
+   "name": "Move to trash",
+   "description": "Moves a page or database row you shared to Notion's trash. Notion keeps it there, and Restore brings it back: Fabric never erases it.",
+   "effect": "delete",
+   "row": "notion.content.trash",
+   "hints": {"readOnly":false,"destructive":true,"idempotent":true,"openWorld":true},
+   "inputSchema": {"type":"object","properties":{"page":{"type":"string","minLength":1,"maxLength":2048,"description":"The page: a Notion link or a page id."}},"required":["page"],"additionalProperties":false},
+   "outputSchema": {"type":"object","properties":{"id":{"type":"string","maxLength":64},"url":{"type":"string","maxLength":2048},"title":{"type":"string","maxLength":200000},"parentType":{"type":"string","maxLength":64},"parentPageId":{"type":"string","maxLength":64},"parentDataSourceId":{"type":"string","maxLength":64},"inTrash":{"type":"boolean"},"lastEditedTime":{"type":"string","maxLength":64}},"required":["id"],"additionalProperties":false},
+   "guards": [],
+   "prepare": [
+    {"id":"page","method":"GET","path":"/v1/pages/{page_id}","params":{"page_id":{"pick":{"transform":"ids.notionId@1","args":{"value":{"input":"/page"}}},"pointer":"/id"}},"expect":{"status":[200],"require":[]}}
+   ],
+   "perform": [
+    {"id":"trash","method":"DELETE","path":"/v1/blocks/{block_id}","params":{"block_id":{"step":"page","pointer":"/id"}},"maxResponseBytes":65536,"expect":{"status":[200],"require":[]}}
+   ],
+   "verify": {
+    "requests": [{"id":"check","method":"GET","path":"/v1/pages/{page_id}","params":{"page_id":{"step":"page","pointer":"/id"}},"expect":{"status":[200],"require":[]}}],
+    "identity": [{"kind":"readback","step":"check","pointer":"/id","equals":{"step":"page","pointer":"/id"}}],
+    "assert": [{"step":"check","equals":{"pointer":"/in_trash","value":{"const":true}}}]
+   },
+   "output": {"id":{"step":"check","pointer":"/id"},"url":{"step":"check","pointer":"/url"},"title":{"pick":{"transform":"notion.title@1","args":{"object":{"step":"check","pointer":""}}},"pointer":"/title"},"parentType":{"step":"check","pointer":"/parent/type"},"parentPageId":{"step":"check","pointer":"/parent/page_id"},"parentDataSourceId":{"step":"check","pointer":"/parent/data_source_id"},"inTrash":{"step":"check","pointer":"/in_trash"},"lastEditedTime":{"step":"check","pointer":"/last_edited_time"}},
+   "preview": [
+    {"label":"Page","expr":{"pick":{"transform":"notion.title@1","args":{"object":{"step":"page","pointer":""}}},"pointer":"/title"},"truncate":200},
+    {"label":"Link","expr":{"step":"page","pointer":"/url"}},
+    {"label":"Trash","expr":{"const":"Notion keeps it in its trash; Restore brings it back."}}
+   ],
+   "definitive": [400,403,404,409]
+  },
+  {
+   "id": "notion.action.restore-page.v1.2a413ab713adb64d0fabb196",
+   "key": "restore-page",
+   "version": 1,
+   "name": "Restore",
+   "description": "Brings a page or database row back from Notion's trash. It sends only in_trash false.",
+   "effect": "delete",
+   "row": "notion.content.trash",
+   "hints": {"readOnly":false,"destructive":true,"idempotent":false,"openWorld":true},
+   "inputSchema": {"type":"object","properties":{"page":{"type":"string","minLength":1,"maxLength":2048,"description":"The page: a Notion link or a page id."}},"required":["page"],"additionalProperties":false},
+   "outputSchema": {"type":"object","properties":{"id":{"type":"string","maxLength":64},"url":{"type":"string","maxLength":2048},"title":{"type":"string","maxLength":200000},"parentType":{"type":"string","maxLength":64},"parentPageId":{"type":"string","maxLength":64},"parentDataSourceId":{"type":"string","maxLength":64},"inTrash":{"type":"boolean"},"lastEditedTime":{"type":"string","maxLength":64}},"required":["id"],"additionalProperties":false},
+   "guards": [],
+   "prepare": [
+    {"id":"page","method":"GET","path":"/v1/pages/{page_id}","params":{"page_id":{"pick":{"transform":"ids.notionId@1","args":{"value":{"input":"/page"}}},"pointer":"/id"}},"expect":{"status":[200],"require":[]}}
+   ],
+   "perform": [
+    {"id":"restore","method":"PATCH","path":"/v1/pages/{page_id}","params":{"page_id":{"step":"page","pointer":"/id"}},"body":{"const":{"in_trash":false}},"expect":{"status":[200],"require":[]}}
+   ],
+   "verify": {
+    "requests": [{"id":"check","method":"GET","path":"/v1/pages/{page_id}","params":{"page_id":{"step":"page","pointer":"/id"}},"expect":{"status":[200],"require":[]}}],
+    "identity": [{"kind":"readback","step":"check","pointer":"/id","equals":{"step":"page","pointer":"/id"}}],
+    "assert": [{"step":"check","equals":{"pointer":"/in_trash","value":{"const":false}}}]
+   },
+   "output": {"id":{"step":"check","pointer":"/id"},"url":{"step":"check","pointer":"/url"},"title":{"pick":{"transform":"notion.title@1","args":{"object":{"step":"check","pointer":""}}},"pointer":"/title"},"parentType":{"step":"check","pointer":"/parent/type"},"parentPageId":{"step":"check","pointer":"/parent/page_id"},"parentDataSourceId":{"step":"check","pointer":"/parent/data_source_id"},"inTrash":{"step":"check","pointer":"/in_trash"},"lastEditedTime":{"step":"check","pointer":"/last_edited_time"}},
+   "preview": [
+    {"label":"Page","expr":{"pick":{"transform":"notion.title@1","args":{"object":{"step":"page","pointer":""}}},"pointer":"/title"},"truncate":200},
+    {"label":"Link","expr":{"step":"page","pointer":"/url"}}
+   ],
+   "definitive": [400,403,404,409]
+  },
+  {
+   "id": "notion.action.comment.v1.b123f391914b9dc30ec07eaf",
+   "key": "comment",
+   "version": 1,
+   "name": "Comment or reply",
+   "description": "Adds a comment to a page you shared, which starts a discussion, or replies in a discussion by its id from Read comments. Give exactly one of page and discussionId. Notion shows it as written by Fabric's integration.",
+   "effect": "write",
+   "row": "notion.comments.write",
+   "hints": {"readOnly":false,"destructive":false,"idempotent":false,"openWorld":true},
+   "inputSchema": {"type":"object","properties":{"page":{"type":"string","minLength":1,"maxLength":2048,"description":"The page: a Notion link or a page id."},"discussionId":{"type":"string","minLength":1,"maxLength":64,"description":"The discussion to reply in, as Read comments gives it."},"text":{"type":"string","minLength":1,"maxLength":200000,"description":"The comment."}},"required":["text"],"additionalProperties":false},
+   "outputSchema": {"type":"object","properties":{"id":{"type":"string","maxLength":64},"discussionId":{"type":"string","maxLength":64},"pageId":{"type":"string","maxLength":64},"createdTime":{"type":"string","maxLength":64}},"required":["id"],"additionalProperties":false},
+   "guards": [
+    {"transform":"collections.oneOf@1","args":{"value":{"concat":[{"pick":{"transform":"text.joinList@1","args":{"items":{"array":[{"when":{"present":{"input":"/page"}},"then":{"const":"page"}},{"when":{"present":{"input":"/discussionId"}},"then":{"const":"discussion"}}]}}},"pointer":"/text"}],"max":100},"set":{"const":["page","discussion"]},"fold":{"const":"none"}},"refuse":"wrong_kind"}
+   ],
+   "prepare": [
+    {"id":"page","method":"GET","path":"/v1/pages/{page_id}","params":{"page_id":{"pick":{"transform":"ids.notionId@1","args":{"value":{"input":"/page"}}},"pointer":"/id"}},"expect":{"status":[200],"require":[]},"when":{"present":{"input":"/page"}}}
+   ],
+   "perform": [
+    {"id":"comment","method":"POST","path":"/v1/comments","body":{"object":{"parent":{"when":{"present":{"input":"/page"}},"then":{"object":{"page_id":{"step":"page","pointer":"/id"}}}},"discussion_id":{"when":{"present":{"input":"/discussionId"}},"then":{"input":"/discussionId"}},"rich_text":{"each":{"pick":{"transform":"text.chunk@1","args":{"text":{"input":"/text"}}},"pointer":"/chunks"},"as":"chunk","max":100,"do":{"object":{"text":{"object":{"content":{"var":"chunk"}}}}}}}},"expect":{"status":[200],"require":[]}}
+   ],
+   "verify": {
+    "requests": [{"id":"check","method":"GET","path":"/v1/comments/{comment_id}","params":{"comment_id":{"step":"comment","pointer":"/id"}},"expect":{"status":[200],"require":[]}}],
+    "identity": [{"kind":"readback","step":"check","pointer":"/id","equals":{"step":"comment","pointer":"/id"}}],
+    "assert": [{"step":"check","equals":{"pointer":"/discussion_id","value":{"step":"comment","pointer":"/discussion_id"}}}]
+   },
+   "output": {"id":{"step":"comment","pointer":"/id"},"discussionId":{"step":"comment","pointer":"/discussion_id"},"pageId":{"step":"comment","pointer":"/parent/page_id"},"createdTime":{"step":"comment","pointer":"/created_time"}},
+   "preview": [
+    {"label":"Link","expr":{"step":"page","pointer":"/url"}},
+    {"label":"Reply in discussion","expr":{"input":"/discussionId"}},
+    {"label":"Comment","expr":{"input":"/text"},"truncate":500}
+   ],
+   "definitive": [400,403,404]
+  },
+  {
+   "id": "notion.action.read-comments.v1.5b4e5412519b7a6da8339755",
+   "key": "read-comments",
+   "version": 1,
+   "name": "Read comments",
+   "description": "Reads the open comments of one page you shared, oldest first, 25 a page: each comment's id, discussion, author, time and its text in up to 30 pieces, as Notion splits it. Notion leaves resolved discussions out.",
+   "effect": "read",
+   "row": "notion.comments.read",
+   "hints": {"readOnly":true,"destructive":false,"idempotent":true,"openWorld":true},
+   "inputSchema": {"type":"object","properties":{"page":{"type":"string","minLength":1,"maxLength":2048,"description":"The page: a Notion link or a page id."},"cursor":{"type":"string","minLength":1,"maxLength":1024,"description":"nextCursor from the page before, for the next page."}},"required":["page"],"additionalProperties":false},
+   "outputSchema": {"type":"object","properties":{"comments":{"type":"array","maxItems":25,"items":{"type":"object","properties":{"id":{"type":"string","maxLength":64},"discussionId":{"type":"string","maxLength":64},"createdTime":{"type":"string","maxLength":64},"createdBy":{"type":"string","maxLength":64},"text":{"type":"array","maxItems":30,"items":{"type":"string","maxLength":2000}}},"required":["id"],"additionalProperties":false}},"nextCursor":{"type":"string","maxLength":1024},"hasMore":{"type":"boolean"}},"required":["comments"],"additionalProperties":false},
+   "guards": [],
+   "prepare": [],
+   "perform": [
+    {"id":"list","method":"GET","path":"/v1/comments","query":{"block_id":{"pick":{"transform":"ids.notionId@1","args":{"value":{"input":"/page"}}},"pointer":"/id"},"page_size":{"const":25},"start_cursor":{"when":{"present":{"input":"/cursor"}},"then":{"input":"/cursor"}}},"expect":{"status":[200],"require":[]}}
+   ],
+   "output": {"comments":{"each":{"step":"list","pointer":"/results"},"as":"comment","max":25,"do":{"object":{"id":{"pick":{"var":"comment"},"pointer":"/id"},"discussionId":{"pick":{"var":"comment"},"pointer":"/discussion_id"},"createdTime":{"pick":{"var":"comment"},"pointer":"/created_time"},"createdBy":{"pick":{"var":"comment"},"pointer":"/created_by/id"},"text":{"each":{"pick":{"var":"comment"},"pointer":"/rich_text"},"as":"piece","max":30,"do":{"pick":{"var":"piece"},"pointer":"/plain_text"}}}}},"nextCursor":{"when":{"nonEmpty":{"step":"list","pointer":"/next_cursor"}},"then":{"step":"list","pointer":"/next_cursor"}},"hasMore":{"step":"list","pointer":"/has_more"}},
+   "preview": [
+    {"label":"Page","expr":{"input":"/page"}}
+   ],
+   "definitive": [400,403,404]
+  },
+  {
+   "id": "notion.action.find-person.v1.25699335675866caf2984b61",
+   "key": "find-person",
+   "version": 1,
+   "name": "Find person",
+   "description": "Finds the people and bots of the workspace whose name is the name given, in any case, reading at most 10 pages of 100. It returns their ids, which people values take.",
+   "effect": "read",
+   "row": "notion.users.read",
+   "hints": {"readOnly":true,"destructive":false,"idempotent":true,"openWorld":true},
+   "inputSchema": {"type":"object","properties":{"name":{"type":"string","minLength":1,"maxLength":1000,"description":"The person's name as Notion shows it."}},"required":["name"],"additionalProperties":false},
+   "outputSchema": {"type":"object","properties":{"matches":{"type":"array","maxItems":100,"items":{"type":"object","properties":{"id":{"type":"string","maxLength":1000},"name":{"type":"string","maxLength":1000}},"required":["id"],"additionalProperties":false}}},"required":["matches"],"additionalProperties":false},
+   "guards": [],
+   "prepare": [],
+   "perform": [
+    {"id":"users","method":"GET","path":"/v1/users","query":{"page_size":{"const":100}},"page":{"next":{"pointer":"/next_cursor"},"into":{"query":"start_cursor"},"items":"/results","max":10,"while":"/has_more"},"maxResponseBytes":1048576,"expect":{"status":[200],"require":[]}}
+   ],
+   "output": {"matches":{"each":{"pick":{"transform":"collections.findBy@1","args":{"list":{"step":"users","pointer":""},"items":{"const":""},"field":{"const":"/name"},"id":{"const":"/id"},"label":{"const":"/name"},"value":{"input":"/name"},"fold":{"const":"ascii"},"require":{"const":"any"}}},"pointer":"/matches"},"as":"match","max":100,"do":{"object":{"id":{"pick":{"var":"match"},"pointer":"/id"},"name":{"pick":{"var":"match"},"pointer":"/label"}}}}},
+   "preview": [
+    {"label":"Name","expr":{"input":"/name"}}
+   ],
+   "definitive": [400,403]
+  }
+ ]
+}

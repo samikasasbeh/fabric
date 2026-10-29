@@ -1,0 +1,145 @@
+{
+ "schemaVersion": 1,
+ "appId": "notion",
+ "note": "Notion's live write tests N0 to N11 (spec section 5.4, step 20): on the synthetic pages A and B and the synthetic database under A that you shared with Fabric, and on what the run itself creates. The database's data source has a title property Name, a select Stage with the options Open and Done, and a number Count; row 1's Count is 1 before the run. Every text a test writes starts with its synthetic marker. Checked offline by node scripts/live-certify.mjs notion --check.",
+ "recorded": {
+  "pageA": "The id of page A, a top page whose title starts with [SYNTHETIC], shared with Fabric's integration in Notion's picker.",
+  "pageB": "The id of page B, a second top page whose title starts with [SYNTHETIC], shared the same way.",
+  "database": "The id of the synthetic database under page A, shared the same way.",
+  "dataSource": "The id of that database's one data source, as Describe database lists it.",
+  "row1": "The id of the database's first row, whose Count is 1 before the run.",
+  "ownerName": "Your name as Notion shows it in the workspace's people list."
+ },
+ "readRows": ["notion.content.read", "notion.comments.read", "notion.search.read"],
+ "tests": [
+  {
+   "id": "N0",
+   "name": "Read pass: search, read A and B, describe the database, find its three rows, read A's comments and find you",
+   "steps": [
+    {"call": {"action": "search@1", "args": {}, "checks": [{"pointer": "/results", "present": true}, {"pointer": "/hasMore", "present": true}]}},
+    {"call": {"action": "read-page@1", "args": {"page": {"$recorded": "pageA"}}, "checks": [{"pointer": "/title", "present": true}, {"pointer": "/inTrash", "equals": false}]}},
+    {"call": {"action": "read-page@1", "args": {"page": {"$recorded": "pageB"}}, "checks": [{"pointer": "/title", "present": true}, {"pointer": "/inTrash", "equals": false}]}},
+    {"call": {"action": "describe-database@1", "args": {"database": {"$recorded": "database"}}, "checks": [{"pointer": "/dataSources", "count": 1},
+     {"pointer": "/dataSources/0/properties", "where": {"/name": "Stage"}, "field": "/writable", "equals": true}, {"pointer": "/dataSources/0/properties", "where": {"/name": "Count"}, "field": "/type", "equals": "number"}]}},
+    {"call": {"action": "find-rows@1", "args": {"dataSource": {"$recorded": "dataSource"}, "match": "all"}, "checks": [{"pointer": "/rows", "count": 3}, {"pointer": "/hasMore", "equals": false}]}},
+    {"call": {"action": "read-page@1", "args": {"page": {"$recorded": "row1"}}, "checks": [{"pointer": "/properties", "where": {"/name": "Count"}, "field": "/text", "equals": "1"}]}},
+    {"call": {"action": "read-comments@1", "args": {"page": {"$recorded": "pageA"}}, "checks": [{"pointer": "/comments", "present": true}]}},
+    {"call": {"action": "find-person@1", "args": {"name": {"$recorded": "ownerName"}}, "checks": [{"pointer": "/matches/0/id", "present": true}]}}
+   ]
+  },
+  {
+   "id": "N1",
+   "name": "Create a page under A with a title and text",
+   "steps": [
+    {"call": {"action": "create-page@1", "args": {"parent": {"$recorded": "pageA"}, "title": {"$text": "page"}, "content": {"$text": "body"}}, "save": {"page": "/id"},
+     "checks": [{"pointer": "/title", "equals": {"$text": "page"}}, {"pointer": "/parentType", "equals": "page_id"}, {"pointer": "/inTrash", "equals": false}]}},
+    {"read": {"path": "/v1/pages/{page}", "params": {"page": {"$saved": "page"}}, "checks": [{"status": 200}, {"pointer": "/in_trash", "equals": false}]}}
+   ],
+   "undo": {"test": "N8"}
+  },
+  {
+   "id": "N2",
+   "name": "Add a marker line at the end of N1's page",
+   "steps": [
+    {"call": {"action": "add-to-page@1", "args": {"page": {"$saved": "page"}, "content": {"$text": "marker"}}, "checks": [{"pointer": "/id", "present": true}]}}
+   ],
+   "undo": {"steps": [
+    {"call": {"action": "edit-page-text@1", "args": {"page": {"$saved": "page"}, "find": {"$text": "marker"}, "replace": ""}, "checks": [{"pointer": "/id", "present": true}]}}
+   ]}
+  },
+  {
+   "id": "N3",
+   "name": "Edit text on N1's page: a line this test adds, found once and replaced",
+   "steps": [
+    {"call": {"action": "add-to-page@1", "args": {"page": {"$saved": "page"}, "content": {"$text": "line"}}}},
+    {"call": {"action": "edit-page-text@1", "args": {"page": {"$saved": "page"}, "find": {"$text": "line"}, "replace": {"$text": "edited"}}, "checks": [{"pointer": "/id", "present": true}]}}
+   ],
+   "undo": {"steps": [
+    {"call": {"action": "edit-page-text@1", "args": {"page": {"$saved": "page"}, "find": {"$text": "edited"}, "replace": ""}, "checks": [{"pointer": "/id", "present": true}]}}
+   ]}
+  },
+  {
+   "id": "N4",
+   "name": "Rename N1's page",
+   "steps": [
+    {"call": {"action": "rename-page@1", "args": {"page": {"$saved": "page"}, "title": {"$text": "renamed"}}, "checks": [{"pointer": "/title", "equals": {"$text": "renamed"}}]}}
+   ],
+   "undo": {"steps": [
+    {"call": {"action": "rename-page@1", "args": {"page": {"$saved": "page"}, "title": {"$text": "page"}}, "checks": [{"pointer": "/title", "equals": {"$text": "page"}}]}}
+   ]}
+  },
+  {
+   "id": "N5",
+   "name": "Move N1's page from A to B",
+   "steps": [
+    {"call": {"action": "move-page@1", "args": {"page": {"$saved": "page"}, "to": {"$recorded": "pageB"}}, "checks": [{"pointer": "/parentType", "equals": "page_id"}]}}
+   ],
+   "undo": {"steps": [
+    {"call": {"action": "move-page@1", "args": {"page": {"$saved": "page"}, "to": {"$recorded": "pageA"}}, "checks": [{"pointer": "/parentType", "equals": "page_id"}]}}
+   ]}
+  },
+  {
+   "id": "N6",
+   "name": "Add a row to the database, then move it to trash",
+   "steps": [
+    {"call": {"action": "add-row@1", "args": {"dataSource": {"$recorded": "dataSource"}, "values": {"Name": {"$text": "row"}, "Stage": "Open", "Count": 2}}, "save": {"row": "/id"},
+     "checks": [{"pointer": "/title", "equals": {"$text": "row"}}, {"pointer": "/parentType", "equals": "data_source_id"}]}},
+    {"call": {"action": "trash-page@1", "args": {"page": {"$saved": "row"}}, "checks": [{"pointer": "/inTrash", "equals": true}]}}
+   ],
+   "undo": {"steps": [
+    {"call": {"action": "find-rows@1", "args": {"dataSource": {"$recorded": "dataSource"}, "match": "all"}, "checks": [{"pointer": "/rows", "count": 3}]}}
+   ]}
+  },
+  {
+   "id": "N7",
+   "name": "Set row 1's Count to 7, never its text",
+   "steps": [
+    {"call": {"action": "update-row@1", "args": {"page": {"$recorded": "row1"}, "values": {"Count": 7}}, "checks": [{"pointer": "/id", "present": true}]}},
+    {"call": {"action": "read-page@1", "args": {"page": {"$recorded": "row1"}}, "checks": [{"pointer": "/properties", "where": {"/name": "Count"}, "field": "/text", "equals": "7"}]}}
+   ],
+   "undo": {"steps": [
+    {"call": {"action": "update-row@1", "args": {"page": {"$recorded": "row1"}, "values": {"Count": 1}}, "checks": [{"pointer": "/id", "present": true}]}},
+    {"call": {"action": "read-page@1", "args": {"page": {"$recorded": "row1"}}, "checks": [{"pointer": "/properties", "where": {"/name": "Count"}, "field": "/text", "equals": "1"}]}}
+   ]}
+  },
+  {
+   "id": "N8",
+   "name": "Move N1's page to trash, restore it, and move it to trash again",
+   "steps": [
+    {"call": {"action": "trash-page@1", "args": {"page": {"$saved": "page"}}, "checks": [{"pointer": "/inTrash", "equals": true}]}},
+    {"call": {"action": "restore-page@1", "args": {"page": {"$saved": "page"}}, "checks": [{"pointer": "/inTrash", "equals": false}]}},
+    {"call": {"action": "trash-page@1", "args": {"page": {"$saved": "page"}}, "checks": [{"pointer": "/inTrash", "equals": true}]}},
+    {"read": {"path": "/v1/pages/{page}", "params": {"page": {"$saved": "page"}}, "checks": [{"status": 200}, {"pointer": "/in_trash", "equals": true}]}}
+   ],
+   "undo": {"none": "It is the undo of N1: the page stays in Notion's trash, which you may empty by hand."}
+  },
+  {
+   "id": "N9",
+   "name": "Comment on A",
+   "steps": [
+    {"call": {"action": "comment@1", "args": {"page": {"$recorded": "pageA"}, "text": {"$text": "comment"}}, "save": {"comment": "/id", "discussion": "/discussionId"},
+     "checks": [{"pointer": "/pageId", "present": true}, {"pointer": "/discussionId", "present": true}]}}
+   ],
+   "undo": {"test": "N11"}
+  },
+  {
+   "id": "N10",
+   "name": "Reply in N9's discussion",
+   "steps": [
+    {"call": {"action": "comment@1", "args": {"discussionId": {"$saved": "discussion"}, "text": {"$text": "reply"}}, "save": {"reply": "/id"}, "checks": [{"pointer": "/discussionId", "equals": {"$saved": "discussion"}}]}}
+   ],
+   "undo": {"test": "N11"}
+  },
+  {
+   "id": "N11",
+   "name": "Delete N9's comment and N10's reply through the one-time Ask, then the row is Never again",
+   "cleanup": true,
+   "steps": [
+    {"oneTimeAsk": {"row": "notion.permanent.delete", "requests": [
+     {"method": "DELETE", "path": "/v1/comments/{comment}", "params": {"comment": {"$saved": "reply"}}},
+     {"method": "DELETE", "path": "/v1/comments/{comment}", "params": {"comment": {"$saved": "comment"}}}]}}
+   ],
+   "undo": {"none": "It is the undo of N9 and N10, and the row's return to Never is recorded."}
+  }
+ ]
+}

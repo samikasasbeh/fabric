@@ -1,0 +1,153 @@
+{
+ "schemaVersion": 2,
+ "appId": "google-calendar",
+ "reviewed": "2026-10-12: drafted from official machine-readable API descriptions, corrected by an independent critic; see docs/UI-0-SCREEN-CONTRACTS.md section 9",
+ "groups": [
+  {
+   "id": "google-calendar.calendars.read",
+   "label": "Access your calendars",
+   "effect": "read",
+   "defaultMode": "allow",
+   "operations": [
+    "calendar.calendarList.list",
+    "calendar.calendarList.get",
+    "calendar.colors.get"
+   ]
+  },
+  {
+   "id": "google-calendar.events.read",
+   "label": "Access events",
+   "effect": "read",
+   "defaultMode": "allow",
+   "operations": [
+    "calendar.events.list",
+    "calendar.events.get",
+    "calendar.events.instances"
+   ]
+  },
+  {
+   "id": "google-calendar.availability.read",
+   "label": "Check your availability",
+   "effect": "read",
+   "defaultMode": "allow",
+   "operations": [
+    "calendar.freebusy.query"
+   ],
+   "reviewedReads": [
+    "calendar.freebusy.query"
+   ]
+  },
+  {
+   "id": "google-calendar.settings.read",
+   "label": "Access settings and calendar sharing",
+   "effect": "read",
+   "defaultMode": "allow",
+   "operations": [
+    "calendar.settings.list",
+    "calendar.settings.get",
+    "calendar.calendars.get",
+    "calendar.acl.list",
+    "calendar.acl.get"
+   ]
+  },
+  {
+   "id": "google-calendar.events.write",
+   "label": "Create, edit and invite people to events",
+   "effect": "write",
+   "defaultMode": "ask",
+   "audience": true,
+   "operations": [
+    "calendar.events.insert",
+    "calendar.events.quickAdd",
+    "calendar.events.import",
+    "calendar.events.patch",
+    "calendar.events.update",
+    "calendar.events.move"
+   ],
+   "bindContent": {
+    "calendar.events.patch": {"kind": "etag", "at": "header:If-Match"},
+    "calendar.events.update": {"kind": "etag", "at": "header:If-Match"}
+   }
+  },
+  {
+   "id": "google-calendar.events.delete",
+   "label": "Delete events",
+   "effect": "delete",
+   "defaultMode": "ask",
+   "audience": true,
+   "operations": [
+    "calendar.events.delete"
+   ]
+  },
+  {
+   "id": "google-calendar.calendarlist.write",
+   "label": "Organize your calendar list",
+   "effect": "write",
+   "defaultMode": "allow",
+   "stayInAccount": true,
+   "operations": [
+    "calendar.calendarList.insert",
+    "calendar.calendarList.patch",
+    "calendar.calendarList.update"
+   ]
+  },
+  {
+   "id": "google-calendar.calendars.write",
+   "label": "Create and edit calendars",
+   "effect": "write",
+   "defaultMode": "ask",
+   "operations": [
+    "calendar.calendars.insert",
+    "calendar.calendars.patch",
+    "calendar.calendars.update"
+   ]
+  },
+  {
+   "id": "google-calendar.calendarlist.remove",
+   "label": "Remove calendars from your list",
+   "effect": "delete",
+   "defaultMode": "ask",
+   "operations": [
+    "calendar.calendarList.delete"
+   ]
+  },
+  {
+   "id": "google-calendar.sharing.write",
+   "label": "Stop sharing calendars",
+   "effect": "write",
+   "defaultMode": "ask",
+   "audience": true,
+   "operations": [
+    "calendar.acl.delete"
+   ]
+  },
+  {
+   "id": "google-calendar.permanent.delete",
+   "label": "Permanently delete calendars or clear all events",
+   "effect": "delete",
+   "defaultMode": "deny",
+   "operations": [
+    "calendar.calendars.delete",
+    "calendar.calendars.clear"
+   ]
+  },
+  {
+   "id": "google-calendar.access.grant",
+   "label": "Give access to other people or services",
+   "effect": "write",
+   "defaultMode": "deny",
+   "locked": "fabric",
+   "operations": [
+    "calendar.calendarList.watch",
+    "calendar.events.watch",
+    "calendar.settings.watch",
+    "calendar.acl.watch",
+    "calendar.channels.stop",
+    "calendar.acl.insert",
+    "calendar.acl.patch",
+    "calendar.acl.update",
+    "calendar.calendars.transferOwnership"
+   ]
+  }
+ ]
+}

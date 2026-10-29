@@ -1,0 +1,161 @@
+{
+  "schemaVersion": 2,
+  "providerId": "github",
+  "displayName": "GitHub",
+  "reviewStatus": "reviewed",
+  "credentialEnvironment": {
+    "clientId": "FABRIC_GITHUB_CLIENT_ID",
+    "clientSecret": "FABRIC_GITHUB_CLIENT_SECRET"
+  },
+  "authorization": {
+    "url": "https://github.com/login/oauth/authorize",
+    "pkce": "S256",
+    "scopeParameter": "scope",
+    "userScopeParameter": null,
+    "loopbackRedirect": "allowed",
+    "scopeSeparator": " ",
+    "identityScopes": [],
+    "extraParameters": {
+      "prompt": "select_account"
+    }
+  },
+  "token": {
+    "url": "https://github.com/login/oauth/access_token",
+    "encoding": "form",
+    "clientAuthentication": "body",
+    "responseFormat": "oauth2",
+    "scopeSeparator": ",",
+    "acceptedTokenTypes": [
+      "bearer"
+    ],
+    "reconnectErrors": [
+      "bad_verification_code",
+      "bad_refresh_token",
+      "invalid_grant"
+    ],
+    "requireExpiry": false,
+    "maxLifetimeSeconds": 28800,
+    "quirks": {
+      "errorInSuccessBody": true,
+      "errorCodeField": "error",
+      "nullRefreshMeansNone": false,
+      "basicEncoding": "raw"
+    }
+  },
+  "refresh": {
+    "supported": true,
+    "keepPreviousWhenOmitted": false
+  },
+  "revocation": {
+    "url": "https://api.github.com/applications/{client_id}/token",
+    "method": "DELETE",
+    "encoding": "json",
+    "clientAuthentication": "basic",
+    "tokenParameter": "access_token",
+    "preferredToken": "access",
+    "successStatuses": [
+      204
+    ],
+    "successRequire": [],
+    "covers": "token",
+    "settingsUrl": "https://github.com/settings/applications"
+  },
+  "apiHeaders": {
+    "User-Agent": "Capability-Fabric/0.1",
+    "X-GitHub-Api-Version": "2022-11-28"
+  },
+  "grantHeader": "x-oauth-scopes",
+  "identity": {
+    "request": {
+      "url": "https://api.github.com/user",
+      "method": "GET",
+      "headers": {},
+      "body": "none"
+    },
+    "require": [
+      {
+        "pointer": "/login",
+        "present": true
+      }
+    ],
+    "requireFailure": "unverifiable",
+    "id": {
+      "pointers": [
+        "/id"
+      ],
+      "separator": "",
+      "allowNumbers": true
+    },
+    "alternateId": null,
+    "displayName": {
+      "pointers": [
+        "/login",
+        "/name"
+      ],
+      "fallback": "GitHub account"
+    },
+    "email": null,
+    "attributes": {}
+  },
+  "apps": [
+    {
+      "appId": "github",
+      "accessProbe": null,
+      "access": {
+        "default": "full",
+        "grant": "scope",
+        "levels": {
+          "full": {
+            "required": [
+              "read:user",
+              "repo"
+            ],
+            "optional": [
+              "read:org",
+              "gist",
+              "workflow"
+            ],
+            "inContext": []
+          },
+          "read": null
+        }
+      },
+      "neverRequest": [
+        "delete_repo",
+        "user",
+        "admin:public_key",
+        "admin:gpg_key",
+        "admin:ssh_signing_key"
+      ]
+    }
+  ],
+  "scopeImplications": {
+    "repo": [
+      "public_repo",
+      "repo:status",
+      "repo_deployment",
+      "repo:invite",
+      "security_events"
+    ],
+    "user": [
+      "read:user",
+      "user:email",
+      "user:follow"
+    ],
+    "admin:org": [
+      "write:org",
+      "read:org"
+    ],
+    "write:org": [
+      "read:org"
+    ],
+    "admin:repo_hook": [
+      "write:repo_hook",
+      "read:repo_hook"
+    ]
+  },
+  "consentPolicy": {
+    "testing": "full",
+    "production": "full"
+  }
+}

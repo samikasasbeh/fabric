@@ -1,0 +1,584 @@
+{
+ "schema": 1,
+ "note": "F09.0 zero-churn baseline (docs/F09-COMPILER-COVERAGE.md I1), recorded 2026-10-12 from the code before F09.1. Never edit the baseline; list every deliberate change under changes with its slice and reason.",
+ "baseline": {
+  "coverage": {
+   "direct": {
+    "capabilityIds": [
+     "coverage.anonymousallowed.9a5d05b04aef0b37326033c1",
+     "coverage.apikeyheaderonly.b86069ea005789bb9499acc6",
+     "coverage.apikeyqueryonly.c916efd3430ee1d1378c4484",
+     "coverage.basiconly.29c626a9e279cec476230bea",
+     "coverage.basicorbearer.1389fab81278b0accf666194",
+     "coverage.bearercapital.6b92a38d033d50e3f79d2f4e",
+     "coverage.createkey.08843cb13fd07cc4210fd60e",
+     "coverage.credentialparamoptional.64fe4e668c2979b04ae4139a",
+     "coverage.credentialparamrequired.ff7a11953f52ac6ebfa2e804",
+     "coverage.declaredkeyparam.f1daefaa21fdcd99b2ecaeff",
+     "coverage.deleteplain.00747c33dd56b9dc1dacb5a0",
+     "coverage.deletething.2707ab7bb6995c7307c3eaa8",
+     "coverage.getaccount.03ce0a389832d10730504059",
+     "coverage.getplain.ee154cf194615048d8ec16b0",
+     "coverage.postplain.354f54bfa4c2b1093806b1f9",
+     "coverage.tokenexchange.a17f930b89069f226203593f",
+     "coverage.tokenurlmatch.8ffb97cd82372382b8a2318a",
+     "coverage.trailingsummary.214afc21d9d12e7148185dea",
+     "coverage.undefinedscheme.6bc05bb152569d6311fceee4"
+    ]
+   },
+   "discovery": {
+    "operations": {
+     "allOfBody": {
+      "support": "unsupported",
+      "failure": "schema: allOf"
+     },
+     "annotationOptional": {
+      "support": "unsupported",
+      "failure": "schema: annotation"
+     },
+     "annotationRequired": {
+      "support": "unsupported",
+      "failure": "schema: annotation"
+     },
+     "anonymousAllowed": {
+      "support": "candidate",
+      "capabilityId": "coverage.generated.8f66c32c4785e9c68c36dd4b",
+      "scopeSets": [
+       []
+      ],
+      "defaultMode": "allow"
+     },
+     "apiKeyHeaderOnly": {
+      "support": "unsupported",
+      "failure": "auth: scheme not servable"
+     },
+     "apiKeyQueryOnly": {
+      "support": "unsupported",
+      "failure": "auth: scheme not servable"
+     },
+     "basicOnly": {
+      "support": "unsupported",
+      "failure": "auth: scheme not servable"
+     },
+     "basicOrBearer": {
+      "support": "unsupported",
+      "failure": "auth: scheme not servable"
+     },
+     "bearerCapital": {
+      "support": "unsupported",
+      "failure": "auth: scheme not servable"
+     },
+     "blankSummary": {
+      "support": "unsupported",
+      "failure": "metadata: blank name"
+     },
+     "cookieParam": {
+      "support": "unsupported",
+      "failure": "parameter: header or cookie"
+     },
+     "createKey": {
+      "support": "candidate",
+      "capabilityId": "coverage.generated.33c39786798eefa26bb9e3bf",
+      "scopeSets": [
+       [
+        "read"
+       ]
+      ],
+      "defaultMode": "ask"
+     },
+     "credentialParamOptional": {
+      "support": "candidate",
+      "capabilityId": "coverage.generated.fb9995543ff98921da69d8e6",
+      "scopeSets": [
+       [
+        "read"
+       ]
+      ],
+      "defaultMode": "allow"
+     },
+     "credentialParamRequired": {
+      "support": "candidate",
+      "capabilityId": "coverage.generated.75a76579f58e7d5d3c062b90",
+      "scopeSets": [
+       [
+        "read"
+       ]
+      ],
+      "defaultMode": "allow"
+     },
+     "csvQuery": {
+      "support": "unsupported",
+      "failure": "parameter: serialization"
+     },
+     "declaredKeyParam": {
+      "support": "candidate",
+      "capabilityId": "coverage.generated.ba755b425b5879a651d278ba",
+      "scopeSets": [
+       [
+        "read"
+       ]
+      ],
+      "defaultMode": "allow"
+     },
+     "deepObjectQuery": {
+      "support": "unsupported",
+      "failure": "parameter: serialization"
+     },
+     "deletePlain": {
+      "support": "candidate",
+      "capabilityId": "coverage.generated.07b14a516fc673fe0cfbfa7c",
+      "scopeSets": [
+       [
+        "read"
+       ]
+      ],
+      "defaultMode": "ask"
+     },
+     "deleteThing": {
+      "support": "candidate",
+      "capabilityId": "coverage.generated.c5b3df56fa4725f84bfc504a",
+      "scopeSets": [
+       [
+        "read"
+       ]
+      ],
+      "defaultMode": "allow"
+     },
+     "deprecatedParam": {
+      "support": "unsupported",
+      "failure": "schema: annotation"
+     },
+     "emptyBodyOnGet": {
+      "support": "unsupported",
+      "failure": "body: media type"
+     },
+     "formatOptional": {
+      "support": "unsupported",
+      "failure": "schema: format"
+     },
+     "formatPassword": {
+      "support": "unsupported",
+      "failure": "schema: format"
+     },
+     "formBody": {
+      "support": "unsupported",
+      "failure": "body: media type"
+     },
+     "getAccount": {
+      "support": "candidate",
+      "capabilityId": "coverage.generated.7c97690aef6f29bc5550d3d5",
+      "scopeSets": [
+       [
+        "read"
+       ]
+      ],
+      "defaultMode": "allow"
+     },
+     "getPlain": {
+      "support": "candidate",
+      "capabilityId": "coverage.generated.4f8d5c9541cc04c742d80610",
+      "scopeSets": [
+       [
+        "read"
+       ]
+      ],
+      "defaultMode": "allow"
+     },
+     "getWithJsonBody": {
+      "support": "unsupported",
+      "failure": "body: on GET or HEAD"
+     },
+     "headerOptional": {
+      "support": "unsupported",
+      "failure": "parameter: header or cookie"
+     },
+     "headerRequired": {
+      "support": "unsupported",
+      "failure": "parameter: header or cookie"
+     },
+     "impersonationHeader": {
+      "support": "unsupported",
+      "failure": "parameter: header or cookie"
+     },
+     "keyPathParam": {
+      "support": "unsupported",
+      "failure": "parameter: credential-shaped name"
+     },
+     "literalInSegment": {
+      "support": "unsupported",
+      "failure": "path: template shape"
+     },
+     "mapBody": {
+      "support": "unsupported",
+      "failure": "schema: map"
+     },
+     "multipleMediaTypes": {
+      "support": "unsupported",
+      "failure": "body: media type"
+     },
+     "nullableOptional": {
+      "support": "unsupported",
+      "failure": "schema: nullable"
+     },
+     "nullableRequired": {
+      "support": "unsupported",
+      "failure": "schema: nullable"
+     },
+     "oneOfBody": {
+      "support": "unsupported",
+      "failure": "schema: oneOf"
+     },
+     "oneOfOptional": {
+      "support": "unsupported",
+      "failure": "schema: oneOf"
+     },
+     "patternOptional": {
+      "support": "unsupported",
+      "failure": "schema: pattern"
+     },
+     "patternRequired": {
+      "support": "unsupported",
+      "failure": "schema: pattern"
+     },
+     "perPathServer": {
+      "support": "unsupported",
+      "failure": "url: server or path"
+     },
+     "postPlain": {
+      "support": "candidate",
+      "capabilityId": "coverage.generated.ec9ce7db44db9fdbea739228",
+      "scopeSets": [
+       [
+        "read"
+       ]
+      ],
+      "defaultMode": "ask"
+     },
+     "readOnlyRequired": {
+      "support": "unsupported",
+      "failure": "schema: annotation"
+     },
+     "recursiveBody": {
+      "support": "unsupported",
+      "failure": "schema: recursion"
+     },
+     "tokenExchange": {
+      "support": "candidate",
+      "capabilityId": "coverage.generated.0cd3f3c98b81f8eac6bf8e24",
+      "scopeSets": [
+       [
+        "read"
+       ]
+      ],
+      "defaultMode": "ask"
+     },
+     "tokenUrlMatch": {
+      "support": "candidate",
+      "capabilityId": "coverage.generated.68fbb808846da993a4ddfdbe",
+      "scopeSets": [
+       [
+        "read"
+       ]
+      ],
+      "defaultMode": "ask"
+     },
+     "trailingSummary": {
+      "support": "candidate",
+      "capabilityId": "coverage.generated.26d5f8cf9220b688e58a0f2a",
+      "scopeSets": [
+       [
+        "read"
+       ]
+      ],
+      "defaultMode": "allow"
+     },
+     "undefinedScheme": {
+      "support": "unsupported",
+      "failure": "auth: undefined scheme"
+     },
+     "variantPath": {
+      "support": "unsupported",
+      "failure": "url: server or path"
+     },
+     "writeOnlySecret": {
+      "support": "unsupported",
+      "failure": "schema: annotation"
+     },
+     "xExtension": {
+      "support": "unsupported",
+      "failure": "schema: annotation"
+     }
+    }
+   }
+  },
+  "coverage31": {
+   "direct": {
+    "capabilityIds": [
+     "coverage31.getplain31.b4eed9c48c23cf3942e3d59d"
+    ]
+   },
+   "discovery": {
+    "operations": {
+     "getPlain31": {
+      "support": "candidate",
+      "capabilityId": "coverage31.generated.e6896366550609fadc20bbd2",
+      "scopeSets": [],
+      "defaultMode": "allow"
+     },
+     "typeArrayOptional": {
+      "support": "unsupported",
+      "failure": "schema: type missing or a type array"
+     },
+     "typeArrayRequired": {
+      "support": "unsupported",
+      "failure": "schema: type missing or a type array"
+     }
+    }
+   }
+  },
+  "coverage-swagger2": {
+   "direct": {
+    "error": "version: not OpenAPI 3.x"
+   },
+   "discovery": {
+    "error": "version: not OpenAPI 3.x"
+   }
+  },
+  "coverage-google": {
+   "discovery": {
+    "operations": {
+     "coverage.topics.create": {
+      "support": "candidate",
+      "capabilityId": "coverage-google.generated.de3bc95e202e2ceeb8f7be5e",
+      "scopeSets": [
+       [
+        "https://www.googleapis.com/auth/coverage"
+       ]
+      ],
+      "defaultMode": "ask"
+     },
+     "coverage.topics.get": {
+      "support": "candidate",
+      "capabilityId": "coverage-google.generated.58b371550b4897e5333c892c",
+      "scopeSets": [
+       [
+        "https://www.googleapis.com/auth/coverage.readonly"
+       ],
+       [
+        "https://www.googleapis.com/auth/coverage"
+       ]
+      ],
+      "defaultMode": "allow"
+     },
+     "coverage.topics.list": {
+      "support": "unsupported",
+      "failure": "schema: pattern"
+     },
+     "coverage.topics.publish": {
+      "support": "unsupported",
+      "failure": "path: template shape"
+     }
+    }
+   }
+  },
+  "github": {
+   "direct": {
+    "capabilityIds": [
+     "github.create-issue.036084a754ff28d1e8c1f246",
+     "github.get-user.e4726429d1311530f3248dc5",
+     "github.list-issues.95128145a7bf799f51745808",
+     "github.list-repositories.d079800cb13ee8d033904a89"
+    ]
+   },
+   "discovery": {
+    "operations": {
+     "create-issue": {
+      "support": "candidate",
+      "capabilityId": "github.generated.16db5240e2662aae00dbdc2b",
+      "scopeSets": [],
+      "defaultMode": "ask"
+     },
+     "get-user": {
+      "support": "candidate",
+      "capabilityId": "github.generated.1b65c7bd7c14ba7cb6243996",
+      "scopeSets": [],
+      "defaultMode": "allow"
+     },
+     "list-issues": {
+      "support": "candidate",
+      "capabilityId": "github.generated.5aad96bcc7b7f5900317ea67",
+      "scopeSets": [],
+      "defaultMode": "allow"
+     },
+     "list-repositories": {
+      "support": "candidate",
+      "capabilityId": "github.generated.02f8ffdd613dd72aaecd6ee2",
+      "scopeSets": [],
+      "defaultMode": "allow"
+     }
+    }
+   }
+  },
+  "google-calendar": {
+   "direct": {
+    "capabilityIds": [
+     "google-calendar.get-event.e514779ee8c3501613c12559",
+     "google-calendar.insert-event.b75739d8fc9f48422c4a8a7e",
+     "google-calendar.list-calendars.afec68fc2bc5c51b18d2f446",
+     "google-calendar.list-events.57cfcc1e1958815604bb1512",
+     "google-calendar.patch-event.41c9efed2ebfdaf5863ec0e6"
+    ]
+   },
+   "discovery": {
+    "operations": {
+     "get-event": {
+      "support": "candidate",
+      "capabilityId": "google-calendar.generated.25fa9976ac9070a80432ddef",
+      "scopeSets": [],
+      "defaultMode": "allow"
+     },
+     "insert-event": {
+      "support": "candidate",
+      "capabilityId": "google-calendar.generated.1c3e7b1ed5b6db496eacc7e8",
+      "scopeSets": [],
+      "defaultMode": "ask"
+     },
+     "list-calendars": {
+      "support": "candidate",
+      "capabilityId": "google-calendar.generated.db576d921a1840311efd9fdc",
+      "scopeSets": [],
+      "defaultMode": "allow"
+     },
+     "list-events": {
+      "support": "candidate",
+      "capabilityId": "google-calendar.generated.7bc45ff94de269e44adea562",
+      "scopeSets": [],
+      "defaultMode": "allow"
+     },
+     "patch-event": {
+      "support": "candidate",
+      "capabilityId": "google-calendar.generated.6952a9d004feebb87ac64985",
+      "scopeSets": [],
+      "defaultMode": "ask"
+     }
+    }
+   }
+  }
+ },
+ "changes": [
+  {
+   "app": "coverage",
+   "operation": "direct:coverage.apikeyheaderonly.b86069ea005789bb9499acc6",
+   "change": "refused",
+   "slice": "F09.1a",
+   "reason": "Direct import now reads security: API-key-only operations were compiled as bearer; refused until F09.6."
+  },
+  {
+   "app": "coverage",
+   "operation": "direct:coverage.apikeyqueryonly.c916efd3430ee1d1378c4484",
+   "change": "refused",
+   "slice": "F09.1a",
+   "reason": "Direct import now reads security: API-key-only operations were compiled as bearer; refused until F09.6."
+  },
+  {
+   "app": "coverage",
+   "operation": "direct:coverage.basiconly.29c626a9e279cec476230bea",
+   "change": "refused",
+   "slice": "F09.1a",
+   "reason": "Direct import now reads security: basic-only operations were compiled as bearer; refused until F09.6."
+  },
+  {
+   "app": "coverage",
+   "operation": "direct:coverage.undefinedscheme.6bc05bb152569d6311fceee4",
+   "change": "refused",
+   "slice": "F09.1a",
+   "reason": "Direct import now reads security: an undefined scheme makes the operation unsupported, as discovery already did."
+  },
+  {
+   "app": "coverage",
+   "operation": "direct:coverage.credentialparamoptional.64fe4e668c2979b04ae4139a",
+   "change": "refused",
+   "slice": "F09.1a",
+   "reason": "Optional credential-shaped parameter appKey is left out, so the capability changed (new id); the key never becomes an agent input."
+  },
+  {
+   "app": "coverage",
+   "operation": "direct:coverage.credentialparamrequired.ff7a11953f52ac6ebfa2e804",
+   "change": "refused",
+   "slice": "F09.1a",
+   "reason": "Required credential-shaped parameter AuthToken is refused; the key would have been an agent input and appeared in the preview URL."
+  },
+  {
+   "app": "coverage",
+   "operation": "direct:coverage.declaredkeyparam.f1daefaa21fdcd99b2ecaeff",
+   "change": "refused",
+   "slice": "F09.1a",
+   "reason": "Required parameter appid is the document's declared API-key location; refused as an agent input."
+  },
+  {
+   "app": "coverage",
+   "operation": "direct:coverage.tokenexchange.a17f930b89069f226203593f",
+   "change": "refused",
+   "slice": "F09.1a",
+   "reason": "Inputs grant_type and client_secret mark a credential exchange; refused."
+  },
+  {
+   "app": "coverage",
+   "operation": "direct:coverage.tokenurlmatch.8ffb97cd82372382b8a2318a",
+   "change": "refused",
+   "slice": "F09.1a",
+   "reason": "The URL is the document's declared OAuth token endpoint; refused as a credential exchange."
+  },
+  {
+   "app": "coverage",
+   "operation": "credentialParamOptional",
+   "change": "id",
+   "slice": "F09.1a",
+   "reason": "Optional credential-shaped parameter appKey is left out, so the capability changed (new id); the key never becomes an agent input."
+  },
+  {
+   "app": "coverage",
+   "operation": "credentialParamRequired",
+   "change": "refused",
+   "slice": "F09.1a",
+   "reason": "Required credential-shaped parameter AuthToken is refused; the key would have been an agent input and appeared in the preview URL."
+  },
+  {
+   "app": "coverage",
+   "operation": "declaredKeyParam",
+   "change": "refused",
+   "slice": "F09.1a",
+   "reason": "Required parameter appid is the document's declared API-key location; refused as an agent input."
+  },
+  {
+   "app": "coverage",
+   "operation": "tokenExchange",
+   "change": "refused",
+   "slice": "F09.1a",
+   "reason": "Inputs grant_type and client_secret mark a credential exchange; refused."
+  },
+  {
+   "app": "coverage",
+   "operation": "tokenUrlMatch",
+   "change": "refused",
+   "slice": "F09.1a",
+   "reason": "The URL is the document's declared OAuth token endpoint; refused as a credential exchange."
+  },
+  {
+   "app": "coverage",
+   "operation": "getAccount",
+   "change": "default",
+   "to": "ask",
+   "slice": "F09.1b",
+   "reason": "Its documented response carries auth_token: an operation that returns credentials never gets a standing Allow by default (I9)."
+  },
+  {
+   "app": "coverage",
+   "operation": "deleteThing",
+   "change": "default",
+   "to": "ask",
+   "slice": "F09.1b",
+   "reason": "A GET named like a change (deleteThing) defaults to Ask; the HTTP method still decides its effect."
+  }
+ ]
+}

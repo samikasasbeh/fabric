@@ -1,0 +1,78 @@
+{
+ "schemaVersion": 1,
+ "appId": "google-calendar",
+ "specVersion": "fabric/0.2",
+ "reviewStatus": "candidate",
+ "pinnedParameters": {},
+ "triggers": [
+  {
+   "id": "google-calendar.trigger.event-changed.v1.42c977fc23a698fe402aa2ba",
+   "key": "event-changed",
+   "version": 1,
+   "name": "An event changed on a calendar",
+   "description": "Tells you when an event on one calendar is created, changed or cancelled. It polls until Fabric has a public receiver.",
+   "delivery": {
+    "method": "watch",
+    "fallback": "polling",
+    "register": {
+     "step": {"id": "watch", "method": "POST", "path": "/calendars/{calendarId}/events/watch", "params": {"calendarId": {"input": "/calendarId"}},
+      "body": {"object": {"id": {"subscriptionKey": "channel"}, "type": {"const": "web_hook"}, "address": {"receiver": "google-calendar"}, "token": {"secret": "channel"}}},
+      "expect": {"status": [200], "require": []}},
+     "keep": {"channelId": "/id", "resourceId": "/resourceId", "expiration": "/expiration"}
+    },
+    "renew": {"lifetime": {"kept": "expiration", "format": "epoch-ms-string"}, "at": 0.5, "order": "new-then-stop-old", "onMiss": "resync"},
+    "teardown": {
+     "step": {"id": "stop", "method": "POST", "path": "/channels/stop", "body": {"object": {"id": {"kept": "channelId"}, "resourceId": {"kept": "resourceId"}}},
+      "expect": {"status": [204], "require": []}},
+     "onFailure": "record-leftover"
+    },
+    "admission": {"scheme": "channel-token", "header": "x-goog-channel-token", "secret": "channel",
+     "route": [{"header": "x-goog-channel-id", "equals": {"kept": "channelId"}}, {"header": "x-goog-resource-id", "equals": {"kept": "resourceId"}}],
+     "handshake": "google-sync", "trust": "doorbell"}
+   },
+   "inputSchema": {"type": "object", "properties": {"calendarId": {"type": "string", "minLength": 1, "maxLength": 200}}, "required": ["calendarId"], "additionalProperties": false},
+   "choices": [{"input": "calendarId", "source": "calendars"}],
+   "resource": ["calendarId"],
+   "poll": {
+    "source": {"steps": [
+     {"id": "changes", "method": "GET", "path": "/calendars/{calendarId}/events", "params": {"calendarId": {"input": "/calendarId"}},
+      "query": {"syncToken": {"cursor": "sync"}, "singleEvents": {"const": "true"}, "showDeleted": {"const": "true"}, "maxResults": {"const": "250"}},
+      "page": {"next": {"pointer": "/nextPageToken"}, "into": {"query": "pageToken"}, "items": "/items", "max": 10},
+      "expect": {"status": [200], "require": []}}
+    ]},
+    "items": {"step": "changes", "pointer": ""},
+    "itemId": {"item": "/id"},
+    "itemVersion": "/etag",
+    "itemTime": {"pointer": "/updated", "format": "rfc3339"},
+    "order": "unordered",
+    "cursors": [{"name": "sync", "kind": "sync-token@1", "next": {"step": "changes", "pointer": "/nextSyncToken"}, "lastPageOnly": true,
+     "excludes": ["orderBy", "q", "timeMin", "timeMax", "updatedMin", "iCalUID", "privateExtendedProperty", "sharedExtendedProperty"]}],
+    "resync": {"statusIn": [410]},
+    "minIntervalSeconds": 60
+   },
+   "dedupe": {"kind": "id+version"},
+   "event": {
+    "schema": {"type": "object", "properties": {
+      "calendarId": {"type": "string", "maxLength": 200}, "eventId": {"type": "string", "maxLength": 512}, "status": {"type": "string", "maxLength": 32},
+      "title": {"type": "string", "maxLength": 300}, "start": {"type": "string", "maxLength": 64}, "updated": {"type": "string", "maxLength": 64}, "cancelled": {"type": "boolean"}
+     }, "required": ["calendarId", "eventId", "status", "updated"], "additionalProperties": false},
+    "id": {"concat": [{"item": "/id"}, {"const": ":"}, {"item": "/etag"}], "max": 1200},
+    "occurredAt": {"item": "/updated"},
+    "fields": {
+     "calendarId": {"input": "/calendarId"},
+     "eventId": {"item": "/id"},
+     "status": {"item": "/status"},
+     "title": {"pick": {"transform": "text.truncate@1", "args": {"text": {"item": "/summary"}, "max": {"const": 300}}}, "pointer": "/text"},
+     "start": {"when": {"present": {"item": "/start/dateTime"}}, "then": {"item": "/start/dateTime"}},
+     "updated": {"item": "/updated"},
+     "cancelled": {"when": {"equals": [{"item": "/status"}, {"const": "cancelled"}]}, "then": {"const": true}}
+    },
+    "summary": [{"label": "Event", "expr": {"item": "/summary"}, "truncate": 120}, {"label": "Status", "expr": {"item": "/status"}}]
+   },
+   "backfill": {"default": 0, "max": 25},
+   "retention": {"days": 7},
+   "bounds": {"pages": 10, "items": 500, "pollSeconds": 10},
+   "rows": ["google-calendar.events.read"]
+  }
+ ]
+}

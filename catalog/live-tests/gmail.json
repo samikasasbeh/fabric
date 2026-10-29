@@ -1,0 +1,148 @@
+{
+ "schemaVersion": 1,
+ "appId": "gmail",
+ "note": "Gmail's live write tests G0 to G10 (spec section 5.1, step 16): every email goes to your own address only, every text starts with the synthetic marker, the only labels changed are the run's own and INBOX, UNREAD, STARRED and IMPORTANT, and every write is undone. Checked offline by node scripts/live-certify.mjs gmail --check.",
+ "recorded": {
+  "readMessage": "The id of one of the two read-pass emails you sent to yourself before the run, with the subject [SYNTHETIC] Fabric read pass: G0 reads it.",
+  "readThread": "The conversation id of the read-pass emails and your reply to them: G0 reads it.",
+  "handDraft": "The id of the draft you wrote by hand in Gmail before the run, to yourself with the subject [SYNTHETIC] Fabric hand draft: G2 edits it and asks."
+ },
+ "readRows": ["gmail.messages.read", "gmail.drafts.read", "gmail.labels.read"],
+ "tests": [
+  {
+   "id": "G0",
+   "name": "Read pass: find the read-pass emails, read one and read their conversation",
+   "steps": [
+    {"call": {"action": "find-emails@1", "args": {"words": "[SYNTHETIC] Fabric read pass", "maxResults": 5}, "checks": [{"pointer": "/messages", "present": true}]}},
+    {"call": {"action": "read-email@1", "args": {"messageId": {"$recorded": "readMessage"}}, "checks": [{"pointer": "/id", "equals": {"$recorded": "readMessage"}}, {"pointer": "/subject", "equals": "[SYNTHETIC] Fabric read pass"}]}},
+    {"call": {"action": "read-conversation@1", "args": {"threadId": {"$recorded": "readThread"}}, "checks": [{"pointer": "/id", "equals": {"$recorded": "readThread"}}, {"pointer": "/messages/0/subject", "equals": "[SYNTHETIC] Fabric read pass"}]}}
+   ]
+  },
+  {
+   "id": "G1",
+   "name": "Create a draft to yourself",
+   "steps": [
+    {"call": {"action": "create-draft@1", "args": {"to": [{"$owner": "email"}], "subject": {"$text": "draft"}, "text": {"$text": "draft text"}}, "save": {"draft1": "/id"},
+     "checks": [{"pointer": "/to/0", "equals": {"$owner": "email"}}, {"pointer": "/subject", "equals": {"$text": "draft"}}]}}
+   ],
+   "undo": {"test": "G11"}
+  },
+  {
+   "id": "G2",
+   "name": "Edit G1's draft under Allow, then edit the hand draft, whose card asks",
+   "steps": [
+    {"call": {"action": "edit-draft@1", "args": {"draftId": {"$saved": "draft1"}, "to": [{"$owner": "email"}], "subject": {"$text": "draft edited"}, "text": {"$text": "draft text edited"}},
+     "checks": [{"pointer": "/id", "equals": {"$saved": "draft1"}}]}},
+    {"read": {"path": "/gmail/v1/users/me/drafts/{draft}", "params": {"draft": {"$saved": "draft1"}}, "query": {"format": "raw"}, "checks": [{"status": 200}, {"pointer": "/id", "equals": {"$saved": "draft1"}}]}},
+    {"owner": {"words": "The next card edits the draft you wrote by hand: check that it says the draft was not made by Fabric before you approve it."}},
+    {"call": {"action": "edit-draft@1", "args": {"draftId": {"$recorded": "handDraft"}, "to": [{"$owner": "email"}], "subject": {"$text": "hand draft edited"}, "text": {"$text": "hand draft text edited"}},
+     "checks": [{"pointer": "/id", "equals": {"$recorded": "handDraft"}}]}}
+   ],
+   "undo": {"test": "G11"}
+  },
+  {
+   "id": "G3",
+   "name": "Send an email to yourself",
+   "steps": [
+    {"call": {"action": "send-email@1", "args": {"to": [{"$owner": "email"}], "subject": {"$text": "email"}, "text": {"$text": "email text"}}, "save": {"m3": "/id", "t3": "/threadId"}}},
+    {"read": {"path": "/gmail/v1/users/me/messages/{message}", "params": {"message": {"$saved": "m3"}}, "query": {"format": "minimal"}, "checks": [{"status": 200}, {"pointer": "/id", "equals": {"$saved": "m3"}}]}}
+   ],
+   "undo": {"test": "G7"}
+  },
+  {
+   "id": "G4",
+   "name": "Reply to G3's email, in its conversation",
+   "steps": [
+    {"call": {"action": "reply@1", "args": {"messageId": {"$saved": "m3"}, "replyAll": false, "text": {"$text": "reply text"}}, "save": {"m4": "/id"}, "checks": [{"pointer": "/threadId", "equals": {"$saved": "t3"}}]}}
+   ],
+   "undo": {"test": "G7"}
+  },
+  {
+   "id": "G5",
+   "name": "Create the run's label",
+   "steps": [
+    {"call": {"action": "create-label@1", "args": {"name": {"$text": "label"}}, "save": {"label5": "/id"}, "checks": [{"pointer": "/created", "equals": true}, {"pointer": "/name", "equals": {"$text": "label"}}]}},
+    {"read": {"path": "/gmail/v1/users/me/labels/{label}", "params": {"label": {"$saved": "label5"}}, "checks": [{"status": 200}, {"pointer": "/name", "equals": {"$text": "label"}}]}}
+   ],
+   "undo": {"test": "G11"}
+  },
+  {
+   "id": "G6",
+   "name": "Organize G3's email: add the run's label, mark it read and archive it",
+   "steps": [
+    {"call": {"action": "organize-email@1", "args": {"target": "messages", "messageIds": [{"$saved": "m3"}], "addLabels": [{"$saved": "label5"}], "removeLabels": ["UNREAD", "INBOX"]},
+     "checks": [{"pointer": "/added/0", "equals": {"$saved": "label5"}}, {"pointer": "/removed", "count": 2}]}},
+    {"read": {"path": "/gmail/v1/users/me/messages/{message}", "params": {"message": {"$saved": "m3"}}, "query": {"format": "minimal"}, "checks": [{"status": 200}]}}
+   ],
+   "undo": {"steps": [
+    {"call": {"action": "organize-email@1", "args": {"target": "messages", "messageIds": [{"$saved": "m3"}], "addLabels": ["UNREAD", "INBOX"], "removeLabels": [{"$saved": "label5"}]},
+     "checks": [{"pointer": "/removed/0", "equals": {"$saved": "label5"}}]}}
+   ]}
+  },
+  {
+   "id": "G7",
+   "name": "Move G4's reply to Trash and restore it",
+   "steps": [
+    {"call": {"action": "move-to-trash@1", "args": {"move": "trash-message", "messageId": {"$saved": "m4"}}, "checks": [{"pointer": "/move", "equals": "trash-message"}]}},
+    {"call": {"action": "move-to-trash@1", "args": {"move": "restore-message", "messageId": {"$saved": "m4"}}, "checks": [{"pointer": "/move", "equals": "restore-message"}]}}
+   ],
+   "undo": {"steps": [
+    {"call": {"action": "move-to-trash@1", "args": {"move": "trash-thread", "threadId": {"$saved": "t3"}}, "checks": [{"pointer": "/threadId", "equals": {"$saved": "t3"}}]}}
+   ]}
+  },
+  {
+   "id": "G8",
+   "name": "Send draft binds the draft as read: v1 goes out though the draft was changed to v2 before approval",
+   "steps": [
+    {"call": {"action": "create-draft@1", "args": {"to": [{"$owner": "email"}], "subject": {"$text": "v1"}, "text": {"$text": "v1"}}, "save": {"draft8": "/id"}}},
+    {"owner": {"words": "When the Send draft card appears, open the draft whose subject ends v1 in Gmail, change its text to v2, wait until Gmail says Saved, then approve the card."}},
+    {"call": {"action": "send-draft@1", "args": {"draftId": {"$saved": "draft8"}}, "save": {"sent8": "/id"}}},
+    {"call": {"action": "read-email@1", "args": {"messageId": {"$saved": "sent8"}}, "checks": [{"pointer": "/text", "equals": {"$text": "v1"}}]}},
+    {"read": {"path": "/gmail/v1/users/me/drafts/{draft}", "params": {"draft": {"$saved": "draft8"}}, "checks": [{"gone": true}]}}
+   ],
+   "undo": {"steps": [
+    {"call": {"action": "move-to-trash@1", "args": {"move": "trash-message", "messageId": {"$saved": "sent8"}}, "checks": [{"pointer": "/messageId", "equals": {"$saved": "sent8"}}]}}
+   ]}
+  },
+  {
+   "id": "G9",
+   "name": "Turn the vacation reply on for your contacts, day 7 at 09:00 to day 8 at 09:00",
+   "steps": [
+    {"owner": {"words": "Check that your vacation responder is off in Gmail's settings; turn it off if it is on, then press Enter.",
+     "until": {"path": "/gmail/v1/users/me/settings/vacation", "checks": [{"pointer": "/enableAutoReply", "equals": false}]}}},
+    {"call": {"action": "set-out-of-office@1", "args": {"enable": true, "contactsOnly": true, "subject": {"$text": "away"}, "text": {"$text": "away text"},
+     "start": {"$at": {"day": 7, "time": "09:00"}}, "end": {"$at": {"day": 8, "time": "09:00"}}}, "checks": [{"pointer": "/enabled", "equals": true}, {"pointer": "/contactsOnly", "equals": true}]}},
+    {"read": {"path": "/gmail/v1/users/me/settings/vacation", "checks": [{"pointer": "/enableAutoReply", "equals": true}, {"pointer": "/restrictToContacts", "equals": true}, {"pointer": "/responseSubject", "equals": {"$text": "away"}}]}}
+   ],
+   "undo": {"steps": [
+    {"call": {"action": "set-out-of-office@1", "args": {"enable": false}, "checks": [{"pointer": "/enabled", "equals": false}]}},
+    {"read": {"path": "/gmail/v1/users/me/settings/vacation", "checks": [{"pointer": "/enableAutoReply", "equals": false}]}}
+   ]}
+  },
+  {
+   "id": "G10",
+   "name": "Auto-label mail from synthetic-sender@example.invalid with the run's label",
+   "steps": [
+    {"call": {"action": "auto-label@1", "args": {"from": "synthetic-sender@example.invalid", "label": {"$saved": "label5"}}, "save": {"filter10": "/id"},
+     "checks": [{"pointer": "/labelId", "equals": {"$saved": "label5"}}]}},
+    {"read": {"path": "/gmail/v1/users/me/settings/filters/{filter}", "params": {"filter": {"$saved": "filter10"}}, "checks": [{"status": 200}, {"pointer": "/criteria/from", "equals": "synthetic-sender@example.invalid"}]}}
+   ],
+   "undo": {"test": "G11"}
+  },
+  {
+   "id": "G11",
+   "name": "Tidy up in Gmail: discard the run's draft and the hand draft, then delete the run's filter and label",
+   "cleanup": true,
+   "steps": [
+    {"owner": {"words": "In Gmail, open Drafts and discard the draft this run made: its subject starts [SYNTHETIC] Fabric G1 or G2 and does not say hand. Discard it, since sending it does not remove it. Then press Enter.",
+     "until": {"path": "/gmail/v1/users/me/drafts/{draft}", "params": {"draft": {"$saved": "draft1"}}, "checks": [{"gone": true}]}}},
+    {"owner": {"words": "In Gmail, open Drafts and discard the draft you wrote by hand: its subject says hand draft. Discard it, since sending it does not remove it. Then press Enter.",
+     "until": {"path": "/gmail/v1/users/me/drafts/{draft}", "params": {"draft": {"$recorded": "handDraft"}}, "checks": [{"gone": true}]}}},
+    {"owner": {"words": "In Gmail's settings, under Filters and Blocked Addresses, delete the filter for synthetic-sender@example.invalid, then press Enter.",
+     "until": {"path": "/gmail/v1/users/me/settings/filters/{filter}", "params": {"filter": {"$saved": "filter10"}}, "checks": [{"gone": true}]}}},
+    {"owner": {"words": "In Gmail, delete the label whose name starts [SYNTHETIC] Fabric G5, then press Enter.",
+     "until": {"path": "/gmail/v1/users/me/labels/{label}", "params": {"label": {"$saved": "label5"}}, "checks": [{"gone": true}]}}}
+   ]
+  }
+ ]
+}

@@ -1,0 +1,31 @@
+{
+ "schemaVersion": 2,
+ "appId": "fixture-rpc",
+ "reviewed": "F10.9 part a: the RPC twin of the fixture app, shaped like Slack's methods (docs/F10.9-BUILD-MAP.md part a). Not a real provider.",
+ "groups": [
+  {
+   "id": "fixture-rpc.messages.read",
+   "label": "Access messages",
+   "effect": "read",
+   "defaultMode": "allow",
+   "requests": ["GET /messages.list", "POST /messages.history", "POST /canvases.read"],
+   "reviewedReads": ["POST /canvases.read"]
+  },
+  {
+   "id": "fixture-rpc.messages.send",
+   "label": "Send messages",
+   "effect": "write",
+   "defaultMode": "ask",
+   "audience": true,
+   "requests": ["POST /messages.post", "POST /conversations.start", "POST /messages.unschedule"]
+  },
+  {
+   "id": "fixture-rpc.admin",
+   "label": "Administer the workspace",
+   "effect": "write",
+   "defaultMode": "deny",
+   "locked": "fabric",
+   "requests": ["POST /admin.invite"]
+  }
+ ]
+}

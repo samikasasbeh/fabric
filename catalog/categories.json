@@ -1,0 +1,9 @@
+[
+  {"id": "productivity", "label": "Productivity", "order": 10},
+  {"id": "communication", "label": "Communication", "order": 20},
+  {"id": "developer", "label": "Developer tools", "order": 30},
+  {"id": "social", "label": "Social & entertainment", "order": 40},
+  {"id": "business", "label": "Business", "order": 50},
+  {"id": "other", "label": "Other apps", "order": 90},
+  {"id": "device", "label": "This computer", "order": 100, "ownerOnly": true}
+]

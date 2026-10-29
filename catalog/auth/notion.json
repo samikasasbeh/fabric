@@ -1,0 +1,135 @@
+{
+  "schemaVersion": 2,
+  "providerId": "notion",
+  "displayName": "Notion",
+  "reviewStatus": "reviewed",
+  "credentialEnvironment": {
+    "clientId": "FABRIC_NOTION_CLIENT_ID",
+    "clientSecret": "FABRIC_NOTION_CLIENT_SECRET"
+  },
+  "authorization": {
+    "url": "https://api.notion.com/v1/oauth/authorize",
+    "pkce": "none",
+    "scopeParameter": "scope",
+    "userScopeParameter": null,
+    "loopbackRedirect": "https-required",
+    "scopeSeparator": " ",
+    "identityScopes": [],
+    "extraParameters": {
+      "owner": "user"
+    }
+  },
+  "token": {
+    "url": "https://api.notion.com/v1/oauth/token",
+    "encoding": "json",
+    "clientAuthentication": "basic",
+    "responseFormat": "oauth2",
+    "scopeSeparator": " ",
+    "acceptedTokenTypes": [
+      "bearer"
+    ],
+    "reconnectErrors": [
+      "invalid_grant"
+    ],
+    "requireExpiry": false,
+    "maxLifetimeSeconds": 31536000,
+    "quirks": {
+      "errorInSuccessBody": false,
+      "errorCodeField": "error-or-code",
+      "nullRefreshMeansNone": true,
+      "basicEncoding": "raw"
+    }
+  },
+  "refresh": {
+    "supported": true,
+    "keepPreviousWhenOmitted": true
+  },
+  "revocation": {
+    "url": "https://api.notion.com/v1/oauth/revoke",
+    "method": "POST",
+    "encoding": "json",
+    "clientAuthentication": "basic",
+    "tokenParameter": "token",
+    "preferredToken": "access",
+    "successStatuses": [
+      200
+    ],
+    "successRequire": [],
+    "covers": "token"
+  },
+  "apiHeaders": {
+    "Notion-Version": "2026-03-11"
+  },
+  "identity": {
+    "request": {
+      "url": "https://api.notion.com/v1/users/me",
+      "method": "GET",
+      "headers": {},
+      "body": "none"
+    },
+    "require": [
+      {
+        "pointer": "/type",
+        "equals": "bot"
+      }
+    ],
+    "requireFailure": "unverifiable",
+    "id": {
+      "pointers": [
+        "/bot/workspace_id",
+        "/bot/owner/user/id"
+      ],
+      "separator": ":",
+      "allowNumbers": false
+    },
+    "alternateId": {
+      "pointers": [
+        "/id"
+      ],
+      "separator": ""
+    },
+    "displayName": {
+      "pointers": [
+        "/bot/owner/user/name",
+        "/name"
+      ],
+      "fallback": "Notion integration"
+    },
+    "email": "/bot/owner/user/person/email",
+    "attributes": {
+      "workspaceName": "/bot/workspace_name"
+    }
+  },
+  "apps": [
+    {
+      "appId": "notion",
+      "accessProbe": null,
+      "access": {
+        "default": "full",
+        "grant": "pages",
+        "levels": {
+          "full": {
+            "required": [],
+            "optional": [],
+            "inContext": []
+          },
+          "read": null
+        }
+      },
+      "neverRequest": [],
+      "attestedCapabilities": [
+        "read_content",
+        "update_content",
+        "insert_content",
+        "read_comments",
+        "insert_comments",
+        "user_email"
+      ]
+    }
+  ],
+  "scopeImplications": {},
+  "consentPolicy": {
+    "testing": "full",
+    "production": "full"
+  }
+}

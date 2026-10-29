@@ -1,0 +1,13 @@
+{
+  "manifest_version":3,
+  "name":"Fabric Local Bridge",
+  "version":"0.3.0",
+  "minimum_chrome_version":"120",
+  "description":"Save approved app connections in this browser profile. Reopen for requested reads and approve bounded actions; no cookie access.",
+  "permissions":["activeTab","scripting","storage","alarms"],
+  "host_permissions":["http://127.0.0.1:4188/*"],
+  "optional_host_permissions":["https://*/*"],
+  "content_scripts":[{"matches":["http://127.0.0.1:4188/*"],"js":["fabric-handoff.js"],"run_at":"document_start","all_frames":false}],
+  "background":{"service_worker":"background.js"},
+  "action":{"default_popup":"popup.html"}
+}

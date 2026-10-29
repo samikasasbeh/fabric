@@ -1,0 +1,1976 @@
+{
+ "note": "F10.7 part a: before any F10.7 data change (catalog data as at 95f5aff), for one synthetic ready account per app holding no scope: each app's proxy settings hash (configHashes), ProxyPolicy.binding() of every proxy row (bindings), the policy hash of one proxied request to every reviewed member, on its own template (not an alias form), filled in as test/f10-6-churn.test.mjs fills templates (proxied), and PermissionManager.decision() policy hashes of every typed operation over synthetic Gmail and Calendar maps built from PERMISSION_GROUPS as F10.3 built them (GET for ids ending .list or .get, otherwise POST; the path is the id after the app prefix) and compiled as test/f10-6-churn.test.mjs compiles them (typed). Policy hashes are grouped by the row the request or operation landed in. test/f10-7-churn.test.mjs rebuilds the same accounts, maps and requests and compares; each F10.7 part that moves something lists it there.",
+ "connections": {
+  "github": {
+   "allowedOrigins": [
+    "https://api.github.com"
+   ],
+   "appId": "github",
+   "authMethod": "oauth",
+   "authRevision": "f10-7-before",
+   "createdAt": "2026-10-18T00:00:00.000Z",
+   "driver": "http",
+   "id": "f10-7-github",
+   "identity": {
+    "id": "f10-7"
+   },
+   "scopes": [],
+   "status": "ready"
+  },
+  "gmail": {
+   "allowedOrigins": [
+    "https://gmail.googleapis.com"
+   ],
+   "appId": "gmail",
+   "authMethod": "oauth",
+   "authRevision": "f10-7-before",
+   "createdAt": "2026-10-18T00:00:00.000Z",
+   "driver": "http",
+   "id": "f10-7-gmail",
+   "identity": {
+    "id": "f10-7"
+   },
+   "scopes": [],
+   "status": "ready"
+  },
+  "google-calendar": {
+   "allowedOrigins": [
+    "https://www.googleapis.com"
+   ],
+   "appId": "google-calendar",
+   "authMethod": "oauth",
+   "authRevision": "f10-7-before",
+   "createdAt": "2026-10-18T00:00:00.000Z",
+   "driver": "http",
+   "id": "f10-7-google-calendar",
+   "identity": {
+    "id": "f10-7"
+   },
+   "scopes": [],
+   "status": "ready"
+  },
+  "notion": {
+   "allowedOrigins": [
+    "https://api.notion.com"
+   ],
+   "appId": "notion",
+   "authMethod": "oauth",
+   "authRevision": "f10-7-before",
+   "createdAt": "2026-10-18T00:00:00.000Z",
+   "driver": "http",
+   "id": "f10-7-notion",
+   "identity": {
+    "id": "f10-7"
+   },
+   "scopes": [],
+   "status": "ready"
+  },
+  "slack": {
+   "allowedOrigins": [
+    "https://slack.com"
+   ],
+   "appId": "slack",
+   "authMethod": "oauth",
+   "authRevision": "f10-7-before",
+   "createdAt": "2026-10-18T00:00:00.000Z",
+   "driver": "http",
+   "id": "f10-7-slack",
+   "identity": {
+    "id": "f10-7"
+   },
+   "scopes": [],
+   "status": "ready"
+  }
+ },
+ "maps": {
+  "gmail": {
+   "operations": [
+    {
+     "id": "gmail.users.drafts.get",
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/drafts/get"
+    },
+    {
+     "id": "gmail.users.drafts.list",
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/drafts/list"
+    },
+    {
+     "id": "gmail.users.labels.get",
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/labels/get"
+    },
+    {
+     "id": "gmail.users.labels.list",
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/labels/list"
+    },
+    {
+     "id": "gmail.users.settings.filters.get",
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/settings/filters/get"
+    },
+    {
+     "id": "gmail.users.settings.filters.list",
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/settings/filters/list"
+    },
+    {
+     "id": "gmail.users.settings.getAutoForwarding",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/getAutoForwarding"
+    },
+    {
+     "id": "gmail.users.settings.getImap",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/getImap"
+    },
+    {
+     "id": "gmail.users.settings.getLanguage",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/getLanguage"
+    },
+    {
+     "id": "gmail.users.settings.getPop",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/getPop"
+    },
+    {
+     "id": "gmail.users.settings.getVacation",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/getVacation"
+    },
+    {
+     "id": "gmail.users.settings.sendAs.get",
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/settings/sendAs/get"
+    },
+    {
+     "id": "gmail.users.settings.sendAs.list",
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/settings/sendAs/list"
+    },
+    {
+     "id": "gmail.users.settings.sendAs.smimeInfo.get",
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/settings/sendAs/smimeInfo/get"
+    },
+    {
+     "id": "gmail.users.settings.sendAs.smimeInfo.list",
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/settings/sendAs/smimeInfo/list"
+    },
+    {
+     "id": "gmail.users.settings.forwardingAddresses.get",
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/settings/forwardingAddresses/get"
+    },
+    {
+     "id": "gmail.users.settings.forwardingAddresses.list",
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/settings/forwardingAddresses/list"
+    },
+    {
+     "id": "gmail.users.settings.delegates.get",
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/settings/delegates/get"
+    },
+    {
+     "id": "gmail.users.settings.delegates.list",
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/settings/delegates/list"
+    },
+    {
+     "id": "gmail.users.settings.cse.identities.get",
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/settings/cse/identities/get"
+    },
+    {
+     "id": "gmail.users.settings.cse.identities.list",
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/settings/cse/identities/list"
+    },
+    {
+     "id": "gmail.users.settings.cse.keypairs.get",
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/settings/cse/keypairs/get"
+    },
+    {
+     "id": "gmail.users.settings.cse.keypairs.list",
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/settings/cse/keypairs/list"
+    },
+    {
+     "id": "gmail.users.messages.get",
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/messages/get"
+    },
+    {
+     "id": "gmail.users.messages.attachments.get",
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/messages/attachments/get"
+    },
+    {
+     "id": "gmail.users.threads.get",
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/threads/get"
+    },
+    {
+     "id": "gmail.users.history.list",
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/history/list"
+    },
+    {
+     "id": "gmail.users.getProfile",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/getProfile"
+    },
+    {
+     "id": "gmail.users.messages.list",
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/messages/list"
+    },
+    {
+     "id": "gmail.users.threads.list",
+     "method": "GET",
+     "path": "/gmail/v1/users/{userId}/threads/list"
+    },
+    {
+     "id": "gmail.users.drafts.create",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/drafts/create"
+    },
+    {
+     "id": "gmail.users.drafts.update",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/drafts/update"
+    },
+    {
+     "id": "gmail.users.messages.send",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/messages/send"
+    },
+    {
+     "id": "gmail.users.drafts.send",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/drafts/send"
+    },
+    {
+     "id": "gmail.users.labels.create",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/labels/create"
+    },
+    {
+     "id": "gmail.users.labels.update",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/labels/update"
+    },
+    {
+     "id": "gmail.users.labels.patch",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/labels/patch"
+    },
+    {
+     "id": "gmail.users.messages.modify",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/messages/modify"
+    },
+    {
+     "id": "gmail.users.threads.modify",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/threads/modify"
+    },
+    {
+     "id": "gmail.users.messages.batchModify",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/messages/batchModify"
+    },
+    {
+     "id": "gmail.users.messages.import",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/messages/import"
+    },
+    {
+     "id": "gmail.users.messages.insert",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/messages/insert"
+    },
+    {
+     "id": "gmail.users.messages.trash",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/messages/trash"
+    },
+    {
+     "id": "gmail.users.messages.untrash",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/messages/untrash"
+    },
+    {
+     "id": "gmail.users.threads.trash",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/threads/trash"
+    },
+    {
+     "id": "gmail.users.threads.untrash",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/threads/untrash"
+    },
+    {
+     "id": "gmail.users.settings.filters.create",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/filters/create"
+    },
+    {
+     "id": "gmail.users.settings.updateVacation",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/updateVacation"
+    },
+    {
+     "id": "gmail.users.settings.updateImap",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/updateImap"
+    },
+    {
+     "id": "gmail.users.settings.updatePop",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/updatePop"
+    },
+    {
+     "id": "gmail.users.settings.updateLanguage",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/updateLanguage"
+    },
+    {
+     "id": "gmail.users.settings.sendAs.smimeInfo.insert",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/sendAs/smimeInfo/insert"
+    },
+    {
+     "id": "gmail.users.settings.sendAs.smimeInfo.delete",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/sendAs/smimeInfo/delete"
+    },
+    {
+     "id": "gmail.users.settings.sendAs.smimeInfo.setDefault",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/sendAs/smimeInfo/setDefault"
+    },
+    {
+     "id": "gmail.users.settings.cse.identities.create",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/cse/identities/create"
+    },
+    {
+     "id": "gmail.users.settings.cse.identities.delete",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/cse/identities/delete"
+    },
+    {
+     "id": "gmail.users.settings.cse.identities.patch",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/cse/identities/patch"
+    },
+    {
+     "id": "gmail.users.settings.cse.keypairs.create",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/cse/keypairs/create"
+    },
+    {
+     "id": "gmail.users.settings.cse.keypairs.disable",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/cse/keypairs/disable"
+    },
+    {
+     "id": "gmail.users.settings.cse.keypairs.enable",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/cse/keypairs/enable"
+    },
+    {
+     "id": "gmail.users.messages.delete",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/messages/delete"
+    },
+    {
+     "id": "gmail.users.messages.batchDelete",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/messages/batchDelete"
+    },
+    {
+     "id": "gmail.users.threads.delete",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/threads/delete"
+    },
+    {
+     "id": "gmail.users.drafts.delete",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/drafts/delete"
+    },
+    {
+     "id": "gmail.users.labels.delete",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/labels/delete"
+    },
+    {
+     "id": "gmail.users.settings.filters.delete",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/filters/delete"
+    },
+    {
+     "id": "gmail.users.settings.cse.keypairs.obliterate",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/cse/keypairs/obliterate"
+    },
+    {
+     "id": "gmail.users.watch",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/watch"
+    },
+    {
+     "id": "gmail.users.stop",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/stop"
+    },
+    {
+     "id": "gmail.users.settings.sendAs.patch",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/sendAs/patch"
+    },
+    {
+     "id": "gmail.users.settings.sendAs.update",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/sendAs/update"
+    },
+    {
+     "id": "gmail.users.settings.sendAs.create",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/sendAs/create"
+    },
+    {
+     "id": "gmail.users.settings.sendAs.delete",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/sendAs/delete"
+    },
+    {
+     "id": "gmail.users.settings.sendAs.verify",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/sendAs/verify"
+    },
+    {
+     "id": "gmail.users.settings.updateAutoForwarding",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/updateAutoForwarding"
+    },
+    {
+     "id": "gmail.users.settings.forwardingAddresses.create",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/forwardingAddresses/create"
+    },
+    {
+     "id": "gmail.users.settings.forwardingAddresses.delete",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/forwardingAddresses/delete"
+    },
+    {
+     "id": "gmail.users.settings.delegates.create",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/delegates/create"
+    },
+    {
+     "id": "gmail.users.settings.delegates.delete",
+     "method": "POST",
+     "path": "/gmail/v1/users/{userId}/settings/delegates/delete"
+    }
+   ]
+  },
+  "google-calendar": {
+   "operations": [
+    {
+     "id": "calendar.calendarList.list",
+     "method": "GET",
+     "path": "/calendarList/list"
+    },
+    {
+     "id": "calendar.calendarList.get",
+     "method": "GET",
+     "path": "/calendarList/get"
+    },
+    {
+     "id": "calendar.colors.get",
+     "method": "GET",
+     "path": "/colors/get"
+    },
+    {
+     "id": "calendar.events.list",
+     "method": "GET",
+     "path": "/events/list"
+    },
+    {
+     "id": "calendar.events.get",
+     "method": "GET",
+     "path": "/events/get"
+    },
+    {
+     "id": "calendar.events.instances",
+     "method": "POST",
+     "path": "/events/instances"
+    },
+    {
+     "id": "calendar.freebusy.query",
+     "method": "POST",
+     "path": "/freebusy/query"
+    },
+    {
+     "id": "calendar.settings.list",
+     "method": "GET",
+     "path": "/settings/list"
+    },
+    {
+     "id": "calendar.settings.get",
+     "method": "GET",
+     "path": "/settings/get"
+    },
+    {
+     "id": "calendar.calendars.get",
+     "method": "GET",
+     "path": "/calendars/get"
+    },
+    {
+     "id": "calendar.acl.list",
+     "method": "GET",
+     "path": "/acl/list"
+    },
+    {
+     "id": "calendar.acl.get",
+     "method": "GET",
+     "path": "/acl/get"
+    },
+    {
+     "id": "calendar.events.insert",
+     "method": "POST",
+     "path": "/events/insert"
+    },
+    {
+     "id": "calendar.events.quickAdd",
+     "method": "POST",
+     "path": "/events/quickAdd"
+    },
+    {
+     "id": "calendar.events.import",
+     "method": "POST",
+     "path": "/events/import"
+    },
+    {
+     "id": "calendar.events.patch",
+     "method": "POST",
+     "path": "/events/patch"
+    },
+    {
+     "id": "calendar.events.update",
+     "method": "POST",
+     "path": "/events/update"
+    },
+    {
+     "id": "calendar.events.move",
+     "method": "POST",
+     "path": "/events/move"
+    },
+    {
+     "id": "calendar.events.delete",
+     "method": "POST",
+     "path": "/events/delete"
+    },
+    {
+     "id": "calendar.calendarList.insert",
+     "method": "POST",
+     "path": "/calendarList/insert"
+    },
+    {
+     "id": "calendar.calendarList.patch",
+     "method": "POST",
+     "path": "/calendarList/patch"
+    },
+    {
+     "id": "calendar.calendarList.update",
+     "method": "POST",
+     "path": "/calendarList/update"
+    },
+    {
+     "id": "calendar.calendars.insert",
+     "method": "POST",
+     "path": "/calendars/insert"
+    },
+    {
+     "id": "calendar.calendars.patch",
+     "method": "POST",
+     "path": "/calendars/patch"
+    },
+    {
+     "id": "calendar.calendars.update",
+     "method": "POST",
+     "path": "/calendars/update"
+    },
+    {
+     "id": "calendar.calendarList.delete",
+     "method": "POST",
+     "path": "/calendarList/delete"
+    },
+    {
+     "id": "calendar.acl.delete",
+     "method": "POST",
+     "path": "/acl/delete"
+    },
+    {
+     "id": "calendar.calendars.delete",
+     "method": "POST",
+     "path": "/calendars/delete"
+    },
+    {
+     "id": "calendar.calendars.clear",
+     "method": "POST",
+     "path": "/calendars/clear"
+    },
+    {
+     "id": "calendar.calendarList.watch",
+     "method": "POST",
+     "path": "/calendarList/watch"
+    },
+    {
+     "id": "calendar.events.watch",
+     "method": "POST",
+     "path": "/events/watch"
+    },
+    {
+     "id": "calendar.settings.watch",
+     "method": "POST",
+     "path": "/settings/watch"
+    },
+    {
+     "id": "calendar.acl.watch",
+     "method": "POST",
+     "path": "/acl/watch"
+    },
+    {
+     "id": "calendar.channels.stop",
+     "method": "POST",
+     "path": "/channels/stop"
+    },
+    {
+     "id": "calendar.acl.insert",
+     "method": "POST",
+     "path": "/acl/insert"
+    },
+    {
+     "id": "calendar.acl.patch",
+     "method": "POST",
+     "path": "/acl/patch"
+    },
+    {
+     "id": "calendar.acl.update",
+     "method": "POST",
+     "path": "/acl/update"
+    },
+    {
+     "id": "calendar.calendars.transferOwnership",
+     "method": "POST",
+     "path": "/calendars/transferOwnership"
+    }
+   ]
+  }
+ },
+ "configHashes": {
+  "github": "87769bb2f918e2758c568435b208792e931ed7b074b3c7b6cb730d6f0740eb27",
+  "gmail": "140c5dda828a09360cecbf02668ddf6b76efd8f0d6c120184813f7589c52c14b",
+  "google-calendar": "d7c58020583a0a359cdd3d2d4d1844dfbc80c6ee47016c1606403cedb38b8900",
+  "notion": "1eb9a30550d750dab9e49e7936cb1c1ceb4a29a071d6fb6e1d8b4f1f0cd4b3bc",
+  "slack": "35960156f76859cc2c4f60533c6569acbb6e93cc135b7926ba203bf69ec82d5f"
+ },
+ "bindings": {
+  "github": {
+   "graphql": "ab7403987e28347829b453e3c0507b38da5ff9f9d45186e9f34f2722683fb14b",
+   "group:github.access.grant": "4a2eadfe7a661cb421e9833c52001f9e81871449520300952faa040410140ffa",
+   "group:github.actions.run": "2bd44fec945574adcee5d90074429beb5d7b6989896f7a7efa6f2c5a6065435c",
+   "group:github.code.write": "3afaf6b49dd0d4bd3f0260c2a987814f1ecb8f913454033e2971eb7511757521",
+   "group:github.comments.write": "567c8d66245cdd8b00b7fea4bbff0f78b90069819c1f22a2b661d7dc514f9a22",
+   "group:github.gists.read": "e67a2a2810afa29b36d18ed1b66c81b8e1a34f5f34e158a2e0ae100cdef576d4",
+   "group:github.gists.write": "bb036df25089ddf4025c56f8b76ffcff35d172bec7ba786bcfb7720986cc71c9",
+   "group:github.issues.read": "3f27e7695608fd0b68cc9c2f2fe9575a6e0d286b870da21677ce3455afd6ec48",
+   "group:github.issues.write": "d5dd219bad6e7eb04c29068535aa496461cdecaaeea7cf4f2c40e93019b1c7a0",
+   "group:github.notifications.manage": "d5e0016d6dcd08c486b5cebd46e424c106d0bfba352c1c156b5d5dc7a1fcf6f4",
+   "group:github.permanent.delete": "81ac1e804801282a1be7064042dac693a061b1cff92f3ca99da4684ba97cd105",
+   "group:github.profile.read": "6b3ac1e16a51bb550d89196202798d186c82376abd39d230f17a395c1227e6e0",
+   "group:github.pulls.write": "5e80c2ec38c56692066f4814ee4b66d8c083248fd38f62e52fb40b5d69aff113",
+   "group:github.repos.read": "1a20111739afc984cd58c487c73feb0c0c7bedf07a59ef8be798ae8120c14435",
+   "other-changes": "302029fb7501f205f9f0da27fb135efc465fd715cde0615eacb67cb512f0de77",
+   "other-deletes": "e289586669850dd63e68fd0094816a59b09a91886793529c59f9469509c4c68a",
+   "other-reads": "34df59ef32f7f63e62ee0a7529ae1aa8404c2a2fc89fb02c375fd228713fc845"
+  },
+  "gmail": {
+   "graphql": "b5751773c8b38c8ed0d104a3612e41c1c4efd3d54a9912dd9f7b9a162ecbab0a",
+   "group:gmail.access.grant": "29fa093d41830eed3b747504914c0bc0cc05302702392804080b3a60973ddbb2",
+   "group:gmail.drafts.read": "ea3b4f1c3d387e5fbe97141fbd718a7f5ff33b88b41e7e27daf05d4412bee4ab",
+   "group:gmail.drafts.write": "82d8a5e971dbe9cb80b16ba80e07180ccb5f5353544a83c37a3414c47587f141",
+   "group:gmail.labels.manage": "ddbb15f1bd82390a3b1df083363f5e94e0d40ec3646273c2caad0f4bde6bb2e4",
+   "group:gmail.labels.read": "630754076f2b3a5a0eba687bab8876b054d7f1871f35838efd6f3a7936117d86",
+   "group:gmail.messages.import": "51f54b351c2da3f9b3c67ea771adbc06c04aa39877e9d963dda53fc2a7456cc7",
+   "group:gmail.messages.mark": "1e72ac9e876f4da00049e50a15a56bc4facab86a6252982e1a93ecdd981c23e9",
+   "group:gmail.messages.read": "7e7c1260fc1e13b9bd9e89596164b2206a1c8e5d9b641359ba6115973d4d7706",
+   "group:gmail.messages.search": "b516fca2739e05d8bc7cceb5bc233b99ceb5736d86349fa7f74c68c5eae92579",
+   "group:gmail.messages.send": "5d67b2763ea8086151b73b23c3148bd7d59e6d339a720404be060c9b56651652",
+   "group:gmail.messages.trash": "0aa2c81ac3f90582d5ac420d55593099cc85f2b24b864abfaa93051c0a651c08",
+   "group:gmail.permanent.delete": "8314ff9d76db3e426d6049ba2064d0a98c6d6804c3ecbc81f47ebfaa43dc98d8",
+   "group:gmail.settings.write": "835ef31ba0d42897d4bea8993855e7acdae897a2120f844dd9d618dcd2bda003",
+   "other-changes": "037684fea3eed21711a5a798f76c728d845d200f413575e4cff156fe4f194672",
+   "other-deletes": "f68a6e0e5524dcfe7e6a9a75f5a90ad2be81777dcde498993c28ea55e97b3582",
+   "other-reads": "c28a99c28202d803f7d7a64abe720275f76c83f7c5bc6d33930bbbceb80d1d1e"
+  },
+  "google-calendar": {
+   "graphql": "c3a8823bce3422ab1443c9ee7803ed4df88d79e39951200c260cd8b8c04f5ea4",
+   "group:google-calendar.access.grant": "c94d0f6bcf368f3614d40642b78830c0f68268375e4990884eacbae7622159ec",
+   "group:google-calendar.availability.read": "df3836c8ec90c2c17269dd7994ce8e161bd432b035ce84ccdb9c92b2f20db167",
+   "group:google-calendar.calendarlist.remove": "d41eaab7e6e23b40648a921fa06bf4a10418050631b8c6abf54312b6e29c70ca",
+   "group:google-calendar.calendarlist.write": "bdeb7732923094501dfcec04c8ee88872002c18b14a92e789da3f71185cce683",
+   "group:google-calendar.calendars.read": "6515dc4407400b4c817a3fa6e589349b34c36ca1f194c03e5c2126c3bbf4734c",
+   "group:google-calendar.calendars.write": "01af92bb5a8c28d58eef7d72be1c288d78acfd9862e152957a106a2051b4df4b",
+   "group:google-calendar.events.delete": "f3ffa7887dff0ababdc1c4c1a428f6cbb943412769e00054e8387c30eb45f9ec",
+   "group:google-calendar.events.read": "d54a7bd756dcb3d9476321c50ba79e6b3bfb3a5414754be5e9273fe2adc1270b",
+   "group:google-calendar.events.write": "48285c44719316bc598d80dd891e842bff30b4e11297e2a0cdd52eeb040056ce",
+   "group:google-calendar.permanent.delete": "3e94efed8fa8466d0293898c7e95e7651a4429b4e94f0936ac63f1b275a0a44b",
+   "group:google-calendar.settings.read": "21f6edefb8a35a729b95897cb69b2865716ee603abc37769bffcc12c90d06c9d",
+   "group:google-calendar.sharing.write": "5180915e6e46637dce44e6eb5ef29bc7d17a37d8e7ac93240c0a3a513a0f9457",
+   "other-changes": "58666f7e884e627f00d128905a894873b5e6525953c008ab5b9b249bc6e91acf",
+   "other-deletes": "167eaad8384a15940753117a81d37b38c9fdc2ed81e9392e8a2657e0a54da445",
+   "other-reads": "1fb2429726c04f8cb22fe464f71cc626e025b5b2a4cdef5e0dc93401fffa3a78"
+  },
+  "notion": {
+   "graphql": "7bf8cb2379b8b0a352d4a7fcbacb044081e9d6482b6554a3400ad35ce09d3c72",
+   "group:notion.agents.chat": "522e9b25f46f7de9608e247927191cb80c4dd5d59c03a2fe16432865435be148",
+   "group:notion.agents.manage": "f9ad689bc1a624b85759d02ac1c6c75fc232bc0893ed3483ed96e59beb52cdd5",
+   "group:notion.agents.read": "79db8d20da08730b4e7c5fb290662804077cee090af01b35061684eefe09da54",
+   "group:notion.comments.read": "0fb40b03bcf41f97e3172afe4e1b8195bd5849eb5bc3a9d7bcfd6fbcb13b7418",
+   "group:notion.comments.write": "8e91c72d7f0baeff1d7f431f13b08af61e3b94f34d40448c7380fdab3e52274e",
+   "group:notion.connection.manage": "ef583a8451dd5574b25051ad30534d520f05ba7bb0acdeb914c38ef47ebf5d55",
+   "group:notion.content.create": "61a55cf6d38435097b796f80bfca365f66b76eb3d9cfa24b48816c5f03bb7442",
+   "group:notion.content.edit": "fec225517fe348ac3c25eed138d25650d637f517f605f8b0c34b727cb619f00a",
+   "group:notion.content.read": "a3996bfa7da471f24e50ce8fd9ff56ce7b04386880d22615a8b6188ea60a18eb",
+   "group:notion.content.trash": "5f1c682ad3cf56f0a8188520328e234e70a480d95fe162b640d2da2eb2f3c278",
+   "group:notion.permanent.delete": "ef6a5e3a176dbcd4902a6031554d5c7e6b50183e4566023445d2a66db6a29099",
+   "group:notion.search.read": "8fab2cc0996ccf883b4c16b9b57e5d5f0decf1add37ed99215c76507d52f998d",
+   "group:notion.users.read": "ac6c8ab555bed9a8734566851daeca48168460b3b0c4f986b1d0a84dd2f7edac",
+   "other-changes": "044e15d9734247f02321d0e3dd5606479d5c9218a82b7e3ad1b3424eb4407f5a",
+   "other-deletes": "7bc208a9ac5c2887ffde32d4b024a01ce69c192e29c9c07221dff419735521e8",
+   "other-reads": "4a40cf80cb2c49ac23dd9971bc9342f4710979097a66bbac2cb4a352f1a8609d"
+  },
+  "slack": {
+   "group:slack.admin": "76a239f52517e532a372c89bf67c02fd1dc51ab9422a43c1e0935d307f9e3209",
+   "group:slack.channels.manage": "146dd6c0dc5557ac43f8d5f7535d4a67dc94ba415e697fcc047f2b48cf49dfc9",
+   "group:slack.channels.read": "f818b8d68b2dad7b4a45b70105b1f09f7bcbae265f6d720ed3d8070c74f792af",
+   "group:slack.conversations.mark": "035daa13763b347a391a8c2a06ca1819a70a40952425046677a8e9ac154ca1b6",
+   "group:slack.files.read": "f18112af342ec1d864ab44c535a7195fffea7c5d5f656b832f8c80c673c19a81",
+   "group:slack.files.write": "27132a2a2beb182ff09a3213afe1f9faec2c532b5bf5e46a25e7a3aacc5c9c65",
+   "group:slack.messages.read": "bcf34fa2109d9c34d1bc99f93ad829c1f977255eeb898a02c6c71803fae38f49",
+   "group:slack.messages.search": "30317cf3748f8385dc50ce05e77423a70655137ef7849fc6c8c64442e4caae69",
+   "group:slack.messages.send": "e60d2567a9953a60e1ffb89e4a7a2a90734c7989d4b03d8637e94aa4c4118571",
+   "group:slack.permanent.delete": "40402b78d8a7f3324c4687e4cd535e1a762d458418130ede4d5f15f74da14e9c",
+   "group:slack.profile.write": "33cb98526485744b89e7882341dc28c9d6d4d76daf029d19ee522282d1a21eae",
+   "group:slack.workspace.read": "4ff91b99d58f67432d0795044d1042fb534f5f7cb25b9c5305193e84ce8db389",
+   "other-changes": "c8baff9acec88bb48ca188ed10b8b7d180e8d9b21ad57dadb5e767986418885c"
+  }
+ },
+ "proxied": {
+  "github": {
+   "group:github.access.grant": {
+    "DELETE /organizations/{organization_id}/hooks/{hook_id}": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "DELETE /orgs/{org}/hooks/{hook_id}": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "DELETE /repos/{owner}/{repo}/hooks/{hook_id}": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "DELETE /repos/{owner}/{repo}/keys/{key_id}": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "PATCH /organizations/{organization_id}/hooks/{hook_id}": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "PATCH /organizations/{organization_id}/hooks/{hook_id}/config": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "PATCH /organizations/{organization_id}/private-registries/{secret_name}": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "PATCH /orgs/{org}/hooks/{hook_id}": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "PATCH /orgs/{org}/hooks/{hook_id}/config": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "PATCH /orgs/{org}/private-registries/{secret_name}": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "PATCH /repos/{owner}/{repo}/hooks/{hook_id}": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "PATCH /repos/{owner}/{repo}/hooks/{hook_id}/config": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "PATCH /repos/{owner}/{repo}/invitations/{invitation_id}": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "POST /organizations/{organization_id}/actions/runners/generate-jitconfig": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "POST /organizations/{organization_id}/actions/runners/registration-token": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "POST /organizations/{organization_id}/copilot-spaces/{space_number}/collaborators": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "POST /organizations/{organization_id}/hooks": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "POST /organizations/{organization_id}/hooks/{hook_id}/deliveries/{delivery_id}/attempts": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "POST /organizations/{organization_id}/hooks/{hook_id}/pings": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "POST /organizations/{organization_id}/invitations": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "POST /organizations/{organization_id}/private-registries": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "POST /orgs/{org}/actions/runners/generate-jitconfig": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "POST /orgs/{org}/actions/runners/registration-token": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "POST /orgs/{org}/copilot-spaces/{space_number}/collaborators": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "POST /orgs/{org}/hooks": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "POST /orgs/{org}/hooks/{hook_id}/deliveries/{delivery_id}/attempts": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "POST /orgs/{org}/hooks/{hook_id}/pings": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "POST /orgs/{org}/invitations": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "POST /orgs/{org}/private-registries": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "POST /repos/{owner}/{repo}/actions/runners/generate-jitconfig": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "POST /repos/{owner}/{repo}/actions/runners/registration-token": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "POST /repos/{owner}/{repo}/hooks": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "POST /repos/{owner}/{repo}/hooks/{hook_id}/deliveries/{delivery_id}/attempts": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "POST /repos/{owner}/{repo}/hooks/{hook_id}/pings": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "POST /repos/{owner}/{repo}/hooks/{hook_id}/tests": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "POST /repos/{owner}/{repo}/keys": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "POST /repos/{owner}/{repo}/transfer": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "POST /user/keys": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "POST /users/{username}/copilot-spaces/{space_number}/collaborators": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "PUT /organizations/{organization_id}/actions/secrets/{secret_name}": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "PUT /organizations/{organization_id}/actions/secrets/{secret_name}/repositories": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "PUT /organizations/{organization_id}/actions/secrets/{secret_name}/repositories/{repository_id}": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "PUT /organizations/{organization_id}/agents/secrets/{secret_name}": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "PUT /organizations/{organization_id}/agents/secrets/{secret_name}/repositories": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "PUT /organizations/{organization_id}/agents/secrets/{secret_name}/repositories/{repository_id}": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "PUT /organizations/{organization_id}/codespaces/secrets/{secret_name}": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "PUT /organizations/{organization_id}/codespaces/secrets/{secret_name}/repositories": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "PUT /organizations/{organization_id}/codespaces/secrets/{secret_name}/repositories/{repository_id}": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "PUT /organizations/{organization_id}/copilot-spaces/{space_number}/collaborators/{actor_type}/{actor_identifier}": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "PUT /organizations/{organization_id}/dependabot/secrets/{secret_name}": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "PUT /organizations/{organization_id}/dependabot/secrets/{secret_name}/repositories": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "PUT /organizations/{organization_id}/dependabot/secrets/{secret_name}/repositories/{repository_id}": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "PUT /organizations/{organization_id}/memberships/{username}": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "PUT /organizations/{organization_id}/organization-roles/teams/{team_slug}/{role_id}": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "PUT /organizations/{organization_id}/organization-roles/users/{username}/{role_id}": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "PUT /organizations/{organization_id}/security-managers/teams/{team_slug}": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "PUT /organizations/{organization_id}/team/{team_id}/memberships/{username}": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "PUT /organizations/{organization_id}/team/{team_id}/repos/{owner}/{repo}": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "PUT /organizations/{organization_id}/teams/{team_slug}/memberships/{username}": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "PUT /organizations/{organization_id}/teams/{team_slug}/repos/{owner}/{repo}": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "PUT /orgs/{org}/actions/secrets/{secret_name}": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "PUT /orgs/{org}/actions/secrets/{secret_name}/repositories": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "PUT /orgs/{org}/actions/secrets/{secret_name}/repositories/{repository_id}": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "PUT /orgs/{org}/agents/secrets/{secret_name}": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "PUT /orgs/{org}/agents/secrets/{secret_name}/repositories": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "PUT /orgs/{org}/agents/secrets/{secret_name}/repositories/{repository_id}": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "PUT /orgs/{org}/codespaces/secrets/{secret_name}": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "PUT /orgs/{org}/codespaces/secrets/{secret_name}/repositories": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "PUT /orgs/{org}/codespaces/secrets/{secret_name}/repositories/{repository_id}": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "PUT /orgs/{org}/copilot-spaces/{space_number}/collaborators/{actor_type}/{actor_identifier}": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "PUT /orgs/{org}/dependabot/secrets/{secret_name}": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "PUT /orgs/{org}/dependabot/secrets/{secret_name}/repositories": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "PUT /orgs/{org}/dependabot/secrets/{secret_name}/repositories/{repository_id}": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "PUT /orgs/{org}/memberships/{username}": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "PUT /orgs/{org}/organization-roles/teams/{team_slug}/{role_id}": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "PUT /orgs/{org}/organization-roles/users/{username}/{role_id}": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "PUT /orgs/{org}/security-managers/teams/{team_slug}": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "PUT /orgs/{org}/teams/{team_slug}/memberships/{username}": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "PUT /orgs/{org}/teams/{team_slug}/repos/{owner}/{repo}": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "PUT /repos/{owner}/{repo}/actions/permissions/access": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "PUT /repos/{owner}/{repo}/actions/secrets/{secret_name}": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "PUT /repos/{owner}/{repo}/agents/secrets/{secret_name}": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "PUT /repos/{owner}/{repo}/codespaces/secrets/{secret_name}": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "PUT /repos/{owner}/{repo}/collaborators/{username}": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "PUT /repos/{owner}/{repo}/dependabot/secrets/{secret_name}": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "PUT /repos/{owner}/{repo}/environments/{environment_name}": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "PUT /repos/{owner}/{repo}/environments/{environment_name}/secrets/{secret_name}": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "PUT /teams/{team_id}/members/{username}": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "PUT /teams/{team_id}/memberships/{username}": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "PUT /teams/{team_id}/repos/{owner}/{repo}": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "PUT /user/codespaces/secrets/{secret_name}": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "PUT /user/codespaces/secrets/{secret_name}/repositories": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "PUT /user/codespaces/secrets/{secret_name}/repositories/{repository_id}": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "PUT /user/installations/{installation_id}/repositories/{repository_id}": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d",
+    "PUT /users/{username}/copilot-spaces/{space_number}/collaborators/{actor_type}/{actor_identifier}": "531801d4e106c896d0ffb87a552c7284fc0103c25ae6bf9aa8473a105934bc2d"
+   },
+   "group:github.actions.run": {
+    "POST /repos/{owner}/{repo}/actions/jobs/{job_id}/rerun": "c119d0a001a1cf131d1ab6c79d8ebf1e711a122404dc2295fa2ff6a8e84bb454",
+    "POST /repos/{owner}/{repo}/actions/runs/{run_id}/approve": "c119d0a001a1cf131d1ab6c79d8ebf1e711a122404dc2295fa2ff6a8e84bb454",
+    "POST /repos/{owner}/{repo}/actions/runs/{run_id}/cancel": "c119d0a001a1cf131d1ab6c79d8ebf1e711a122404dc2295fa2ff6a8e84bb454",
+    "POST /repos/{owner}/{repo}/actions/runs/{run_id}/force-cancel": "c119d0a001a1cf131d1ab6c79d8ebf1e711a122404dc2295fa2ff6a8e84bb454",
+    "POST /repos/{owner}/{repo}/actions/runs/{run_id}/rerun": "c119d0a001a1cf131d1ab6c79d8ebf1e711a122404dc2295fa2ff6a8e84bb454",
+    "POST /repos/{owner}/{repo}/actions/runs/{run_id}/rerun-failed-jobs": "c119d0a001a1cf131d1ab6c79d8ebf1e711a122404dc2295fa2ff6a8e84bb454",
+    "POST /repos/{owner}/{repo}/actions/workflows/{workflow_id}/dispatches": "c119d0a001a1cf131d1ab6c79d8ebf1e711a122404dc2295fa2ff6a8e84bb454",
+    "POST /repos/{owner}/{repo}/dispatches": "c119d0a001a1cf131d1ab6c79d8ebf1e711a122404dc2295fa2ff6a8e84bb454",
+    "PUT /repos/{owner}/{repo}/actions/workflows/{workflow_id}/disable": "c119d0a001a1cf131d1ab6c79d8ebf1e711a122404dc2295fa2ff6a8e84bb454",
+    "PUT /repos/{owner}/{repo}/actions/workflows/{workflow_id}/enable": "c119d0a001a1cf131d1ab6c79d8ebf1e711a122404dc2295fa2ff6a8e84bb454"
+   },
+   "group:github.code.write": {
+    "DELETE /repos/{owner}/{repo}/contents/{path}": "5624adc335c1c849bfccef97291a0d6ecf37d0cbf9bbbd943d0d6df193b83ddf",
+    "DELETE /repos/{owner}/{repo}/git/refs/{ref}": "5624adc335c1c849bfccef97291a0d6ecf37d0cbf9bbbd943d0d6df193b83ddf",
+    "PATCH /repos/{owner}/{repo}": "5624adc335c1c849bfccef97291a0d6ecf37d0cbf9bbbd943d0d6df193b83ddf",
+    "PATCH /repos/{owner}/{repo}/git/refs/{ref}": "5624adc335c1c849bfccef97291a0d6ecf37d0cbf9bbbd943d0d6df193b83ddf",
+    "PATCH /repos/{owner}/{repo}/releases/assets/{asset_id}": "5624adc335c1c849bfccef97291a0d6ecf37d0cbf9bbbd943d0d6df193b83ddf",
+    "PATCH /repos/{owner}/{repo}/releases/{release_id}": "5624adc335c1c849bfccef97291a0d6ecf37d0cbf9bbbd943d0d6df193b83ddf",
+    "POST /orgs/{org}/repos": "5624adc335c1c849bfccef97291a0d6ecf37d0cbf9bbbd943d0d6df193b83ddf",
+    "POST /repos/{owner}/{repo}/branches/{branch}/rename": "5624adc335c1c849bfccef97291a0d6ecf37d0cbf9bbbd943d0d6df193b83ddf",
+    "POST /repos/{owner}/{repo}/forks": "5624adc335c1c849bfccef97291a0d6ecf37d0cbf9bbbd943d0d6df193b83ddf",
+    "POST /repos/{owner}/{repo}/git/blobs": "5624adc335c1c849bfccef97291a0d6ecf37d0cbf9bbbd943d0d6df193b83ddf",
+    "POST /repos/{owner}/{repo}/git/commits": "5624adc335c1c849bfccef97291a0d6ecf37d0cbf9bbbd943d0d6df193b83ddf",
+    "POST /repos/{owner}/{repo}/git/refs": "5624adc335c1c849bfccef97291a0d6ecf37d0cbf9bbbd943d0d6df193b83ddf",
+    "POST /repos/{owner}/{repo}/git/tags": "5624adc335c1c849bfccef97291a0d6ecf37d0cbf9bbbd943d0d6df193b83ddf",
+    "POST /repos/{owner}/{repo}/git/trees": "5624adc335c1c849bfccef97291a0d6ecf37d0cbf9bbbd943d0d6df193b83ddf",
+    "POST /repos/{owner}/{repo}/merge-upstream": "5624adc335c1c849bfccef97291a0d6ecf37d0cbf9bbbd943d0d6df193b83ddf",
+    "POST /repos/{owner}/{repo}/merges": "5624adc335c1c849bfccef97291a0d6ecf37d0cbf9bbbd943d0d6df193b83ddf",
+    "POST /repos/{owner}/{repo}/releases": "5624adc335c1c849bfccef97291a0d6ecf37d0cbf9bbbd943d0d6df193b83ddf",
+    "POST /repos/{owner}/{repo}/releases/{release_id}/assets": "5624adc335c1c849bfccef97291a0d6ecf37d0cbf9bbbd943d0d6df193b83ddf",
+    "POST /repos/{template_owner}/{template_repo}/generate": "5624adc335c1c849bfccef97291a0d6ecf37d0cbf9bbbd943d0d6df193b83ddf",
+    "POST /repositories/{repository_id}/generate": "5624adc335c1c849bfccef97291a0d6ecf37d0cbf9bbbd943d0d6df193b83ddf",
+    "POST /user/repos": "5624adc335c1c849bfccef97291a0d6ecf37d0cbf9bbbd943d0d6df193b83ddf",
+    "PUT /repos/{owner}/{repo}/contents/{path}": "5624adc335c1c849bfccef97291a0d6ecf37d0cbf9bbbd943d0d6df193b83ddf",
+    "PUT /repos/{owner}/{repo}/topics": "5624adc335c1c849bfccef97291a0d6ecf37d0cbf9bbbd943d0d6df193b83ddf"
+   },
+   "group:github.comments.write": {
+    "DELETE /repos/{owner}/{repo}/comments/{comment_id}/reactions/{reaction_id}": "1fe2595c643fbc521ca29d9787a2863dafd06c35fd5de8ad88f94d4003800eb7",
+    "DELETE /repos/{owner}/{repo}/issues/comments/{comment_id}/pin": "1fe2595c643fbc521ca29d9787a2863dafd06c35fd5de8ad88f94d4003800eb7",
+    "DELETE /repos/{owner}/{repo}/issues/comments/{comment_id}/reactions/{reaction_id}": "1fe2595c643fbc521ca29d9787a2863dafd06c35fd5de8ad88f94d4003800eb7",
+    "DELETE /repos/{owner}/{repo}/issues/{issue_number}/reactions/{reaction_id}": "1fe2595c643fbc521ca29d9787a2863dafd06c35fd5de8ad88f94d4003800eb7",
+    "DELETE /repos/{owner}/{repo}/pulls/comments/{comment_id}/reactions/{reaction_id}": "1fe2595c643fbc521ca29d9787a2863dafd06c35fd5de8ad88f94d4003800eb7",
+    "DELETE /repos/{owner}/{repo}/releases/{release_id}/reactions/{reaction_id}": "1fe2595c643fbc521ca29d9787a2863dafd06c35fd5de8ad88f94d4003800eb7",
+    "PATCH /repos/{owner}/{repo}/comments/{comment_id}": "1fe2595c643fbc521ca29d9787a2863dafd06c35fd5de8ad88f94d4003800eb7",
+    "PATCH /repos/{owner}/{repo}/issues/comments/{comment_id}": "1fe2595c643fbc521ca29d9787a2863dafd06c35fd5de8ad88f94d4003800eb7",
+    "PATCH /repos/{owner}/{repo}/pulls/comments/{comment_id}": "1fe2595c643fbc521ca29d9787a2863dafd06c35fd5de8ad88f94d4003800eb7",
+    "POST /repos/{owner}/{repo}/comments/{comment_id}/reactions": "1fe2595c643fbc521ca29d9787a2863dafd06c35fd5de8ad88f94d4003800eb7",
+    "POST /repos/{owner}/{repo}/commits/{commit_sha}/comments": "1fe2595c643fbc521ca29d9787a2863dafd06c35fd5de8ad88f94d4003800eb7",
+    "POST /repos/{owner}/{repo}/issues/comments/{comment_id}/reactions": "1fe2595c643fbc521ca29d9787a2863dafd06c35fd5de8ad88f94d4003800eb7",
+    "POST /repos/{owner}/{repo}/issues/{issue_number}/comments": "1fe2595c643fbc521ca29d9787a2863dafd06c35fd5de8ad88f94d4003800eb7",
+    "POST /repos/{owner}/{repo}/issues/{issue_number}/reactions": "1fe2595c643fbc521ca29d9787a2863dafd06c35fd5de8ad88f94d4003800eb7",
+    "POST /repos/{owner}/{repo}/pulls/comments/{comment_id}/reactions": "1fe2595c643fbc521ca29d9787a2863dafd06c35fd5de8ad88f94d4003800eb7",
+    "POST /repos/{owner}/{repo}/pulls/{pull_number}/comments": "1fe2595c643fbc521ca29d9787a2863dafd06c35fd5de8ad88f94d4003800eb7",
+    "POST /repos/{owner}/{repo}/pulls/{pull_number}/comments/{comment_id}/replies": "1fe2595c643fbc521ca29d9787a2863dafd06c35fd5de8ad88f94d4003800eb7",
+    "POST /repos/{owner}/{repo}/pulls/{pull_number}/reviews": "1fe2595c643fbc521ca29d9787a2863dafd06c35fd5de8ad88f94d4003800eb7",
+    "POST /repos/{owner}/{repo}/pulls/{pull_number}/reviews/{review_id}/events": "1fe2595c643fbc521ca29d9787a2863dafd06c35fd5de8ad88f94d4003800eb7",
+    "POST /repos/{owner}/{repo}/releases/{release_id}/reactions": "1fe2595c643fbc521ca29d9787a2863dafd06c35fd5de8ad88f94d4003800eb7",
+    "PUT /repos/{owner}/{repo}/issues/comments/{comment_id}/pin": "1fe2595c643fbc521ca29d9787a2863dafd06c35fd5de8ad88f94d4003800eb7",
+    "PUT /repos/{owner}/{repo}/pulls/{pull_number}/reviews/{review_id}": "1fe2595c643fbc521ca29d9787a2863dafd06c35fd5de8ad88f94d4003800eb7",
+    "PUT /repos/{owner}/{repo}/pulls/{pull_number}/reviews/{review_id}/dismissals": "1fe2595c643fbc521ca29d9787a2863dafd06c35fd5de8ad88f94d4003800eb7"
+   },
+   "group:github.gists.read": {
+    "GET /gists": "d3a7d1e88c151343c89f5624f35caf0460187f8d6ce9de1ef012f0f425c1b7e2",
+    "GET /gists/public": "d3a7d1e88c151343c89f5624f35caf0460187f8d6ce9de1ef012f0f425c1b7e2",
+    "GET /gists/starred": "d3a7d1e88c151343c89f5624f35caf0460187f8d6ce9de1ef012f0f425c1b7e2",
+    "GET /gists/{gist_id}": "d3a7d1e88c151343c89f5624f35caf0460187f8d6ce9de1ef012f0f425c1b7e2",
+    "GET /gists/{gist_id}/comments": "d3a7d1e88c151343c89f5624f35caf0460187f8d6ce9de1ef012f0f425c1b7e2",
+    "GET /gists/{gist_id}/comments/{comment_id}": "d3a7d1e88c151343c89f5624f35caf0460187f8d6ce9de1ef012f0f425c1b7e2",
+    "GET /gists/{gist_id}/commits": "d3a7d1e88c151343c89f5624f35caf0460187f8d6ce9de1ef012f0f425c1b7e2",
+    "GET /gists/{gist_id}/forks": "d3a7d1e88c151343c89f5624f35caf0460187f8d6ce9de1ef012f0f425c1b7e2",
+    "GET /gists/{gist_id}/star": "d3a7d1e88c151343c89f5624f35caf0460187f8d6ce9de1ef012f0f425c1b7e2",
+    "GET /gists/{gist_id}/{sha}": "d3a7d1e88c151343c89f5624f35caf0460187f8d6ce9de1ef012f0f425c1b7e2",
+    "GET /users/{username}/gists": "d3a7d1e88c151343c89f5624f35caf0460187f8d6ce9de1ef012f0f425c1b7e2"
+   },
+   "group:github.gists.write": {
+    "PATCH /gists/{gist_id}": "0e717e8b4d59320dba83ce442c0ee834691491ddd24dc9ae7052e3174dbad9f2",
+    "PATCH /gists/{gist_id}/comments/{comment_id}": "0e717e8b4d59320dba83ce442c0ee834691491ddd24dc9ae7052e3174dbad9f2",
+    "POST /gists": "0e717e8b4d59320dba83ce442c0ee834691491ddd24dc9ae7052e3174dbad9f2",
+    "POST /gists/{gist_id}/comments": "0e717e8b4d59320dba83ce442c0ee834691491ddd24dc9ae7052e3174dbad9f2",
+    "POST /gists/{gist_id}/forks": "0e717e8b4d59320dba83ce442c0ee834691491ddd24dc9ae7052e3174dbad9f2"
+   },
+   "group:github.issues.read": {
+    "GET /issues": "2321f650862acbe4852a4c4d07bce5526786bd4400e2d88b85b06c3bf1fec552",
+    "GET /orgs/{org}/issues": "2321f650862acbe4852a4c4d07bce5526786bd4400e2d88b85b06c3bf1fec552",
+    "GET /repos/{owner}/{repo}/assignees": "2321f650862acbe4852a4c4d07bce5526786bd4400e2d88b85b06c3bf1fec552",
+    "GET /repos/{owner}/{repo}/assignees/{assignee}": "2321f650862acbe4852a4c4d07bce5526786bd4400e2d88b85b06c3bf1fec552",
+    "GET /repos/{owner}/{repo}/issue-types": "2321f650862acbe4852a4c4d07bce5526786bd4400e2d88b85b06c3bf1fec552",
+    "GET /repos/{owner}/{repo}/issues": "2321f650862acbe4852a4c4d07bce5526786bd4400e2d88b85b06c3bf1fec552",
+    "GET /repos/{owner}/{repo}/issues/comments": "2321f650862acbe4852a4c4d07bce5526786bd4400e2d88b85b06c3bf1fec552",
+    "GET /repos/{owner}/{repo}/issues/comments/{comment_id}": "2321f650862acbe4852a4c4d07bce5526786bd4400e2d88b85b06c3bf1fec552",
+    "GET /repos/{owner}/{repo}/issues/comments/{comment_id}/reactions": "2321f650862acbe4852a4c4d07bce5526786bd4400e2d88b85b06c3bf1fec552",
+    "GET /repos/{owner}/{repo}/issues/events": "2321f650862acbe4852a4c4d07bce5526786bd4400e2d88b85b06c3bf1fec552",
+    "GET /repos/{owner}/{repo}/issues/events/{event_id}": "2321f650862acbe4852a4c4d07bce5526786bd4400e2d88b85b06c3bf1fec552",
+    "GET /repos/{owner}/{repo}/issues/{issue_number}": "2321f650862acbe4852a4c4d07bce5526786bd4400e2d88b85b06c3bf1fec552",
+    "GET /repos/{owner}/{repo}/issues/{issue_number}/assignees/{assignee}": "2321f650862acbe4852a4c4d07bce5526786bd4400e2d88b85b06c3bf1fec552",
+    "GET /repos/{owner}/{repo}/issues/{issue_number}/comments": "2321f650862acbe4852a4c4d07bce5526786bd4400e2d88b85b06c3bf1fec552",
+    "GET /repos/{owner}/{repo}/issues/{issue_number}/dependencies/blocked_by": "2321f650862acbe4852a4c4d07bce5526786bd4400e2d88b85b06c3bf1fec552",
+    "GET /repos/{owner}/{repo}/issues/{issue_number}/dependencies/blocking": "2321f650862acbe4852a4c4d07bce5526786bd4400e2d88b85b06c3bf1fec552",
+    "GET /repos/{owner}/{repo}/issues/{issue_number}/events": "2321f650862acbe4852a4c4d07bce5526786bd4400e2d88b85b06c3bf1fec552",
+    "GET /repos/{owner}/{repo}/issues/{issue_number}/issue-field-values": "2321f650862acbe4852a4c4d07bce5526786bd4400e2d88b85b06c3bf1fec552",
+    "GET /repos/{owner}/{repo}/issues/{issue_number}/labels": "2321f650862acbe4852a4c4d07bce5526786bd4400e2d88b85b06c3bf1fec552",
+    "GET /repos/{owner}/{repo}/issues/{issue_number}/parent": "2321f650862acbe4852a4c4d07bce5526786bd4400e2d88b85b06c3bf1fec552",
+    "GET /repos/{owner}/{repo}/issues/{issue_number}/reactions": "2321f650862acbe4852a4c4d07bce5526786bd4400e2d88b85b06c3bf1fec552",
+    "GET /repos/{owner}/{repo}/issues/{issue_number}/relates_to": "2321f650862acbe4852a4c4d07bce5526786bd4400e2d88b85b06c3bf1fec552",
+    "GET /repos/{owner}/{repo}/issues/{issue_number}/sub_issues": "2321f650862acbe4852a4c4d07bce5526786bd4400e2d88b85b06c3bf1fec552",
+    "GET /repos/{owner}/{repo}/issues/{issue_number}/suggestions": "2321f650862acbe4852a4c4d07bce5526786bd4400e2d88b85b06c3bf1fec552",
+    "GET /repos/{owner}/{repo}/issues/{issue_number}/timeline": "2321f650862acbe4852a4c4d07bce5526786bd4400e2d88b85b06c3bf1fec552",
+    "GET /repos/{owner}/{repo}/labels": "2321f650862acbe4852a4c4d07bce5526786bd4400e2d88b85b06c3bf1fec552",
+    "GET /repos/{owner}/{repo}/labels/{name}": "2321f650862acbe4852a4c4d07bce5526786bd4400e2d88b85b06c3bf1fec552",
+    "GET /repos/{owner}/{repo}/milestones": "2321f650862acbe4852a4c4d07bce5526786bd4400e2d88b85b06c3bf1fec552",
+    "GET /repos/{owner}/{repo}/milestones/{milestone_number}": "2321f650862acbe4852a4c4d07bce5526786bd4400e2d88b85b06c3bf1fec552",
+    "GET /repos/{owner}/{repo}/milestones/{milestone_number}/labels": "2321f650862acbe4852a4c4d07bce5526786bd4400e2d88b85b06c3bf1fec552",
+    "GET /repos/{owner}/{repo}/pulls": "2321f650862acbe4852a4c4d07bce5526786bd4400e2d88b85b06c3bf1fec552",
+    "GET /repos/{owner}/{repo}/pulls/comments": "2321f650862acbe4852a4c4d07bce5526786bd4400e2d88b85b06c3bf1fec552",
+    "GET /repos/{owner}/{repo}/pulls/comments/{comment_id}": "2321f650862acbe4852a4c4d07bce5526786bd4400e2d88b85b06c3bf1fec552",
+    "GET /repos/{owner}/{repo}/pulls/comments/{comment_id}/reactions": "2321f650862acbe4852a4c4d07bce5526786bd4400e2d88b85b06c3bf1fec552",
+    "GET /repos/{owner}/{repo}/pulls/{pull_number}": "2321f650862acbe4852a4c4d07bce5526786bd4400e2d88b85b06c3bf1fec552",
+    "GET /repos/{owner}/{repo}/pulls/{pull_number}/comments": "2321f650862acbe4852a4c4d07bce5526786bd4400e2d88b85b06c3bf1fec552",
+    "GET /repos/{owner}/{repo}/pulls/{pull_number}/commits": "2321f650862acbe4852a4c4d07bce5526786bd4400e2d88b85b06c3bf1fec552",
+    "GET /repos/{owner}/{repo}/pulls/{pull_number}/files": "2321f650862acbe4852a4c4d07bce5526786bd4400e2d88b85b06c3bf1fec552",
+    "GET /repos/{owner}/{repo}/pulls/{pull_number}/merge": "2321f650862acbe4852a4c4d07bce5526786bd4400e2d88b85b06c3bf1fec552",
+    "GET /repos/{owner}/{repo}/pulls/{pull_number}/merge-async/{uuid}": "2321f650862acbe4852a4c4d07bce5526786bd4400e2d88b85b06c3bf1fec552",
+    "GET /repos/{owner}/{repo}/pulls/{pull_number}/requested_reviewers": "2321f650862acbe4852a4c4d07bce5526786bd4400e2d88b85b06c3bf1fec552",
+    "GET /repos/{owner}/{repo}/pulls/{pull_number}/reviews": "2321f650862acbe4852a4c4d07bce5526786bd4400e2d88b85b06c3bf1fec552",
+    "GET /repos/{owner}/{repo}/pulls/{pull_number}/reviews/{review_id}": "2321f650862acbe4852a4c4d07bce5526786bd4400e2d88b85b06c3bf1fec552",
+    "GET /repos/{owner}/{repo}/pulls/{pull_number}/reviews/{review_id}/comments": "2321f650862acbe4852a4c4d07bce5526786bd4400e2d88b85b06c3bf1fec552",
+    "GET /repos/{owner}/{repo}/stacks": "2321f650862acbe4852a4c4d07bce5526786bd4400e2d88b85b06c3bf1fec552",
+    "GET /repos/{owner}/{repo}/stacks/{stack_number}": "2321f650862acbe4852a4c4d07bce5526786bd4400e2d88b85b06c3bf1fec552",
+    "GET /search/issues": "2321f650862acbe4852a4c4d07bce5526786bd4400e2d88b85b06c3bf1fec552",
+    "GET /search/labels": "2321f650862acbe4852a4c4d07bce5526786bd4400e2d88b85b06c3bf1fec552",
+    "GET /user/issues": "2321f650862acbe4852a4c4d07bce5526786bd4400e2d88b85b06c3bf1fec552"
+   },
+   "group:github.issues.write": {
+    "DELETE /repos/{owner}/{repo}/issues/{issue_number}/assignees": "6ea03dca858ad1a98dc01beb574a649699d0a5f6bb57f061906dd4a5f4db5746",
+    "DELETE /repos/{owner}/{repo}/issues/{issue_number}/dependencies/blocked_by/{issue_id}": "6ea03dca858ad1a98dc01beb574a649699d0a5f6bb57f061906dd4a5f4db5746",
+    "DELETE /repos/{owner}/{repo}/issues/{issue_number}/issue-field-values/{issue_field_id}": "6ea03dca858ad1a98dc01beb574a649699d0a5f6bb57f061906dd4a5f4db5746",
+    "DELETE /repos/{owner}/{repo}/issues/{issue_number}/labels": "6ea03dca858ad1a98dc01beb574a649699d0a5f6bb57f061906dd4a5f4db5746",
+    "DELETE /repos/{owner}/{repo}/issues/{issue_number}/labels/{name}": "6ea03dca858ad1a98dc01beb574a649699d0a5f6bb57f061906dd4a5f4db5746",
+    "DELETE /repos/{owner}/{repo}/issues/{issue_number}/lock": "6ea03dca858ad1a98dc01beb574a649699d0a5f6bb57f061906dd4a5f4db5746",
+    "DELETE /repos/{owner}/{repo}/issues/{issue_number}/relates_to/{issue_id}": "6ea03dca858ad1a98dc01beb574a649699d0a5f6bb57f061906dd4a5f4db5746",
+    "DELETE /repos/{owner}/{repo}/issues/{issue_number}/sub_issue": "6ea03dca858ad1a98dc01beb574a649699d0a5f6bb57f061906dd4a5f4db5746",
+    "PATCH /repos/{owner}/{repo}/issues/{issue_number}": "6ea03dca858ad1a98dc01beb574a649699d0a5f6bb57f061906dd4a5f4db5746",
+    "PATCH /repos/{owner}/{repo}/issues/{issue_number}/sub_issues/priority": "6ea03dca858ad1a98dc01beb574a649699d0a5f6bb57f061906dd4a5f4db5746",
+    "PATCH /repos/{owner}/{repo}/labels/{name}": "6ea03dca858ad1a98dc01beb574a649699d0a5f6bb57f061906dd4a5f4db5746",
+    "PATCH /repos/{owner}/{repo}/milestones/{milestone_number}": "6ea03dca858ad1a98dc01beb574a649699d0a5f6bb57f061906dd4a5f4db5746",
+    "POST /repos/{owner}/{repo}/issues": "6ea03dca858ad1a98dc01beb574a649699d0a5f6bb57f061906dd4a5f4db5746",
+    "POST /repos/{owner}/{repo}/issues/{issue_number}/assignees": "6ea03dca858ad1a98dc01beb574a649699d0a5f6bb57f061906dd4a5f4db5746",
+    "POST /repos/{owner}/{repo}/issues/{issue_number}/dependencies/blocked_by": "6ea03dca858ad1a98dc01beb574a649699d0a5f6bb57f061906dd4a5f4db5746",
+    "POST /repos/{owner}/{repo}/issues/{issue_number}/issue-field-values": "6ea03dca858ad1a98dc01beb574a649699d0a5f6bb57f061906dd4a5f4db5746",
+    "POST /repos/{owner}/{repo}/issues/{issue_number}/labels": "6ea03dca858ad1a98dc01beb574a649699d0a5f6bb57f061906dd4a5f4db5746",
+    "POST /repos/{owner}/{repo}/issues/{issue_number}/relates_to": "6ea03dca858ad1a98dc01beb574a649699d0a5f6bb57f061906dd4a5f4db5746",
+    "POST /repos/{owner}/{repo}/issues/{issue_number}/sub_issues": "6ea03dca858ad1a98dc01beb574a649699d0a5f6bb57f061906dd4a5f4db5746",
+    "POST /repos/{owner}/{repo}/issues/{issue_number}/suggestions/{suggestion_id}/approve": "6ea03dca858ad1a98dc01beb574a649699d0a5f6bb57f061906dd4a5f4db5746",
+    "POST /repos/{owner}/{repo}/issues/{issue_number}/suggestions/{suggestion_id}/dismiss": "6ea03dca858ad1a98dc01beb574a649699d0a5f6bb57f061906dd4a5f4db5746",
+    "POST /repos/{owner}/{repo}/labels": "6ea03dca858ad1a98dc01beb574a649699d0a5f6bb57f061906dd4a5f4db5746",
+    "POST /repos/{owner}/{repo}/milestones": "6ea03dca858ad1a98dc01beb574a649699d0a5f6bb57f061906dd4a5f4db5746",
+    "PUT /repos/{owner}/{repo}/issues/{issue_number}/issue-field-values": "6ea03dca858ad1a98dc01beb574a649699d0a5f6bb57f061906dd4a5f4db5746",
+    "PUT /repos/{owner}/{repo}/issues/{issue_number}/labels": "6ea03dca858ad1a98dc01beb574a649699d0a5f6bb57f061906dd4a5f4db5746",
+    "PUT /repos/{owner}/{repo}/issues/{issue_number}/lock": "6ea03dca858ad1a98dc01beb574a649699d0a5f6bb57f061906dd4a5f4db5746"
+   },
+   "group:github.notifications.manage": {
+    "DELETE /notifications/threads/{thread_id}": "500b7e18628d8a446571fecbfba7d981c9e5004ef05bcf84cf9dac043a9b94e4",
+    "DELETE /notifications/threads/{thread_id}/subscription": "500b7e18628d8a446571fecbfba7d981c9e5004ef05bcf84cf9dac043a9b94e4",
+    "PATCH /notifications/threads/{thread_id}": "500b7e18628d8a446571fecbfba7d981c9e5004ef05bcf84cf9dac043a9b94e4",
+    "PUT /notifications": "500b7e18628d8a446571fecbfba7d981c9e5004ef05bcf84cf9dac043a9b94e4",
+    "PUT /notifications/threads/{thread_id}/subscription": "500b7e18628d8a446571fecbfba7d981c9e5004ef05bcf84cf9dac043a9b94e4",
+    "PUT /repos/{owner}/{repo}/notifications": "500b7e18628d8a446571fecbfba7d981c9e5004ef05bcf84cf9dac043a9b94e4"
+   },
+   "group:github.permanent.delete": {
+    "DELETE /gists/{gist_id}": "b379b71c7dc55e0213844aa18a3c13f47cd285325fbac7a079fbe8fac0e24975",
+    "DELETE /gists/{gist_id}/comments/{comment_id}": "b379b71c7dc55e0213844aa18a3c13f47cd285325fbac7a079fbe8fac0e24975",
+    "DELETE /repos/{owner}/{repo}": "b379b71c7dc55e0213844aa18a3c13f47cd285325fbac7a079fbe8fac0e24975",
+    "DELETE /repos/{owner}/{repo}/actions/artifacts/{artifact_id}": "b379b71c7dc55e0213844aa18a3c13f47cd285325fbac7a079fbe8fac0e24975",
+    "DELETE /repos/{owner}/{repo}/actions/caches": "b379b71c7dc55e0213844aa18a3c13f47cd285325fbac7a079fbe8fac0e24975",
+    "DELETE /repos/{owner}/{repo}/actions/caches/{cache_id}": "b379b71c7dc55e0213844aa18a3c13f47cd285325fbac7a079fbe8fac0e24975",
+    "DELETE /repos/{owner}/{repo}/actions/runners/{runner_id}": "b379b71c7dc55e0213844aa18a3c13f47cd285325fbac7a079fbe8fac0e24975",
+    "DELETE /repos/{owner}/{repo}/actions/runs/{run_id}": "b379b71c7dc55e0213844aa18a3c13f47cd285325fbac7a079fbe8fac0e24975",
+    "DELETE /repos/{owner}/{repo}/actions/runs/{run_id}/logs": "b379b71c7dc55e0213844aa18a3c13f47cd285325fbac7a079fbe8fac0e24975",
+    "DELETE /repos/{owner}/{repo}/actions/secrets/{secret_name}": "b379b71c7dc55e0213844aa18a3c13f47cd285325fbac7a079fbe8fac0e24975",
+    "DELETE /repos/{owner}/{repo}/actions/variables/{name}": "b379b71c7dc55e0213844aa18a3c13f47cd285325fbac7a079fbe8fac0e24975",
+    "DELETE /repos/{owner}/{repo}/autolinks/{autolink_id}": "b379b71c7dc55e0213844aa18a3c13f47cd285325fbac7a079fbe8fac0e24975",
+    "DELETE /repos/{owner}/{repo}/comments/{comment_id}": "b379b71c7dc55e0213844aa18a3c13f47cd285325fbac7a079fbe8fac0e24975",
+    "DELETE /repos/{owner}/{repo}/environments/{environment_name}/secrets/{secret_name}": "b379b71c7dc55e0213844aa18a3c13f47cd285325fbac7a079fbe8fac0e24975",
+    "DELETE /repos/{owner}/{repo}/environments/{environment_name}/variables/{name}": "b379b71c7dc55e0213844aa18a3c13f47cd285325fbac7a079fbe8fac0e24975",
+    "DELETE /repos/{owner}/{repo}/issues/comments/{comment_id}": "b379b71c7dc55e0213844aa18a3c13f47cd285325fbac7a079fbe8fac0e24975",
+    "DELETE /repos/{owner}/{repo}/labels/{name}": "b379b71c7dc55e0213844aa18a3c13f47cd285325fbac7a079fbe8fac0e24975",
+    "DELETE /repos/{owner}/{repo}/milestones/{milestone_number}": "b379b71c7dc55e0213844aa18a3c13f47cd285325fbac7a079fbe8fac0e24975",
+    "DELETE /repos/{owner}/{repo}/pulls/comments/{comment_id}": "b379b71c7dc55e0213844aa18a3c13f47cd285325fbac7a079fbe8fac0e24975",
+    "DELETE /repos/{owner}/{repo}/pulls/{pull_number}/reviews/{review_id}": "b379b71c7dc55e0213844aa18a3c13f47cd285325fbac7a079fbe8fac0e24975",
+    "DELETE /repos/{owner}/{repo}/releases/assets/{asset_id}": "b379b71c7dc55e0213844aa18a3c13f47cd285325fbac7a079fbe8fac0e24975",
+    "DELETE /repos/{owner}/{repo}/releases/{release_id}": "b379b71c7dc55e0213844aa18a3c13f47cd285325fbac7a079fbe8fac0e24975",
+    "DELETE /repos/{owner}/{repo}/rulesets/{ruleset_id}": "b379b71c7dc55e0213844aa18a3c13f47cd285325fbac7a079fbe8fac0e24975",
+    "DELETE /user/gpg_keys/{gpg_key_id}": "b379b71c7dc55e0213844aa18a3c13f47cd285325fbac7a079fbe8fac0e24975",
+    "DELETE /user/keys/{key_id}": "b379b71c7dc55e0213844aa18a3c13f47cd285325fbac7a079fbe8fac0e24975",
+    "DELETE /user/ssh_signing_keys/{ssh_signing_key_id}": "b379b71c7dc55e0213844aa18a3c13f47cd285325fbac7a079fbe8fac0e24975",
+    "DELETE /users/{username}/attestations/digest/{subject_digest}": "0bc0a6f9be68bc904d3ddf7c4d4594adf8b7459c9762ca2a69cb82f71aa4d150",
+    "DELETE /users/{username}/attestations/{attestation_id}": "0bc0a6f9be68bc904d3ddf7c4d4594adf8b7459c9762ca2a69cb82f71aa4d150"
+   },
+   "group:github.profile.read": {
+    "GET /events": "d33183acbc1b2dda97be6dc9cd867d93937e33d920a39aba558bd734c0e65563",
+    "GET /feeds": "d33183acbc1b2dda97be6dc9cd867d93937e33d920a39aba558bd734c0e65563",
+    "GET /notifications": "d33183acbc1b2dda97be6dc9cd867d93937e33d920a39aba558bd734c0e65563",
+    "GET /notifications/threads/{thread_id}": "d33183acbc1b2dda97be6dc9cd867d93937e33d920a39aba558bd734c0e65563",
+    "GET /notifications/threads/{thread_id}/subscription": "d33183acbc1b2dda97be6dc9cd867d93937e33d920a39aba558bd734c0e65563",
+    "GET /orgs/{org}/events": "d33183acbc1b2dda97be6dc9cd867d93937e33d920a39aba558bd734c0e65563",
+    "GET /rate_limit": "d33183acbc1b2dda97be6dc9cd867d93937e33d920a39aba558bd734c0e65563",
+    "GET /repos/{owner}/{repo}/notifications": "d33183acbc1b2dda97be6dc9cd867d93937e33d920a39aba558bd734c0e65563",
+    "GET /repos/{owner}/{repo}/subscription": "d33183acbc1b2dda97be6dc9cd867d93937e33d920a39aba558bd734c0e65563",
+    "GET /search/users": "d33183acbc1b2dda97be6dc9cd867d93937e33d920a39aba558bd734c0e65563",
+    "GET /user": "d33183acbc1b2dda97be6dc9cd867d93937e33d920a39aba558bd734c0e65563",
+    "GET /user/followers": "d33183acbc1b2dda97be6dc9cd867d93937e33d920a39aba558bd734c0e65563",
+    "GET /user/following": "d33183acbc1b2dda97be6dc9cd867d93937e33d920a39aba558bd734c0e65563",
+    "GET /user/following/{username}": "d33183acbc1b2dda97be6dc9cd867d93937e33d920a39aba558bd734c0e65563",
+    "GET /user/memberships/orgs": "d33183acbc1b2dda97be6dc9cd867d93937e33d920a39aba558bd734c0e65563",
+    "GET /user/memberships/orgs/{org}": "d33183acbc1b2dda97be6dc9cd867d93937e33d920a39aba558bd734c0e65563",
+    "GET /user/orgs": "d33183acbc1b2dda97be6dc9cd867d93937e33d920a39aba558bd734c0e65563",
+    "GET /user/social_accounts": "d33183acbc1b2dda97be6dc9cd867d93937e33d920a39aba558bd734c0e65563",
+    "GET /user/starred": "d33183acbc1b2dda97be6dc9cd867d93937e33d920a39aba558bd734c0e65563",
+    "GET /user/starred/{owner}/{repo}": "d33183acbc1b2dda97be6dc9cd867d93937e33d920a39aba558bd734c0e65563",
+    "GET /user/subscriptions": "d33183acbc1b2dda97be6dc9cd867d93937e33d920a39aba558bd734c0e65563",
+    "GET /user/{account_id}": "d33183acbc1b2dda97be6dc9cd867d93937e33d920a39aba558bd734c0e65563",
+    "GET /users": "d33183acbc1b2dda97be6dc9cd867d93937e33d920a39aba558bd734c0e65563",
+    "GET /users/{username}": "d33183acbc1b2dda97be6dc9cd867d93937e33d920a39aba558bd734c0e65563",
+    "GET /users/{username}/events": "d33183acbc1b2dda97be6dc9cd867d93937e33d920a39aba558bd734c0e65563",
+    "GET /users/{username}/events/public": "d33183acbc1b2dda97be6dc9cd867d93937e33d920a39aba558bd734c0e65563",
+    "GET /users/{username}/followers": "d33183acbc1b2dda97be6dc9cd867d93937e33d920a39aba558bd734c0e65563",
+    "GET /users/{username}/following": "d33183acbc1b2dda97be6dc9cd867d93937e33d920a39aba558bd734c0e65563",
+    "GET /users/{username}/following/{target_user}": "d33183acbc1b2dda97be6dc9cd867d93937e33d920a39aba558bd734c0e65563",
+    "GET /users/{username}/orgs": "d33183acbc1b2dda97be6dc9cd867d93937e33d920a39aba558bd734c0e65563",
+    "GET /users/{username}/received_events": "d33183acbc1b2dda97be6dc9cd867d93937e33d920a39aba558bd734c0e65563",
+    "GET /users/{username}/received_events/public": "d33183acbc1b2dda97be6dc9cd867d93937e33d920a39aba558bd734c0e65563",
+    "GET /users/{username}/social_accounts": "d33183acbc1b2dda97be6dc9cd867d93937e33d920a39aba558bd734c0e65563",
+    "GET /users/{username}/starred": "d33183acbc1b2dda97be6dc9cd867d93937e33d920a39aba558bd734c0e65563",
+    "GET /users/{username}/subscriptions": "d33183acbc1b2dda97be6dc9cd867d93937e33d920a39aba558bd734c0e65563"
+   },
+   "group:github.pulls.write": {
+    "DELETE /repos/{owner}/{repo}/pulls/{pull_number}/requested_reviewers": "13a353a261f2a876711e8c6811d92f2a7b6b496fd3629329668903ce1cc387e0",
+    "PATCH /repos/{owner}/{repo}/pulls/{pull_number}": "13a353a261f2a876711e8c6811d92f2a7b6b496fd3629329668903ce1cc387e0",
+    "POST /repos/{owner}/{repo}/pulls": "13a353a261f2a876711e8c6811d92f2a7b6b496fd3629329668903ce1cc387e0",
+    "POST /repos/{owner}/{repo}/pulls/{pull_number}/requested_reviewers": "13a353a261f2a876711e8c6811d92f2a7b6b496fd3629329668903ce1cc387e0",
+    "POST /repos/{owner}/{repo}/pulls/{pull_number}/requested_reviewers/rerequest": "13a353a261f2a876711e8c6811d92f2a7b6b496fd3629329668903ce1cc387e0",
+    "POST /repos/{owner}/{repo}/stacks": "13a353a261f2a876711e8c6811d92f2a7b6b496fd3629329668903ce1cc387e0",
+    "POST /repos/{owner}/{repo}/stacks/{stack_number}/add": "13a353a261f2a876711e8c6811d92f2a7b6b496fd3629329668903ce1cc387e0",
+    "POST /repos/{owner}/{repo}/stacks/{stack_number}/unstack": "13a353a261f2a876711e8c6811d92f2a7b6b496fd3629329668903ce1cc387e0",
+    "PUT /repos/{owner}/{repo}/pulls/{pull_number}/merge": "13a353a261f2a876711e8c6811d92f2a7b6b496fd3629329668903ce1cc387e0",
+    "PUT /repos/{owner}/{repo}/pulls/{pull_number}/merge-async": "13a353a261f2a876711e8c6811d92f2a7b6b496fd3629329668903ce1cc387e0",
+    "PUT /repos/{owner}/{repo}/pulls/{pull_number}/update-branch": "13a353a261f2a876711e8c6811d92f2a7b6b496fd3629329668903ce1cc387e0"
+   },
+   "group:github.repos.read": {
+    "GET /networks/{owner}/{repo}/events": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /orgs/{org}/repos": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/actions/artifacts": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/actions/artifacts/{artifact_id}": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/actions/artifacts/{artifact_id}/{archive_format}": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/actions/cache/usage": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/actions/caches": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/actions/concurrency_groups": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/actions/concurrency_groups/{concurrency_group_name}": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/actions/jobs/{job_id}": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/actions/jobs/{job_id}/logs": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/actions/jobs/{job_id}/steps/{step_number}/logs": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/actions/runs": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/actions/runs/{run_id}": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/actions/runs/{run_id}/approvals": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/actions/runs/{run_id}/artifacts": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/actions/runs/{run_id}/attempts/{attempt_number}": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/actions/runs/{run_id}/attempts/{attempt_number}/jobs": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/actions/runs/{run_id}/attempts/{attempt_number}/logs": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/actions/runs/{run_id}/concurrency_groups": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/actions/runs/{run_id}/jobs": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/actions/runs/{run_id}/logs": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/actions/runs/{run_id}/pending_deployments": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/actions/runs/{run_id}/timing": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/actions/workflows": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/actions/workflows/{workflow_id}": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/actions/workflows/{workflow_id}/runs": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/actions/workflows/{workflow_id}/timing": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/activity": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/branches": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/branches/{branch}": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/check-runs/{check_run_id}": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/check-runs/{check_run_id}/annotations": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/check-suites/{check_suite_id}": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/check-suites/{check_suite_id}/check-runs": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/codeowners/errors": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/collaborators": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/collaborators/{username}": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/collaborators/{username}/permission": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/comments": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/comments/{comment_id}": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/comments/{comment_id}/reactions": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/commits": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/commits/{commit_sha}/branches-where-head": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/commits/{commit_sha}/comments": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/commits/{commit_sha}/pulls": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/commits/{ref}": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/commits/{ref}/check-runs": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/commits/{ref}/check-suites": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/commits/{ref}/status": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/commits/{ref}/statuses": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/community/profile": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/compare/{basehead}": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/contents/{path}": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/contributors": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/deployments": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/deployments/{deployment_id}": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/deployments/{deployment_id}/statuses": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/deployments/{deployment_id}/statuses/{status_id}": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/events": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/forks": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/git/blobs/{file_sha}": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/git/commits/{commit_sha}": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/git/matching-refs/{ref}": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/git/ref/{ref}": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/git/tags/{tag_sha}": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/git/trees/{tree_sha}": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/hash-algorithm": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/languages": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/license": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/readme": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/readme/{dir}": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/releases": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/releases/assets/{asset_id}": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/releases/latest": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/releases/tags/{tag}": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/releases/{release_id}": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/releases/{release_id}/assets": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/releases/{release_id}/reactions": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/rules/branches/{branch}": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/stargazers": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/stargazers/count": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/stargazers/history": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/stats/code_frequency": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/stats/commit_activity": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/stats/contributors": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/stats/participation": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/stats/punch_card": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/subscribers": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/tags": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/tarball/{ref}": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/topics": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repos/{owner}/{repo}/zipball/{ref}": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /repositories": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /search/code": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /search/commits": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /search/repositories": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /search/topics": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /user/repos": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "GET /users/{username}/repos": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd",
+    "POST /repos/{owner}/{repo}/releases/generate-notes": "f9efa886d38c5a5377c13eb0684f0d9309ca88fe080315452e6c7795c2d3b7fd"
+   }
+  },
+  "gmail": {
+   "group:gmail.access.grant": {
+    "gmail.users.settings.delegates.create": "94f573532f00ab0a98e01492b89ee22af6d8458be5ea1443f477e20769009402",
+    "gmail.users.settings.delegates.delete": "94f573532f00ab0a98e01492b89ee22af6d8458be5ea1443f477e20769009402",
+    "gmail.users.settings.forwardingAddresses.create": "94f573532f00ab0a98e01492b89ee22af6d8458be5ea1443f477e20769009402",
+    "gmail.users.settings.forwardingAddresses.delete": "94f573532f00ab0a98e01492b89ee22af6d8458be5ea1443f477e20769009402",
+    "gmail.users.settings.sendAs.create": "94f573532f00ab0a98e01492b89ee22af6d8458be5ea1443f477e20769009402",
+    "gmail.users.settings.sendAs.delete": "94f573532f00ab0a98e01492b89ee22af6d8458be5ea1443f477e20769009402",
+    "gmail.users.settings.sendAs.patch": "b064962b9ec33332f266f15ca88931c5d5d348fca47dcec650385a6a4411dd54",
+    "gmail.users.settings.sendAs.update": "b064962b9ec33332f266f15ca88931c5d5d348fca47dcec650385a6a4411dd54",
+    "gmail.users.settings.sendAs.verify": "94f573532f00ab0a98e01492b89ee22af6d8458be5ea1443f477e20769009402",
+    "gmail.users.settings.updateAutoForwarding": "94f573532f00ab0a98e01492b89ee22af6d8458be5ea1443f477e20769009402",
+    "gmail.users.stop": "b064962b9ec33332f266f15ca88931c5d5d348fca47dcec650385a6a4411dd54",
+    "gmail.users.watch": "b064962b9ec33332f266f15ca88931c5d5d348fca47dcec650385a6a4411dd54"
+   },
+   "group:gmail.drafts.read": {
+    "gmail.users.drafts.get": "64d95b4e7508072101eae16114b74574193493c0437b8c159333cda4bb64c8fd",
+    "gmail.users.drafts.list": "64d95b4e7508072101eae16114b74574193493c0437b8c159333cda4bb64c8fd"
+   },
+   "group:gmail.drafts.write": {
+    "gmail.users.drafts.create": "5f32edd18b92e5e17b2dbc2ad8e9ccaf430a6ad0842631e18de5e2337dfb60a7",
+    "gmail.users.drafts.update": "5f32edd18b92e5e17b2dbc2ad8e9ccaf430a6ad0842631e18de5e2337dfb60a7"
+   },
+   "group:gmail.labels.manage": {
+    "gmail.users.labels.create": "8011deb8fd606ffe90b6d34db79c31b6da31fbc3163f7c08d6de7380980d16f1",
+    "gmail.users.labels.patch": "8011deb8fd606ffe90b6d34db79c31b6da31fbc3163f7c08d6de7380980d16f1",
+    "gmail.users.labels.update": "8011deb8fd606ffe90b6d34db79c31b6da31fbc3163f7c08d6de7380980d16f1"
+   },
+   "group:gmail.labels.read": {
+    "gmail.users.labels.get": "66e7aeba8497e8811749c0db1af39ebb617e887557e2b2e666d1ab69ab532ac1",
+    "gmail.users.labels.list": "66e7aeba8497e8811749c0db1af39ebb617e887557e2b2e666d1ab69ab532ac1",
+    "gmail.users.settings.cse.identities.get": "4327b2418ef22609fa5f51a2f33d39b3ecdbe78b5909b9e1177e8ce7593b14e8",
+    "gmail.users.settings.cse.identities.list": "4327b2418ef22609fa5f51a2f33d39b3ecdbe78b5909b9e1177e8ce7593b14e8",
+    "gmail.users.settings.cse.keypairs.get": "4327b2418ef22609fa5f51a2f33d39b3ecdbe78b5909b9e1177e8ce7593b14e8",
+    "gmail.users.settings.cse.keypairs.list": "4327b2418ef22609fa5f51a2f33d39b3ecdbe78b5909b9e1177e8ce7593b14e8",
+    "gmail.users.settings.delegates.get": "4327b2418ef22609fa5f51a2f33d39b3ecdbe78b5909b9e1177e8ce7593b14e8",
+    "gmail.users.settings.delegates.list": "4327b2418ef22609fa5f51a2f33d39b3ecdbe78b5909b9e1177e8ce7593b14e8",
+    "gmail.users.settings.filters.get": "66e7aeba8497e8811749c0db1af39ebb617e887557e2b2e666d1ab69ab532ac1",
+    "gmail.users.settings.filters.list": "66e7aeba8497e8811749c0db1af39ebb617e887557e2b2e666d1ab69ab532ac1",
+    "gmail.users.settings.forwardingAddresses.get": "66e7aeba8497e8811749c0db1af39ebb617e887557e2b2e666d1ab69ab532ac1",
+    "gmail.users.settings.forwardingAddresses.list": "66e7aeba8497e8811749c0db1af39ebb617e887557e2b2e666d1ab69ab532ac1",
+    "gmail.users.settings.getAutoForwarding": "bc63835312e2eaa897d179d23e799df3633be6d62e6df7975af707d30c97d95a",
+    "gmail.users.settings.getImap": "bc63835312e2eaa897d179d23e799df3633be6d62e6df7975af707d30c97d95a",
+    "gmail.users.settings.getLanguage": "bc63835312e2eaa897d179d23e799df3633be6d62e6df7975af707d30c97d95a",
+    "gmail.users.settings.getPop": "bc63835312e2eaa897d179d23e799df3633be6d62e6df7975af707d30c97d95a",
+    "gmail.users.settings.getVacation": "bc63835312e2eaa897d179d23e799df3633be6d62e6df7975af707d30c97d95a",
+    "gmail.users.settings.sendAs.get": "66e7aeba8497e8811749c0db1af39ebb617e887557e2b2e666d1ab69ab532ac1",
+    "gmail.users.settings.sendAs.list": "66e7aeba8497e8811749c0db1af39ebb617e887557e2b2e666d1ab69ab532ac1",
+    "gmail.users.settings.sendAs.smimeInfo.get": "66e7aeba8497e8811749c0db1af39ebb617e887557e2b2e666d1ab69ab532ac1",
+    "gmail.users.settings.sendAs.smimeInfo.list": "66e7aeba8497e8811749c0db1af39ebb617e887557e2b2e666d1ab69ab532ac1"
+   },
+   "group:gmail.messages.import": {
+    "gmail.users.messages.import": "1722cefaff43c50a847c171c17bd2297078522db4c39afd90471260e13dbf393",
+    "gmail.users.messages.insert": "1722cefaff43c50a847c171c17bd2297078522db4c39afd90471260e13dbf393"
+   },
+   "group:gmail.messages.mark": {
+    "gmail.users.messages.batchModify": "9811dfaf1a8ea45343dbc5b44727e950c232a15fc0ec55b619da67c0779db9fc",
+    "gmail.users.messages.modify": "9811dfaf1a8ea45343dbc5b44727e950c232a15fc0ec55b619da67c0779db9fc",
+    "gmail.users.threads.modify": "9811dfaf1a8ea45343dbc5b44727e950c232a15fc0ec55b619da67c0779db9fc"
+   },
+   "group:gmail.messages.read": {
+    "gmail.users.getProfile": "1da2207a6c884683cdd001c8a026f2d5cf29926c7a9b55cab92517067df70450",
+    "gmail.users.history.list": "3a852f1f17a94b2d49ce578aaceea24c9af4d81be67fd06d8fb505f25c890d00",
+    "gmail.users.messages.attachments.get": "3a852f1f17a94b2d49ce578aaceea24c9af4d81be67fd06d8fb505f25c890d00",
+    "gmail.users.messages.get": "3a852f1f17a94b2d49ce578aaceea24c9af4d81be67fd06d8fb505f25c890d00",
+    "gmail.users.threads.get": "3a852f1f17a94b2d49ce578aaceea24c9af4d81be67fd06d8fb505f25c890d00"
+   },
+   "group:gmail.messages.search": {
+    "gmail.users.messages.list": "f8a8513af2676612bdc01b4265fe872faec71b17b4db3617b2306642bba2ae23",
+    "gmail.users.threads.list": "f8a8513af2676612bdc01b4265fe872faec71b17b4db3617b2306642bba2ae23"
+   },
+   "group:gmail.messages.send": {
+    "gmail.users.drafts.send": "d2ab0d6939902183ceeaad1fdcd0d9c55c580d53d5cd669a14354773d2204b5b",
+    "gmail.users.messages.send": "d2ab0d6939902183ceeaad1fdcd0d9c55c580d53d5cd669a14354773d2204b5b"
+   },
+   "group:gmail.messages.trash": {
+    "gmail.users.messages.trash": "291c63b5b7c65fd5ec7860afcf398fd4aaeb36d164ab9809d0b410db77776243",
+    "gmail.users.messages.untrash": "291c63b5b7c65fd5ec7860afcf398fd4aaeb36d164ab9809d0b410db77776243",
+    "gmail.users.threads.trash": "291c63b5b7c65fd5ec7860afcf398fd4aaeb36d164ab9809d0b410db77776243",
+    "gmail.users.threads.untrash": "291c63b5b7c65fd5ec7860afcf398fd4aaeb36d164ab9809d0b410db77776243"
+   },
+   "group:gmail.permanent.delete": {
+    "gmail.users.drafts.delete": "84a0a70e7db59c08d251fc3a878b2fdfd2f7a5b55825c266fd6a4ad3c9022cf2",
+    "gmail.users.labels.delete": "84a0a70e7db59c08d251fc3a878b2fdfd2f7a5b55825c266fd6a4ad3c9022cf2",
+    "gmail.users.messages.batchDelete": "84a0a70e7db59c08d251fc3a878b2fdfd2f7a5b55825c266fd6a4ad3c9022cf2",
+    "gmail.users.messages.delete": "84a0a70e7db59c08d251fc3a878b2fdfd2f7a5b55825c266fd6a4ad3c9022cf2",
+    "gmail.users.settings.cse.keypairs.obliterate": "4d4b7b7e1d81b3975bb77ea44eee6cd501d6706d02c4b779cf3fad9fb85e663d",
+    "gmail.users.settings.filters.delete": "84a0a70e7db59c08d251fc3a878b2fdfd2f7a5b55825c266fd6a4ad3c9022cf2",
+    "gmail.users.threads.delete": "84a0a70e7db59c08d251fc3a878b2fdfd2f7a5b55825c266fd6a4ad3c9022cf2"
+   },
+   "group:gmail.settings.write": {
+    "gmail.users.settings.cse.identities.create": "486424b36ca34360d92257f8bf408dffadcfcb101a550490df540a952b2f2901",
+    "gmail.users.settings.cse.identities.delete": "486424b36ca34360d92257f8bf408dffadcfcb101a550490df540a952b2f2901",
+    "gmail.users.settings.cse.identities.patch": "486424b36ca34360d92257f8bf408dffadcfcb101a550490df540a952b2f2901",
+    "gmail.users.settings.cse.keypairs.create": "486424b36ca34360d92257f8bf408dffadcfcb101a550490df540a952b2f2901",
+    "gmail.users.settings.cse.keypairs.disable": "486424b36ca34360d92257f8bf408dffadcfcb101a550490df540a952b2f2901",
+    "gmail.users.settings.cse.keypairs.enable": "486424b36ca34360d92257f8bf408dffadcfcb101a550490df540a952b2f2901",
+    "gmail.users.settings.filters.create": "fd95b6d761bbfea8fdb19ea04e916d47c44b7a98361306a8c4062eee4610baa8",
+    "gmail.users.settings.sendAs.smimeInfo.delete": "fd95b6d761bbfea8fdb19ea04e916d47c44b7a98361306a8c4062eee4610baa8",
+    "gmail.users.settings.sendAs.smimeInfo.insert": "fd95b6d761bbfea8fdb19ea04e916d47c44b7a98361306a8c4062eee4610baa8",
+    "gmail.users.settings.sendAs.smimeInfo.setDefault": "fd95b6d761bbfea8fdb19ea04e916d47c44b7a98361306a8c4062eee4610baa8",
+    "gmail.users.settings.updateImap": "fd95b6d761bbfea8fdb19ea04e916d47c44b7a98361306a8c4062eee4610baa8",
+    "gmail.users.settings.updateLanguage": "fd95b6d761bbfea8fdb19ea04e916d47c44b7a98361306a8c4062eee4610baa8",
+    "gmail.users.settings.updatePop": "fd95b6d761bbfea8fdb19ea04e916d47c44b7a98361306a8c4062eee4610baa8",
+    "gmail.users.settings.updateVacation": "fd95b6d761bbfea8fdb19ea04e916d47c44b7a98361306a8c4062eee4610baa8"
+   }
+  },
+  "google-calendar": {
+   "group:google-calendar.access.grant": {
+    "calendar.acl.insert": "d62d3de3994760416f135fa68c73a4e4c0d5422e0ee00940b10b78735717cf56",
+    "calendar.acl.patch": "d62d3de3994760416f135fa68c73a4e4c0d5422e0ee00940b10b78735717cf56",
+    "calendar.acl.update": "d62d3de3994760416f135fa68c73a4e4c0d5422e0ee00940b10b78735717cf56",
+    "calendar.acl.watch": "d62d3de3994760416f135fa68c73a4e4c0d5422e0ee00940b10b78735717cf56",
+    "calendar.calendarList.watch": "d62d3de3994760416f135fa68c73a4e4c0d5422e0ee00940b10b78735717cf56",
+    "calendar.calendars.transferOwnership": "d62d3de3994760416f135fa68c73a4e4c0d5422e0ee00940b10b78735717cf56",
+    "calendar.channels.stop": "d62d3de3994760416f135fa68c73a4e4c0d5422e0ee00940b10b78735717cf56",
+    "calendar.events.watch": "d62d3de3994760416f135fa68c73a4e4c0d5422e0ee00940b10b78735717cf56",
+    "calendar.settings.watch": "d62d3de3994760416f135fa68c73a4e4c0d5422e0ee00940b10b78735717cf56"
+   },
+   "group:google-calendar.availability.read": {
+    "calendar.freebusy.query": "0bd1ba41dd8620a42207dd18ab9abd9369c83c9779c9ff2d8652cad4fec4ac32"
+   },
+   "group:google-calendar.calendarlist.remove": {
+    "calendar.calendarList.delete": "6a30b991f3591041af16c7cebaf16bb92976e966af9ebe01b6e05a043e16403f"
+   },
+   "group:google-calendar.calendarlist.write": {
+    "calendar.calendarList.insert": "c8807536ae2f0555b3d3fd2a88d9e4ad191750d1935649ba0049bb3529d006bb",
+    "calendar.calendarList.patch": "c8807536ae2f0555b3d3fd2a88d9e4ad191750d1935649ba0049bb3529d006bb",
+    "calendar.calendarList.update": "c8807536ae2f0555b3d3fd2a88d9e4ad191750d1935649ba0049bb3529d006bb"
+   },
+   "group:google-calendar.calendars.read": {
+    "calendar.calendarList.get": "b2779e3f316397a1fc4c277643eb4e36fd145959e0d8b89039d3e3ae2f81509f",
+    "calendar.calendarList.list": "b2779e3f316397a1fc4c277643eb4e36fd145959e0d8b89039d3e3ae2f81509f",
+    "calendar.colors.get": "b2779e3f316397a1fc4c277643eb4e36fd145959e0d8b89039d3e3ae2f81509f"
+   },
+   "group:google-calendar.calendars.write": {
+    "calendar.calendars.insert": "d1d77d2e540bd1dab949075ddedc6aebfa9d79184024e4a2331adcae2fe8c626",
+    "calendar.calendars.patch": "d1d77d2e540bd1dab949075ddedc6aebfa9d79184024e4a2331adcae2fe8c626",
+    "calendar.calendars.update": "d1d77d2e540bd1dab949075ddedc6aebfa9d79184024e4a2331adcae2fe8c626"
+   },
+   "group:google-calendar.events.delete": {
+    "calendar.events.delete": "f0cb7eeb540f4badb5eb7f524b5922b8ae31b8f98ac195e50ed5f023ab0d1c26"
+   },
+   "group:google-calendar.events.read": {
+    "calendar.events.get": "10f7af06b1364720f54cb1e6acfb01b534b9b024f87fb16395d6168888d07092",
+    "calendar.events.instances": "a53cf56f34399e05c97d268ab17baaf1ae34826ad2ccce7a066839e9a06f9fea",
+    "calendar.events.list": "10f7af06b1364720f54cb1e6acfb01b534b9b024f87fb16395d6168888d07092"
+   },
+   "group:google-calendar.events.write": {
+    "calendar.events.import": "789df7c96ce731030c25595340aea219674e03fe20979bdaa845a6c68c41f2ac",
+    "calendar.events.insert": "789df7c96ce731030c25595340aea219674e03fe20979bdaa845a6c68c41f2ac",
+    "calendar.events.move": "789df7c96ce731030c25595340aea219674e03fe20979bdaa845a6c68c41f2ac",
+    "calendar.events.patch": "789df7c96ce731030c25595340aea219674e03fe20979bdaa845a6c68c41f2ac",
+    "calendar.events.quickAdd": "789df7c96ce731030c25595340aea219674e03fe20979bdaa845a6c68c41f2ac",
+    "calendar.events.update": "789df7c96ce731030c25595340aea219674e03fe20979bdaa845a6c68c41f2ac"
+   },
+   "group:google-calendar.permanent.delete": {
+    "calendar.calendars.clear": "4c4da71b82a4bbf69f99b5a62f7abc619589e48659ccdbb74f9588e591928122",
+    "calendar.calendars.delete": "4c4da71b82a4bbf69f99b5a62f7abc619589e48659ccdbb74f9588e591928122"
+   },
+   "group:google-calendar.settings.read": {
+    "calendar.acl.get": "d4204b5c9d4e429dee5a9578aac8b2bd325bd62f5497107482bbc3fee0f82b7d",
+    "calendar.acl.list": "d4204b5c9d4e429dee5a9578aac8b2bd325bd62f5497107482bbc3fee0f82b7d",
+    "calendar.calendars.get": "d4204b5c9d4e429dee5a9578aac8b2bd325bd62f5497107482bbc3fee0f82b7d",
+    "calendar.settings.get": "d4204b5c9d4e429dee5a9578aac8b2bd325bd62f5497107482bbc3fee0f82b7d",
+    "calendar.settings.list": "d4204b5c9d4e429dee5a9578aac8b2bd325bd62f5497107482bbc3fee0f82b7d"
+   },
+   "group:google-calendar.sharing.write": {
+    "calendar.acl.delete": "db998bc9136bba6badd6a9fcf563fa785a1411b839f2ff476df61e8396a113c3"
+   }
+  },
+  "notion": {
+   "group:notion.agents.chat": {
+    "POST /v1/sessions": "69f8e18373494497cd96008f2d569b114d24363668f03a75ecb491919a731278",
+    "POST /v1/sessions/{session_id}/cancel": "69f8e18373494497cd96008f2d569b114d24363668f03a75ecb491919a731278"
+   },
+   "group:notion.agents.manage": {
+    "DELETE /v1/agents/{agent_id}": "c74561a6038291be6e6013166db09670c46931c2a95215469b273b8570f51437",
+    "PATCH /v1/agents/{agent_id}/credit_limit": "c74561a6038291be6e6013166db09670c46931c2a95215469b273b8570f51437",
+    "PATCH /v1/agents/{agent_id}/status": "c74561a6038291be6e6013166db09670c46931c2a95215469b273b8570f51437",
+    "POST /v1/agents/batch": "c74561a6038291be6e6013166db09670c46931c2a95215469b273b8570f51437"
+   },
+   "group:notion.agents.read": {
+    "GET /v1/agents/{agent_id}": "8ab77dfcd2336fc88e96e2f0de8da064853d681105d88172d6cbe54717947152",
+    "GET /v1/agents/{agent_id}/insights": "8ab77dfcd2336fc88e96e2f0de8da064853d681105d88172d6cbe54717947152",
+    "GET /v1/sessions/{session_id}": "8ab77dfcd2336fc88e96e2f0de8da064853d681105d88172d6cbe54717947152",
+    "POST /v1/agents/query": "8ab77dfcd2336fc88e96e2f0de8da064853d681105d88172d6cbe54717947152",
+    "POST /v1/sessions/query": "8ab77dfcd2336fc88e96e2f0de8da064853d681105d88172d6cbe54717947152",
+    "POST /v1/sessions/{session_id}/events/query": "8ab77dfcd2336fc88e96e2f0de8da064853d681105d88172d6cbe54717947152"
+   },
+   "group:notion.comments.read": {
+    "GET /v1/comments": "f327ef9c1a49442f7d854ac06d66ac3eb2d3107f1844fdf7b188c0b23de05a10",
+    "GET /v1/comments/{comment_id}": "f327ef9c1a49442f7d854ac06d66ac3eb2d3107f1844fdf7b188c0b23de05a10"
+   },
+   "group:notion.comments.write": {
+    "PATCH /v1/comments/{comment_id}": "448a86503661a0f28e73e43bff0e56f9a8f61ed4f57fe240abc377698d09e923",
+    "POST /v1/comments": "448a86503661a0f28e73e43bff0e56f9a8f61ed4f57fe240abc377698d09e923"
+   },
+   "group:notion.connection.manage": {
+    "POST /v1/oauth/introspect": "40c64aaff59a1f0fcf4fb2fb0752ad8abc0f3ea98b211cb747393a79774aa964",
+    "POST /v1/oauth/revoke": "40c64aaff59a1f0fcf4fb2fb0752ad8abc0f3ea98b211cb747393a79774aa964",
+    "POST /v1/oauth/token": "40c64aaff59a1f0fcf4fb2fb0752ad8abc0f3ea98b211cb747393a79774aa964"
+   },
+   "group:notion.content.create": {
+    "POST /v1/blocks/meeting_notes": "137ab0ff804dfd3a7728da27970ab0f4ab2c86c734cc1c7f7f1d2299d6c7d498",
+    "POST /v1/data_sources": "137ab0ff804dfd3a7728da27970ab0f4ab2c86c734cc1c7f7f1d2299d6c7d498",
+    "POST /v1/databases": "137ab0ff804dfd3a7728da27970ab0f4ab2c86c734cc1c7f7f1d2299d6c7d498",
+    "POST /v1/file_uploads": "137ab0ff804dfd3a7728da27970ab0f4ab2c86c734cc1c7f7f1d2299d6c7d498",
+    "POST /v1/file_uploads/{file_upload_id}/complete": "137ab0ff804dfd3a7728da27970ab0f4ab2c86c734cc1c7f7f1d2299d6c7d498",
+    "POST /v1/file_uploads/{file_upload_id}/send": "137ab0ff804dfd3a7728da27970ab0f4ab2c86c734cc1c7f7f1d2299d6c7d498",
+    "POST /v1/pages": "137ab0ff804dfd3a7728da27970ab0f4ab2c86c734cc1c7f7f1d2299d6c7d498"
+   },
+   "group:notion.content.edit": {
+    "PATCH /v1/blocks/{block_id}": "dcbb8d850e54f8f6019cf7d2d3cc5f33d09fa962d45c3d3665a1811987092d89",
+    "PATCH /v1/blocks/{block_id}/children": "dcbb8d850e54f8f6019cf7d2d3cc5f33d09fa962d45c3d3665a1811987092d89",
+    "PATCH /v1/data_sources/{data_source_id}": "dcbb8d850e54f8f6019cf7d2d3cc5f33d09fa962d45c3d3665a1811987092d89",
+    "PATCH /v1/databases/{database_id}": "dcbb8d850e54f8f6019cf7d2d3cc5f33d09fa962d45c3d3665a1811987092d89",
+    "PATCH /v1/pages/{page_id}": "dcbb8d850e54f8f6019cf7d2d3cc5f33d09fa962d45c3d3665a1811987092d89",
+    "PATCH /v1/pages/{page_id}/markdown": "dcbb8d850e54f8f6019cf7d2d3cc5f33d09fa962d45c3d3665a1811987092d89",
+    "PATCH /v1/views/{view_id}": "dcbb8d850e54f8f6019cf7d2d3cc5f33d09fa962d45c3d3665a1811987092d89",
+    "POST /v1/pages/{page_id}/move": "dcbb8d850e54f8f6019cf7d2d3cc5f33d09fa962d45c3d3665a1811987092d89",
+    "POST /v1/views": "dcbb8d850e54f8f6019cf7d2d3cc5f33d09fa962d45c3d3665a1811987092d89"
+   },
+   "group:notion.content.read": {
+    "GET /v1/ai/plugins": "6d450a86a549c7438a18a5983f76007127b5c1fa4734837c4c799f8d775c4ae4",
+    "GET /v1/ai/plugins/{id}": "6d450a86a549c7438a18a5983f76007127b5c1fa4734837c4c799f8d775c4ae4",
+    "GET /v1/ai/skills/{id}": "6d450a86a549c7438a18a5983f76007127b5c1fa4734837c4c799f8d775c4ae4",
+    "GET /v1/async_tasks/{task_id}": "6d450a86a549c7438a18a5983f76007127b5c1fa4734837c4c799f8d775c4ae4",
+    "GET /v1/blocks/{block_id}": "6d450a86a549c7438a18a5983f76007127b5c1fa4734837c4c799f8d775c4ae4",
+    "GET /v1/blocks/{block_id}/children": "6d450a86a549c7438a18a5983f76007127b5c1fa4734837c4c799f8d775c4ae4",
+    "GET /v1/custom_emojis": "6d450a86a549c7438a18a5983f76007127b5c1fa4734837c4c799f8d775c4ae4",
+    "GET /v1/data_sources/{data_source_id}": "6d450a86a549c7438a18a5983f76007127b5c1fa4734837c4c799f8d775c4ae4",
+    "GET /v1/data_sources/{data_source_id}/templates": "6d450a86a549c7438a18a5983f76007127b5c1fa4734837c4c799f8d775c4ae4",
+    "GET /v1/databases/{database_id}": "6d450a86a549c7438a18a5983f76007127b5c1fa4734837c4c799f8d775c4ae4",
+    "GET /v1/file_uploads": "6d450a86a549c7438a18a5983f76007127b5c1fa4734837c4c799f8d775c4ae4",
+    "GET /v1/file_uploads/{file_upload_id}": "6d450a86a549c7438a18a5983f76007127b5c1fa4734837c4c799f8d775c4ae4",
+    "GET /v1/pages/{page_id}": "6d450a86a549c7438a18a5983f76007127b5c1fa4734837c4c799f8d775c4ae4",
+    "GET /v1/pages/{page_id}/markdown": "6d450a86a549c7438a18a5983f76007127b5c1fa4734837c4c799f8d775c4ae4",
+    "GET /v1/pages/{page_id}/properties/{property_id}": "6d450a86a549c7438a18a5983f76007127b5c1fa4734837c4c799f8d775c4ae4",
+    "GET /v1/views": "6d450a86a549c7438a18a5983f76007127b5c1fa4734837c4c799f8d775c4ae4",
+    "GET /v1/views/{view_id}": "6d450a86a549c7438a18a5983f76007127b5c1fa4734837c4c799f8d775c4ae4",
+    "GET /v1/views/{view_id}/queries/{query_id}": "6d450a86a549c7438a18a5983f76007127b5c1fa4734837c4c799f8d775c4ae4",
+    "POST /v1/blocks/meeting_notes/query": "6d450a86a549c7438a18a5983f76007127b5c1fa4734837c4c799f8d775c4ae4",
+    "POST /v1/data_sources/{data_source_id}/query": "6d450a86a549c7438a18a5983f76007127b5c1fa4734837c4c799f8d775c4ae4",
+    "POST /v1/views/{view_id}/queries": "75468135dfc3b385b72de8f547c719458e8a42691dabeb826026f0ab32f7e072"
+   },
+   "group:notion.content.trash": {
+    "DELETE /v1/blocks/{block_id}": "5c60e210cba3dfbfb5070f7fa0df196d39cfec265399fa29fdc9b8c10ea0194c"
+   },
+   "group:notion.permanent.delete": {
+    "DELETE /v1/comments/{comment_id}": "bab156099a90c6dc714a9c231772002cfe2badf3a728b551f40a42a5a0ae3b96",
+    "DELETE /v1/views/{view_id}": "bab156099a90c6dc714a9c231772002cfe2badf3a728b551f40a42a5a0ae3b96"
+   },
+   "group:notion.search.read": {
+    "POST /v1/search": "bd80ca15acf1d1d836ae529e05c60f7b8f747726ec0763b9217992528ffcbdd7"
+   },
+   "group:notion.users.read": {
+    "GET /v1/users": "b128e8364bd41a7f4e8ae25c7df89b05e0213543a92d376afd709148e255dbe5",
+    "GET /v1/users/me": "b128e8364bd41a7f4e8ae25c7df89b05e0213543a92d376afd709148e255dbe5",
+    "GET /v1/users/{user_id}": "b128e8364bd41a7f4e8ae25c7df89b05e0213543a92d376afd709148e255dbe5"
+   }
+  },
+  "slack": {
+   "group:slack.admin": {
+    "GET /admin.analytics.getFile": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "GET /admin.analytics.messages.activity": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "GET /admin.analytics.messages.metadata": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "GET /admin.apps.approved.list": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "GET /admin.apps.requests.list": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "GET /admin.apps.restricted.list": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "GET /admin.barriers.list": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "GET /admin.conversations.bulkSetExcludeFromSlackAi": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "GET /admin.conversations.ekm.listOriginalConnectedChannelInfo": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "GET /admin.conversations.getConversationPrefs": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "GET /admin.conversations.getTeams": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "GET /admin.conversations.restrictAccess.listGroups": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "GET /admin.conversations.search": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "GET /admin.emoji.list": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "GET /admin.inviteRequests.approved.list": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "GET /admin.inviteRequests.denied.list": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "GET /admin.inviteRequests.list": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "GET /admin.roles.listAssignments": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "GET /admin.teams.admins.list": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "GET /admin.teams.list": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "GET /admin.teams.owners.list": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "GET /admin.teams.settings.info": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "GET /admin.usergroups.listChannels": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "GET /admin.users.getExpiration": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "GET /admin.users.list": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "GET /apps.event.authorizations.list": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "GET /apps.permissions.info": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "GET /apps.permissions.request": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "GET /apps.permissions.resources.list": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "GET /apps.permissions.scopes.list": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "GET /apps.permissions.users.list": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "GET /apps.permissions.users.request": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "GET /apps.uninstall": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "GET /auth.revoke": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "GET /dialog.open": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "GET /migration.exchange": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "GET /oauth.access": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "GET /oauth.token": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "GET /oauth.v2.access": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "GET /rtm.connect": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "GET /rtm.start": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "GET /views.open": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "GET /views.publish": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "GET /views.push": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "GET /views.update": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "GET /workflows.stepCompleted": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "GET /workflows.stepFailed": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "GET /workflows.updateStep": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.apps.activities.list": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.apps.approve": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.apps.clearResolution": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.apps.config.lookup": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.apps.config.set": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.apps.mcp.servers.list": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.apps.mcp.servers.permissions.list": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.apps.mcp.servers.permissions.set": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.apps.permissions.add": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.apps.permissions.list": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.apps.permissions.remove": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.apps.permissions.set": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.apps.requests.cancel": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.apps.restrict": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.apps.uninstall": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.audit.anomaly.allow.getItem": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.audit.anomaly.allow.updateItem": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.auth.policy.assignEntities": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.auth.policy.getEntities": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.auth.policy.removeEntities": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.barriers.create": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.barriers.delete": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.barriers.update": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.conversations.archive": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.conversations.bulkArchive": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.conversations.bulkDelete": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.conversations.bulkMove": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.conversations.bulkSetProperties": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.conversations.convertToPrivate": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.conversations.convertToPublic": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.conversations.create": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.conversations.createForObjects": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.conversations.delete": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.conversations.disconnectShared": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.conversations.getCustomRetention": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.conversations.invite": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.conversations.linkObjects": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.conversations.lookup": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.conversations.removeCustomRetention": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.conversations.rename": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.conversations.restrictAccess.addGroup": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.conversations.restrictAccess.removeGroup": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.conversations.setConversationPrefs": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.conversations.setCustomRetention": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.conversations.setTeams": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.conversations.unarchive": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.conversations.unlinkObjects": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.emoji.add": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.emoji.addAlias": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.emoji.remove": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.emoji.rename": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.functions.list": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.functions.permissions.lookup": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.functions.permissions.set": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.inviteRequests.approve": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.inviteRequests.deny": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.roles.addAssignments": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.roles.removeAssignments": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.teams.create": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.teams.settings.setDefaultChannels": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.teams.settings.setDescription": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.teams.settings.setDiscoverability": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.teams.settings.setIcon": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.teams.settings.setName": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.usergroups.addChannels": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.usergroups.addTeams": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.usergroups.addUsers": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.usergroups.create": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.usergroups.fetch": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.usergroups.removeChannels": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.usergroups.removeTeams": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.usergroups.removeUsers": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.usergroups.update": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.usergroups.uploadUsers": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.users.assign": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.users.invite": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.users.remove": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.users.session.clearSettings": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.users.session.getSettings": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.users.session.invalidate": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.users.session.list": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.users.session.reset": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.users.session.resetBulk": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.users.session.setSettings": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.users.setAdmin": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.users.setExpiration": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.users.setOwner": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.users.setRegular": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.users.unsupportedVersions.export": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.workflows.collaborators.add": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.workflows.collaborators.remove": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.workflows.permissions.lookup": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.workflows.search": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.workflows.triggers.types.permissions.lookup": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.workflows.triggers.types.permissions.set": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /admin.workflows.unpublish": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /apps.activities.list": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /apps.auth.external.delete": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /apps.auth.external.get": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /apps.connections.open": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /apps.datastore.bulkDelete": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /apps.datastore.bulkGet": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /apps.datastore.bulkPut": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /apps.datastore.count": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /apps.datastore.delete": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /apps.datastore.get": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /apps.datastore.put": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /apps.datastore.query": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /apps.datastore.update": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /apps.icon.set": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /apps.managed.permissions.set": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /apps.manifest.create": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /apps.manifest.delete": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /apps.manifest.export": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /apps.manifest.update": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /apps.manifest.validate": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /apps.user.connection.update": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /files.remote.remove": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /files.upload": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /functions.completeError": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /functions.completeSuccess": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /functions.distributions.permissions.add": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /functions.distributions.permissions.list": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /functions.distributions.permissions.remove": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /functions.distributions.permissions.set": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /functions.workflows.steps.list": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /functions.workflows.steps.responses.export": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /oauth.v2.beginShortTokenRotation": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /oauth.v2.completeShortTokenRotation": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /oauth.v2.exchange": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /oauth.v2.user.access": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /openid.connect.token": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /openid.connect.userInfo": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /reminders.delete": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /slackLists.items.delete": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /slackLists.items.deleteMultiple": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /team.billing.info": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /tooling.tokens.rotate": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /users.discoverableContacts.lookup": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /workflows.featured.add": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /workflows.featured.list": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /workflows.featured.remove": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /workflows.featured.set": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /workflows.triggers.permissions.add": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /workflows.triggers.permissions.list": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /workflows.triggers.permissions.remove": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30",
+    "POST /workflows.triggers.permissions.set": "4707c7862214ebcd6a2bd6323505c1efdb681fe74b389b735bae8c8c03a6df30"
+   },
+   "group:slack.channels.manage": {
+    "GET /conversations.declineSharedInvite": "d7e028a4450aaefc53dd60c240996b9a289727d0cdd582e963095573afa35834",
+    "POST /bookmarks.add": "d7e028a4450aaefc53dd60c240996b9a289727d0cdd582e963095573afa35834",
+    "POST /bookmarks.edit": "d7e028a4450aaefc53dd60c240996b9a289727d0cdd582e963095573afa35834",
+    "POST /bookmarks.remove": "d7e028a4450aaefc53dd60c240996b9a289727d0cdd582e963095573afa35834",
+    "POST /conversations.archive": "d7e028a4450aaefc53dd60c240996b9a289727d0cdd582e963095573afa35834",
+    "POST /conversations.create": "d7e028a4450aaefc53dd60c240996b9a289727d0cdd582e963095573afa35834",
+    "POST /conversations.invite": "d7e028a4450aaefc53dd60c240996b9a289727d0cdd582e963095573afa35834",
+    "POST /conversations.join": "d7e028a4450aaefc53dd60c240996b9a289727d0cdd582e963095573afa35834",
+    "POST /conversations.kick": "d7e028a4450aaefc53dd60c240996b9a289727d0cdd582e963095573afa35834",
+    "POST /conversations.leave": "d7e028a4450aaefc53dd60c240996b9a289727d0cdd582e963095573afa35834",
+    "POST /conversations.rename": "d7e028a4450aaefc53dd60c240996b9a289727d0cdd582e963095573afa35834",
+    "POST /conversations.setPurpose": "d7e028a4450aaefc53dd60c240996b9a289727d0cdd582e963095573afa35834",
+    "POST /conversations.setTopic": "d7e028a4450aaefc53dd60c240996b9a289727d0cdd582e963095573afa35834",
+    "POST /conversations.unarchive": "d7e028a4450aaefc53dd60c240996b9a289727d0cdd582e963095573afa35834",
+    "POST /usergroups.create": "d7e028a4450aaefc53dd60c240996b9a289727d0cdd582e963095573afa35834",
+    "POST /usergroups.disable": "d7e028a4450aaefc53dd60c240996b9a289727d0cdd582e963095573afa35834",
+    "POST /usergroups.enable": "d7e028a4450aaefc53dd60c240996b9a289727d0cdd582e963095573afa35834",
+    "POST /usergroups.update": "d7e028a4450aaefc53dd60c240996b9a289727d0cdd582e963095573afa35834",
+    "POST /usergroups.users.update": "d7e028a4450aaefc53dd60c240996b9a289727d0cdd582e963095573afa35834"
+   },
+   "group:slack.channels.read": {
+    "GET /bots.info": "6029500abb76062f109b0bfd2a53d1b4ac8f3d3424b6c328d9d3a72bea1ee5dd",
+    "GET /conversations.info": "6029500abb76062f109b0bfd2a53d1b4ac8f3d3424b6c328d9d3a72bea1ee5dd",
+    "GET /conversations.list": "6029500abb76062f109b0bfd2a53d1b4ac8f3d3424b6c328d9d3a72bea1ee5dd",
+    "GET /conversations.members": "6029500abb76062f109b0bfd2a53d1b4ac8f3d3424b6c328d9d3a72bea1ee5dd",
+    "GET /users.conversations": "6029500abb76062f109b0bfd2a53d1b4ac8f3d3424b6c328d9d3a72bea1ee5dd",
+    "GET /users.getPresence": "6029500abb76062f109b0bfd2a53d1b4ac8f3d3424b6c328d9d3a72bea1ee5dd",
+    "GET /users.info": "6029500abb76062f109b0bfd2a53d1b4ac8f3d3424b6c328d9d3a72bea1ee5dd",
+    "GET /users.list": "6029500abb76062f109b0bfd2a53d1b4ac8f3d3424b6c328d9d3a72bea1ee5dd"
+   },
+   "group:slack.conversations.mark": {
+    "POST /conversations.close": "7ec39a12e666ef2b809196d71d34377a0106697062b5679d71c43554e164717d",
+    "POST /conversations.mark": "7ec39a12e666ef2b809196d71d34377a0106697062b5679d71c43554e164717d",
+    "POST /conversations.open": "7ec39a12e666ef2b809196d71d34377a0106697062b5679d71c43554e164717d"
+   },
+   "group:slack.files.read": {
+    "GET /files.info": "a1a993958bc4068b729db182e39613e4cc3052b8b707eb069219be1feeb1a41c",
+    "GET /files.list": "a1a993958bc4068b729db182e39613e4cc3052b8b707eb069219be1feeb1a41c",
+    "GET /pins.list": "a1a993958bc4068b729db182e39613e4cc3052b8b707eb069219be1feeb1a41c",
+    "GET /reactions.get": "a1a993958bc4068b729db182e39613e4cc3052b8b707eb069219be1feeb1a41c",
+    "GET /reactions.list": "a1a993958bc4068b729db182e39613e4cc3052b8b707eb069219be1feeb1a41c",
+    "POST /bookmarks.list": "a1a993958bc4068b729db182e39613e4cc3052b8b707eb069219be1feeb1a41c",
+    "POST /canvases.getContent": "a1a993958bc4068b729db182e39613e4cc3052b8b707eb069219be1feeb1a41c",
+    "POST /canvases.sections.lookup": "a1a993958bc4068b729db182e39613e4cc3052b8b707eb069219be1feeb1a41c"
+   },
+   "group:slack.files.write": {
+    "GET /files.remote.share": "89cd6b0df969ed3044bcbd2e918f442b090953ebbb51e0d8a46e7305410cc905",
+    "POST /canvases.access.delete": "89cd6b0df969ed3044bcbd2e918f442b090953ebbb51e0d8a46e7305410cc905",
+    "POST /canvases.access.set": "89cd6b0df969ed3044bcbd2e918f442b090953ebbb51e0d8a46e7305410cc905",
+    "POST /canvases.create": "89cd6b0df969ed3044bcbd2e918f442b090953ebbb51e0d8a46e7305410cc905",
+    "POST /canvases.edit": "89cd6b0df969ed3044bcbd2e918f442b090953ebbb51e0d8a46e7305410cc905",
+    "POST /conversations.canvases.create": "89cd6b0df969ed3044bcbd2e918f442b090953ebbb51e0d8a46e7305410cc905",
+    "POST /files.completeUploadExternal": "89cd6b0df969ed3044bcbd2e918f442b090953ebbb51e0d8a46e7305410cc905",
+    "POST /files.getUploadURLExternal": "89cd6b0df969ed3044bcbd2e918f442b090953ebbb51e0d8a46e7305410cc905",
+    "POST /files.revokePublicURL": "89cd6b0df969ed3044bcbd2e918f442b090953ebbb51e0d8a46e7305410cc905",
+    "POST /files.sharedPublicURL": "89cd6b0df969ed3044bcbd2e918f442b090953ebbb51e0d8a46e7305410cc905"
+   },
+   "group:slack.messages.read": {
+    "GET /chat.getPermalink": "126f6090d94ffd8ea41a58b789818917d2a8fe542d5f03af44f9b41bfe397a9b",
+    "GET /chat.scheduledMessages.list": "126f6090d94ffd8ea41a58b789818917d2a8fe542d5f03af44f9b41bfe397a9b",
+    "GET /conversations.history": "126f6090d94ffd8ea41a58b789818917d2a8fe542d5f03af44f9b41bfe397a9b",
+    "GET /conversations.replies": "126f6090d94ffd8ea41a58b789818917d2a8fe542d5f03af44f9b41bfe397a9b"
+   },
+   "group:slack.messages.search": {
+    "GET /search.all": "4ed7ff71cf8f6dc4eae0468b7900778758e1a1e66fff329df90f7c912a82a85c",
+    "GET /search.files": "4ed7ff71cf8f6dc4eae0468b7900778758e1a1e66fff329df90f7c912a82a85c",
+    "GET /search.messages": "4ed7ff71cf8f6dc4eae0468b7900778758e1a1e66fff329df90f7c912a82a85c",
+    "POST /assistant.search.context": "4ed7ff71cf8f6dc4eae0468b7900778758e1a1e66fff329df90f7c912a82a85c",
+    "POST /assistant.search.info": "4ed7ff71cf8f6dc4eae0468b7900778758e1a1e66fff329df90f7c912a82a85c"
+   },
+   "group:slack.messages.send": {
+    "POST /chat.deleteScheduledMessage": "c1a2c47ff78b63af4488679182804a3f81a9d1e67e71a3cfdb2e4373543e8647",
+    "POST /chat.meMessage": "c1a2c47ff78b63af4488679182804a3f81a9d1e67e71a3cfdb2e4373543e8647",
+    "POST /chat.postEphemeral": "c1a2c47ff78b63af4488679182804a3f81a9d1e67e71a3cfdb2e4373543e8647",
+    "POST /chat.postMessage": "c1a2c47ff78b63af4488679182804a3f81a9d1e67e71a3cfdb2e4373543e8647",
+    "POST /chat.scheduleMessage": "c1a2c47ff78b63af4488679182804a3f81a9d1e67e71a3cfdb2e4373543e8647",
+    "POST /chat.update": "c1a2c47ff78b63af4488679182804a3f81a9d1e67e71a3cfdb2e4373543e8647",
+    "POST /pins.add": "c1a2c47ff78b63af4488679182804a3f81a9d1e67e71a3cfdb2e4373543e8647",
+    "POST /pins.remove": "c1a2c47ff78b63af4488679182804a3f81a9d1e67e71a3cfdb2e4373543e8647",
+    "POST /reactions.add": "c1a2c47ff78b63af4488679182804a3f81a9d1e67e71a3cfdb2e4373543e8647",
+    "POST /reactions.remove": "c1a2c47ff78b63af4488679182804a3f81a9d1e67e71a3cfdb2e4373543e8647"
+   },
+   "group:slack.permanent.delete": {
+    "POST /canvases.delete": "5fa676eb72332cf29b607582f0f8335cb73829ee1dfd09291d318f69c820e2ce",
+    "POST /chat.delete": "5fa676eb72332cf29b607582f0f8335cb73829ee1dfd09291d318f69c820e2ce",
+    "POST /files.comments.delete": "5fa676eb72332cf29b607582f0f8335cb73829ee1dfd09291d318f69c820e2ce",
+    "POST /files.delete": "5fa676eb72332cf29b607582f0f8335cb73829ee1dfd09291d318f69c820e2ce"
+   },
+   "group:slack.profile.write": {
+    "POST /dnd.endDnd": "617ecc482316cac506e992524a26afeb77ea2715598b6fd767dea4c2f24d5019",
+    "POST /dnd.endSnooze": "617ecc482316cac506e992524a26afeb77ea2715598b6fd767dea4c2f24d5019",
+    "POST /dnd.setSnooze": "617ecc482316cac506e992524a26afeb77ea2715598b6fd767dea4c2f24d5019",
+    "POST /users.deletePhoto": "617ecc482316cac506e992524a26afeb77ea2715598b6fd767dea4c2f24d5019",
+    "POST /users.profile.set": "617ecc482316cac506e992524a26afeb77ea2715598b6fd767dea4c2f24d5019",
+    "POST /users.setPhoto": "617ecc482316cac506e992524a26afeb77ea2715598b6fd767dea4c2f24d5019",
+    "POST /users.setPresence": "617ecc482316cac506e992524a26afeb77ea2715598b6fd767dea4c2f24d5019"
+   },
+   "group:slack.workspace.read": {
+    "GET /dnd.info": "2cc74620e7ae2e3c1c1637b6ee9b244ac0f977b4277aaa0e7146c67652cd2a3c",
+    "GET /dnd.teamInfo": "2cc74620e7ae2e3c1c1637b6ee9b244ac0f977b4277aaa0e7146c67652cd2a3c",
+    "GET /emoji.list": "2cc74620e7ae2e3c1c1637b6ee9b244ac0f977b4277aaa0e7146c67652cd2a3c",
+    "GET /team.info": "2cc74620e7ae2e3c1c1637b6ee9b244ac0f977b4277aaa0e7146c67652cd2a3c",
+    "GET /team.profile.get": "2cc74620e7ae2e3c1c1637b6ee9b244ac0f977b4277aaa0e7146c67652cd2a3c",
+    "GET /usergroups.list": "2cc74620e7ae2e3c1c1637b6ee9b244ac0f977b4277aaa0e7146c67652cd2a3c",
+    "GET /usergroups.users.list": "2cc74620e7ae2e3c1c1637b6ee9b244ac0f977b4277aaa0e7146c67652cd2a3c",
+    "GET /users.lookupByEmail": "2cc74620e7ae2e3c1c1637b6ee9b244ac0f977b4277aaa0e7146c67652cd2a3c",
+    "GET /users.profile.get": "2cc74620e7ae2e3c1c1637b6ee9b244ac0f977b4277aaa0e7146c67652cd2a3c"
+   }
+  }
+ },
+ "typed": {
+  "gmail": {
+   "group:gmail.access.grant": {
+    "gmail.users.settings.delegates.create": "05fb23d9b18252a64a29edc699e3708b233c56e6b66b0123d8f4a8de2583f5d2",
+    "gmail.users.settings.delegates.delete": "bbfd78b4d0716c28b98a34015651bbf13ed1815bad8a72840c3c7817a34ffabf",
+    "gmail.users.settings.forwardingAddresses.create": "29e66e66e068806e409a5cd9a857ff8fffd9c122e564a2577be5328cec6f0bae",
+    "gmail.users.settings.forwardingAddresses.delete": "6ab7bc3ee8e95c96329d28a0c6b97ed5081e8371598cd144c80a5d456c952f91",
+    "gmail.users.settings.sendAs.create": "be49596d1740774ab45c30d735f0ee0bbdb201aa7ffdb871f27694e45d5896d5",
+    "gmail.users.settings.sendAs.delete": "b0fcf2b6977581cbf9974bc398360044df5e5c806655b9a6e1ab41396d6e0eac",
+    "gmail.users.settings.sendAs.patch": "31c410b1b54bdab7d76e98167d1d9b6cc959c15eb427efa20ad7f44da251cef2",
+    "gmail.users.settings.sendAs.update": "5f374e25108c1101f897b9efc4d4464af2b8eb6fa5a8c0acadf78b9b7d29236b",
+    "gmail.users.settings.sendAs.verify": "61c431d7e2a2cf5f029cc51dd36824fbf633909e3fb06562d08c454f609d74ba",
+    "gmail.users.settings.updateAutoForwarding": "47bb0b0fb324c67cf80bf204062b90d00b328c11f1292ba480e867031267f980",
+    "gmail.users.stop": "b49cc4d33cc8d5167df14521816a8f8600065f18cf890c9965eb342473f22b1d",
+    "gmail.users.watch": "a2e61250a3cbd96741902064c1c503e57526ef0b3c94ecacfa4147a794352658"
+   },
+   "group:gmail.drafts.read": {
+    "gmail.users.drafts.get": "c083bbc60362f19460810eb8987751ed5a13a909f0418ddd759025eaacdd7941",
+    "gmail.users.drafts.list": "1315c92b1bd5ccfd62441fc73f51368df348ee573b9796810b9ed10b0b584644"
+   },
+   "group:gmail.drafts.write": {
+    "gmail.users.drafts.create": "a2005f84f71a8f8ab80162379ec397e99c80471df012adb9ce6d12cda8045210",
+    "gmail.users.drafts.update": "9efc25c205fb7541a93dfdb0e5ea9465ebeaa920645cd898906121f3d81986fa"
+   },
+   "group:gmail.labels.manage": {
+    "gmail.users.labels.create": "0a1fd082fb34299bde013d58219e15f82fa149022607ecf5280f9c382848db12",
+    "gmail.users.labels.patch": "56c0512cb39d4641c7115e35255f1dea38cbea69856bcb485026aff6e337c447",
+    "gmail.users.labels.update": "65cda448fe268a85984a141e4e61a5642a01e1a43baf45874ddb4653c97640f6"
+   },
+   "group:gmail.labels.read": {
+    "gmail.users.labels.get": "bf97007eb5e489a5a17f25b14f18330ca3e18c10a58f7ecdeb42748f20a8a1b4",
+    "gmail.users.labels.list": "348c5e82e355c42c36ac4536ca43c22affca8883dd5a3e24efeaa5eb53724526",
+    "gmail.users.settings.cse.identities.get": "be4635f2efb19a2f2068b2c303ff5a46d79e6c34b697bb50e736a67d035fadc6",
+    "gmail.users.settings.cse.identities.list": "780cf86126119f78f905f82257f41e2d16e2f4878547b9dcb74ce7462255890d",
+    "gmail.users.settings.cse.keypairs.get": "7db3d694f679777a696d1be45a6cca8ea5b66f63100d6fd78899da51acebad98",
+    "gmail.users.settings.cse.keypairs.list": "1a1c8b98f01aae6010fec2a77d9d2bb192209f2ae2e9548ad7d7020a0a77a40b",
+    "gmail.users.settings.delegates.get": "2c1bff2dde82946c9711ce1751f530d6ec0305fadb916ed06186e572a4201b41",
+    "gmail.users.settings.delegates.list": "e2a6a9bd94b276ae46c33f7e2f3aaf49bffbe856225bc9eaaecae2cdec3bc3f0",
+    "gmail.users.settings.filters.get": "3107ca187711eb151eca9d857b4a3bb74ed3f59ed04b913b8cd1d3d4d46c990d",
+    "gmail.users.settings.filters.list": "685035be874e5f1009cc3c144b9eecef0e4efa93b96089501d819737344c10b0",
+    "gmail.users.settings.forwardingAddresses.get": "1fcb3540347b4fcd12cf4d61cbf4331abcd338fed15aa8b5b21aa068638ef0a7",
+    "gmail.users.settings.forwardingAddresses.list": "9572d8f09332dbfec2dda9620b6a3bc07909eac40ffed201998382ba92debf85",
+    "gmail.users.settings.getAutoForwarding": "1529e204ad6b257ac09a814d92c487a7a782a83ecfdbdab007694e117c5eeb35",
+    "gmail.users.settings.getImap": "a9a198c8a7694508ce826567b44d281ad3a6c1aaa3c88dc70187e8687e8277c1",
+    "gmail.users.settings.getLanguage": "59fdba1824f5896918f2478c3400083c6913795b0529d6d25d21f88bc018fb86",
+    "gmail.users.settings.getPop": "863e35db3abccf53a382491d78660427130e9b6af16d67a83b421320fa8d480f",
+    "gmail.users.settings.getVacation": "e1068a9df32c8b89af877a196b7979a705ff251fbd3ea5f7700f1ebabafef293",
+    "gmail.users.settings.sendAs.get": "ad6af860fbf779758a82d22ff037e48e36b75fd5aa419ec05e33ce909d6a7291",
+    "gmail.users.settings.sendAs.list": "412ef695a0f5673e53c937e527b3b58e6c3263caec4c1c6d45c3848d7eb41bcf",
+    "gmail.users.settings.sendAs.smimeInfo.get": "5a70e2b72bb4ebdf4267f50511fd53a655d1aae992265a2b04a989af720d205a",
+    "gmail.users.settings.sendAs.smimeInfo.list": "fc0e5dc7dbcc493fb85d46b2e2569b3ea06d4902488c8703596f2cfb24c53c04"
+   },
+   "group:gmail.messages.import": {
+    "gmail.users.messages.import": "0c3804f0ca566dd1b7e7d5027954b48fc7136bf19a599638c13f46dfbf36334d",
+    "gmail.users.messages.insert": "3b0f73562f33050781bb64b695c638d3364e417087ee8a1daac8f32b0ed02efa"
+   },
+   "group:gmail.messages.mark": {
+    "gmail.users.messages.batchModify": "4d9852f1eea5aac2941355cbd1679f6472ce434062c9d3086a746054128602ec",
+    "gmail.users.messages.modify": "a44df9d7028c29aead0de0b4aad5b057b0a1f9bd9258695c78125153f1469036",
+    "gmail.users.threads.modify": "3c450a093dbe770098b984e466bff3611a7559489cd877b34572d81c9427061e"
+   },
+   "group:gmail.messages.read": {
+    "gmail.users.getProfile": "f0cc203de593638aed871d9343854102e4e0e50242b1b1dd0d74de698bb2e684",
+    "gmail.users.history.list": "6ad8cc557b72f0670a25a114bbd813971b2851c3540757add208340d2ec9d370",
+    "gmail.users.messages.attachments.get": "4e8f802b674fd7b9448a8bc11f1d2ea993746c61625e53868bb089c039a214c5",
+    "gmail.users.messages.get": "bc381e5ef05f53dd4867fa0ceca606a2b4d4dfb2c99e4e32fa59de76b2edd458",
+    "gmail.users.threads.get": "a01727d587cc51efe009b7c69fbf9228f10af700c36ad6f1b628cf3df2de3171"
+   },
+   "group:gmail.messages.search": {
+    "gmail.users.messages.list": "fb034630c9528dd2feedfd75723e8c8f5efca20d567fd5279418838264c2b659",
+    "gmail.users.threads.list": "42681a0cb481cab89379e15562b0e947e4c06d567d3c230798f43252d3b4e280"
+   },
+   "group:gmail.messages.send": {
+    "gmail.users.drafts.send": "76f0974011d358b7196bfc63bcaacf94cfbf75753b1d5514420887b63d895e5b",
+    "gmail.users.messages.send": "c395fc1a8829971a2c8998e25844f094cf42e3244a2ba34026912589d8d65c5e"
+   },
+   "group:gmail.messages.trash": {
+    "gmail.users.messages.trash": "596ae6eebf1ad7614087c12db4fa1b96aa25460f9b3227014509e397a029d7ec",
+    "gmail.users.messages.untrash": "374eae835f8a74e1ee6f5689c4a84b8a8f0edb88ff91a66fcf772a893a5ab0c9",
+    "gmail.users.threads.trash": "51d82f6cc5503a4bbd84cadea9f5ede8cde2547d338e552921f91ce657271890",
+    "gmail.users.threads.untrash": "d35e9b502629919a4b7b7bbff976460256d624a6ac3d1353f441a47f97310ff4"
+   },
+   "group:gmail.permanent.delete": {
+    "gmail.users.drafts.delete": "71b984ffd60ae15f3a4f340f8d2e677f77fd5fc86600798e849fa57e29d38d04",
+    "gmail.users.labels.delete": "dfb8450c26ebf9ab7b22d2daace9ded1eff539c63c04f8693e1f95014747fa51",
+    "gmail.users.messages.batchDelete": "74efe132b99cb41d1ac0da59227db96dba93a227b6e55f7303e53d644af267e6",
+    "gmail.users.messages.delete": "65a05ea1473f699244f9c3923ed4be901da614997842f9fbb0632b45c3280d6a",
+    "gmail.users.settings.cse.keypairs.obliterate": "7e85598c92adbe080f193d45c7d87327a9923add6501f911b9d460b47d866b6a",
+    "gmail.users.settings.filters.delete": "63204d875b4a39d5828031c3d483e8afcecf8b29c6d8069396846a8c512f3b31",
+    "gmail.users.threads.delete": "c9e8fe4e521c6049bb1e356a2742401a55df544231f5da859d3426a8647923f9"
+   },
+   "group:gmail.settings.write": {
+    "gmail.users.settings.cse.identities.create": "31508743a767b24ed6028910af4975db129e742d1927fabc5426141e95ac8097",
+    "gmail.users.settings.cse.identities.delete": "8b55ded812a538744a008e4a0137845b8380550372e453842487ecc645842440",
+    "gmail.users.settings.cse.identities.patch": "bd44382ac7734c12283e2c9ff6de23a5676fa98b4bc2f6c22379a85bbd8bb278",
+    "gmail.users.settings.cse.keypairs.create": "4026749284c35ad6e0c4729f2c4756d4863cd8dfd3c2cfae11b57a2a07628c1c",
+    "gmail.users.settings.cse.keypairs.disable": "f3c3ef764e945a0fb98f88782909ded10ded0b78d68d7a7d9084649d796db038",
+    "gmail.users.settings.cse.keypairs.enable": "fcad44cc4c4ca58f1440bc4df4ac330f3551fbb96dbd8bc9806bfcdc6e0e4667",
+    "gmail.users.settings.filters.create": "c19c6f2ebac00e05495145765b53dae11eade984a6cd0c7c964476e1f56b00fe",
+    "gmail.users.settings.sendAs.smimeInfo.delete": "f8d63f36588a3b85dc53f5805ca59291bee2e7523038feb954e319e027dbd8ab",
+    "gmail.users.settings.sendAs.smimeInfo.insert": "4fa8e95db3446730751119a4da0dc1d3624a99834a2cbf48cc5bfebcea8b2268",
+    "gmail.users.settings.sendAs.smimeInfo.setDefault": "9a9ef6d469c85bc9d5779e5e395ba037138f5981f2be81b95491f6b17f07c206",
+    "gmail.users.settings.updateImap": "a57c36bd629d74463a1c78d27d1d8bd15fa24aa7214b18f3a3c1159f760b99fc",
+    "gmail.users.settings.updateLanguage": "3ad4d7125f3986d114de588ffb237e52e65cd060ed1fefecc59da0bcc951f278",
+    "gmail.users.settings.updatePop": "55f1f127da187fbf49b03a5baf4b336f9bc8de3dfe9133bfd10629e4e223b7d1",
+    "gmail.users.settings.updateVacation": "d168c3e46ec38d8928616fa431762c1392b65a212784aa45b57d18c7ccf91a22"
+   }
+  },
+  "google-calendar": {
+   "group:google-calendar.access.grant": {
+    "calendar.acl.insert": "e5c203d28c5761f320d1e4f4d2dda4a8a3a84a8116b80df8d6d469d60ab628bb",
+    "calendar.acl.patch": "9fef3ad8152e52f458bffed8a7991a771352c3a60e757145abff45f1a30b2328",
+    "calendar.acl.update": "5f268078c10ced835283fd0da0225a6f64bc33024ad37a17c3fdc3f098e79295",
+    "calendar.acl.watch": "08cf81cde5e5df6971230b5fe4ec2fa0e536208d5e52279fea0129eb00c5967c",
+    "calendar.calendarList.watch": "40ec813b8c96c497df27b87a05fad406dfa51f0445db1295982262ccdb63b6cc",
+    "calendar.calendars.transferOwnership": "2c7f127830e0f1ad4a4874f8aea831ae8b57f588f1757e3beb7d4b11b2daadde",
+    "calendar.channels.stop": "b57c8609793dd3c3da95e5375a142ece1b7f725a5d216ed3e5b3ab993d6b8d56",
+    "calendar.events.watch": "deeec4b8f5559f0405d8dab39dd93766c6d9d7cc30b17f6ded164a705f28aa0b",
+    "calendar.settings.watch": "8cea319ccced6db82dabae79046588e3ff06ee76f669403edfe76c0a19f3450c"
+   },
+   "group:google-calendar.availability.read": {
+    "calendar.freebusy.query": "a3830ba38a923193f02b600257bd2125e796562d006fdce36e0cbe6a8b5002e2"
+   },
+   "group:google-calendar.calendarlist.remove": {
+    "calendar.calendarList.delete": "f955fed0a0c21c164cbc1e0d174d9636b5afcc2b8bf4d5c10c550ad945841ed0"
+   },
+   "group:google-calendar.calendarlist.write": {
+    "calendar.calendarList.insert": "cbd9b1998ed136a21a7f266cc42c9deb937b2b46422a9739ac4018dfb6e5c7ab",
+    "calendar.calendarList.patch": "4dfc460ddbc8cf7d13796e27cda136f14b86542e2d86ea8097be14ae49e84ec0",
+    "calendar.calendarList.update": "3eec70e0934ff95e5e9fb69a26c99cf28f14c4011cb1c0b3498c4beaf8a91e69"
+   },
+   "group:google-calendar.calendars.read": {
+    "calendar.calendarList.get": "a464789dcf7b316f1baa6fbe0e73887ddd2c11288d137767c26435f4ab77c34b",
+    "calendar.calendarList.list": "7d3b26e7fc5e82253486e29f0d2759528c501fdcc3aaac84b6fd20755eb63591",
+    "calendar.colors.get": "a32d257f2abfa450eaf1496b0c6b8f06cccbf8195e880aadc75828242aa50efc"
+   },
+   "group:google-calendar.calendars.write": {
+    "calendar.calendars.insert": "c3d5feecf49206988ad1490a578c95284797c58e663f1e8c82db1c9b2e59c866",
+    "calendar.calendars.patch": "3f67d3cf99f6a794db26eed2c3fb78aa1d8b29387544e1382a18886e924b41ed",
+    "calendar.calendars.update": "4329b5a34fe864d6b331d3bd43fd0fb8032770de5f458cd7824287cde22f7c11"
+   },
+   "group:google-calendar.events.delete": {
+    "calendar.events.delete": "8b6518a111bf785d541c0d726ccfcb0e5e7ec1b8f12b7300bedf6cf2637a771c"
+   },
+   "group:google-calendar.events.read": {
+    "calendar.events.get": "d5a2dc7b4e6417fbec301692c7ab98b815b198aa4b14a7824446bffc0dc6d3be",
+    "calendar.events.instances": "5836fb3a85932790e2d5ed358926f11f5e25b3aef0d4aec8f4d32cefcaf987a3",
+    "calendar.events.list": "168af42dd71f9d81e416d8800baa83be21da1f83b53d7b31148d2a40657e355f"
+   },
+   "group:google-calendar.events.write": {
+    "calendar.events.import": "4e863ea4bf772be9f5bf2a61c97f992d1391910ec23db8164ae736eb12031f6d",
+    "calendar.events.insert": "87842a68396638a8bcce9f02e0e1035a6fd5066d87efcfe990e5c85c73a0a536",
+    "calendar.events.move": "19bc04f8bd3be5e696ee82edf795114f4d3a1ddd9c5d134e323aa050c1956e6c",
+    "calendar.events.patch": "e1279aa9c2798d3f23886033cfddb16045a75f66a8454532ed1d051d963581c0",
+    "calendar.events.quickAdd": "cb4ed57b94783e91b933cb7d86a5d324815273256b5c5554f581d0cb80ffe8f1",
+    "calendar.events.update": "508752e6d5f769f3aa69f602f3bbc99343237fae06a7add0dda81ea1e452b4b9"
+   },
+   "group:google-calendar.permanent.delete": {
+    "calendar.calendars.clear": "7a5ad1de87442db17d966d232d4372d5aaa1b13e4ff0f6b83c4d42323ae2afb1",
+    "calendar.calendars.delete": "c5816d866071e6eff65b5fc8744d7cee9f96729880ace6b20a979d2185c4a3ee"
+   },
+   "group:google-calendar.settings.read": {
+    "calendar.acl.get": "d20c8d2d9bbf7390ff3e60c50b28e845e1daa33a57b178d91b0749ee0bd0acff",
+    "calendar.acl.list": "d07fae154d8948cc2e5bc47609a04f7059603fb4673d06e3c1e0c4ae3b1b186d",
+    "calendar.calendars.get": "60dfde223790871057db1df44d36e41f554bc327d605bc5afced0abfddcdbfab",
+    "calendar.settings.get": "99beeb01a78b567ccc5409464ec58d7c9bcae6d1941eebf8591c80d03891fb4f",
+    "calendar.settings.list": "74a3bfd7b03f3f80447c15b9900d44e9cafd74d7b0e439f2f119d8276cceada4"
+   },
+   "group:google-calendar.sharing.write": {
+    "calendar.acl.delete": "c61c9e1f04a33c48bb68ec57cd8a1c3f286afb467c41483330f82c9e58d4a58a"
+   }
+  }
+ }
+}

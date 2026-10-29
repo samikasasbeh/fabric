@@ -1,0 +1,1269 @@
+{
+ "source": "Notion API reference (2026-03-11): page, data source and property objects, page property values, the data source query filter; refusals and the simulator-free choices are Fabric's own, named in each module",
+ "cases": [
+  {
+   "name": "a page's title is its title property, every piece joined",
+   "transform": "notion.title@1",
+   "input": {
+    "object": {
+     "object": "page",
+     "id": "a1b2c3d4-0000-4000-8000-000000000001",
+     "properties": {
+      "Name": {
+       "id": "title",
+       "type": "title",
+       "title": [
+        {
+         "type": "text",
+         "text": {
+          "content": "Q4 "
+         },
+         "plain_text": "Q4 "
+        },
+        {
+         "type": "text",
+         "text": {
+          "content": "plan"
+         },
+         "plain_text": "plan"
+        }
+       ]
+      }
+     }
+    }
+   },
+   "output": {
+    "title": "Q4 plan"
+   }
+  },
+  {
+   "name": "a data source's title is its own title, its title property being a schema",
+   "transform": "notion.title@1",
+   "input": {
+    "object": {
+     "object": "data_source",
+     "id": "248104cd-477e-80af-bc30-000bd28de8f9",
+     "title": [
+      {
+       "type": "text",
+       "text": {
+        "content": "Tasks"
+       },
+       "plain_text": "Tasks"
+      }
+     ],
+     "properties": {
+      "Name": {
+       "id": "title",
+       "name": "Name",
+       "type": "title",
+       "title": {}
+      },
+      "Cost": {
+       "id": "c1",
+       "name": "Cost",
+       "type": "number",
+       "number": {
+        "format": "dollar"
+       }
+      },
+      "Stage": {
+       "id": "s%3B1",
+       "name": "Stage",
+       "type": "select",
+       "select": {
+        "options": [
+         {
+          "id": "o1",
+          "name": "Open",
+          "color": "green"
+         },
+         {
+          "id": "o2",
+          "name": "Closed",
+          "color": "red"
+         }
+        ]
+       }
+      },
+      "Tags": {
+       "id": "t1",
+       "name": "Tags",
+       "type": "multi_select",
+       "multi_select": {
+        "options": [
+         {
+          "id": "g1",
+          "name": "red"
+         },
+         {
+          "id": "g2",
+          "name": "blue"
+         }
+        ]
+       }
+      },
+      "Total": {
+       "id": "fo",
+       "name": "Total",
+       "type": "formula",
+       "formula": {
+        "expression": "prop(\"Cost\") * 2"
+       }
+      },
+      "Files": {
+       "id": "fi",
+       "name": "Files",
+       "type": "files",
+       "files": {}
+      }
+     }
+    }
+   },
+   "output": {
+    "title": "Tasks"
+   }
+  },
+  {
+   "name": "a piece without plain_text gives its text content",
+   "transform": "notion.title@1",
+   "input": {
+    "object": {
+     "object": "page",
+     "properties": {
+      "Name": {
+       "id": "title",
+       "type": "title",
+       "title": [
+        {
+         "type": "text",
+         "text": {
+          "content": "Draft"
+         }
+        }
+       ]
+      }
+     }
+    }
+   },
+   "output": {
+    "title": "Draft"
+   }
+  },
+  {
+   "name": "an object with no title is untitled",
+   "transform": "notion.title@1",
+   "input": {
+    "object": {
+     "object": "page",
+     "id": "a1b2c3d4-0000-4000-8000-000000000001",
+     "properties": {}
+    }
+   },
+   "output": {
+    "title": ""
+   }
+  },
+  {
+   "name": "a piece that is not an object refuses",
+   "transform": "notion.title@1",
+   "input": {
+    "object": {
+     "object": "page",
+     "properties": {
+      "Name": {
+       "id": "title",
+       "type": "title",
+       "title": [
+        "Q4"
+       ]
+      }
+     }
+    }
+   },
+   "refuses": "input_invalid"
+  },
+  {
+   "name": "describe lists each property by name with what Fabric may write, read-only and unsupported ones with their reason",
+   "transform": "notion.describe@1",
+   "input": {
+    "dataSource": {
+     "object": "data_source",
+     "id": "248104cd-477e-80af-bc30-000bd28de8f9",
+     "title": [
+      {
+       "type": "text",
+       "text": {
+        "content": "Tasks"
+       },
+       "plain_text": "Tasks"
+      }
+     ],
+     "properties": {
+      "Name": {
+       "id": "title",
+       "name": "Name",
+       "type": "title",
+       "title": {}
+      },
+      "Cost": {
+       "id": "c1",
+       "name": "Cost",
+       "type": "number",
+       "number": {
+        "format": "dollar"
+       }
+      },
+      "Stage": {
+       "id": "s%3B1",
+       "name": "Stage",
+       "type": "select",
+       "select": {
+        "options": [
+         {
+          "id": "o1",
+          "name": "Open",
+          "color": "green"
+         },
+         {
+          "id": "o2",
+          "name": "Closed",
+          "color": "red"
+         }
+        ]
+       }
+      },
+      "Tags": {
+       "id": "t1",
+       "name": "Tags",
+       "type": "multi_select",
+       "multi_select": {
+        "options": [
+         {
+          "id": "g1",
+          "name": "red"
+         },
+         {
+          "id": "g2",
+          "name": "blue"
+         }
+        ]
+       }
+      },
+      "Total": {
+       "id": "fo",
+       "name": "Total",
+       "type": "formula",
+       "formula": {
+        "expression": "prop(\"Cost\") * 2"
+       }
+      },
+      "Files": {
+       "id": "fi",
+       "name": "Files",
+       "type": "files",
+       "files": {}
+      }
+     }
+    }
+   },
+   "output": {
+    "properties": [
+     {
+      "name": "Cost",
+      "id": "c1",
+      "type": "number",
+      "writable": true
+     },
+     {
+      "name": "Files",
+      "id": "fi",
+      "type": "files",
+      "writable": false,
+      "reason": "unsupported_type"
+     },
+     {
+      "name": "Name",
+      "id": "title",
+      "type": "title",
+      "writable": true
+     },
+     {
+      "name": "Stage",
+      "id": "s%3B1",
+      "type": "select",
+      "writable": true,
+      "options": [
+       "Open",
+       "Closed"
+      ]
+     },
+     {
+      "name": "Tags",
+      "id": "t1",
+      "type": "multi_select",
+      "writable": true,
+      "options": [
+       "red",
+       "blue"
+      ]
+     },
+     {
+      "name": "Total",
+      "id": "fo",
+      "type": "formula",
+      "writable": false,
+      "reason": "read_only"
+     }
+    ]
+   }
+  },
+  {
+   "name": "a select with no options yet is not writable: Fabric never creates an option",
+   "transform": "notion.describe@1",
+   "input": {
+    "dataSource": {
+     "object": "data_source",
+     "properties": {
+      "Kind": {
+       "id": "k",
+       "type": "select",
+       "select": {
+        "options": []
+       }
+      }
+     }
+    }
+   },
+   "output": {
+    "properties": [
+     {
+      "name": "Kind",
+      "id": "k",
+      "type": "select",
+      "writable": false,
+      "reason": "no_options",
+      "options": []
+     }
+    ]
+   }
+  },
+  {
+   "name": "schema binds each writable property by name, with the select's options as its enum",
+   "transform": "notion.schema@1",
+   "input": {
+    "dataSource": {
+     "object": "data_source",
+     "id": "248104cd-477e-80af-bc30-000bd28de8f9",
+     "title": [
+      {
+       "type": "text",
+       "text": {
+        "content": "Tasks"
+       },
+       "plain_text": "Tasks"
+      }
+     ],
+     "properties": {
+      "Name": {
+       "id": "title",
+       "name": "Name",
+       "type": "title",
+       "title": {}
+      },
+      "Cost": {
+       "id": "c1",
+       "name": "Cost",
+       "type": "number",
+       "number": {
+        "format": "dollar"
+       }
+      },
+      "Stage": {
+       "id": "s%3B1",
+       "name": "Stage",
+       "type": "select",
+       "select": {
+        "options": [
+         {
+          "id": "o1",
+          "name": "Open",
+          "color": "green"
+         },
+         {
+          "id": "o2",
+          "name": "Closed",
+          "color": "red"
+         }
+        ]
+       }
+      },
+      "Tags": {
+       "id": "t1",
+       "name": "Tags",
+       "type": "multi_select",
+       "multi_select": {
+        "options": [
+         {
+          "id": "g1",
+          "name": "red"
+         },
+         {
+          "id": "g2",
+          "name": "blue"
+         }
+        ]
+       }
+      },
+      "Total": {
+       "id": "fo",
+       "name": "Total",
+       "type": "formula",
+       "formula": {
+        "expression": "prop(\"Cost\") * 2"
+       }
+      },
+      "Files": {
+       "id": "fi",
+       "name": "Files",
+       "type": "files",
+       "files": {}
+      }
+     }
+    }
+   },
+   "output": {
+    "schema": {
+     "type": "object",
+     "properties": {
+      "Cost": {
+       "type": "number"
+      },
+      "Name": {
+       "type": "string",
+       "maxLength": 200000
+      },
+      "Stage": {
+       "type": "string",
+       "enum": [
+        "Open",
+        "Closed"
+       ]
+      },
+      "Tags": {
+       "type": "array",
+       "maxItems": 100,
+       "items": {
+        "type": "string",
+        "enum": [
+         "red",
+         "blue"
+        ]
+       }
+      }
+     },
+     "required": [],
+     "additionalProperties": false
+    },
+    "bindings": [
+     {
+      "name": "Cost",
+      "id": "c1",
+      "type": "number"
+     },
+     {
+      "name": "Name",
+      "id": "title",
+      "type": "title"
+     },
+     {
+      "name": "Stage",
+      "id": "s%3B1",
+      "type": "select"
+     },
+     {
+      "name": "Tags",
+      "id": "t1",
+      "type": "multi_select"
+     }
+    ]
+   }
+  },
+  {
+   "name": "a plain page binds only its title",
+   "transform": "notion.schema@1",
+   "input": {
+    "dataSource": {
+     "object": "page",
+     "id": "a1b2c3d4-0000-4000-8000-000000000001",
+     "properties": {
+      "title": {
+       "id": "title",
+       "type": "title",
+       "title": [
+        {
+         "type": "text",
+         "text": {
+          "content": "Plan"
+         },
+         "plain_text": "Plan"
+        }
+       ]
+      }
+     }
+    }
+   },
+   "output": {
+    "schema": {
+     "type": "object",
+     "properties": {
+      "title": {
+       "type": "string",
+       "maxLength": 200000
+      }
+     },
+     "required": [],
+     "additionalProperties": false
+    },
+    "bindings": [
+     {
+      "name": "title",
+      "id": "title",
+      "type": "title"
+     }
+    ]
+   }
+  },
+  {
+   "name": "plain values become typed values keyed by property id",
+   "transform": "notion.propertyValues@1",
+   "input": {
+    "schema": {
+     "schema": {
+      "type": "object",
+      "properties": {
+       "Cost": {
+        "type": "number"
+       },
+       "Name": {
+        "type": "string",
+        "maxLength": 200000
+       },
+       "Stage": {
+        "type": "string",
+        "enum": [
+         "Open",
+         "Closed"
+        ]
+       },
+       "Tags": {
+        "type": "array",
+        "maxItems": 100,
+        "items": {
+         "type": "string",
+         "enum": [
+          "red",
+          "blue"
+         ]
+        }
+       }
+      },
+      "required": [],
+      "additionalProperties": false
+     },
+     "bindings": [
+      {
+       "name": "Cost",
+       "id": "c1",
+       "type": "number"
+      },
+      {
+       "name": "Name",
+       "id": "title",
+       "type": "title"
+      },
+      {
+       "name": "Stage",
+       "id": "s%3B1",
+       "type": "select"
+      },
+      {
+       "name": "Tags",
+       "id": "t1",
+       "type": "multi_select"
+      }
+     ]
+    },
+    "values": {
+     "Stage": "Open",
+     "Cost": 12.5,
+     "Name": "Taxi",
+     "Tags": [
+      "blue",
+      "red"
+     ]
+    }
+   },
+   "output": {
+    "c1": {
+     "number": 12.5
+    },
+    "title": {
+     "title": [
+      {
+       "text": {
+        "content": "Taxi"
+       }
+      }
+     ]
+    },
+    "s%3B1": {
+     "select": {
+      "name": "Open"
+     }
+    },
+    "t1": {
+     "multi_select": [
+      {
+       "name": "blue"
+      },
+      {
+       "name": "red"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "name": "a title of 4,500 characters becomes three pieces",
+   "transform": "notion.propertyValues@1",
+   "input": {
+    "schema": {
+     "schema": {
+      "type": "object",
+      "properties": {
+       "Cost": {
+        "type": "number"
+       },
+       "Name": {
+        "type": "string",
+        "maxLength": 200000
+       },
+       "Stage": {
+        "type": "string",
+        "enum": [
+         "Open",
+         "Closed"
+        ]
+       },
+       "Tags": {
+        "type": "array",
+        "maxItems": 100,
+        "items": {
+         "type": "string",
+         "enum": [
+          "red",
+          "blue"
+         ]
+        }
+       }
+      },
+      "required": [],
+      "additionalProperties": false
+     },
+     "bindings": [
+      {
+       "name": "Cost",
+       "id": "c1",
+       "type": "number"
+      },
+      {
+       "name": "Name",
+       "id": "title",
+       "type": "title"
+      },
+      {
+       "name": "Stage",
+       "id": "s%3B1",
+       "type": "select"
+      },
+      {
+       "name": "Tags",
+       "id": "t1",
+       "type": "multi_select"
+      }
+     ]
+    },
+    "values": {
+     "Name": {
+      "$repeat": [
+       "a",
+       4500
+      ]
+     }
+    }
+   },
+   "output": {
+    "title": {
+     "title": [
+      {
+       "text": {
+        "content": {
+         "$repeat": [
+          "a",
+          2000
+         ]
+        }
+       }
+      },
+      {
+       "text": {
+        "content": {
+         "$repeat": [
+          "a",
+          2000
+         ]
+        }
+       }
+      },
+      {
+       "text": {
+        "content": {
+         "$repeat": [
+          "a",
+          500
+         ]
+        }
+       }
+      }
+     ]
+    }
+   }
+  },
+  {
+   "name": "an empty title clears it: no pieces",
+   "transform": "notion.propertyValues@1",
+   "input": {
+    "schema": {
+     "schema": {
+      "type": "object",
+      "properties": {
+       "Cost": {
+        "type": "number"
+       },
+       "Name": {
+        "type": "string",
+        "maxLength": 200000
+       },
+       "Stage": {
+        "type": "string",
+        "enum": [
+         "Open",
+         "Closed"
+        ]
+       },
+       "Tags": {
+        "type": "array",
+        "maxItems": 100,
+        "items": {
+         "type": "string",
+         "enum": [
+          "red",
+          "blue"
+         ]
+        }
+       }
+      },
+      "required": [],
+      "additionalProperties": false
+     },
+     "bindings": [
+      {
+       "name": "Cost",
+       "id": "c1",
+       "type": "number"
+      },
+      {
+       "name": "Name",
+       "id": "title",
+       "type": "title"
+      },
+      {
+       "name": "Stage",
+       "id": "s%3B1",
+       "type": "select"
+      },
+      {
+       "name": "Tags",
+       "id": "t1",
+       "type": "multi_select"
+      }
+     ]
+    },
+    "values": {
+     "Name": ""
+    }
+   },
+   "output": {
+    "title": {
+     "title": []
+    }
+   }
+  },
+  {
+   "name": "an unknown option refuses before any typed value is made",
+   "transform": "notion.propertyValues@1",
+   "input": {
+    "schema": {
+     "schema": {
+      "type": "object",
+      "properties": {
+       "Cost": {
+        "type": "number"
+       },
+       "Name": {
+        "type": "string",
+        "maxLength": 200000
+       },
+       "Stage": {
+        "type": "string",
+        "enum": [
+         "Open",
+         "Closed"
+        ]
+       },
+       "Tags": {
+        "type": "array",
+        "maxItems": 100,
+        "items": {
+         "type": "string",
+         "enum": [
+          "red",
+          "blue"
+         ]
+        }
+       }
+      },
+      "required": [],
+      "additionalProperties": false
+     },
+     "bindings": [
+      {
+       "name": "Cost",
+       "id": "c1",
+       "type": "number"
+      },
+      {
+       "name": "Name",
+       "id": "title",
+       "type": "title"
+      },
+      {
+       "name": "Stage",
+       "id": "s%3B1",
+       "type": "select"
+      },
+      {
+       "name": "Tags",
+       "id": "t1",
+       "type": "multi_select"
+      }
+     ]
+    },
+    "values": {
+     "Stage": "Maybe"
+    }
+   },
+   "refuses": "input_invalid"
+  },
+  {
+   "name": "a name the data source does not have refuses",
+   "transform": "notion.propertyValues@1",
+   "input": {
+    "schema": {
+     "schema": {
+      "type": "object",
+      "properties": {
+       "Cost": {
+        "type": "number"
+       },
+       "Name": {
+        "type": "string",
+        "maxLength": 200000
+       },
+       "Stage": {
+        "type": "string",
+        "enum": [
+         "Open",
+         "Closed"
+        ]
+       },
+       "Tags": {
+        "type": "array",
+        "maxItems": 100,
+        "items": {
+         "type": "string",
+         "enum": [
+          "red",
+          "blue"
+         ]
+        }
+       }
+      },
+      "required": [],
+      "additionalProperties": false
+     },
+     "bindings": [
+      {
+       "name": "Cost",
+       "id": "c1",
+       "type": "number"
+      },
+      {
+       "name": "Name",
+       "id": "title",
+       "type": "title"
+      },
+      {
+       "name": "Stage",
+       "id": "s%3B1",
+       "type": "select"
+      },
+      {
+       "name": "Tags",
+       "id": "t1",
+       "type": "multi_select"
+      }
+     ]
+    },
+    "values": {
+     "Total": 3
+    }
+   },
+   "refuses": "input_invalid"
+  },
+  {
+   "name": "one condition per property, naming its id: contains for text and list items, equals for the rest",
+   "transform": "notion.filter@1",
+   "input": {
+    "schema": {
+     "schema": {
+      "type": "object",
+      "properties": {
+       "Cost": {
+        "type": "number"
+       },
+       "Name": {
+        "type": "string",
+        "maxLength": 200000
+       },
+       "Stage": {
+        "type": "string",
+        "enum": [
+         "Open",
+         "Closed"
+        ]
+       },
+       "Tags": {
+        "type": "array",
+        "maxItems": 100,
+        "items": {
+         "type": "string",
+         "enum": [
+          "red",
+          "blue"
+         ]
+        }
+       }
+      },
+      "required": [],
+      "additionalProperties": false
+     },
+     "bindings": [
+      {
+       "name": "Cost",
+       "id": "c1",
+       "type": "number"
+      },
+      {
+       "name": "Name",
+       "id": "title",
+       "type": "title"
+      },
+      {
+       "name": "Stage",
+       "id": "s%3B1",
+       "type": "select"
+      },
+      {
+       "name": "Tags",
+       "id": "t1",
+       "type": "multi_select"
+      }
+     ]
+    },
+    "where": {
+     "Name": "Taxi",
+     "Stage": "Open",
+     "Cost": 3,
+     "Tags": [
+      "red",
+      "blue"
+     ]
+    }
+   },
+   "output": {
+    "filter": {
+     "and": [
+      {
+       "property": "c1",
+       "number": {
+        "equals": 3
+       }
+      },
+      {
+       "property": "title",
+       "title": {
+        "contains": "Taxi"
+       }
+      },
+      {
+       "property": "s%3B1",
+       "select": {
+        "equals": "Open"
+       }
+      },
+      {
+       "property": "t1",
+       "multi_select": {
+        "contains": "red"
+       }
+      },
+      {
+       "property": "t1",
+       "multi_select": {
+        "contains": "blue"
+       }
+      }
+     ]
+    }
+   }
+  },
+  {
+   "name": "a where with no condition refuses: leave it out to read every row",
+   "transform": "notion.filter@1",
+   "input": {
+    "schema": {
+     "schema": {
+      "type": "object",
+      "properties": {
+       "Cost": {
+        "type": "number"
+       },
+       "Name": {
+        "type": "string",
+        "maxLength": 200000
+       },
+       "Stage": {
+        "type": "string",
+        "enum": [
+         "Open",
+         "Closed"
+        ]
+       },
+       "Tags": {
+        "type": "array",
+        "maxItems": 100,
+        "items": {
+         "type": "string",
+         "enum": [
+          "red",
+          "blue"
+         ]
+        }
+       }
+      },
+      "required": [],
+      "additionalProperties": false
+     },
+     "bindings": [
+      {
+       "name": "Cost",
+       "id": "c1",
+       "type": "number"
+      },
+      {
+       "name": "Name",
+       "id": "title",
+       "type": "title"
+      },
+      {
+       "name": "Stage",
+       "id": "s%3B1",
+       "type": "select"
+      },
+      {
+       "name": "Tags",
+       "id": "t1",
+       "type": "multi_select"
+      }
+     ]
+    },
+    "where": {
+     "Tags": []
+    }
+   },
+   "refuses": "input_invalid"
+  },
+  {
+   "name": "plain values: each property's text and its one-line form, sorted by name",
+   "transform": "notion.plainValues@1",
+   "input": {
+    "page": {
+     "object": "page",
+     "id": "a1b2c3d4-0000-4000-8000-000000000001",
+     "properties": {
+      "Name": {
+       "id": "title",
+       "type": "title",
+       "title": [
+        {
+         "type": "text",
+         "text": {
+          "content": "Taxi "
+         },
+         "plain_text": "Taxi "
+        },
+        {
+         "type": "text",
+         "text": {
+          "content": "home"
+         },
+         "plain_text": "home"
+        }
+       ]
+      },
+      "Cost": {
+       "id": "c1",
+       "type": "number",
+       "number": 12.5
+      },
+      "Notes": {
+       "id": "n1",
+       "type": "rich_text",
+       "rich_text": [
+        {
+         "type": "text",
+         "text": {
+          "content": "first line\nsecond line"
+         },
+         "plain_text": "first line\nsecond line"
+        }
+       ]
+      },
+      "Stage": {
+       "id": "s%3B1",
+       "type": "select",
+       "select": {
+        "id": "o1",
+        "name": "Open",
+        "color": "green"
+       }
+      },
+      "Tags": {
+       "id": "t1",
+       "type": "multi_select",
+       "multi_select": [
+        {
+         "id": "g1",
+         "name": "red"
+        },
+        {
+         "id": "g2",
+         "name": "blue"
+        }
+       ]
+      },
+      "Due": {
+       "id": "du",
+       "type": "date",
+       "date": {
+        "start": "2026-11-02",
+        "end": "2026-11-04",
+        "time_zone": null
+       }
+      },
+      "Files": {
+       "id": "fi",
+       "type": "files",
+       "files": [
+        {
+         "name": "receipt.pdf",
+         "type": "file",
+         "file": {
+          "url": "https://files.example/signed?X-Amz-Signature=abc",
+          "expiry_time": "2026-10-26T13:00:00.000Z"
+         }
+        }
+       ]
+      }
+     }
+    }
+   },
+   "output": {
+    "properties": [
+     {
+      "name": "Cost",
+      "id": "c1",
+      "type": "number",
+      "text": "12.5",
+      "line": "12.5"
+     },
+     {
+      "name": "Due",
+      "id": "du",
+      "type": "date",
+      "text": "2026-11-02 to 2026-11-04",
+      "line": "2026-11-02 to 2026-11-04"
+     },
+     {
+      "name": "Files",
+      "id": "fi",
+      "type": "files",
+      "text": "receipt.pdf",
+      "line": "receipt.pdf"
+     },
+     {
+      "name": "Name",
+      "id": "title",
+      "type": "title",
+      "text": "Taxi home",
+      "line": "Taxi home"
+     },
+     {
+      "name": "Notes",
+      "id": "n1",
+      "type": "rich_text",
+      "text": "first line\nsecond line",
+      "line": "first line second line"
+     },
+     {
+      "name": "Stage",
+      "id": "s%3B1",
+      "type": "select",
+      "text": "Open",
+      "line": "Open"
+     },
+     {
+      "name": "Tags",
+      "id": "t1",
+      "type": "multi_select",
+      "text": "red, blue",
+      "line": "red, blue"
+     }
+    ],
+    "lines": "Cost: 12.5\nDue: 2026-11-02 to 2026-11-04\nFiles: receipt.pdf\nName: Taxi home\nNotes: first line second line\nStage: Open\nTags: red, blue"
+   }
+  }
+ ]
+}

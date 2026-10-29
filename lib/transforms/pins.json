@@ -1,0 +1,121 @@
+{
+ "note": "F10.8 transform pins (docs/F10.8-BUILD-MAP.md part c, decision 4 of 2026-10-17). Each transform version is pinned to the hash of its module, the helpers it imports and _shared/error.v1.mjs; the harness to the hash of run.mjs, its helpers, lib/compiler.mjs and lib/openapi-security.mjs. A behaviour change is a new version file. Written by node scripts/transform-pins.mjs --write, which adds new ids only; a reviewed re-pin is --repin with a reason and a date, recorded in repins.",
+ "schemaVersion": 1,
+ "harness": "7486366c59d0f96b08bcc8ea30ec3943954645aa102528f3f6900b15f8fccba2",
+ "transforms": {
+  "collections.diff@1": "41177c0c1eadf6fa855852f8d378cfe49cf1dc4b6236bf880b2fc11f5d0b5a3d",
+  "collections.findBy@1": "760b99d7eba9c7dce198ff884594903c03fede7f5f3b6c5cf892cb176a04618c",
+  "collections.labelIds@1": "24c366154e1ccc88278b91e08ba5e3fef8535adc040267686ffd3c92844e4962",
+  "collections.mergeEmails@1": "50bb72e570128495764b16b838b9e63a3bf6653c8be1269e3eccf9c72f3645fe",
+  "collections.missing@1": "9004c3db33ea80d98555fe5d3d5e10b9453510f3a45e417e549caf7a84828df8",
+  "collections.oneOf@1": "e334ed47a5a88b64baa44b7cf147d86149641db988385d0bed626e89491ad644",
+  "collections.stringValues@1": "74cf29227deea3b399a97592f8c22c80cbc067500db433bb70cf95bb575a25b3",
+  "encoding.base64Decode@1": "a440e82d01dc3069f6f976929c460af73daf3e46836ad1836090e49fedf044de",
+  "encoding.base64Encode@1": "12728e2dc25f855d121ea917c751b69680b1307e337b2ecda3413fb675623024",
+  "encoding.base64urlDecode@1": "34eb5a18539852ddf760e210fa0dae20f752728061671b8ef4d044d8294f45d1",
+  "encoding.base64urlEncode@1": "d3038f62c530574e93c4b47540f1e4604e3b7aa4d9f1b8f564b10de24f0239a1",
+  "html.toText@1": "9c1f3bfe1e4d1f15a74c95908d8f63f721314b6bc4e950f08684032456ccd0b7",
+  "ids.gitRefName@1": "c09a13f602fd32a9722f489909d0d851d1cecb52bb50a15495d1ccd865c7fad4",
+  "ids.notionId@1": "2175785d4ade56796d593a956b33cdc12627e135598035e4d4b2fe64c800b084",
+  "ids.ownerRepo@1": "32051417dc971e851a8773e45e5961abeb6e6807044028d05214e3dcb79e69f2",
+  "ids.repoPath@1": "67aaaf2084942ffedbbec33b35653424cd5f3bcbc27a479d7bbd1dde46efe10f",
+  "ids.slackEmoji@1": "c65caca3a312cdce4a661722ffc9669155dcfb647941f9834ff776daf52229f6",
+  "ids.slackLink@1": "94a45c204905d0959f1a5df9da291a8cbb95adb5861836a82f4901c893089360",
+  "notion.describe@1": "2023c0e32d070d979276caec649a9f609321a549a36d0b661d7beb701f91e870",
+  "notion.filter@1": "26205c0b214f7bb2638b067ceffcb11e982bb7ddda53b88fe50d796ec56a6417",
+  "notion.plainValues@1": "9cbeea61ff3bd6166653c9f7d6d9f97f88255c728102e699ea3a6ffe9939707f",
+  "notion.propertyValues@1": "44311541c0e2fb92e3279e1435a3f62aebfbe3de231ba256b0d66f95b6d4615c",
+  "notion.schema@1": "feff7fb11823d300c5428cc8a169fa3ccfd1c149325ae5f9d2676ce5043bed77",
+  "notion.title@1": "8e7dbaa15df69174b8644f5c7f432a650d5e07c9ff35afbb099b8242156f4613",
+  "rfc5322.build@1": "c891bf74a412bf2efe4be93d1954851d866f3cf59d718ca2e4c66f4e0228339e",
+  "rfc5322.decodeGmailPayload@1": "6f3fe116e1e9123c67dc663784bb32382e13c65f5d7a3bd6796a84f6bed5f8f9",
+  "rfc5322.decodeHeader@1": "600a06042b8f2b8706a57c6645c890a2e5fe3ae471f29822a0576e8c0971af3f",
+  "rfc5322.decodeRaw@1": "9cdd4354c03e55b53e4af2ed6337d3ed616ea2db3a7a41df9d8613b5eac38a69",
+  "rfc5322.parseAddresses@1": "fa1f4f0c34690acf6740e41ddc9772a660746aff593cfc47c1effabf99180fb3",
+  "rfc5322.replyHeaders@1": "54b97d16a9504c87fd9083cb56e941c981e4d6707088bbdd9f49e8ba32862f70",
+  "text.chunk@1": "c67e18fef049e29ade420445c05e768daa0b6252ead1405590f4da7a03d9c72b",
+  "text.githubQuery@1": "9edb259e4043ae3c1bbd7ddeefb234e6b74abec1a05d6832c37761d235e632b5",
+  "text.gmailQuery@1": "47df0f20b7cc18451fc5fb3a99d4e924dcd4a3756c97e6abd8ebb1a4deb1824d",
+  "text.joinList@1": "1f75825537a4063657cd6dbd224bce5b4af8e05a651ff3738ea9c2eacf736053",
+  "text.mentions@1": "6ae1116a685f7a42f89436f15d86c6a75170bb278c083154d09e9cb29ae9eb06",
+  "text.slackEscape@1": "b89341c7c7ec564ec18843edf50408342531fc052cfaf7a98933f4e52fe0cc96",
+  "text.slackQuery@1": "bc7686072611b6e66280f46266992e22ab97f211684e2933acb3b85a4187104e",
+  "text.truncate@1": "5cc13c14d60ef8c526e4d907e86559cf6d451b0d22012cd38dae19875ae625e6",
+  "time.allDayEnd@1": "ccdd9c14b706a4aaeb4f742a3f9c6e9f168a1b7a85f0746419a7fdc016d752ff",
+  "time.decimalCompare@1": "dc87230cbfb2f79796bc8e96c68662e033120e69589b3cb9295f5eda59a2c816",
+  "time.epochMillisStringToRfc3339@1": "208fc5d369654a8b086393d9d2bfb416d19b30dc4957ab4957c86dc1d6a10d0f",
+  "time.freeSlots@1": "b1fe9da3a492f875ca57bbfb4e4300f478b4f340e9b4f9308fdb6b3f9bd7d23b",
+  "time.rfc3339ToEpochMillisString@1": "147eb0fd1977421116e1545a5a14122186711169950d5358eec4f24637da2218",
+  "time.rfc3339ToEpochSeconds@1": "cddf0ded3c0c7f9009f19a381ce34914248d1b4a7b87a6907be28d8906db82f0",
+  "time.rrule@1": "d63965126e46f5fb56b0a021943babc76707bc96df350c70a45c4feb91e4e0e0",
+  "time.slackTs@1": "8ccf51cef8d0ec91d20eaa8cee3a68d849e09d3814f15d0db6f39895c421ad0f",
+  "time.window@1": "82d7a00a21c9653b84e4e61f93f7ad497a371c751167b789efe81c6c0bf76ef0",
+  "time.zone@1": "6ea35f30a2b1291e03e36e9d2796a4b6e7dfbbc7f2925c90168acbf3bfe5e96c",
+  "time.zonedToRfc3339@1": "4f13820a3148f500cbd869b9b2120e43fee9d0308bc194619fc80da5333018ca"
+ },
+ "repins": [
+  {
+   "transform": "rfc5322.build@1",
+   "from": "2bd2280ea21d4d607dd6cdd71aa9cf410205a858eac8be6334518474fc80a568",
+   "to": "c891bf74a412bf2efe4be93d1954851d866f3cf59d718ca2e4c66f4e0228339e",
+   "date": "2026-10-20",
+   "reason": "F10.8de check, before any action names it: _header.v1.mjs folds a line that holds a short token before a long one, so lines keep within 78 and a long address sits alone"
+  },
+  {
+   "transform": "rfc5322.decodeGmailPayload@1",
+   "from": "5e944d0cb4acf3224e48aee26906b3aac9c859a7c4f0a8c351629e85bec76e97",
+   "to": "6f3fe116e1e9123c67dc663784bb32382e13c65f5d7a3bd6796a84f6bed5f8f9",
+   "date": "2026-10-20",
+   "reason": "F10.8de check, before any action names it: _mime.v1.mjs never takes the low byte of a non-ASCII character in an RFC 2231 value; such a value does not decode"
+  },
+  {
+   "transform": "rfc5322.decodeHeader@1",
+   "from": "74cc09ce6e94aafcf9bdaee9472b65e82b99c844af90c505c00b7b2070e19edd",
+   "to": "600a06042b8f2b8706a57c6645c890a2e5fe3ae471f29822a0576e8c0971af3f",
+   "date": "2026-10-20",
+   "reason": "F10.8de check, before any action names it: _mime.v1.mjs never takes the low byte of a non-ASCII character in an RFC 2231 value; such a value does not decode"
+  },
+  {
+   "transform": "rfc5322.decodeRaw@1",
+   "from": "302dd9da880c6aaccc81f53c57a706765014c026abb903b190db05e98018f0e1",
+   "to": "9cdd4354c03e55b53e4af2ed6337d3ed616ea2db3a7a41df9d8613b5eac38a69",
+   "date": "2026-10-20",
+   "reason": "F10.8de check, before any action names it: _mime.v1.mjs never takes the low byte of a non-ASCII character in an RFC 2231 value; such a value does not decode"
+  },
+  {
+   "transform": "rfc5322.replyHeaders@1",
+   "from": "1da43f137d2c8340cb0f62efec2e15b22081fbcf2f8c6d7cda9edcef66e38c69",
+   "to": "54b97d16a9504c87fd9083cb56e941c981e4d6707088bbdd9f49e8ba32862f70",
+   "date": "2026-10-20",
+   "reason": "F10.8de check, before any action names it: both helper fixes, the fold rule of _header.v1.mjs and RFC 2231 values in _mime.v1.mjs"
+  },
+  {
+   "transform": "html.toText@1",
+   "from": "cf53d8cec35ce339aad7d94d101e58bbd1e6bfec6ea404506700cf4f165353ba",
+   "to": "9c1f3bfe1e4d1f15a74c95908d8f63f721314b6bc4e950f08684032456ccd0b7",
+   "date": "2026-10-20",
+   "reason": "F10.8fg check, before any action names it: a script keeps the tokenizer's escaped states, and the named list holds all of HTML 4's symbol set"
+  },
+  {
+   "transform": "collections.mergeEmails@1",
+   "from": "7a5b659381ee6fdd3ca340f9992be60e7bec3f1ee53df95066b7bd025b48a663",
+   "to": "50bb72e570128495764b16b838b9e63a3bf6653c8be1269e3eccf9c72f3645fe",
+   "date": "2026-10-20",
+   "reason": "F10.8hij check, before any action names it: /added and /removed hold addresses of 3 to 254 characters, so they fit text.joinList@1's items for the card"
+  },
+  {
+   "transform": "harness",
+   "from": "8dd200267bd1f48e198f58c61e8f6176b5b50be4c68edfeb3239c7761520d880",
+   "to": "7486366c59d0f96b08bcc8ea30ec3943954645aa102528f3f6900b15f8fccba2",
+   "date": "2026-10-20",
+   "reason": "F10.9 part b: compiler exports, no body change"
+  },
+  {
+   "transform": "notion.plainValues@1",
+   "from": "7739fc5845091e167a3a85efd70b75f8871929bbf19c7553caf591e6f683e625",
+   "to": "9cbeea61ff3bd6166653c9f7d6d9f97f88255c728102e699ea3a6ffe9939707f",
+   "date": "2026-10-26",
+   "reason": "F10.19 part 2, before any shipped action names it: lines, one Name: value line per property, for the Values now card line"
+  }
+ ]
+}

@@ -1,0 +1,1898 @@
+{
+ "google-calendar.action.create-calendar.v1.08dedfdffbea77c1766eea90": {
+  "definitionHash": "c55363a3a9104d053d2f3b75f9d30329f6ed0bb7f0f30baea0e0660eaedb8f04",
+  "harnessHash": "7486366c59d0f96b08bcc8ea30ec3943954645aa102528f3f6900b15f8fccba2",
+  "passed": true,
+  "ranAt": "2026-10-29T16:41:48.613Z",
+  "runId": "MBIDCUUG",
+  "runtime": {
+   "icu": "78.2",
+   "node": "25.8.1",
+   "tz": "2026a",
+   "unicode": "17.0"
+  },
+  "schemaVersion": 1,
+  "tests": [
+   {
+    "checks": [
+     {
+      "name": "step 1: create-calendar@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 1: saves calendarA",
+      "passed": true
+     },
+     {
+      "name": "step 2: status",
+      "passed": true
+     },
+     {
+      "name": "step 2: /id equals",
+      "passed": true
+     },
+     {
+      "name": "step 3: create-calendar@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 3: saves calendarB",
+      "passed": true
+     },
+     {
+      "name": "step 4: status",
+      "passed": true
+     },
+     {
+      "name": "step 4: /id equals",
+      "passed": true
+     }
+    ],
+    "jobs": [
+     {
+      "approvals": [
+       {
+        "at": "2026-10-29T16:32:34.705Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "bb1995af-c7e6-4f81-8379-85913b0a0e8f",
+      "status": "succeeded"
+     },
+     {
+      "approvals": [
+       {
+        "at": "2026-10-29T16:32:54.460Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "135c5339-af08-46f2-8a14-3bc26c9ef609",
+      "status": "succeeded"
+     }
+    ],
+    "passed": true,
+    "requests": [
+     {
+      "bodyHmac": "8fcf5be4eebe080cf9c499d60188e1ff1e39e8d6b143606977f0db2ccc46cade",
+      "identity": "hmac:a73219c2b94d1ecbf31165c6d3428bec",
+      "method": "POST",
+      "status": 200,
+      "template": "/calendars"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/calendars/{calendarId}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/calendars/{calendarId}"
+     },
+     {
+      "bodyHmac": "77f7114c97400f6d383659f3fc6a1f4f2b1ef7712b8f587830ee5db24ba5e653",
+      "identity": "hmac:1fb273461c157c7f13749fed6429a1fe",
+      "method": "POST",
+      "status": 200,
+      "template": "/calendars"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/calendars/{calendarId}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/calendars/{calendarId}"
+     }
+    ],
+    "test": "C1",
+    "undo": {
+     "test": "C13"
+    }
+   }
+  ],
+  "transforms": {
+   "time.zone@1": "6ea35f30a2b1291e03e36e9d2796a4b6e7dfbbc7f2925c90168acbf3bfe5e96c"
+  }
+ },
+ "google-calendar.action.create-event.v1.c9dba780678739624d636a8d": {
+  "definitionHash": "6504283d6b379d5ab717077f17a678d7a3579b185cf1dfa61bd155f786319ada",
+  "harnessHash": "7486366c59d0f96b08bcc8ea30ec3943954645aa102528f3f6900b15f8fccba2",
+  "passed": true,
+  "ranAt": "2026-10-29T16:41:48.613Z",
+  "runId": "MBIDCUUG",
+  "runtime": {
+   "icu": "78.2",
+   "node": "25.8.1",
+   "tz": "2026a",
+   "unicode": "17.0"
+  },
+  "schemaVersion": 1,
+  "tests": [
+   {
+    "checks": [
+     {
+      "name": "step 1: create-event@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 1: saves event",
+      "passed": true
+     },
+     {
+      "name": "step 1: /summary equals",
+      "passed": true
+     },
+     {
+      "name": "step 1: /start/dateTime present",
+      "passed": true
+     },
+     {
+      "name": "step 2: status",
+      "passed": true
+     },
+     {
+      "name": "step 2: /id equals",
+      "passed": true
+     },
+     {
+      "name": "step 2: /summary equals",
+      "passed": true
+     }
+    ],
+    "jobs": [
+     {
+      "approvals": [
+       {
+        "at": "2026-10-29T16:33:15.338Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "d2c777a8-2cfb-4f37-9f19-21ce890a216e",
+      "status": "succeeded"
+     }
+    ],
+    "passed": true,
+    "requests": [
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/users/me/settings/{setting}"
+     },
+     {
+      "bodyHmac": "c4c673de56ba4d0af3ffb2c3a165bdb7ac1e6d2708a0e46b944c16f1a4081d98",
+      "identity": "epf1as8o0vp02pn1dnnuc93qkk",
+      "method": "POST",
+      "status": 200,
+      "template": "/calendars/{calendarId}/events"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/calendars/{calendarId}/events/{eventId}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/calendars/{calendarId}/events/{eventId}"
+     }
+    ],
+    "test": "C2",
+    "undo": {
+     "test": "C12"
+    }
+   },
+   {
+    "checks": [
+     {
+      "name": "step 1: create-event@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 1: saves meet",
+      "passed": true
+     },
+     {
+      "name": "step 1: /conferenceStatus equals",
+      "passed": true
+     },
+     {
+      "name": "step 1: /hangoutLink present",
+      "passed": true
+     }
+    ],
+    "jobs": [
+     {
+      "approvals": [
+       {
+        "at": "2026-10-29T16:33:28.650Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "09efdb5a-2282-4322-8980-a0aaca7c15ff",
+      "status": "succeeded"
+     }
+    ],
+    "passed": true,
+    "requests": [
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/users/me/settings/{setting}"
+     },
+     {
+      "bodyHmac": "f69edff1aee1a1711630cdc7fa9fd097717bbedf9c651eb04854d9c11f605991",
+      "identity": "8vdl3j6e4ks96sfo3u7blgerco",
+      "method": "POST",
+      "status": 200,
+      "template": "/calendars/{calendarId}/events"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/calendars/{calendarId}/events/{eventId}"
+     }
+    ],
+    "test": "C3",
+    "undo": {
+     "test": "C12"
+    }
+   },
+   {
+    "checks": [
+     {
+      "name": "step 1: create-event@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 1: saves allDay",
+      "passed": true
+     },
+     {
+      "name": "step 1: /start/date equals",
+      "passed": true
+     },
+     {
+      "name": "step 1: /end/date equals",
+      "passed": true
+     },
+     {
+      "name": "step 2: create-event@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 2: saves daily",
+      "passed": true
+     },
+     {
+      "name": "step 3: status",
+      "passed": true
+     },
+     {
+      "name": "step 3: /items count",
+      "passed": true
+     }
+    ],
+    "jobs": [
+     {
+      "approvals": [
+       {
+        "at": "2026-10-29T16:33:41.756Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "341a4b7e-db84-4187-9af3-8b95dcfd017c",
+      "status": "succeeded"
+     },
+     {
+      "approvals": [
+       {
+        "at": "2026-10-29T16:33:54.566Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "9ad27578-718b-4bd3-9939-e1e646f0ec23",
+      "status": "succeeded"
+     }
+    ],
+    "passed": true,
+    "requests": [
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/users/me/settings/{setting}"
+     },
+     {
+      "bodyHmac": "2b5feb4269ba060a8d9e25d05e3e3d7f247ad7e631a59b61cb706eaaa0e2e5d9",
+      "identity": "m6877glnqpq47s0in3v8lq4u3c",
+      "method": "POST",
+      "status": 200,
+      "template": "/calendars/{calendarId}/events"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/calendars/{calendarId}/events/{eventId}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/users/me/settings/{setting}"
+     },
+     {
+      "bodyHmac": "7171be8f3cfcb08a875f56d708845882fd9ca5457ff64ca2990a05f7a62d4355",
+      "identity": "oa10mv431evcf6siodofbnbv24",
+      "method": "POST",
+      "status": 200,
+      "template": "/calendars/{calendarId}/events"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/calendars/{calendarId}/events/{eventId}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/calendars/{cal}/events/{event}/instances"
+     }
+    ],
+    "test": "C4",
+    "undo": {
+     "test": "C12"
+    }
+   }
+  ],
+  "transforms": {
+   "collections.oneOf@1": "e334ed47a5a88b64baa44b7cf147d86149641db988385d0bed626e89491ad644",
+   "text.joinList@1": "1f75825537a4063657cd6dbd224bce5b4af8e05a651ff3738ea9c2eacf736053",
+   "time.allDayEnd@1": "ccdd9c14b706a4aaeb4f742a3f9c6e9f168a1b7a85f0746419a7fdc016d752ff",
+   "time.rrule@1": "d63965126e46f5fb56b0a021943babc76707bc96df350c70a45c4feb91e4e0e0",
+   "time.zone@1": "6ea35f30a2b1291e03e36e9d2796a4b6e7dfbbc7f2925c90168acbf3bfe5e96c",
+   "time.zonedToRfc3339@1": "4f13820a3148f500cbd869b9b2120e43fee9d0308bc194619fc80da5333018ca"
+  }
+ },
+ "google-calendar.action.delete-event.v1.320b28cfc0d999672cd0cf6f": {
+  "definitionHash": "6b03b31101e4d7976dcb8168d44e858b2e8820467e5310177d297dee3df2532c",
+  "harnessHash": "7486366c59d0f96b08bcc8ea30ec3943954645aa102528f3f6900b15f8fccba2",
+  "passed": true,
+  "ranAt": "2026-10-29T16:41:48.613Z",
+  "runId": "MBIDCUUG",
+  "runtime": {
+   "icu": "78.2",
+   "node": "25.8.1",
+   "tz": "2026a",
+   "unicode": "17.0"
+  },
+  "schemaVersion": 1,
+  "tests": [
+   {
+    "checks": [
+     {
+      "name": "step 1: delete-event@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 2: gone",
+      "passed": true
+     },
+     {
+      "name": "step 3: delete-event@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 4: gone",
+      "passed": true
+     },
+     {
+      "name": "step 5: delete-event@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 6: gone",
+      "passed": true
+     },
+     {
+      "name": "step 7: delete-event@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 8: gone",
+      "passed": true
+     },
+     {
+      "name": "step 9: delete-event@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 10: gone",
+      "passed": true
+     }
+    ],
+    "jobs": [
+     {
+      "approvals": [
+       {
+        "at": "2026-10-29T16:39:55.581Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "a9437d06-f316-48f3-8362-95c1ae0cf905",
+      "status": "succeeded"
+     },
+     {
+      "approvals": [
+       {
+        "at": "2026-10-29T16:40:08.854Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "8d99d368-44f6-45e2-8aaf-1cfddaf993a2",
+      "status": "succeeded"
+     },
+     {
+      "approvals": [
+       {
+        "at": "2026-10-29T16:40:23.120Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "8d5daa3c-1db8-4a0a-b63e-f5a5daf8aae4",
+      "status": "succeeded"
+     },
+     {
+      "approvals": [
+       {
+        "at": "2026-10-29T16:40:37.399Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "dd31500b-98c8-4ef8-af93-eee3d5ba24d1",
+      "status": "succeeded"
+     },
+     {
+      "approvals": [
+       {
+        "at": "2026-10-29T16:40:51.291Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "fb73ce3d-2fb6-4577-b34a-a9b42224d52f",
+      "status": "succeeded"
+     }
+    ],
+    "passed": true,
+    "requests": [
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/calendars/{calendarId}/events/{eventId}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "DELETE",
+      "status": 204,
+      "template": "/calendars/{calendarId}/events/{eventId}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/calendars/{calendarId}/events/{eventId}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/calendars/{calendarId}/events/{eventId}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/calendars/{calendarId}/events/{eventId}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "DELETE",
+      "status": 204,
+      "template": "/calendars/{calendarId}/events/{eventId}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/calendars/{calendarId}/events/{eventId}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/calendars/{calendarId}/events/{eventId}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/calendars/{calendarId}/events/{eventId}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "DELETE",
+      "status": 204,
+      "template": "/calendars/{calendarId}/events/{eventId}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/calendars/{calendarId}/events/{eventId}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/calendars/{calendarId}/events/{eventId}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/calendars/{calendarId}/events/{eventId}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "DELETE",
+      "status": 204,
+      "template": "/calendars/{calendarId}/events/{eventId}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/calendars/{calendarId}/events/{eventId}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/calendars/{calendarId}/events/{eventId}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/calendars/{calendarId}/events/{eventId}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "DELETE",
+      "status": 204,
+      "template": "/calendars/{calendarId}/events/{eventId}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/calendars/{calendarId}/events/{eventId}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/calendars/{calendarId}/events/{eventId}"
+     }
+    ],
+    "test": "C12",
+    "undo": {
+     "none": "It is the undo of C2 to C5."
+    }
+   }
+  ],
+  "transforms": {
+   "text.joinList@1": "1f75825537a4063657cd6dbd224bce5b4af8e05a651ff3738ea9c2eacf736053"
+  }
+ },
+ "google-calendar.action.find-events.v1.52c7c84a8cf53b5ed869f18a": {
+  "definitionHash": "3c3feb012af05325fce0a286fd3cc7e4469bd0319da7faffca2eeab57f6656c0",
+  "harnessHash": "7486366c59d0f96b08bcc8ea30ec3943954645aa102528f3f6900b15f8fccba2",
+  "passed": true,
+  "ranAt": "2026-10-29T16:41:48.613Z",
+  "runId": "MBIDCUUG",
+  "runtime": {
+   "icu": "78.2",
+   "node": "25.8.1",
+   "tz": "2026a",
+   "unicode": "17.0"
+  },
+  "schemaVersion": 1,
+  "tests": [
+   {
+    "checks": [
+     {
+      "name": "step 1: list-calendars@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 1: /calendars present",
+      "passed": true
+     },
+     {
+      "name": "step 2: find-events@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 2: /events present",
+      "passed": true
+     },
+     {
+      "name": "step 2: /timeZone equals",
+      "passed": true
+     },
+     {
+      "name": "step 3: get-event@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 3: /id equals",
+      "passed": true
+     }
+    ],
+    "jobs": [
+     {
+      "approvals": [
+       {
+        "at": "2026-10-29T16:30:25.192Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "5b543b46-d0b0-4f8d-9483-a4aa9db2ff37",
+      "status": "succeeded"
+     }
+    ],
+    "passed": true,
+    "requests": [
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/users/me/calendarList"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/users/me/settings/{setting}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/calendars/{calendarId}/events"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/calendars/{calendarId}/events/{eventId}"
+     }
+    ],
+    "test": "C0",
+    "undo": {
+     "none": "The test changes nothing."
+    }
+   }
+  ],
+  "transforms": {
+   "time.zone@1": "6ea35f30a2b1291e03e36e9d2796a4b6e7dfbbc7f2925c90168acbf3bfe5e96c",
+   "time.zonedToRfc3339@1": "4f13820a3148f500cbd869b9b2120e43fee9d0308bc194619fc80da5333018ca"
+  }
+ },
+ "google-calendar.action.find-free-time.v1.35e22e29141c03619ed939ca": {
+  "definitionHash": "dc8a2185b13af029d1db196a04dbe75cb46a0ee5a264dd046868f02a345c50ff",
+  "harnessHash": "7486366c59d0f96b08bcc8ea30ec3943954645aa102528f3f6900b15f8fccba2",
+  "passed": true,
+  "ranAt": "2026-10-29T16:41:48.613Z",
+  "runId": "MBIDCUUG",
+  "runtime": {
+   "icu": "78.2",
+   "node": "25.8.1",
+   "tz": "2026a",
+   "unicode": "17.0"
+  },
+  "schemaVersion": 1,
+  "tests": [
+   {
+    "checks": [
+     {
+      "name": "step 1: find-free-time@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 1: /free present",
+      "passed": true
+     },
+     {
+      "name": "step 1: /timeZone equals",
+      "passed": true
+     }
+    ],
+    "jobs": [
+     {
+      "approvals": [
+       {
+        "at": "2026-10-29T16:39:42.867Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "bd0e666b-c47a-4cb8-bcb6-e616b274e089",
+      "status": "succeeded"
+     }
+    ],
+    "passed": true,
+    "requests": [
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/users/me/settings/{setting}"
+     },
+     {
+      "bodyHmac": "74589b7752a56bd7adc33a4ba63f8e37aa1ec09d9d5930f9143407e34db41ab0",
+      "identity": null,
+      "method": "POST",
+      "status": 200,
+      "template": "/freeBusy"
+     }
+    ],
+    "test": "C11",
+    "undo": {
+     "none": "The test changes nothing."
+    }
+   }
+  ],
+  "transforms": {
+   "text.joinList@1": "1f75825537a4063657cd6dbd224bce5b4af8e05a651ff3738ea9c2eacf736053",
+   "time.freeSlots@1": "b1fe9da3a492f875ca57bbfb4e4300f478b4f340e9b4f9308fdb6b3f9bd7d23b",
+   "time.zone@1": "6ea35f30a2b1291e03e36e9d2796a4b6e7dfbbc7f2925c90168acbf3bfe5e96c",
+   "time.zonedToRfc3339@1": "4f13820a3148f500cbd869b9b2120e43fee9d0308bc194619fc80da5333018ca"
+  }
+ },
+ "google-calendar.action.get-event.v1.29b73563f4aa8a04079ff18c": {
+  "definitionHash": "bdaebb29c6ddaf37b1dac3acf1bb6e4cf69a6145fd90097f7a794badb6c25c45",
+  "harnessHash": "7486366c59d0f96b08bcc8ea30ec3943954645aa102528f3f6900b15f8fccba2",
+  "passed": true,
+  "ranAt": "2026-10-29T16:41:48.613Z",
+  "runId": "MBIDCUUG",
+  "runtime": {
+   "icu": "78.2",
+   "node": "25.8.1",
+   "tz": "2026a",
+   "unicode": "17.0"
+  },
+  "schemaVersion": 1,
+  "tests": [
+   {
+    "checks": [
+     {
+      "name": "step 1: list-calendars@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 1: /calendars present",
+      "passed": true
+     },
+     {
+      "name": "step 2: find-events@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 2: /events present",
+      "passed": true
+     },
+     {
+      "name": "step 2: /timeZone equals",
+      "passed": true
+     },
+     {
+      "name": "step 3: get-event@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 3: /id equals",
+      "passed": true
+     }
+    ],
+    "jobs": [
+     {
+      "approvals": [
+       {
+        "at": "2026-10-29T16:32:21.315Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "ac4c782b-8f1c-49a9-801e-e764b8717cbb",
+      "status": "succeeded"
+     }
+    ],
+    "passed": true,
+    "requests": [
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/users/me/calendarList"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/users/me/settings/{setting}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/calendars/{calendarId}/events"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/calendars/{calendarId}/events/{eventId}"
+     }
+    ],
+    "test": "C0",
+    "undo": {
+     "none": "The test changes nothing."
+    }
+   }
+  ],
+  "transforms": {
+   "text.truncate@1": "5cc13c14d60ef8c526e4d907e86559cf6d451b0d22012cd38dae19875ae625e6"
+  }
+ },
+ "google-calendar.action.list-calendars.v1.5862d2ac99281766e2f9eeea": {
+  "definitionHash": "dbf997c7a3a27111cb19ffeedd9f5dc9b6e5201167d8db4e4fe5445e042416e4",
+  "harnessHash": "7486366c59d0f96b08bcc8ea30ec3943954645aa102528f3f6900b15f8fccba2",
+  "passed": true,
+  "ranAt": "2026-10-29T16:41:48.613Z",
+  "runId": "MBIDCUUG",
+  "runtime": {
+   "icu": "78.2",
+   "node": "25.8.1",
+   "tz": "2026a",
+   "unicode": "17.0"
+  },
+  "schemaVersion": 1,
+  "tests": [
+   {
+    "checks": [
+     {
+      "name": "step 1: list-calendars@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 1: /calendars present",
+      "passed": true
+     },
+     {
+      "name": "step 2: find-events@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 2: /events present",
+      "passed": true
+     },
+     {
+      "name": "step 2: /timeZone equals",
+      "passed": true
+     },
+     {
+      "name": "step 3: get-event@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 3: /id equals",
+      "passed": true
+     }
+    ],
+    "jobs": [
+     {
+      "approvals": [
+       {
+        "at": "2026-10-29T16:30:07.187Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "ad7be254-053f-4863-b763-63e847709c9c",
+      "status": "succeeded"
+     }
+    ],
+    "passed": true,
+    "requests": [
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/users/me/calendarList"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/users/me/settings/{setting}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/calendars/{calendarId}/events"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/calendars/{calendarId}/events/{eventId}"
+     }
+    ],
+    "test": "C0",
+    "undo": {
+     "none": "The test changes nothing."
+    }
+   }
+  ],
+  "transforms": {}
+ },
+ "google-calendar.action.move-event.v1.9db705fdd59940818e85b85d": {
+  "definitionHash": "ef5416a5e0024d64a809798c65007b4a39882a8e3830deb92ce83ade9fca2241",
+  "harnessHash": "7486366c59d0f96b08bcc8ea30ec3943954645aa102528f3f6900b15f8fccba2",
+  "passed": true,
+  "ranAt": "2026-10-29T16:41:48.613Z",
+  "runId": "MBIDCUUG",
+  "runtime": {
+   "icu": "78.2",
+   "node": "25.8.1",
+   "tz": "2026a",
+   "unicode": "17.0"
+  },
+  "schemaVersion": 1,
+  "tests": [
+   {
+    "checks": [
+     {
+      "name": "step 1: move-event@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 2: status",
+      "passed": true
+     },
+     {
+      "name": "step 2: /id equals",
+      "passed": true
+     }
+    ],
+    "jobs": [
+     {
+      "approvals": [
+       {
+        "at": "2026-10-29T16:35:24.246Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "2bd5c72a-ce0e-46bb-8f2a-cb7862b45f2e",
+      "status": "succeeded"
+     }
+    ],
+    "passed": true,
+    "requests": [
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/calendars/{calendarId}/events/{eventId}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "POST",
+      "status": 200,
+      "template": "/calendars/{calendarId}/events/{eventId}/move"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/calendars/{calendarId}/events/{eventId}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/calendars/{calendarId}/events/{eventId}"
+     }
+    ],
+    "test": "C8",
+    "undo": {
+     "checks": [
+      {
+       "name": "step 1: move-event@1 succeeded",
+       "passed": true
+      },
+      {
+       "name": "step 2: status",
+       "passed": true
+      }
+     ],
+     "jobs": [
+      {
+       "approvals": [
+        {
+         "at": "2026-10-29T16:35:40.686Z",
+         "phase": "final"
+        }
+       ],
+       "errorCode": null,
+       "id": "47f9925b-31e8-45b3-af0f-9615bfad9827",
+       "status": "succeeded"
+      }
+     ],
+     "passed": true,
+     "requests": [
+      {
+       "bodyHmac": null,
+       "identity": null,
+       "method": "GET",
+       "status": 200,
+       "template": "/calendars/{calendarId}/events/{eventId}"
+      },
+      {
+       "bodyHmac": null,
+       "identity": null,
+       "method": "POST",
+       "status": 200,
+       "template": "/calendars/{calendarId}/events/{eventId}/move"
+      },
+      {
+       "bodyHmac": null,
+       "identity": null,
+       "method": "GET",
+       "status": 200,
+       "template": "/calendars/{calendarId}/events/{eventId}"
+      },
+      {
+       "bodyHmac": null,
+       "identity": null,
+       "method": "GET",
+       "status": 200,
+       "template": "/calendars/{calendarId}/events/{eventId}"
+      }
+     ]
+    }
+   }
+  ],
+  "transforms": {
+   "collections.oneOf@1": "e334ed47a5a88b64baa44b7cf147d86149641db988385d0bed626e89491ad644",
+   "text.joinList@1": "1f75825537a4063657cd6dbd224bce5b4af8e05a651ff3738ea9c2eacf736053"
+  }
+ },
+ "google-calendar.action.quick-add.v1.3c393646f468e16cdc2cfd86": {
+  "definitionHash": "5b536b256abda31cc17f3a43b933d142598d620a7ac2d3cd114f9e78649a30d4",
+  "harnessHash": "7486366c59d0f96b08bcc8ea30ec3943954645aa102528f3f6900b15f8fccba2",
+  "passed": true,
+  "ranAt": "2026-10-29T16:41:48.613Z",
+  "runId": "MBIDCUUG",
+  "runtime": {
+   "icu": "78.2",
+   "node": "25.8.1",
+   "tz": "2026a",
+   "unicode": "17.0"
+  },
+  "schemaVersion": 1,
+  "tests": [
+   {
+    "checks": [
+     {
+      "name": "step 1: quick-add@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 1: saves quick",
+      "passed": true
+     },
+     {
+      "name": "step 1: /start/dateTime present",
+      "passed": true
+     }
+    ],
+    "jobs": [
+     {
+      "approvals": [
+       {
+        "at": "2026-10-29T16:34:07.706Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "8b6f0027-29c1-4cef-bc46-a1df08a3dcaa",
+      "status": "succeeded"
+     }
+    ],
+    "passed": true,
+    "requests": [
+     {
+      "bodyHmac": null,
+      "identity": "ufusf5ikk6bu254u1hpismn3is",
+      "method": "POST",
+      "status": 200,
+      "template": "/calendars/{calendarId}/events/quickAdd"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/calendars/{calendarId}/events/{eventId}"
+     }
+    ],
+    "test": "C5",
+    "undo": {
+     "test": "C12"
+    }
+   }
+  ],
+  "transforms": {}
+ },
+ "google-calendar.action.respond-event.v1.8e0d5867c84278c762f0b962": {
+  "definitionHash": "b07a89dbc51bf6409465c55be3323fd5256d562175b29cc34ab6b64d60f499b5",
+  "harnessHash": "7486366c59d0f96b08bcc8ea30ec3943954645aa102528f3f6900b15f8fccba2",
+  "passed": true,
+  "ranAt": "2026-10-29T16:41:48.613Z",
+  "runId": "MBIDCUUG",
+  "runtime": {
+   "icu": "78.2",
+   "node": "25.8.1",
+   "tz": "2026a",
+   "unicode": "17.0"
+  },
+  "schemaVersion": 1,
+  "tests": [
+   {
+    "checks": [
+     {
+      "name": "step 1: respond-event@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 1: /response equals",
+      "passed": true
+     },
+     {
+      "name": "step 2: /attendees entry /responseStatus equals",
+      "passed": true
+     }
+    ],
+    "jobs": [
+     {
+      "approvals": [
+       {
+        "at": "2026-10-29T16:35:55.701Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "4270b44d-e67d-4147-b19c-69ed4d088554",
+      "status": "succeeded"
+     }
+    ],
+    "passed": true,
+    "requests": [
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/calendars/{calendarId}/events/{eventId}"
+     },
+     {
+      "bodyHmac": "076bff2db96e47d7c18916bfb5f90ea118c3bbca3ef31e434d76fb58624ed16f",
+      "identity": null,
+      "method": "PATCH",
+      "status": 200,
+      "template": "/calendars/{calendarId}/events/{eventId}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/calendars/{calendarId}/events/{eventId}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/calendars/{calendarId}/events/{eventId}"
+     }
+    ],
+    "test": "C9",
+    "undo": {
+     "checks": [
+      {
+       "name": "step 1: respond-event@1 succeeded",
+       "passed": true
+      },
+      {
+       "name": "step 1: /response equals",
+       "passed": true
+      },
+      {
+       "name": "step 2: what Muse did reads back",
+       "passed": true
+      }
+     ],
+     "jobs": [
+      {
+       "approvals": [
+        {
+         "at": "2026-10-29T16:36:09.145Z",
+         "phase": "final"
+        }
+       ],
+       "errorCode": null,
+       "id": "7aeebfef-d94d-45ae-8796-0000ad9acdf7",
+       "status": "succeeded"
+      }
+     ],
+     "passed": true,
+     "requests": [
+      {
+       "bodyHmac": null,
+       "identity": null,
+       "method": "GET",
+       "status": 200,
+       "template": "/calendars/{calendarId}/events/{eventId}"
+      },
+      {
+       "bodyHmac": "cceb575be201344e5394b2a07735b543e85cfad6d5b16dd8cea2137d865ea5fa",
+       "identity": null,
+       "method": "PATCH",
+       "status": 200,
+       "template": "/calendars/{calendarId}/events/{eventId}"
+      },
+      {
+       "bodyHmac": null,
+       "identity": null,
+       "method": "GET",
+       "status": 200,
+       "template": "/calendars/{calendarId}/events/{eventId}"
+      },
+      {
+       "bodyHmac": null,
+       "identity": null,
+       "method": "GET",
+       "status": 200,
+       "template": "/calendars/{calendarId}/events/{eventId}"
+      },
+      {
+       "bodyHmac": null,
+       "identity": null,
+       "method": "GET",
+       "status": 200,
+       "template": "/calendars/{calendarId}/events/{eventId}"
+      }
+     ]
+    }
+   }
+  ],
+  "transforms": {
+   "collections.findBy@1": "760b99d7eba9c7dce198ff884594903c03fede7f5f3b6c5cf892cb176a04618c",
+   "text.joinList@1": "1f75825537a4063657cd6dbd224bce5b4af8e05a651ff3738ea9c2eacf736053"
+  }
+ },
+ "google-calendar.action.stop-sharing.v1.d7384916f702057d437c5f31": {
+  "definitionHash": "0f7d1d1ba8e0d35adac1ce973bf0073c5512c5e337472dec6b327b7566b2df57",
+  "harnessHash": "7486366c59d0f96b08bcc8ea30ec3943954645aa102528f3f6900b15f8fccba2",
+  "passed": true,
+  "ranAt": "2026-10-29T16:41:48.613Z",
+  "runId": "MBIDCUUG",
+  "runtime": {
+   "icu": "78.2",
+   "node": "25.8.1",
+   "tz": "2026a",
+   "unicode": "17.0"
+  },
+  "schemaVersion": 1,
+  "tests": [
+   {
+    "checks": [
+     {
+      "name": "step 1: what Muse did reads back",
+      "passed": true
+     },
+     {
+      "name": "step 2: stop-sharing@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 2: /ruleId equals",
+      "passed": true
+     },
+     {
+      "name": "step 3: status",
+      "passed": true
+     }
+    ],
+    "jobs": [
+     {
+      "approvals": [
+       {
+        "at": "2026-10-29T16:39:27.710Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "11a1c33c-e333-42ab-8e98-29e44dab35d8",
+      "status": "succeeded"
+     }
+    ],
+    "passed": true,
+    "requests": [
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/calendars/{calendarId}/acl/{ruleId}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/calendars/{calendarId}/acl/{ruleId}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "DELETE",
+      "status": 204,
+      "template": "/calendars/{calendarId}/acl/{ruleId}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 404,
+      "template": "/calendars/{calendarId}/acl/{ruleId}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 404,
+      "template": "/calendars/{calendarId}/acl/{ruleId}"
+     }
+    ],
+    "test": "C10",
+    "undo": {
+     "none": "Removing the rule undoes the share made by hand for this test, and calendar A goes in C13."
+    }
+   }
+  ],
+  "transforms": {
+   "collections.oneOf@1": "e334ed47a5a88b64baa44b7cf147d86149641db988385d0bed626e89491ad644"
+  }
+ },
+ "google-calendar.action.update-event.v1.58e5854b867e7fb877c8c2c4": {
+  "definitionHash": "d011a5e9178a7582eb0d9e3280a4d0027c8ba1768d6b781b187b3621503b499c",
+  "harnessHash": "7486366c59d0f96b08bcc8ea30ec3943954645aa102528f3f6900b15f8fccba2",
+  "passed": true,
+  "ranAt": "2026-10-29T16:41:48.613Z",
+  "runId": "MBIDCUUG",
+  "runtime": {
+   "icu": "78.2",
+   "node": "25.8.1",
+   "tz": "2026a",
+   "unicode": "17.0"
+  },
+  "schemaVersion": 1,
+  "tests": [
+   {
+    "checks": [
+     {
+      "name": "step 1: one job succeeded and one failed with 412",
+      "passed": true
+     },
+     {
+      "name": "step 1: the readback equals the job that landed",
+      "passed": true
+     }
+    ],
+    "jobs": [
+     {
+      "approvals": [
+       {
+        "at": "2026-10-29T16:34:22.986Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "e497c764-00b8-4e50-9a7b-83339ce7173f",
+      "status": "succeeded"
+     },
+     {
+      "approvals": [
+       {
+        "at": "2026-10-29T16:34:31.731Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": "provider_failed",
+      "id": "00802397-27d5-49f1-b336-162f51330c51",
+      "status": "failed"
+     }
+    ],
+    "passed": true,
+    "requests": [
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/calendars/{calendarId}/events/{eventId}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/users/me/settings/{setting}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/calendars/{calendarId}/events/{eventId}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/users/me/settings/{setting}"
+     },
+     {
+      "bodyHmac": "3cfd33ef251c9c1543e0debdc57177c903db869950114fdd3a2bf774776b7b0b",
+      "identity": null,
+      "method": "PATCH",
+      "status": 200,
+      "template": "/calendars/{calendarId}/events/{eventId}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/calendars/{calendarId}/events/{eventId}"
+     },
+     {
+      "bodyHmac": "3cfd33ef251c9c1543e0debdc57177c903db869950114fdd3a2bf774776b7b0b",
+      "identity": null,
+      "method": "PATCH",
+      "status": 412,
+      "template": "/calendars/{calendarId}/events/{eventId}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/calendars/{calendarId}/events/{eventId}"
+     }
+    ],
+    "test": "C6",
+    "undo": {
+     "checks": [
+      {
+       "name": "step 1: update-event@1 succeeded",
+       "passed": true
+      },
+      {
+       "name": "step 1: /start/dateTime present",
+       "passed": true
+      }
+     ],
+     "jobs": [
+      {
+       "approvals": [
+        {
+         "at": "2026-10-29T16:34:44.131Z",
+         "phase": "final"
+        }
+       ],
+       "errorCode": null,
+       "id": "165387e2-1865-49a1-b163-d230fb80c8c4",
+       "status": "succeeded"
+      }
+     ],
+     "passed": true,
+     "requests": [
+      {
+       "bodyHmac": null,
+       "identity": null,
+       "method": "GET",
+       "status": 200,
+       "template": "/calendars/{calendarId}/events/{eventId}"
+      },
+      {
+       "bodyHmac": null,
+       "identity": null,
+       "method": "GET",
+       "status": 200,
+       "template": "/users/me/settings/{setting}"
+      },
+      {
+       "bodyHmac": "8ec47aab267cc1b41d7ab8cfad4153992fe324a326779a8d8358dadf4a9e64f2",
+       "identity": null,
+       "method": "PATCH",
+       "status": 200,
+       "template": "/calendars/{calendarId}/events/{eventId}"
+      },
+      {
+       "bodyHmac": null,
+       "identity": null,
+       "method": "GET",
+       "status": 200,
+       "template": "/calendars/{calendarId}/events/{eventId}"
+      }
+     ]
+    }
+   }
+  ],
+  "transforms": {
+   "text.joinList@1": "1f75825537a4063657cd6dbd224bce5b4af8e05a651ff3738ea9c2eacf736053",
+   "time.zone@1": "6ea35f30a2b1291e03e36e9d2796a4b6e7dfbbc7f2925c90168acbf3bfe5e96c",
+   "time.zonedToRfc3339@1": "4f13820a3148f500cbd869b9b2120e43fee9d0308bc194619fc80da5333018ca"
+  }
+ },
+ "google-calendar.action.update-guests.v1.ae9d9cd5c9c093dac444e71e": {
+  "definitionHash": "68c9db87b5ca2a13e69f42a9eabf43d7980a9d7021a8ee1ad4222176709b7599",
+  "harnessHash": "7486366c59d0f96b08bcc8ea30ec3943954645aa102528f3f6900b15f8fccba2",
+  "passed": true,
+  "ranAt": "2026-10-29T16:41:48.613Z",
+  "runId": "MBIDCUUG",
+  "runtime": {
+   "icu": "78.2",
+   "node": "25.8.1",
+   "tz": "2026a",
+   "unicode": "17.0"
+  },
+  "schemaVersion": 1,
+  "tests": [
+   {
+    "checks": [
+     {
+      "name": "step 1: update-guests@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 1: /added count",
+      "passed": true
+     },
+     {
+      "name": "step 2: /attendees entry /responseStatus equals",
+      "passed": true
+     }
+    ],
+    "jobs": [
+     {
+      "approvals": [
+       {
+        "at": "2026-10-29T16:34:57.456Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "3490537f-1123-4ee4-81e8-99d045772b98",
+      "status": "succeeded"
+     }
+    ],
+    "passed": true,
+    "requests": [
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/calendars/{calendarId}/events/{eventId}"
+     },
+     {
+      "bodyHmac": "ebd484a95c79d09e9cd119c059f525f9812af20d5da1058c6d85a6f771d97882",
+      "identity": null,
+      "method": "PATCH",
+      "status": 200,
+      "template": "/calendars/{calendarId}/events/{eventId}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/calendars/{calendarId}/events/{eventId}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/calendars/{calendarId}/events/{eventId}"
+     }
+    ],
+    "test": "C7",
+    "undo": {
+     "checks": [
+      {
+       "name": "step 1: update-guests@1 succeeded",
+       "passed": true
+      },
+      {
+       "name": "step 1: /removed count",
+       "passed": true
+      }
+     ],
+     "jobs": [
+      {
+       "approvals": [
+        {
+         "at": "2026-10-29T16:35:10.776Z",
+         "phase": "final"
+        }
+       ],
+       "errorCode": null,
+       "id": "1b22155e-8b2f-4241-8017-86d31a6bb7dd",
+       "status": "succeeded"
+      }
+     ],
+     "passed": true,
+     "requests": [
+      {
+       "bodyHmac": null,
+       "identity": null,
+       "method": "GET",
+       "status": 200,
+       "template": "/calendars/{calendarId}/events/{eventId}"
+      },
+      {
+       "bodyHmac": "c00889eb5117f54f3b290cf804be60748cead7ce3b6d1a9758b09de143ac2100",
+       "identity": null,
+       "method": "PATCH",
+       "status": 200,
+       "template": "/calendars/{calendarId}/events/{eventId}"
+      },
+      {
+       "bodyHmac": null,
+       "identity": null,
+       "method": "GET",
+       "status": 200,
+       "template": "/calendars/{calendarId}/events/{eventId}"
+      }
+     ]
+    }
+   }
+  ],
+  "transforms": {
+   "collections.mergeEmails@1": "50bb72e570128495764b16b838b9e63a3bf6653c8be1269e3eccf9c72f3645fe",
+   "text.joinList@1": "1f75825537a4063657cd6dbd224bce5b4af8e05a651ff3738ea9c2eacf736053"
+  }
+ },
+ "run": {
+  "appId": "google-calendar",
+  "finishedAt": "2026-10-29T16:41:48.613Z",
+  "harnessHash": "7486366c59d0f96b08bcc8ea30ec3943954645aa102528f3f6900b15f8fccba2",
+  "rows": [
+   {
+    "allowSeenAt": null,
+    "askSeenAt": "2026-10-29T16:41:07.736Z",
+    "label": "Permanently delete calendars or clear all events",
+    "neverSeenAt": "2026-10-29T16:41:48.006Z",
+    "row": "google-calendar.permanent.delete"
+   }
+  ],
+  "runId": "MBIDCUUG",
+  "runtime": {
+   "icu": "78.2",
+   "node": "25.8.1",
+   "tz": "2026a",
+   "unicode": "17.0"
+  },
+  "startedAt": "2026-10-29T16:29:48.664Z",
+  "tests": [
+   {
+    "checks": [
+     {
+      "name": "step 1: DELETE /calendars/{cal} answered",
+      "passed": true
+     },
+     {
+      "name": "step 1: DELETE /calendars/{cal} answered",
+      "passed": true
+     },
+     {
+      "name": "step 2: status",
+      "passed": false
+     },
+     {
+      "name": "step 3: status",
+      "passed": true
+     }
+    ],
+    "jobs": [
+     {
+      "approvals": [
+       {
+        "at": "2026-10-29T16:41:19.482Z",
+        "phase": "proxy"
+       }
+      ],
+      "errorCode": "outcome_uncertain",
+      "id": "2ca2a0b6-a4dd-45d7-b1ee-3fc27fc1666e",
+      "status": "uncertain"
+     },
+     {
+      "approvals": [
+       {
+        "at": "2026-10-29T16:41:33.367Z",
+        "phase": "proxy"
+       }
+      ],
+      "errorCode": "outcome_uncertain",
+      "id": "1287e9c7-fe89-4b5d-84a3-9429cefc8fda",
+      "status": "uncertain"
+     }
+    ],
+    "passed": false,
+    "requests": [
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "DELETE",
+      "status": 204,
+      "template": "/calendars/{cal}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "DELETE",
+      "status": 204,
+      "template": "/calendars/{cal}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/calendars/{cal}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 404,
+      "template": "/calendars/{cal}"
+     }
+    ],
+    "test": "C13",
+    "undo": {
+     "none": "It is the undo of C1, and the row's return to Never is recorded."
+    }
+   }
+  ]
+ }
+}
