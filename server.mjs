@@ -427,7 +427,7 @@ export async function lockDataDir(dataDir) {
 }
 
 if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url)) {
-  const dataDir=process.env.FABRIC_DATA_DIR||path.join(ROOT,'.fabric');const release=await lockDataDir(dataDir);
-  let app;try{app=await createApp({dataDir});await app.start();console.log(`Fabric 0.3 running at ${app.origin}\nLocal data: ${dataDir}`);}catch(error){await release();throw error;}
+  const dataDir=process.env.FABRIC_DATA_DIR||path.join(ROOT,'.fabric');const stop=error=>{console.error(`Error: ${error.message}`);process.exit(1);};const release=await lockDataDir(dataDir).catch(stop);
+  let app;try{app=await createApp({dataDir});await app.start();console.log(`Fabric 0.3 running at ${app.origin}\nLocal data: ${dataDir}`);}catch(error){await release();stop(error);}
   let closing=false;for(const signal of ['SIGINT','SIGTERM']) process.on(signal,async()=>{if(closing)return;closing=true;await app.close();await release();process.exit(0);});
 }

@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { EventEmitter } from 'node:events';
 import { PassThrough } from 'node:stream';
+import http from 'node:http';
 import { isPublicAddress, createSafeRequester } from '../lib/network.mjs';
 
 test('public address check blocks loopback, private, mapped, reserved and transition addresses',() => {
@@ -110,4 +111,26 @@ test('an off-origin Location is dropped on every status, not only on redirects',
   assert.deepEqual((await request({url: 'https://api.example.com/x', allowedOrigins: ['https://api.example.com'], responseHeaders: ['content-type', 'location']})).headers, {'content-type': 'application/json'});
   const same = createSafeRequester({lookup: async () => [{address: '8.8.8.8', family: 4}], transport: transportFixture({status: 201, headers: {location: '/items/7'}})});
   assert.deepEqual((await same({url: 'https://api.example.com/x', allowedOrigins: ['https://api.example.com'], responseHeaders: ['location']})).headers, {location: 'https://api.example.com/items/7'});
+});
+
+// Hand test B32, 2026-10-30: GitHub answered 422 to Fabric's token revoke, so a disconnect never revoked the token at GitHub. Node sends no
+// body on a DELETE unless its length is declared, and that revoke is a DELETE with a JSON body. A real socket, since a fake transport cannot show it.
+test('a request body reaches the server on every method that carries one, DELETE too, with its length declared', async t => {
+  const received = [];
+  const server = http.createServer((req, res) => {
+    const chunks = [];
+    req.on('data', chunk => chunks.push(chunk));
+    req.on('end', () => { received.push([req.method, Buffer.concat(chunks).toString(), req.headers['content-length']]); res.writeHead(204); res.end(); });
+  });
+  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  t.after(() => server.close());
+  const transport = (url, options, callback) => http.request({host: '127.0.0.1', port: server.address().port, path: url.pathname, method: options.method, headers: options.headers, agent: false}, callback);
+  const request = createSafeRequester({lookup: async () => [{address: '8.8.8.8', family: 4}], transport});
+  const body = JSON.stringify({access_token: 'é'});
+  for (const method of ['DELETE', 'POST', 'PATCH', 'PUT']) {
+    assert.equal((await request({url: 'https://api.example.com/token', method, body, headers: {'Content-Type': 'application/json'}, allowedOrigins: ['https://api.example.com']})).status, 204);
+  }
+  assert.equal((await request({url: 'https://api.example.com/token', method: 'DELETE', allowedOrigins: ['https://api.example.com']})).status, 204);
+  const length = String(Buffer.byteLength(body));
+  assert.deepEqual(received, [['DELETE', body, length], ['POST', body, length], ['PATCH', body, length], ['PUT', body, length], ['DELETE', '', undefined]]);
 });

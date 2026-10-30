@@ -668,7 +668,7 @@ export const FAULTS = Object.freeze([
   {id: 'f1011-rowsneeding-candidate', step: STEP, name: 'rowsNeeding() counts a candidate action, which can never run.',
     file: DETAIL, from: "if (!item || item.status !== 'active' || capability.status !== 'active' ||", to: 'if (!item ||', tests: ROWS},
   {id: 'f1011-rowsneeding-optional', step: STEP, name: 'rowsNeeding() counts an optional step, which an action skips when its scope is missing.',
-    file: DETAIL, from: '.some(step => !step.optional && step.scopeSets.length &&', to: '.some(step => step.scopeSets.length &&', tests: ROWS},
+    file: DETAIL, from: '.some(step => !step.optional && needs(step.scopeSets))', to: '.some(step => needs(step.scopeSets))', tests: ROWS},
   {id: 'f1011-rowsneeding-declared', step: STEP, name: 'rowsNeeding() names the row of an action\'s last step, not the row it declares.',
     file: DETAIL, from: 'groups.find(group => group.id === item.entry.row)', to: 'groups.find(group => group.id === item.entry.placements.at(-1).groupId)', tests: ROWS},
   // ---- part l: local agent surfaces (lib/fabric-protocol.mjs, lib/mcp-adapter.mts, lib/continuations.mjs, server.mjs tools) ----------------

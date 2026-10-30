@@ -120,6 +120,7 @@ export function describeApp(detail, base = OWNER) {
       note: base.tenant ? 'Reads only.' : detail.background.runsWhile === 'runtime_running' ? 'Runs only while Fabric is running on this computer. Reads only.' : 'Reads only.'} : null,
     reset: detail.canReset && ref ? {path: `${accountPath(appId, ref)}/reset`, body: {}} : null,
     discovery: detail.discovery?.state === 'missing' ? detail.discovery.message : null,
+    limits: detail.limits ?? [],
   };
 }
 
@@ -208,7 +209,8 @@ if (typeof document !== 'undefined') {
       summary ? el('p', {class: 'summary'}, summary) : null,
       model.notices.length ? el('ul', {class: 'notices', role: 'status'}, model.notices.map(notice => el('li', {}, notice.text))) : null,
       !model.connected && model.accessSummary ? el('p', {class: 'summary-detail'}, model.accessSummary) : null,
-      model.connectBlocked ? el('p', {class: 'empty'}, model.connectBlocked) : null);
+      model.connectBlocked ? el('p', {class: 'empty'}, model.connectBlocked) : null,
+      ...model.limits.map(line => el('p', {class: 'summary-detail'}, line)));
     if (model.disconnect) {
       const card = el('div', {class: 'rows single'});
       const button = el('button', {type: 'button', class: 'row-button text-danger', onclick: () => card.replaceChildren(confirmBox(`${model.disconnect.label}? The agent loses access to this account.`, 'Disconnect', () => act({...model.disconnect, disconnects: true}, 'Disconnected.'), true))}, 'Disconnect');

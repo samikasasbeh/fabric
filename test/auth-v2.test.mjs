@@ -173,6 +173,10 @@ test('access levels: version 1 keeps read and read_write; version 2 says full, p
   assert.equal(heldLevel(gmail2, ['openid', `${G}gmail.modify`, `${G}gmail.settings.basic`]), 'full');
   assert.deepEqual(heldLevel(gmail2, [`${G}gmail.modify`]), {level: 'partial', notGranted: 1});
   assert.equal(heldLevel(gmail2, [`${G}gmail.readonly`]), 'read');
+  // Hand test S7.12, 2026-10-30: Google answers the sign-in scope email as userinfo.email, so a live read-only account read "Custom".
+  assert.equal(heldLevel(gmail2, ['openid', `${G}userinfo.email`, `${G}gmail.readonly`]), 'read');
+  assert.equal(heldLevel(gmail2, ['openid', 'email', `${G}gmail.readonly`]), 'read');
+  assert.equal(heldLevel(gmail2, [`${G}userinfo.email`, `${G}gmail.readonly`, `${G}gmail.labels`]), 'custom', 'any other app scope is still custom');
   assert.equal(heldLevel(gmail2, [`${G}gmail.labels`]), 'custom');
   assert.equal(levelLabel(heldLevel(gmail2, [`${G}gmail.modify`])), 'Partial access (1 permission not granted)');
   assert.equal(levelLabel({level: 'partial', notGranted: 3}), 'Partial access (3 permissions not granted)');

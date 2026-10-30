@@ -36,6 +36,7 @@ import {FAULTS as F10_15} from './f10-15.mjs';
 import {FAULTS as F10_17} from './f10-17.mjs';
 import {FAULTS as F10_19} from './f10-19.mjs';
 import {FAULTS as F10_21} from './f10-21.mjs';
+import {FAULTS as HAND_PASS} from './hand-pass.mjs';
 
 const R = String.raw;
 
@@ -524,5 +525,5 @@ export const FAULTS = Object.freeze([
   // ---- F10.19 Notion actions (docs/F10.19-BUILD-MAP.md section 4) -----------------------------------------------------------------------
   ...F10_19,
   // ---- F10.21 Slack actions (docs/F10.21-BUILD-MAP.md section 4) -----------------------------------------------------------------------
-  ...F10_21,
+  ...F10_21, ...HAND_PASS,
 ]);

@@ -449,6 +449,19 @@ test('the permissions a missing scope leaves without access: no alternative avoi
   assert.throws(() => h.service.rowsNeeding('no-such-app', [MODIFY]), {code: 'not_found'});
 });
 
+// Hand test S5.6, 2026-10-30: live Discovery lists the full mailbox beside gmail.modify on nearly every operation, so declining gmail.modify named no
+// permission. Fabric never asks for the full mailbox, so it is no way around a missing scope; a scope it may ask for still is.
+test('a scope Fabric never asks for is no alternative: the refusal names the permission, and only for a scope that is really missing', t => {
+  const h = harness(t, googleV2()), FULL = 'https://mail.google.com/', TRASH = 'gmail.users.messages.trash', LABEL = 'Move emails to or from trash';
+  Object.assign(h.caps, seed(h.store, 'gmail', [...MAPS.gmail.operations, [TRASH, 'POST', '/gmail/v1/users/{userId}/messages/{id}/trash', [FULL, MODIFY]]]));
+  assert.ok(h.service.rowsNeeding('gmail', [MODIFY]).some(row => row.label === LABEL));
+  assert.ok(!h.service.rowsNeeding('gmail', [SETTINGS]).some(row => row.label === LABEL), 'a sign-in missing something else does not name it');
+  assert.ok(!h.service.rowsNeeding('gmail', [CALENDAR]).some(row => row.label === LABEL));
+  const other = harness(t, googleV2());
+  Object.assign(other.caps, seed(other.store, 'gmail', [...MAPS.gmail.operations, [TRASH, 'POST', '/gmail/v1/users/{userId}/messages/{id}/trash', [READONLY, MODIFY]]]));
+  assert.ok(!other.service.rowsNeeding('gmail', [MODIFY]).some(row => row.label === LABEL), 'a scope Fabric may ask for still avoids it');
+});
+
 test('Gmail under the required consent policy asks for gmail.modify only: nothing was declined, and the label still counts what full access lacks', async t => {
   const h = harness(t, googleV2(), {publishing: 'production', maps: ['gmail']});
   const {started, connection} = await h.signIn({appId: 'gmail', level: 'full'});

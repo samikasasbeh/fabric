@@ -346,5 +346,5 @@ export const FAULTS = Object.freeze([
   {id: "f1017-plan-h10-run-id", step: STEP, name: "H10 no longer checks that the action answered a run id.",
     file: PLAN, from: ", {\"pointer\": \"/runId\", \"present\": true}", to: "", tests: FILE_TESTS},
   {id: "f1018-discovery-actions", step: STEP, name: "An app whose certified actions place with no map still says its permissions apply to raw requests only.",
-    file: 'lib/app-detail.mjs', from: "map || rows.some(row => row.members.some(member => member.capability?.driver === 'action')) ? {state: 'ready'}", to: "map ? {state: 'ready'}", tests: ['test/rows-every-app.test.mjs']},
+    file: 'lib/app-detail.mjs', from: "discovery: map || this.store.list('capabilities').some(capability => capability.appId === appId && capability.driver === 'action' && capability.status === 'active') ? {state: 'ready'}", to: "discovery: map ? {state: 'ready'}", tests: ['test/rows-every-app.test.mjs']},
 ]);

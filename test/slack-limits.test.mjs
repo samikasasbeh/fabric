@@ -7,6 +7,7 @@ import {DISTRIBUTIONS, PACED, distributionOf} from '../lib/slack-limits.mjs';
 import {Runtime} from '../lib/runtime.mjs';
 import {Store} from '../lib/store.mjs';
 import {AppDetailService} from '../lib/app-detail.mjs';
+import {describeApp} from '../public/hosted-app.js';
 import {catalog} from '../lib/connections.mjs';
 import {createApp} from '../server.mjs';
 import {createDeveloperApp} from '../developer-server.mjs';
@@ -122,6 +123,16 @@ test('the app page adds the fixed line to Slack\'s limitations only under distri
     const service = new AppDetailService({store, runtime, catalog: () => catalog, accessLevels: () => [], accessLevelOf: () => 'custom', oauthProviderFor: () => null});
     return id => service.view(id).app.limitations;
   };
+  // Hand test S21.4, 2026-10-30: the line reached the view but the app page drew nothing, so it is its own field, which the page's model carries.
+  const page = slackDistribution => {
+    const directory = mkdtempSync(path.join(tmpdir(), 'fabric-slack-page-'));
+    t.after(() => rmSync(directory, {recursive: true, force: true}));
+    const store = new Store({dataDir: directory}), runtime = new Runtime({store, ...(slackDistribution ? {slackDistribution} : {})});
+    t.after(() => store.close());
+    const service = new AppDetailService({store, runtime, catalog: () => catalog, accessLevels: () => [], accessLevelOf: () => 'custom', oauthProviderFor: () => null});
+    return id => describeApp(service.view(id), {}).limits;
+  };
+  assert.deepEqual([page('distributed')('slack'), page('distributed')('gmail'), page()('slack')], [[LINE], [], []]);
   const shipped = catalog.find(app => app.id === 'slack').limitations;
   assert.deepEqual(view('distributed')('slack'), [...shipped, LINE]);
   for (const value of ['internal', 'marketplace', undefined]) assert.deepEqual(view(value)('slack'), shipped, String(value));
