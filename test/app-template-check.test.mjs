@@ -22,14 +22,15 @@ test('every template app matches the recorded ratchet, check by check', () => {
     assert.deepEqual(checks.map(item => item.id), CHECKS, appId);
     assert.deepEqual(Object.fromEntries(checks.map(item => [item.id, item.pass])), RATCHET.apps[appId], `${appId}: update test/fixtures/access/template-ratchet.json on purpose when a check changes`);
     for (const item of checks) if (!item.pass) assert.ok(item.reason && item.reason !== 'passes', `${appId} ${item.id} says why it fails`);
-    // F10.21 listed churn: Slack passes checks 1 to 5 once its reviewed actions pass; its live checks wait for the operator's setup and do not gate.
+    // F10.21 listed churn: Slack passes checks 1 to 5 once its reviewed actions pass. F10.22 listed churn: its 13 actions are certified by run
+    // VNIINO6Y, so check 6 passes too; its sign-in evidence still does not gate.
     // F10.14 and F10.16 listed churn: Calendar and Gmail pass all eight on 2026-10-29, live evidence and sign-in evidence included.
     // F10.18 listed churn: GitHub passes all eight on 2026-10-30, its 15 actions certified by run 5XBI3UND, and Notion the same day, its 16
     // by run X4G5USDP.
     const grade = ['slack', 'google-calendar', 'gmail', 'github', 'notion'].includes(appId);
     assert.equal(gatePasses(checks), grade, `${appId} is ${grade ? 'Muse-grade' : 'not Muse-grade yet'}`);
   }
-  // Slack's live checks wait for the operator's setup and do not gate; every other app's checks all gate.
+  // Slack is certified as an internal app only, so its live checks do not gate; every other app's checks all gate.
   assert.deepEqual(templateChecks('slack').filter(item => !item.required).map(item => item.id), ['live-evidence', 'sign-in-evidence']);
   assert.ok(templateChecks('gmail').every(item => item.required));
   assert.throws(() => templateChecks('dropbox'), /not one of the template apps/);
@@ -148,11 +149,13 @@ test('check 5 reads the action file through the validator and its transform pins
     // A valid reviewed file, its transforms pinned and unchanged: what is left is the app's own simulator (steps 13 to 21; F10.11 listed churn:
     // the reason names it) and live evidence (F10.12).
     const file = {...fixtureActions(), reviewStatus: 'reviewed'}, entries = validateActionFile(file, {...deps, choices: new Map([['fixture', fixtureChoices().sources]])}).actions;
+    // F10.23: an action with no record is listed by name, so the check says which ones do not count (section 9, check 6).
+    const noRecord = `${entries.length} of ${entries.length} actions have no passing live record for their id and the current pins of their transforms: ${entries.map(entry => `${entry.key} v${entry.version}`).join(', ')}`;
     writeActions(file);
-    assert.deepEqual(reasons(), [false, 'no provider simulator for fixture yet (steps 13 to 21)', false, `${entries.length} of ${entries.length} actions have no passing live record for their id and the current pins of their transforms`]);
+    assert.deepEqual(reasons(), [false, 'no provider simulator for fixture yet (steps 13 to 21)', false, noRecord]);
     // Check 5 counts reviewed actions only (I8): the same file as a candidate says so, though its ids are the same (review state is not hashed).
     writeActions({...file, reviewStatus: 'candidate'});
-    assert.deepEqual(reasons(), [false, 'the action file is a candidate: no reviewer has marked it reviewed yet (I8)', false, `${entries.length} of ${entries.length} actions have no passing live record for their id and the current pins of their transforms`]);
+    assert.deepEqual(reasons(), [false, 'the action file is a candidate: no reviewer has marked it reviewed yet (I8)', false, noRecord]);
     writeActions(file);
     // Check 6 counts a record only under the id the validator computed, with the pins of every transform the action names.
     const pinsOf = entry => Object.fromEntries(entry.transforms.map(id => [id, PINS[id]]));
@@ -161,7 +164,7 @@ test('check 5 reads the action file through the validator and its transform pins
     assert.equal(run()['live-evidence'].pass, true, 'every action has a passing record');
     const named = entries.find(entry => entry.transforms.length);
     writeEvidence({...records, [named.id]: {passed: true, transforms: {...pinsOf(named), [named.transforms[0]]: 'f'.repeat(64)}}});
-    assert.equal(run()['live-evidence'].reason, `1 of ${entries.length} actions have no passing live record for their id and the current pins of their transforms`, 'a record made under another pin');
+    assert.equal(run()['live-evidence'].reason, `1 of ${entries.length} actions have no passing live record for their id and the current pins of their transforms: ${named.key} v${named.version}`, 'a record made under another pin');
     writeEvidence({...records, [named.id]: {passed: true}});
     assert.equal(run()['live-evidence'].pass, false, 'a record without the transform pins');
     writeEvidence(records);

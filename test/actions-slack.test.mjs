@@ -77,7 +77,9 @@ const linkOf = (channel, ts, thread) => `https://fabric-test.slack.com/archives/
 const currentFile = (deps = slackDeps()) => withIds(slackFile(), deps);
 const stepsOf = action => [...action.prepare, ...action.perform, ...(action.verify?.requests ?? [])];
 
-test('the file: 13 actions, each placed in its row with its effect and hints (section 2); every step requires Slack\'s ok; no certified block; token never named', () => {
+// Step 22's live pass (run VNIINO6Y) certified all 13, each naming the shipped evidence; that each names the hash of exactly its definition,
+// with a passing record, is test/live-evidence.test.mjs's, so an edit of the file is caught here by what it breaks.
+test('the file: 13 actions, each placed in its row with its effect and hints (section 2); every step requires Slack\'s ok; each certified by step 22\'s evidence; token never named', () => {
   const file = currentFile(), {actions} = validateActionFile(file, slackDeps());
   assert.deepEqual(actions.map(entry => entry.key), Object.keys(TABLE));
   for (const entry of actions) {
@@ -85,7 +87,7 @@ test('the file: 13 actions, each placed in its row with its effect and hints (se
     assert.deepEqual([entry.version, entry.row, entry.effect, entry.action.hints, entry.unplaced, entry.sensitive, entry.placements.length], [1, row, effect, hints, false, false, steps], entry.key);
     assert.ok(entry.placements.every(placement => !placement.unplaced && placement.groupId.startsWith('slack.')), entry.key);
     assert.equal(entry.placements.filter(placement => placement.phase === 'perform').at(-1).groupId, row, `${entry.key}: the last perform step lands in its row`);
-    assert.equal(entry.action.certified, undefined, `${entry.key}: certified only by step 22's evidence`);
+    assert.deepEqual([Object.keys(entry.action.certified), entry.action.certified.evidence], [['evidence', 'definitionHash'], 'docs/live-evidence/slack/actions.json'], `${entry.key}: certified by step 22's evidence`);
     assert.deepEqual(entry.action.definitive, [429], `${entry.key}: Slack answers its own refusals inside a 200`);
     for (const step of stepsOf(entry.action)) assert.deepEqual(step.expect.require[0].anyOf?.[0] ?? step.expect.require[0], OK, `${entry.key}: ${step.id} requires ok`);
   }
@@ -110,6 +112,17 @@ test('at start without live evidence: 13 candidates that never run and that no a
   const protocol = new FabricProtocol({store: h.store, runtime: h.runtime, clock: () => h.now, origin: 'http://127.0.0.1:59996'});
   assert.throws(() => protocol.createClient({name: 'Slack agent', bindings: [{connectionId: h.account, capabilityId: h.idOf('list-conversations v1')}]}, OWNER), {code: 'permission_denied'});
   assert.deepEqual([h.simulator.calls.length, h.store.list('clientGrants').length], [0, 0]);
+});
+
+test('An owner\'s confirmed Allow: a message goes with no card, a direct message opens and sends with no stop, and raw requests on the row still ask', async t => {
+  const h = slackHarness(t);
+  h.permissions.set({connectionId: h.account, capabilityId: h.idOf('send-message v1'), mode: 'allow'});
+  ended(await h.run('send-message v1', {channel: IDS.fabricTest, text: 'Hello'}), 'succeeded', null);
+  assert.equal(messagesOf(h, IDS.fabricTest).at(-1).text, 'Hello');
+  const asked = await h.run('send-dm v1', {user: IDS.ada, text: 'Still asks'});
+  assert.deepEqual([asked.status, asked.action.phase], ['awaiting_approval', 'reads'], 'Allow on one action moves no other action on the row');
+  assert.throws(() => h.setRow('slack.messages.send', 'allow'));
+  assert.equal(h.proxyPolicy.view(h.account).find(row => row.row === 'group:slack.messages.send').mode, 'ask', 'a raw request on the row still asks');
 });
 
 // ---- spec line 1222: <!channel> is escaped --------------------------------------------------------------------------------------------
@@ -167,7 +180,7 @@ test('Send a direct message uses conversations.open (spec line 1224): a reads ca
   const h = slackHarness(t);
   const reads = await h.run('send-dm v1', {user: IDS.ada, text: 'Hello Ada'});
   assert.deepEqual([reads.status, reads.action.phase, reads.action.modes, h.simulator.writes().length], ['awaiting_approval', 'reads', {prepare: 'allow', resolve: 'ask', perform: 'ask'}, 0],
-    '"Mark as read and open direct messages" asks for a request template under the signed defaults: nothing is sent before its card');
+    '"Send, edit and react to messages" asks, and the open is never looser than the action: nothing is sent before its card');
   assert.deepEqual(JSON.parse(h.card(reads).exact.blocks.find(block => block.label === 'open: Body').text), {users: IDS.ada});
   const job = await h.approve(reads);
   assert.deepEqual([job.status, job.action.phase, writes(h)], ['awaiting_approval', 'final', ['conversations.open']]);
@@ -176,7 +189,7 @@ test('Send a direct message uses conversations.open (spec line 1224): a reads ca
   assert.equal(bodyOf(h, job).channel, 'D0ADA0001');
   const done = ended(await h.approve(job), 'succeeded', null);
   assert.deepEqual([done.result.verification.status, done.result.data.channel], ['verified', 'D0ADA0001']);
-  // T8: the open is never looser than the action, whose row reaches people and never allows, so even with the row at Allow the open asks first.
+  // T8: the open is never looser than the action, whose row reaches people and asks by default, so even with the open's row at Allow the open asks first.
   h.setRow('slack.conversations.mark', 'allow');
   const again = await h.run('send-dm v1', {user: IDS.owner, text: 'Note to self'});
   assert.deepEqual([again.status, again.action.phase, again.action.modes.resolve, writes(h).length], ['awaiting_approval', 'reads', 'ask', 2]);
@@ -587,9 +600,9 @@ test('the live plan S0 to S6 passes step 12\'s plan check against the shipped fi
   const checked = checkPlan(PLAN(), planDeps());
   assert.deepEqual(checked.plan.tests.map(item => item.id), ['S0', 'S1', 'S2', 'S3', 'S4', 'S5', 'S6']);
   assert.deepEqual([...checked.actions.keys()].sort(), ENTRIES.map(entry => `${entry.key}@${entry.version}`).sort());
-  assert.deepEqual(Object.keys(checked.plan.recorded), ['fabricTest', 'selfDm', 'ownerUser', 'synthetic1', 'synthetic2', 'canvas']);
+  assert.deepEqual(Object.keys(checked.plan.recorded), ['fabricTest', 'selfDm', 'ownerUser', 'synthetic1', 'synthetic2', 'canvas', 'ownerEmail', 'ownerName']);
   const test = id => checked.plan.tests.find(item => item.id === id);
-  assert.deepEqual(callsOf(test('S0')).map(call => call.action), ['list-conversations@1', 'read-messages@1', 'read-thread@1', 'search-messages@1', 'find-person@1', 'read-canvas@1']);
+  assert.deepEqual(callsOf(test('S0')).map(call => call.action), ['list-conversations@1', 'read-messages@1', 'read-thread@1', 'search-messages@1', 'find-person@1', 'find-person@1', 'find-person@1', 'read-canvas@1']);
   assert.equal(test('S0').undo, undefined, 'a read pass undoes nothing');
   assert.deepEqual(test('S1').undo.steps.map(step => [step.call.action, step.call.args.do]), [['schedule-message@1', 'cancel']]);
   assert.deepEqual(test('S4').undo.steps.map(step => [step.call.action, step.call.args.do]), [['react@1', 'remove']]);
@@ -617,7 +630,7 @@ function planCheck(check, {status, body}) {
 test('a simulated run of S0 to S6: every step of the plan, its placeholders filled, runs on the simulator behind the live guard; every call succeeds verified and every check holds', async t => {
   const h = slackHarness(t), folder = mkdtempSync(path.join(tmpdir(), 'fabric-slack-plan-'));
   t.after(() => rmSync(folder, {recursive: true, force: true}));
-  const recorded = {fabricTest: IDS.fabricTest, selfDm: IDS.selfDm, ownerUser: IDS.owner, synthetic1: h.simulator.synthetic.one, synthetic2: h.simulator.synthetic.two, canvas: IDS.canvas};
+  const recorded = {fabricTest: IDS.fabricTest, selfDm: IDS.selfDm, ownerUser: IDS.owner, synthetic1: h.simulator.synthetic.one, synthetic2: h.simulator.synthetic.two, canvas: IDS.canvas, ownerEmail: 'owner@example.com', ownerName: 'Fabric Owner'};
   const guard = createGuard({appId: 'slack', runId: 'ABCDEFGH', folder, key: randomBytes(32), clock: () => h.now});
   guard.setOwner({email: 'owner@example.com', timeZone: 'UTC', runDate: '2026-10-26', recorded});
   h.runtime.request = guard.wrap(h.simulator.request);
@@ -646,7 +659,7 @@ test('a simulated run of S0 to S6: every step of the plan, its placeholders fill
     }
     guard.end();
   }
-  assert.deepEqual([calls, reads], [17, 7], 'S0\'s six reads, the eight writes and three undos; seven readbacks');
+  assert.deepEqual([calls, reads], [19, 7], 'S0\'s eight reads, the eight writes and three undos; seven readbacks');
   assert.ok(guard.counts().writes >= 10, `the guard counted ${guard.counts().writes} writes`);
   assert.deepEqual(h.simulator.notifications(), []);
   assert.deepEqual([h.simulator.state().scheduled, h.simulator.state().people[0].profile.status_text], [[], ''], 'S1 and S6 left nothing behind');

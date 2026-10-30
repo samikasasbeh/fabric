@@ -1,0 +1,19 @@
+{
+ "schemaVersion": 1,
+ "appId": "slack",
+ "note": "Live sign-in evidence (exit gate check 7). Session 2026-10-30: Sami signed in and the test operator recorded what each screen showed. A record says passed only where the session showed exactly the kind the exit gate names. Fields the session did not record say so. No email, name, account id, login, page name or token is kept. The partial grant then Add access has not been run, so it has no record yet.",
+ "full-consent": {
+  "passed": true,
+  "date": "2026-10-30",
+  "runtime": "npm start, single owner; then the live test harness",
+  "folder": "hand test folder and certification folder, one sign-in each",
+  "clientGrant": "none",
+  "codeRevision": "4c1626b",
+  "consentPolicy": "Slack's consent page for the app in its own workspace, user scopes only, app undistributed",
+  "observed": "Slack showed the app's full list; after Allow the app page read \"Full access\" with 12 permission rows and Background sync, and only \"Manage channels and user groups\" said \"Needs more access\". Runs 4EABFYKL and VNIINO6Y then used the second sign-in.",
+  "scopesExpected": "33 user scopes; channels:write and groups:write are asked in context only",
+  "settings": "not recorded",
+  "notices": "the usual \"Sign-in returned\" banner, nothing else",
+  "auditTypes": "not recorded"
+ }
+}

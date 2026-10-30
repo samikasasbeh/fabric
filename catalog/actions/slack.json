@@ -23,7 +23,8 @@
    ],
    "output": {"channels":{"each":{"step":"list","pointer":"/channels"},"as":"channel","max":100,"do":{"object":{"id":{"pick":{"var":"channel"},"pointer":"/id"},"name":{"pick":{"var":"channel"},"pointer":"/name"},"isPrivate":{"pick":{"var":"channel"},"pointer":"/is_private"},"isIm":{"pick":{"var":"channel"},"pointer":"/is_im"},"isMpim":{"pick":{"var":"channel"},"pointer":"/is_mpim"},"user":{"pick":{"var":"channel"},"pointer":"/user"}}}},"nextCursor":{"when":{"nonEmpty":{"step":"list","pointer":"/response_metadata/next_cursor"}},"then":{"step":"list","pointer":"/response_metadata/next_cursor"}}},
    "preview": [],
-   "definitive": [429]
+   "definitive": [429],
+   "certified": {"evidence":"docs/live-evidence/slack/actions.json","definitionHash":"06d3b956bb65e129ecd44d675890fccfdb373d086f8ea93af9a741a26a887001"}
   },
   {
    "id": "slack.action.read-messages.v1.fcd94a219f61d0bc555b1284",
@@ -45,7 +46,8 @@
    "preview": [
     {"label":"Channel","expr":{"input":"/channel"}}
    ],
-   "definitive": [429]
+   "definitive": [429],
+   "certified": {"evidence":"docs/live-evidence/slack/actions.json","definitionHash":"a644b7ef337a00d560b9e3e3694b57424671e3102d536edcadfc7c55059e2257"}
   },
   {
    "id": "slack.action.read-thread.v1.986986cb58fc26d9d30575dd",
@@ -71,7 +73,8 @@
     {"label":"Channel","expr":{"input":"/channel"}},
     {"label":"Message","expr":{"input":"/ts"}}
    ],
-   "definitive": [429]
+   "definitive": [429],
+   "certified": {"evidence":"docs/live-evidence/slack/actions.json","definitionHash":"6b9566050d3994ea31f07ec8daaad5321deae59156ed886e20a45ea3f7603d26"}
   },
   {
    "id": "slack.action.search-messages.v1.073fdd0c1514c9871858b292",
@@ -93,7 +96,8 @@
    "preview": [
     {"label":"Search","expr":{"pick":{"transform":"text.slackQuery@1","args":{"words":{"input":"/words"},"channel":{"input":"/channel"},"from":{"input":"/from"},"after":{"input":"/after"},"before":{"input":"/before"}}},"pointer":"/query"}}
    ],
-   "definitive": [429]
+   "definitive": [429],
+   "certified": {"evidence":"docs/live-evidence/slack/actions.json","definitionHash":"809152655b8186936c9193a5335010969455c2d9b414d9f3dea2556253f85f47"}
   },
   {
    "id": "slack.action.find-person.v1.fb7d3ac1b446eb330ff1565a",
@@ -125,7 +129,8 @@
     {"label":"Name","expr":{"input":"/name"}},
     {"label":"User","expr":{"input":"/user"}}
    ],
-   "definitive": [429]
+   "definitive": [429],
+   "certified": {"evidence":"docs/live-evidence/slack/actions.json","definitionHash":"65222ef6fe17fb1fcf5fa375bfaa7153435f552441fbab460708965e28aff243"}
   },
   {
    "id": "slack.action.send-message.v1.eaa928f7ae007a2602946485",
@@ -158,7 +163,8 @@
     {"label":"People in the channel","expr":{"step":"channel","pointer":"/channel/num_members"}},
     {"label":"Message","expr":{"pick":{"transform":"text.slackEscape@1","args":{"text":{"input":"/text"}}},"pointer":"/text"},"truncate":2000}
    ],
-   "definitive": [429]
+   "definitive": [429],
+   "certified": {"evidence":"docs/live-evidence/slack/actions.json","definitionHash":"31842eefb9227013a5c2bd313e40347bd97ce3af4cdf6b74b73d6e29f87a1cd1"}
   },
   {
    "id": "slack.action.reply-thread.v1.8792aff99ccad81b9e5abc8c",
@@ -195,7 +201,8 @@
     {"label":"Replying to","expr":{"either":[{"step":"parentByLink","pointer":"/messages/0/text"},{"step":"parentById","pointer":"/messages/0/text"}]},"truncate":2000},
     {"label":"Message","expr":{"pick":{"transform":"text.slackEscape@1","args":{"text":{"input":"/text"}}},"pointer":"/text"},"truncate":2000}
    ],
-   "definitive": [429]
+   "definitive": [429],
+   "certified": {"evidence":"docs/live-evidence/slack/actions.json","definitionHash":"caea9dc1bf21082361ce87b786c358c84e1c74a0d7360d3f520eaad46859fb18"}
   },
   {
    "id": "slack.action.send-dm.v1.39a8de318324a5d1e923b128",
@@ -226,7 +233,8 @@
     {"label":"To","expr":{"concat":[{"step":"person","pointer":"/user/real_name"},{"const":" ("},{"step":"person","pointer":"/user/profile/display_name"},{"const":") "},{"step":"person","pointer":"/user/id"}],"max":600}},
     {"label":"Message","expr":{"pick":{"transform":"text.slackEscape@1","args":{"text":{"input":"/text"}}},"pointer":"/text"},"truncate":2000}
    ],
-   "definitive": [429]
+   "definitive": [429],
+   "certified": {"evidence":"docs/live-evidence/slack/actions.json","definitionHash":"619ede7e2150a618501b5404cd56844ae250a0d06afc090ac5afafb344b4587f"}
   },
   {
    "id": "slack.action.edit-message.v1.c56852b009ce9307b5b8b34a",
@@ -261,7 +269,8 @@
     {"label":"Old text","expr":{"pick":{"transform":"collections.findBy@1","args":{"list":{"step":"old","pointer":""},"items":{"const":"/messages"},"field":{"const":"/ts"},"id":{"const":"/user"},"label":{"const":"/text"},"value":{"input":"/ts"},"fold":{"const":"none"},"require":{"const":"one"}}},"pointer":"/matches/0/label"},"truncate":2000},
     {"label":"New text","expr":{"pick":{"transform":"text.slackEscape@1","args":{"text":{"input":"/text"}}},"pointer":"/text"},"truncate":2000}
    ],
-   "definitive": [429]
+   "definitive": [429],
+   "certified": {"evidence":"docs/live-evidence/slack/actions.json","definitionHash":"c10a927aec067c3e8d07106986c612c39aa074d53f1864d829a0f7d9eeefba1e"}
   },
   {
    "id": "slack.action.react.v1.51dadb0cf06436289616cc87",
@@ -296,7 +305,8 @@
     {"label":"Emoji","expr":{"pick":{"transform":"ids.slackEmoji@1","args":{"name":{"input":"/emoji"}}},"pointer":"/code"}},
     {"label":"Change","expr":{"input":"/do"}}
    ],
-   "definitive": [429]
+   "definitive": [429],
+   "certified": {"evidence":"docs/live-evidence/slack/actions.json","definitionHash":"b762a503e5c8066f94d0fe56d8c2443f05a505d8a3b49d22a2f56fc4cefb910c"}
   },
   {
    "id": "slack.action.schedule-message.v1.ef88e4feb030e7d9e2bf7fd2",
@@ -335,7 +345,8 @@
     {"label":"Scheduled message","expr":{"input":"/scheduledMessageId"}},
     {"label":"Message","expr":{"pick":{"transform":"text.slackEscape@1","args":{"text":{"input":"/text"}}},"pointer":"/text"},"truncate":2000}
    ],
-   "definitive": [429]
+   "definitive": [429],
+   "certified": {"evidence":"docs/live-evidence/slack/actions.json","definitionHash":"a85cbcedc9611d13eb827a3887c9aa67cb13c3e3f1eaca502d06505562d62730"}
   },
   {
    "id": "slack.action.set-status.v1.82c2bbfe6214cec2b9d6edbd",
@@ -373,7 +384,8 @@
     {"label":"Emoji","expr":{"input":"/emoji"}},
     {"label":"Clears at","expr":{"input":"/until"}}
    ],
-   "definitive": [429]
+   "definitive": [429],
+   "certified": {"evidence":"docs/live-evidence/slack/actions.json","definitionHash":"249e8bae63eb1a026780c043a83456aad2aaf9fd3863393048777bf8e306d25b"}
   },
   {
    "id": "slack.action.read-canvas.v1.b924a5e71b76478a426be295",
@@ -395,7 +407,8 @@
    "preview": [
     {"label":"Canvas","expr":{"input":"/canvas"}}
    ],
-   "definitive": [429]
+   "definitive": [429],
+   "certified": {"evidence":"docs/live-evidence/slack/actions.json","definitionHash":"264b0ec4d8fb4277babb1b7134424c6a83dff14144ec74a958a088d027b66b7e"}
   }
  ]
 }

@@ -141,15 +141,15 @@ test('entryOf() answers only for the catalog\'s own id and definition: status is
 // refused; GitHub's 15, Notion's 16 and Slack's 13 place with no map (request templates, or method and path), so they load with or without
 // one. None joins a row or an agent's list until its live evidence. F10.14 listed churn: step 14's live pass certified Calendar's 13, so with
 // Google's map they are active; F10.16's certified Gmail's 13 the same way. Step 18's live pass (run 5XBI3UND) certified GitHub's 15 and step
-// 20's (run X4G5USDP) Notion's 16, which place with no map, so they are active with or without one. Slack stays a candidate until its own pass.
-test('the shipped folders load Calendar\'s 13, Gmail\'s 13, GitHub\'s 15 and Notion\'s 16 active, Slack\'s 13 candidates with their maps, no refusal and no superseded id; without the maps Calendar alone is refused', () => {
+// 20's (run X4G5USDP) Notion's 16 and step 22's (run VNIINO6Y) Slack's 13, which place with no map, so they are active with or without one.
+test('the shipped folders load all five apps\' 70 actions active with their maps, no refusal and no superseded id; without the maps Calendar alone is refused', () => {
   const catalog = loadActionCatalog({maps: new Map(['google-calendar', 'gmail'].map(appId => [appId, googleMap(appId)]))}), apps = item => item.appId;
   assert.deepEqual([catalog.entries.size, catalog.superseded.size, catalog.choices.size, catalog.refused.size], [70, 0, 0, 0]);
   assert.deepEqual([...catalog.entries.values()].map(apps).sort(), [...Array(15).fill('github'), ...Array(13).fill('gmail'), ...Array(13).fill('google-calendar'), ...Array(16).fill('notion'), ...Array(13).fill('slack')]);
-  assert.ok([...catalog.entries.values()].every(item => item.status === (['google-calendar', 'gmail', 'github', 'notion'].includes(item.appId) ? 'active' : 'candidate')));
+  assert.ok([...catalog.entries.values()].every(item => item.status === 'active'));
   const bare = loadActionCatalog();
   assert.deepEqual([bare.entries.size, [...bare.refused.keys()]], [57, ['google-calendar']]);
-  assert.ok([...bare.entries.values()].every(item => ['github', 'gmail', 'notion', 'slack'].includes(item.appId) && item.status === (['github', 'notion'].includes(item.appId) ? 'active' : 'candidate')));
+  assert.ok([...bare.entries.values()].every(item => ['github', 'gmail', 'notion', 'slack'].includes(item.appId) && item.status === (item.appId === 'gmail' ? 'candidate' : 'active')));
   assert.ok([...bare.entries.values()].filter(item => item.appId === 'gmail').every(item => item.entry.unplaced === true));
   assert.match(bare.refused.get('google-calendar'), /find-free-time v1: declares effect read, but its methods say at least write/);
 });
@@ -379,13 +379,13 @@ test('part p: tenant catalog actions writes the same statuses into the platform 
   t.after(() => { rmSync(root, {recursive: true, force: true}); rmSync(shipped, {recursive: true, force: true}); });
   // The shipped folder holds Calendar's file (F10.13), Gmail's (F10.15), GitHub's (F10.17), Notion's (F10.19) and Slack's (F10.21). A fresh
   // root stores no Calendar map, so Calendar is refused; Gmail's 13 load unplaced without its map and GitHub's 15, Notion's 16 and Slack's 13
-  // place with none, so the command seeds those 57 once into a root of their own: GitHub's 15 and Notion's 16 active on their live evidence,
-  // the rest as candidates (Gmail's placed only with its map, Slack with no evidence yet). A second run writes nothing.
+  // place with none, so the command seeds those 57 once into a root of their own: GitHub's 15, Notion's 16 and Slack's 13 active on their live
+  // evidence, Gmail's as candidates, placed only with its map. A second run writes nothing.
   const first = (await tenantMain(['catalog', 'actions', '--root', shipped])).seeded, kind = prefix => first.filter(id => id.startsWith(prefix)).length;
   assert.deepEqual([first.length, kind('gmail.action.'), kind('github.action.'), kind('notion.action.'), kind('slack.action.')], [57, 13, 15, 16, 13]);
   assert.deepEqual(await tenantMain(['catalog', 'actions', '--root', shipped]), {seeded: []});
   const seededShipped = new PlatformStore({root: shipped});
-  assert.ok(seededShipped.list('capabilities').filter(capability => capability.driver === 'action').every(capability => capability.status === (/^(github|notion)\.action\./.test(capability.id) ? 'active' : 'candidate')));
+  assert.ok(seededShipped.list('capabilities').filter(capability => capability.driver === 'action').every(capability => capability.status === (/^(github|notion|slack)\.action\./.test(capability.id) ? 'active' : 'candidate')));
   seededShipped.close();
   const seeded = await seedActionsInPlatform({root, actions: where.options});
   const expected = new Store({dataDir: path.join(where.root, 'expected')});

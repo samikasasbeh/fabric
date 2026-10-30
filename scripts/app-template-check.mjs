@@ -1,7 +1,8 @@
-// F10.1 template check skeleton (docs/F10-FIVE-APPS-DEEP.md, exit gate section 9). Says whether one app is Muse-grade:
+// The template exit gate (docs/F10-FIVE-APPS-DEEP.md section 9, docs/APP-TEMPLATE.md). Says whether one app is Muse-grade:
 // a full-access sign-in proven by the access closure, version 2 rows, an owner-signed defaults table, reviewed actions
-// and live evidence. Today every check fails for every app; test/app-template-check.test.mjs holds the results as a
-// ratchet, so a slice that makes a check pass records it on purpose and nothing slips back. F10.23 completes it.
+// and live evidence. test/app-template-check.test.mjs holds the results as a ratchet, so a change that moves a check
+// records it on purpose and nothing slips back. Check `rows` reads the version only: the validator and the signed
+// defaults table hold what a row contains.
 //
 //   node scripts/app-template-check.mjs <appId>      (exit 1 while the app's gate fails)
 //
@@ -154,9 +155,10 @@ export function templateChecks(appId, {root = ROOT, definitions, groups = PERMIS
   //    same evidencePasses() decides at start whether an action is active (F10.11 part c), so the gate and the start cannot disagree.
   const entries = reviewed.entries, evidence = readJson(path.join(evidenceDir, 'actions.json'));
   const certified = entries.filter(entry => evidencePasses(entry, evidence?.[entry.id], reviewed.pinsOf(entry)));
+  const lacking = entries.filter(entry => !certified.includes(entry)).map(entry => `${entry.key} v${entry.version}`);
   check('live-evidence', 'Live evidence for every action', entries.length > 0 && certified.length === entries.length,
     !reviewed.exists ? 'no actions to certify yet' : !entries.length ? 'the action file does not pass the validator, so no action has an id to certify'
-      : `${entries.length - certified.length} of ${entries.length} actions have no passing live record for their id and the current pins of their transforms`);
+      : `${lacking.length} of ${entries.length} actions have no passing live record for their id and the current pins of their transforms: ${lacking.join(', ')}`);
 
   // 7. Sign-in evidence: full-access consent, a partial grant then Add access, a renewal that kept settings, a scope check.
   const signIn = readJson(path.join(evidenceDir, 'sign-in.json'));

@@ -437,7 +437,7 @@ test('modes: reads run at Allow with no card and no lock; a write asks once unde
   assert.deepEqual([final.status, final.action.phase, h.simulator.writes().length], ['awaiting_approval', 'final', 0]);
   ended(await h.approve(final), 'succeeded', null);
   assert.equal(issueOf(h, 1).title, 'Two stops');
-  // "Comment and review" is an audience row: it never runs at Allow, even when the owner tries.
+  // "Comment and review" is an audience row: its raw requests can never be set to Allow.
   assert.throws(() => h.setRow('github.comments.write', 'allow'));
 });
 

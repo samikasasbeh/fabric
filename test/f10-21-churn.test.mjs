@@ -116,11 +116,11 @@ test('the version 1 and version 2 authorization URL goldens are unchanged, and t
 
 // Part 2: the shipped ids are checked here, not in test/actions-slack.test.mjs, which recomputes them (withIds()) so a seeded fault inside
 // the file reaches behaviour instead of tripping the id check. Slack's file needs no map: its rows are request templates.
-test('Slack\'s shipped action file holds current ids: each stored id is the one its content hashes to, and the file validates with them, with no certified block', () => {
+test('Slack\'s shipped action file holds current ids: each stored id is the one its content hashes to, and the file validates with them, each certified by step 22', () => {
   const file = JSON.parse(readFileSync(path.join(ROOT, 'catalog', 'actions', 'slack.json'), 'utf8'));
   const deps = {identities: new Map([['slack', definitionFor('slack')]]), maps: new Map()};
   const ids = actionIds(file, deps);
   assert.deepEqual(file.actions.map(action => action.id), file.actions.map(action => ids.get(`${action.key} v${action.version}`).id));
   assert.equal(validateActionFile(file, deps).actions.length, 13);
-  assert.equal(file.actions.filter(action => action.certified !== undefined).length, 0, 'certified only by step 22\'s evidence');
+  assert.equal(file.actions.filter(action => action.certified?.evidence === 'docs/live-evidence/slack/actions.json').length, 13, 'certified by step 22\'s evidence');
 });

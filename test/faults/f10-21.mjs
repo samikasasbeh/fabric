@@ -289,4 +289,7 @@ export const FAULTS = Object.freeze([
     file: GUARD, from: "'users.lookupByEmail', 'users.profile.get']);", to: "'users.lookupByEmail', 'users.profile.get', 'chat.postMessage']);", tests: GUARD_TESTS},
   {id: 'f1021-check-guard-query', step: STEP, name: 'A Slack write passes with arguments in its query beside its body.',
     file: GUARD, from: "  if ([...request.query.keys()].length > 0) no('body');\n", to: '', tests: GUARD_TESTS},
+  // ---- F10.23: the exit gate names what does not count ------------------------------------------------------------------------------------
+  {id: 'f1023-gate-names', step: 'F10.23', name: 'The exit gate counts the actions with no live record and no longer says which.',
+    file: 'scripts/app-template-check.mjs', from: ": ${lacking.join(', ')}`);", to: '`);', tests: ['test/app-template-check.test.mjs']},
 ]);

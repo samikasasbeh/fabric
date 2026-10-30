@@ -1,0 +1,2145 @@
+{
+ "run": {
+  "appId": "slack",
+  "finishedAt": "2026-10-30T20:09:31.716Z",
+  "harnessHash": "7486366c59d0f96b08bcc8ea30ec3943954645aa102528f3f6900b15f8fccba2",
+  "rows": [],
+  "runId": "VNIINO6Y",
+  "runtime": {
+   "icu": "78.2",
+   "node": "25.8.1",
+   "tz": "2026a",
+   "unicode": "17.0"
+  },
+  "startedAt": "2026-10-30T20:05:40.345Z",
+  "tests": []
+ },
+ "slack.action.edit-message.v1.c56852b009ce9307b5b8b34a": {
+  "definitionHash": "c10a927aec067c3e8d07106986c612c39aa074d53f1864d829a0f7d9eeefba1e",
+  "harnessHash": "7486366c59d0f96b08bcc8ea30ec3943954645aa102528f3f6900b15f8fccba2",
+  "passed": true,
+  "ranAt": "2026-10-30T20:09:31.716Z",
+  "runId": "VNIINO6Y",
+  "runtime": {
+   "icu": "78.2",
+   "node": "25.8.1",
+   "tz": "2026a",
+   "unicode": "17.0"
+  },
+  "schemaVersion": 1,
+  "tests": [
+   {
+    "checks": [
+     {
+      "name": "step 1: send-message@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 1: saves sent",
+      "passed": true
+     },
+     {
+      "name": "step 1: /channel equals",
+      "passed": true
+     },
+     {
+      "name": "step 2: edit-message@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 3: status",
+      "passed": true
+     },
+     {
+      "name": "step 3: /messages entry /text equals",
+      "passed": true
+     },
+     {
+      "name": "step 4: edit-message@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 5: status",
+      "passed": true
+     },
+     {
+      "name": "step 5: /messages entry /text equals",
+      "passed": true
+     }
+    ],
+    "jobs": [
+     {
+      "approvals": [
+       {
+        "at": "2026-10-30T20:08:01.945Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "d10ff429-31c3-4766-89d5-de11bcc9892e",
+      "status": "succeeded"
+     },
+     {
+      "approvals": [
+       {
+        "at": "2026-10-30T20:08:13.186Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "fa5ea158-f2b3-411e-a12a-4782441c2bfe",
+      "status": "succeeded"
+     }
+    ],
+    "passed": true,
+    "requests": [
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/conversations.info"
+     },
+     {
+      "bodyHmac": "db523ecc627492b6445ed25c0832f4cf4db55a45d50781e2514fa71b35149e01",
+      "identity": "1793390871.260089",
+      "method": "POST",
+      "status": 200,
+      "template": "/chat.postMessage"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/conversations.replies"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/chat.getPermalink"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/conversations.info"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/conversations.replies"
+     },
+     {
+      "bodyHmac": "33022c8e975696945c0fb139a6c1b72d2e73e8f0f3aa4cf30e0376eb503c5a57",
+      "identity": null,
+      "method": "POST",
+      "status": 200,
+      "template": "/chat.update"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/conversations.replies"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/conversations.replies"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/conversations.info"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/conversations.replies"
+     },
+     {
+      "bodyHmac": "9a03dd89e86bfadedfa5e0d1b6796c8ed59de4769589aee57762dbc85a118f3b",
+      "identity": null,
+      "method": "POST",
+      "status": 200,
+      "template": "/chat.update"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/conversations.replies"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/conversations.replies"
+     }
+    ],
+    "test": "S2",
+    "undo": {
+     "none": "The message stays in #fabric-test, marked synthetic (spec line 1572): chat.delete is on the Never row and the guard refuses it."
+    }
+   }
+  ],
+  "transforms": {
+   "collections.findBy@1": "760b99d7eba9c7dce198ff884594903c03fede7f5f3b6c5cf892cb176a04618c",
+   "collections.oneOf@1": "e334ed47a5a88b64baa44b7cf147d86149641db988385d0bed626e89491ad644",
+   "text.joinList@1": "1f75825537a4063657cd6dbd224bce5b4af8e05a651ff3738ea9c2eacf736053",
+   "text.slackEscape@1": "b89341c7c7ec564ec18843edf50408342531fc052cfaf7a98933f4e52fe0cc96"
+  }
+ },
+ "slack.action.find-person.v1.fb7d3ac1b446eb330ff1565a": {
+  "definitionHash": "65222ef6fe17fb1fcf5fa375bfaa7153435f552441fbab460708965e28aff243",
+  "harnessHash": "7486366c59d0f96b08bcc8ea30ec3943954645aa102528f3f6900b15f8fccba2",
+  "passed": true,
+  "ranAt": "2026-10-30T20:09:31.716Z",
+  "runId": "VNIINO6Y",
+  "runtime": {
+   "icu": "78.2",
+   "node": "25.8.1",
+   "tz": "2026a",
+   "unicode": "17.0"
+  },
+  "schemaVersion": 1,
+  "tests": [
+   {
+    "checks": [
+     {
+      "name": "step 1: list-conversations@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 1: /channels present",
+      "passed": true
+     },
+     {
+      "name": "step 2: read-messages@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 2: /messages entry /text equals",
+      "passed": true
+     },
+     {
+      "name": "step 2: /messages entry /text equals",
+      "passed": true
+     },
+     {
+      "name": "step 3: read-thread@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 3: /messages/0/ts equals",
+      "passed": true
+     },
+     {
+      "name": "step 4: search-messages@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 4: /matches entry /channel equals",
+      "passed": true
+     },
+     {
+      "name": "step 4: /matches entry /channel equals",
+      "passed": true
+     },
+     {
+      "name": "step 5: find-person@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 5: /people/0/id equals",
+      "passed": true
+     },
+     {
+      "name": "step 6: find-person@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 6: /people/0/id equals",
+      "passed": true
+     },
+     {
+      "name": "step 7: find-person@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 7: /people/0/id equals",
+      "passed": true
+     },
+     {
+      "name": "step 8: read-canvas@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 8: /canvas equals",
+      "passed": true
+     },
+     {
+      "name": "step 8: /content present",
+      "passed": true
+     }
+    ],
+    "jobs": [
+     {
+      "approvals": [
+       {
+        "at": "2026-10-30T20:06:41.795Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "5842f067-724f-4a83-a192-006f7124166d",
+      "status": "succeeded"
+     },
+     {
+      "approvals": [
+       {
+        "at": "2026-10-30T20:06:55.275Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "dfa0d911-f804-4993-865a-3f1d91c4c755",
+      "status": "succeeded"
+     },
+     {
+      "approvals": [
+       {
+        "at": "2026-10-30T20:07:05.683Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "92818daf-bb97-445d-997d-b93ba511123a",
+      "status": "succeeded"
+     }
+    ],
+    "passed": true,
+    "requests": [
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/users.conversations"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/conversations.history"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/conversations.replies"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/search.messages"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/users.info"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/users.lookupByEmail"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/users.list"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/users.info"
+     },
+     {
+      "bodyHmac": "00bd4d257d9565406635b4d7b625cc4b1c01ea3abb40e43dd1da4432e03aaa1f",
+      "identity": null,
+      "method": "POST",
+      "status": 200,
+      "template": "/canvases.getContent"
+     }
+    ],
+    "test": "S0",
+    "undo": {
+     "none": "The test changes nothing."
+    }
+   }
+  ],
+  "transforms": {
+   "collections.findBy@1": "760b99d7eba9c7dce198ff884594903c03fede7f5f3b6c5cf892cb176a04618c",
+   "collections.oneOf@1": "e334ed47a5a88b64baa44b7cf147d86149641db988385d0bed626e89491ad644",
+   "text.joinList@1": "1f75825537a4063657cd6dbd224bce5b4af8e05a651ff3738ea9c2eacf736053"
+  }
+ },
+ "slack.action.list-conversations.v1.3bd654b27e887e8f02049ce0": {
+  "definitionHash": "06d3b956bb65e129ecd44d675890fccfdb373d086f8ea93af9a741a26a887001",
+  "harnessHash": "7486366c59d0f96b08bcc8ea30ec3943954645aa102528f3f6900b15f8fccba2",
+  "passed": true,
+  "ranAt": "2026-10-30T20:09:31.716Z",
+  "runId": "VNIINO6Y",
+  "runtime": {
+   "icu": "78.2",
+   "node": "25.8.1",
+   "tz": "2026a",
+   "unicode": "17.0"
+  },
+  "schemaVersion": 1,
+  "tests": [
+   {
+    "checks": [
+     {
+      "name": "step 1: list-conversations@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 1: /channels present",
+      "passed": true
+     },
+     {
+      "name": "step 2: read-messages@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 2: /messages entry /text equals",
+      "passed": true
+     },
+     {
+      "name": "step 2: /messages entry /text equals",
+      "passed": true
+     },
+     {
+      "name": "step 3: read-thread@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 3: /messages/0/ts equals",
+      "passed": true
+     },
+     {
+      "name": "step 4: search-messages@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 4: /matches entry /channel equals",
+      "passed": true
+     },
+     {
+      "name": "step 4: /matches entry /channel equals",
+      "passed": true
+     },
+     {
+      "name": "step 5: find-person@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 5: /people/0/id equals",
+      "passed": true
+     },
+     {
+      "name": "step 6: find-person@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 6: /people/0/id equals",
+      "passed": true
+     },
+     {
+      "name": "step 7: find-person@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 7: /people/0/id equals",
+      "passed": true
+     },
+     {
+      "name": "step 8: read-canvas@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 8: /canvas equals",
+      "passed": true
+     },
+     {
+      "name": "step 8: /content present",
+      "passed": true
+     }
+    ],
+    "jobs": [
+     {
+      "approvals": [
+       {
+        "at": "2026-10-30T20:05:59.228Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "ab7d0c07-c025-420f-a1a0-496b4f25ec9a",
+      "status": "succeeded"
+     }
+    ],
+    "passed": true,
+    "requests": [
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/users.conversations"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/conversations.history"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/conversations.replies"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/search.messages"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/users.info"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/users.lookupByEmail"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/users.list"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/users.info"
+     },
+     {
+      "bodyHmac": "00bd4d257d9565406635b4d7b625cc4b1c01ea3abb40e43dd1da4432e03aaa1f",
+      "identity": null,
+      "method": "POST",
+      "status": 200,
+      "template": "/canvases.getContent"
+     }
+    ],
+    "test": "S0",
+    "undo": {
+     "none": "The test changes nothing."
+    }
+   }
+  ],
+  "transforms": {}
+ },
+ "slack.action.react.v1.51dadb0cf06436289616cc87": {
+  "definitionHash": "b762a503e5c8066f94d0fe56d8c2443f05a505d8a3b49d22a2f56fc4cefb910c",
+  "harnessHash": "7486366c59d0f96b08bcc8ea30ec3943954645aa102528f3f6900b15f8fccba2",
+  "passed": true,
+  "ranAt": "2026-10-30T20:09:31.716Z",
+  "runId": "VNIINO6Y",
+  "runtime": {
+   "icu": "78.2",
+   "node": "25.8.1",
+   "tz": "2026a",
+   "unicode": "17.0"
+  },
+  "schemaVersion": 1,
+  "tests": [
+   {
+    "checks": [
+     {
+      "name": "step 1: react@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 1: /emoji equals",
+      "passed": true
+     },
+     {
+      "name": "step 2: status",
+      "passed": true
+     },
+     {
+      "name": "step 2: /message/reactions entry /users equals",
+      "passed": true
+     }
+    ],
+    "jobs": [
+     {
+      "approvals": [
+       {
+        "at": "2026-10-30T20:08:37.075Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "91a43d86-9bd9-41ab-946e-0fa5e39b498e",
+      "status": "succeeded"
+     }
+    ],
+    "passed": true,
+    "requests": [
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/conversations.info"
+     },
+     {
+      "bodyHmac": "eb06f0f1155297c4fe322f75849658da7865e260ccc772a81666936eac869acc",
+      "identity": null,
+      "method": "POST",
+      "status": 200,
+      "template": "/reactions.add"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/reactions.get"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/reactions.get"
+     }
+    ],
+    "test": "S4",
+    "undo": {
+     "checks": [
+      {
+       "name": "step 1: react@1 succeeded",
+       "passed": true
+      }
+     ],
+     "jobs": [
+      {
+       "approvals": [
+        {
+         "at": "2026-10-30T20:08:47.909Z",
+         "phase": "final"
+        }
+       ],
+       "errorCode": null,
+       "id": "eb7d370c-391f-426a-a647-1dc08d307e8d",
+       "status": "succeeded"
+      }
+     ],
+     "passed": true,
+     "requests": [
+      {
+       "bodyHmac": null,
+       "identity": null,
+       "method": "GET",
+       "status": 200,
+       "template": "/conversations.info"
+      },
+      {
+       "bodyHmac": "eb06f0f1155297c4fe322f75849658da7865e260ccc772a81666936eac869acc",
+       "identity": null,
+       "method": "POST",
+       "status": 200,
+       "template": "/reactions.remove"
+      },
+      {
+       "bodyHmac": null,
+       "identity": null,
+       "method": "GET",
+       "status": 200,
+       "template": "/reactions.get"
+      }
+     ]
+    }
+   }
+  ],
+  "transforms": {
+   "collections.oneOf@1": "e334ed47a5a88b64baa44b7cf147d86149641db988385d0bed626e89491ad644",
+   "ids.slackEmoji@1": "c65caca3a312cdce4a661722ffc9669155dcfb647941f9834ff776daf52229f6",
+   "text.joinList@1": "1f75825537a4063657cd6dbd224bce5b4af8e05a651ff3738ea9c2eacf736053"
+  }
+ },
+ "slack.action.read-canvas.v1.b924a5e71b76478a426be295": {
+  "definitionHash": "264b0ec4d8fb4277babb1b7134424c6a83dff14144ec74a958a088d027b66b7e",
+  "harnessHash": "7486366c59d0f96b08bcc8ea30ec3943954645aa102528f3f6900b15f8fccba2",
+  "passed": true,
+  "ranAt": "2026-10-30T20:09:31.716Z",
+  "runId": "VNIINO6Y",
+  "runtime": {
+   "icu": "78.2",
+   "node": "25.8.1",
+   "tz": "2026a",
+   "unicode": "17.0"
+  },
+  "schemaVersion": 1,
+  "tests": [
+   {
+    "checks": [
+     {
+      "name": "step 1: list-conversations@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 1: /channels present",
+      "passed": true
+     },
+     {
+      "name": "step 2: read-messages@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 2: /messages entry /text equals",
+      "passed": true
+     },
+     {
+      "name": "step 2: /messages entry /text equals",
+      "passed": true
+     },
+     {
+      "name": "step 3: read-thread@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 3: /messages/0/ts equals",
+      "passed": true
+     },
+     {
+      "name": "step 4: search-messages@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 4: /matches entry /channel equals",
+      "passed": true
+     },
+     {
+      "name": "step 4: /matches entry /channel equals",
+      "passed": true
+     },
+     {
+      "name": "step 5: find-person@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 5: /people/0/id equals",
+      "passed": true
+     },
+     {
+      "name": "step 6: find-person@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 6: /people/0/id equals",
+      "passed": true
+     },
+     {
+      "name": "step 7: find-person@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 7: /people/0/id equals",
+      "passed": true
+     },
+     {
+      "name": "step 8: read-canvas@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 8: /canvas equals",
+      "passed": true
+     },
+     {
+      "name": "step 8: /content present",
+      "passed": true
+     }
+    ],
+    "jobs": [
+     {
+      "approvals": [
+       {
+        "at": "2026-10-30T20:07:14.929Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "6f7071d2-0996-4129-9628-3880c7a546c7",
+      "status": "succeeded"
+     }
+    ],
+    "passed": true,
+    "requests": [
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/users.conversations"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/conversations.history"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/conversations.replies"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/search.messages"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/users.info"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/users.lookupByEmail"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/users.list"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/users.info"
+     },
+     {
+      "bodyHmac": "00bd4d257d9565406635b4d7b625cc4b1c01ea3abb40e43dd1da4432e03aaa1f",
+      "identity": null,
+      "method": "POST",
+      "status": 200,
+      "template": "/canvases.getContent"
+     }
+    ],
+    "test": "S0",
+    "undo": {
+     "none": "The test changes nothing."
+    }
+   }
+  ],
+  "transforms": {
+   "text.truncate@1": "5cc13c14d60ef8c526e4d907e86559cf6d451b0d22012cd38dae19875ae625e6"
+  }
+ },
+ "slack.action.read-messages.v1.fcd94a219f61d0bc555b1284": {
+  "definitionHash": "a644b7ef337a00d560b9e3e3694b57424671e3102d536edcadfc7c55059e2257",
+  "harnessHash": "7486366c59d0f96b08bcc8ea30ec3943954645aa102528f3f6900b15f8fccba2",
+  "passed": true,
+  "ranAt": "2026-10-30T20:09:31.716Z",
+  "runId": "VNIINO6Y",
+  "runtime": {
+   "icu": "78.2",
+   "node": "25.8.1",
+   "tz": "2026a",
+   "unicode": "17.0"
+  },
+  "schemaVersion": 1,
+  "tests": [
+   {
+    "checks": [
+     {
+      "name": "step 1: list-conversations@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 1: /channels present",
+      "passed": true
+     },
+     {
+      "name": "step 2: read-messages@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 2: /messages entry /text equals",
+      "passed": true
+     },
+     {
+      "name": "step 2: /messages entry /text equals",
+      "passed": true
+     },
+     {
+      "name": "step 3: read-thread@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 3: /messages/0/ts equals",
+      "passed": true
+     },
+     {
+      "name": "step 4: search-messages@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 4: /matches entry /channel equals",
+      "passed": true
+     },
+     {
+      "name": "step 4: /matches entry /channel equals",
+      "passed": true
+     },
+     {
+      "name": "step 5: find-person@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 5: /people/0/id equals",
+      "passed": true
+     },
+     {
+      "name": "step 6: find-person@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 6: /people/0/id equals",
+      "passed": true
+     },
+     {
+      "name": "step 7: find-person@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 7: /people/0/id equals",
+      "passed": true
+     },
+     {
+      "name": "step 8: read-canvas@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 8: /canvas equals",
+      "passed": true
+     },
+     {
+      "name": "step 8: /content present",
+      "passed": true
+     }
+    ],
+    "jobs": [
+     {
+      "approvals": [
+       {
+        "at": "2026-10-30T20:06:09.010Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "8e4b9a08-1756-4547-b90e-8d1e6ccff6be",
+      "status": "succeeded"
+     }
+    ],
+    "passed": true,
+    "requests": [
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/users.conversations"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/conversations.history"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/conversations.replies"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/search.messages"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/users.info"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/users.lookupByEmail"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/users.list"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/users.info"
+     },
+     {
+      "bodyHmac": "00bd4d257d9565406635b4d7b625cc4b1c01ea3abb40e43dd1da4432e03aaa1f",
+      "identity": null,
+      "method": "POST",
+      "status": 200,
+      "template": "/canvases.getContent"
+     }
+    ],
+    "test": "S0",
+    "undo": {
+     "none": "The test changes nothing."
+    }
+   }
+  ],
+  "transforms": {
+   "text.truncate@1": "5cc13c14d60ef8c526e4d907e86559cf6d451b0d22012cd38dae19875ae625e6",
+   "time.slackTs@1": "8ccf51cef8d0ec91d20eaa8cee3a68d849e09d3814f15d0db6f39895c421ad0f"
+  }
+ },
+ "slack.action.read-thread.v1.986986cb58fc26d9d30575dd": {
+  "definitionHash": "6b9566050d3994ea31f07ec8daaad5321deae59156ed886e20a45ea3f7603d26",
+  "harnessHash": "7486366c59d0f96b08bcc8ea30ec3943954645aa102528f3f6900b15f8fccba2",
+  "passed": true,
+  "ranAt": "2026-10-30T20:09:31.716Z",
+  "runId": "VNIINO6Y",
+  "runtime": {
+   "icu": "78.2",
+   "node": "25.8.1",
+   "tz": "2026a",
+   "unicode": "17.0"
+  },
+  "schemaVersion": 1,
+  "tests": [
+   {
+    "checks": [
+     {
+      "name": "step 1: list-conversations@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 1: /channels present",
+      "passed": true
+     },
+     {
+      "name": "step 2: read-messages@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 2: /messages entry /text equals",
+      "passed": true
+     },
+     {
+      "name": "step 2: /messages entry /text equals",
+      "passed": true
+     },
+     {
+      "name": "step 3: read-thread@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 3: /messages/0/ts equals",
+      "passed": true
+     },
+     {
+      "name": "step 4: search-messages@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 4: /matches entry /channel equals",
+      "passed": true
+     },
+     {
+      "name": "step 4: /matches entry /channel equals",
+      "passed": true
+     },
+     {
+      "name": "step 5: find-person@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 5: /people/0/id equals",
+      "passed": true
+     },
+     {
+      "name": "step 6: find-person@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 6: /people/0/id equals",
+      "passed": true
+     },
+     {
+      "name": "step 7: find-person@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 7: /people/0/id equals",
+      "passed": true
+     },
+     {
+      "name": "step 8: read-canvas@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 8: /canvas equals",
+      "passed": true
+     },
+     {
+      "name": "step 8: /content present",
+      "passed": true
+     }
+    ],
+    "jobs": [
+     {
+      "approvals": [
+       {
+        "at": "2026-10-30T20:06:19.199Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "7ba98503-ffa9-474d-b710-5701243cb8b0",
+      "status": "succeeded"
+     }
+    ],
+    "passed": true,
+    "requests": [
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/users.conversations"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/conversations.history"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/conversations.replies"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/search.messages"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/users.info"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/users.lookupByEmail"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/users.list"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/users.info"
+     },
+     {
+      "bodyHmac": "00bd4d257d9565406635b4d7b625cc4b1c01ea3abb40e43dd1da4432e03aaa1f",
+      "identity": null,
+      "method": "POST",
+      "status": 200,
+      "template": "/canvases.getContent"
+     }
+    ],
+    "test": "S0",
+    "undo": {
+     "none": "The test changes nothing."
+    }
+   }
+  ],
+  "transforms": {
+   "collections.oneOf@1": "e334ed47a5a88b64baa44b7cf147d86149641db988385d0bed626e89491ad644",
+   "ids.slackLink@1": "94a45c204905d0959f1a5df9da291a8cbb95adb5861836a82f4901c893089360",
+   "text.joinList@1": "1f75825537a4063657cd6dbd224bce5b4af8e05a651ff3738ea9c2eacf736053",
+   "text.truncate@1": "5cc13c14d60ef8c526e4d907e86559cf6d451b0d22012cd38dae19875ae625e6",
+   "time.slackTs@1": "8ccf51cef8d0ec91d20eaa8cee3a68d849e09d3814f15d0db6f39895c421ad0f"
+  }
+ },
+ "slack.action.reply-thread.v1.8792aff99ccad81b9e5abc8c": {
+  "definitionHash": "caea9dc1bf21082361ce87b786c358c84e1c74a0d7360d3f520eaad46859fb18",
+  "harnessHash": "7486366c59d0f96b08bcc8ea30ec3943954645aa102528f3f6900b15f8fccba2",
+  "passed": true,
+  "ranAt": "2026-10-30T20:09:31.716Z",
+  "runId": "VNIINO6Y",
+  "runtime": {
+   "icu": "78.2",
+   "node": "25.8.1",
+   "tz": "2026a",
+   "unicode": "17.0"
+  },
+  "schemaVersion": 1,
+  "tests": [
+   {
+    "checks": [
+     {
+      "name": "step 1: reply-thread@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 1: saves reply",
+      "passed": true
+     },
+     {
+      "name": "step 1: /threadTs equals",
+      "passed": true
+     },
+     {
+      "name": "step 2: status",
+      "passed": true
+     },
+     {
+      "name": "step 2: /messages entry /text equals",
+      "passed": true
+     }
+    ],
+    "jobs": [
+     {
+      "approvals": [
+       {
+        "at": "2026-10-30T20:08:26.030Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "939051df-8904-4f6d-8909-f2be8e9bcabb",
+      "status": "succeeded"
+     }
+    ],
+    "passed": true,
+    "requests": [
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/conversations.info"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/conversations.replies"
+     },
+     {
+      "bodyHmac": "08e0e932ca07f80688e560ec4607e3a50dc6ba6c072c3a0ccb68d11e8d6efa83",
+      "identity": "1793390906.253159",
+      "method": "POST",
+      "status": 200,
+      "template": "/chat.postMessage"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/conversations.replies"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/chat.getPermalink"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/conversations.replies"
+     }
+    ],
+    "test": "S3",
+    "undo": {
+     "none": "The reply stays in the synthetic thread, marked synthetic, as S2's message does: chat.delete is on the Never row and the guard refuses it."
+    }
+   }
+  ],
+  "transforms": {
+   "collections.oneOf@1": "e334ed47a5a88b64baa44b7cf147d86149641db988385d0bed626e89491ad644",
+   "ids.slackLink@1": "94a45c204905d0959f1a5df9da291a8cbb95adb5861836a82f4901c893089360",
+   "text.joinList@1": "1f75825537a4063657cd6dbd224bce5b4af8e05a651ff3738ea9c2eacf736053",
+   "text.slackEscape@1": "b89341c7c7ec564ec18843edf50408342531fc052cfaf7a98933f4e52fe0cc96"
+  }
+ },
+ "slack.action.schedule-message.v1.ef88e4feb030e7d9e2bf7fd2": {
+  "definitionHash": "a85cbcedc9611d13eb827a3887c9aa67cb13c3e3f1eaca502d06505562d62730",
+  "harnessHash": "7486366c59d0f96b08bcc8ea30ec3943954645aa102528f3f6900b15f8fccba2",
+  "passed": true,
+  "ranAt": "2026-10-30T20:09:31.716Z",
+  "runId": "VNIINO6Y",
+  "runtime": {
+   "icu": "78.2",
+   "node": "25.8.1",
+   "tz": "2026a",
+   "unicode": "17.0"
+  },
+  "schemaVersion": 1,
+  "tests": [
+   {
+    "checks": [
+     {
+      "name": "step 1: schedule-message@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 1: saves scheduled",
+      "passed": true
+     },
+     {
+      "name": "step 1: /postAt present",
+      "passed": true
+     },
+     {
+      "name": "step 2: status",
+      "passed": true
+     },
+     {
+      "name": "step 2: /scheduled_messages entry /text equals",
+      "passed": true
+     }
+    ],
+    "jobs": [
+     {
+      "approvals": [
+       {
+        "at": "2026-10-30T20:07:27.014Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "b9d08560-5b3e-48b4-aa33-0fd8c6bc4d29",
+      "status": "succeeded"
+     }
+    ],
+    "passed": true,
+    "requests": [
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/conversations.info"
+     },
+     {
+      "bodyHmac": "ca080de01f2fe23d7eee5fd9c607ac9a29526e363a59dbb032856cd38033ee10",
+      "identity": "Q0CDJ1STMBP",
+      "method": "POST",
+      "status": 200,
+      "template": "/chat.scheduleMessage"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/chat.scheduledMessages.list"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/chat.scheduledMessages.list"
+     }
+    ],
+    "test": "S1",
+    "undo": {
+     "checks": [
+      {
+       "name": "step 1: schedule-message@1 succeeded",
+       "passed": true
+      },
+      {
+       "name": "step 1: /scheduledMessageId equals",
+       "passed": true
+      }
+     ],
+     "jobs": [
+      {
+       "approvals": [
+        {
+         "at": "2026-10-30T20:07:38.430Z",
+         "phase": "final"
+        }
+       ],
+       "errorCode": null,
+       "id": "ec587c54-b4c9-4529-acc2-9353c0291994",
+       "status": "succeeded"
+      }
+     ],
+     "passed": true,
+     "requests": [
+      {
+       "bodyHmac": null,
+       "identity": null,
+       "method": "GET",
+       "status": 200,
+       "template": "/conversations.info"
+      },
+      {
+       "bodyHmac": null,
+       "identity": null,
+       "method": "GET",
+       "status": 200,
+       "template": "/chat.scheduledMessages.list"
+      },
+      {
+       "bodyHmac": "aada3c5967ad5ef646a080d9f9f27ff442cf9838df9dac6d934a6e576d29bbab",
+       "identity": null,
+       "method": "POST",
+       "status": 200,
+       "template": "/chat.deleteScheduledMessage"
+      },
+      {
+       "bodyHmac": null,
+       "identity": null,
+       "method": "GET",
+       "status": 200,
+       "template": "/chat.scheduledMessages.list"
+      }
+     ]
+    }
+   }
+  ],
+  "transforms": {
+   "collections.oneOf@1": "e334ed47a5a88b64baa44b7cf147d86149641db988385d0bed626e89491ad644",
+   "text.joinList@1": "1f75825537a4063657cd6dbd224bce5b4af8e05a651ff3738ea9c2eacf736053",
+   "text.slackEscape@1": "b89341c7c7ec564ec18843edf50408342531fc052cfaf7a98933f4e52fe0cc96",
+   "time.rfc3339ToEpochSeconds@1": "cddf0ded3c0c7f9009f19a381ce34914248d1b4a7b87a6907be28d8906db82f0",
+   "time.window@1": "82d7a00a21c9653b84e4e61f93f7ad497a371c751167b789efe81c6c0bf76ef0"
+  }
+ },
+ "slack.action.search-messages.v1.073fdd0c1514c9871858b292": {
+  "definitionHash": "809152655b8186936c9193a5335010969455c2d9b414d9f3dea2556253f85f47",
+  "harnessHash": "7486366c59d0f96b08bcc8ea30ec3943954645aa102528f3f6900b15f8fccba2",
+  "passed": true,
+  "ranAt": "2026-10-30T20:09:31.716Z",
+  "runId": "VNIINO6Y",
+  "runtime": {
+   "icu": "78.2",
+   "node": "25.8.1",
+   "tz": "2026a",
+   "unicode": "17.0"
+  },
+  "schemaVersion": 1,
+  "tests": [
+   {
+    "checks": [
+     {
+      "name": "step 1: list-conversations@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 1: /channels present",
+      "passed": true
+     },
+     {
+      "name": "step 2: read-messages@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 2: /messages entry /text equals",
+      "passed": true
+     },
+     {
+      "name": "step 2: /messages entry /text equals",
+      "passed": true
+     },
+     {
+      "name": "step 3: read-thread@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 3: /messages/0/ts equals",
+      "passed": true
+     },
+     {
+      "name": "step 4: search-messages@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 4: /matches entry /channel equals",
+      "passed": true
+     },
+     {
+      "name": "step 4: /matches entry /channel equals",
+      "passed": true
+     },
+     {
+      "name": "step 5: find-person@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 5: /people/0/id equals",
+      "passed": true
+     },
+     {
+      "name": "step 6: find-person@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 6: /people/0/id equals",
+      "passed": true
+     },
+     {
+      "name": "step 7: find-person@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 7: /people/0/id equals",
+      "passed": true
+     },
+     {
+      "name": "step 8: read-canvas@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 8: /canvas equals",
+      "passed": true
+     },
+     {
+      "name": "step 8: /content present",
+      "passed": true
+     }
+    ],
+    "jobs": [
+     {
+      "approvals": [
+       {
+        "at": "2026-10-30T20:06:30.083Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "68573aa1-03b8-4f2e-b119-05d2792d7d86",
+      "status": "succeeded"
+     }
+    ],
+    "passed": true,
+    "requests": [
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/users.conversations"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/conversations.history"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/conversations.replies"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/search.messages"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/users.info"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/users.lookupByEmail"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/users.list"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/users.info"
+     },
+     {
+      "bodyHmac": "00bd4d257d9565406635b4d7b625cc4b1c01ea3abb40e43dd1da4432e03aaa1f",
+      "identity": null,
+      "method": "POST",
+      "status": 200,
+      "template": "/canvases.getContent"
+     }
+    ],
+    "test": "S0",
+    "undo": {
+     "none": "The test changes nothing."
+    }
+   }
+  ],
+  "transforms": {
+   "text.slackQuery@1": "bc7686072611b6e66280f46266992e22ab97f211684e2933acb3b85a4187104e",
+   "text.truncate@1": "5cc13c14d60ef8c526e4d907e86559cf6d451b0d22012cd38dae19875ae625e6",
+   "time.slackTs@1": "8ccf51cef8d0ec91d20eaa8cee3a68d849e09d3814f15d0db6f39895c421ad0f"
+  }
+ },
+ "slack.action.send-dm.v1.39a8de318324a5d1e923b128": {
+  "definitionHash": "619ede7e2150a618501b5404cd56844ae250a0d06afc090ac5afafb344b4587f",
+  "harnessHash": "7486366c59d0f96b08bcc8ea30ec3943954645aa102528f3f6900b15f8fccba2",
+  "passed": true,
+  "ranAt": "2026-10-30T20:09:31.716Z",
+  "runId": "VNIINO6Y",
+  "runtime": {
+   "icu": "78.2",
+   "node": "25.8.1",
+   "tz": "2026a",
+   "unicode": "17.0"
+  },
+  "schemaVersion": 1,
+  "tests": [
+   {
+    "checks": [
+     {
+      "name": "step 1: send-dm@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 1: saves direct",
+      "passed": true
+     },
+     {
+      "name": "step 1: /channel equals",
+      "passed": true
+     },
+     {
+      "name": "step 2: status",
+      "passed": true
+     },
+     {
+      "name": "step 2: /messages entry /text equals",
+      "passed": true
+     }
+    ],
+    "jobs": [
+     {
+      "approvals": [
+       {
+        "at": "2026-10-30T20:08:58.156Z",
+        "phase": "reads"
+       },
+       {
+        "at": "2026-10-30T20:09:08.075Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "e326b55e-190b-4610-bd27-783421d6140f",
+      "status": "succeeded"
+     }
+    ],
+    "passed": true,
+    "requests": [
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/users.info"
+     },
+     {
+      "bodyHmac": "0a73789d1d09f103d61cf6a9fbd8f0dc753a3b6a1545276581ff08fcd4e99b89",
+      "identity": null,
+      "method": "POST",
+      "status": 200,
+      "template": "/conversations.open"
+     },
+     {
+      "bodyHmac": "ec421e1a680e4eb87c6bb9719a342b7ef429e0915deb68f3d9d2df70a065f66b",
+      "identity": "1793390948.272269",
+      "method": "POST",
+      "status": 200,
+      "template": "/chat.postMessage"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/conversations.replies"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/chat.getPermalink"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/conversations.history"
+     }
+    ],
+    "test": "S5",
+    "undo": {
+     "none": "The message stays in your self-DM, marked synthetic, as S2's message does: chat.delete is on the Never row and the guard refuses it."
+    }
+   }
+  ],
+  "transforms": {
+   "text.slackEscape@1": "b89341c7c7ec564ec18843edf50408342531fc052cfaf7a98933f4e52fe0cc96"
+  }
+ },
+ "slack.action.send-message.v1.eaa928f7ae007a2602946485": {
+  "definitionHash": "31842eefb9227013a5c2bd313e40347bd97ce3af4cdf6b74b73d6e29f87a1cd1",
+  "harnessHash": "7486366c59d0f96b08bcc8ea30ec3943954645aa102528f3f6900b15f8fccba2",
+  "passed": true,
+  "ranAt": "2026-10-30T20:09:31.716Z",
+  "runId": "VNIINO6Y",
+  "runtime": {
+   "icu": "78.2",
+   "node": "25.8.1",
+   "tz": "2026a",
+   "unicode": "17.0"
+  },
+  "schemaVersion": 1,
+  "tests": [
+   {
+    "checks": [
+     {
+      "name": "step 1: send-message@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 1: saves sent",
+      "passed": true
+     },
+     {
+      "name": "step 1: /channel equals",
+      "passed": true
+     },
+     {
+      "name": "step 2: edit-message@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 3: status",
+      "passed": true
+     },
+     {
+      "name": "step 3: /messages entry /text equals",
+      "passed": true
+     },
+     {
+      "name": "step 4: edit-message@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 5: status",
+      "passed": true
+     },
+     {
+      "name": "step 5: /messages entry /text equals",
+      "passed": true
+     }
+    ],
+    "jobs": [
+     {
+      "approvals": [
+       {
+        "at": "2026-10-30T20:07:51.049Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "2f4f39b8-6433-4337-8b39-0730ca6be8f7",
+      "status": "succeeded"
+     }
+    ],
+    "passed": true,
+    "requests": [
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/conversations.info"
+     },
+     {
+      "bodyHmac": "db523ecc627492b6445ed25c0832f4cf4db55a45d50781e2514fa71b35149e01",
+      "identity": "1793390871.260089",
+      "method": "POST",
+      "status": 200,
+      "template": "/chat.postMessage"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/conversations.replies"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/chat.getPermalink"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/conversations.info"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/conversations.replies"
+     },
+     {
+      "bodyHmac": "33022c8e975696945c0fb139a6c1b72d2e73e8f0f3aa4cf30e0376eb503c5a57",
+      "identity": null,
+      "method": "POST",
+      "status": 200,
+      "template": "/chat.update"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/conversations.replies"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/conversations.replies"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/conversations.info"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/conversations.replies"
+     },
+     {
+      "bodyHmac": "9a03dd89e86bfadedfa5e0d1b6796c8ed59de4769589aee57762dbc85a118f3b",
+      "identity": null,
+      "method": "POST",
+      "status": 200,
+      "template": "/chat.update"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/conversations.replies"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/conversations.replies"
+     }
+    ],
+    "test": "S2",
+    "undo": {
+     "none": "The message stays in #fabric-test, marked synthetic (spec line 1572): chat.delete is on the Never row and the guard refuses it."
+    }
+   }
+  ],
+  "transforms": {
+   "collections.oneOf@1": "e334ed47a5a88b64baa44b7cf147d86149641db988385d0bed626e89491ad644",
+   "text.joinList@1": "1f75825537a4063657cd6dbd224bce5b4af8e05a651ff3738ea9c2eacf736053",
+   "text.slackEscape@1": "b89341c7c7ec564ec18843edf50408342531fc052cfaf7a98933f4e52fe0cc96"
+  }
+ },
+ "slack.action.set-status.v1.82c2bbfe6214cec2b9d6edbd": {
+  "definitionHash": "249e8bae63eb1a026780c043a83456aad2aaf9fd3863393048777bf8e306d25b",
+  "harnessHash": "7486366c59d0f96b08bcc8ea30ec3943954645aa102528f3f6900b15f8fccba2",
+  "passed": true,
+  "ranAt": "2026-10-30T20:09:31.716Z",
+  "runId": "VNIINO6Y",
+  "runtime": {
+   "icu": "78.2",
+   "node": "25.8.1",
+   "tz": "2026a",
+   "unicode": "17.0"
+  },
+  "schemaVersion": 1,
+  "tests": [
+   {
+    "checks": [
+     {
+      "name": "step 1: set-status@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 1: /statusText equals",
+      "passed": true
+     },
+     {
+      "name": "step 1: /statusEmoji equals",
+      "passed": true
+     },
+     {
+      "name": "step 2: status",
+      "passed": true
+     },
+     {
+      "name": "step 2: /profile/status_text equals",
+      "passed": true
+     }
+    ],
+    "jobs": [
+     {
+      "approvals": [
+       {
+        "at": "2026-10-30T20:09:19.129Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "3642c28e-537b-4fe9-ab22-9e9eea882945",
+      "status": "succeeded"
+     }
+    ],
+    "passed": true,
+    "requests": [
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/users.profile.get"
+     },
+     {
+      "bodyHmac": "2d689f5d94d691c6de566a9a01c7e9d70465428159d1dbfa3d11a66d5c2df583",
+      "identity": null,
+      "method": "POST",
+      "status": 200,
+      "template": "/users.profile.set"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/users.profile.get"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/users.profile.get"
+     }
+    ],
+    "test": "S6",
+    "undo": {
+     "checks": [
+      {
+       "name": "step 1: set-status@1 succeeded",
+       "passed": true
+      },
+      {
+       "name": "step 1: /statusText equals",
+       "passed": true
+      }
+     ],
+     "jobs": [
+      {
+       "approvals": [
+        {
+         "at": "2026-10-30T20:09:29.758Z",
+         "phase": "final"
+        }
+       ],
+       "errorCode": null,
+       "id": "7cf9ed07-0c40-4846-9c5a-6bbf15679b29",
+       "status": "succeeded"
+      }
+     ],
+     "passed": true,
+     "requests": [
+      {
+       "bodyHmac": null,
+       "identity": null,
+       "method": "GET",
+       "status": 200,
+       "template": "/users.profile.get"
+      },
+      {
+       "bodyHmac": "4af7dce18df7fba656f2701f7f050f838bc848ef6c5d84a516421ff13ce9fb75",
+       "identity": null,
+       "method": "POST",
+       "status": 200,
+       "template": "/users.profile.set"
+      },
+      {
+       "bodyHmac": null,
+       "identity": null,
+       "method": "GET",
+       "status": 200,
+       "template": "/users.profile.get"
+      }
+     ]
+    }
+   }
+  ],
+  "transforms": {
+   "collections.oneOf@1": "e334ed47a5a88b64baa44b7cf147d86149641db988385d0bed626e89491ad644",
+   "ids.slackEmoji@1": "c65caca3a312cdce4a661722ffc9669155dcfb647941f9834ff776daf52229f6",
+   "text.joinList@1": "1f75825537a4063657cd6dbd224bce5b4af8e05a651ff3738ea9c2eacf736053",
+   "time.rfc3339ToEpochSeconds@1": "cddf0ded3c0c7f9009f19a381ce34914248d1b4a7b87a6907be28d8906db82f0",
+   "time.window@1": "82d7a00a21c9653b84e4e61f93f7ad497a371c751167b789efe81c6c0bf76ef0"
+  }
+ }
+}

@@ -8,7 +8,9 @@
   "ownerUser": "Your own Slack member id (U or W followed by letters and digits).",
   "synthetic1": "The ts of the first synthetic message in #fabric-test, [SYNTHETIC] Fabric message 1: S3 replies in its thread.",
   "synthetic2": "The ts of the second synthetic message in #fabric-test, [SYNTHETIC] Fabric message 2: S4 reacts to it.",
-  "canvas": "The id of the [SYNTHETIC] Fabric canvas (F followed by letters and digits)."
+  "canvas": "The id of the [SYNTHETIC] Fabric canvas (F followed by letters and digits).",
+  "ownerEmail": "The email address of your Slack account, which Find a person looks up.",
+  "ownerName": "Your full name exactly as Slack shows it, which Find a person looks up."
  },
  "readRows": ["slack.messages.read", "slack.files.read", "slack.workspace.read"],
  "tests": [
@@ -17,10 +19,16 @@
    "name": "Read pass: conversations, recent messages, a thread, a search, yourself and the synthetic canvas",
    "steps": [
     {"call": {"action": "list-conversations@1", "args": {}, "checks": [{"pointer": "/channels", "present": true}]}},
-    {"call": {"action": "read-messages@1", "args": {"channel": {"$recorded": "fabricTest"}}, "checks": [{"pointer": "/messages", "present": true}]}},
+    {"call": {"action": "read-messages@1", "args": {"channel": {"$recorded": "fabricTest"}}, "checks": [
+     {"pointer": "/messages", "where": {"/ts": {"$recorded": "synthetic1"}}, "field": "/text", "equals": "[SYNTHETIC] Fabric message 1"},
+     {"pointer": "/messages", "where": {"/ts": {"$recorded": "synthetic2"}}, "field": "/text", "equals": "[SYNTHETIC] Fabric message 2"}]}},
     {"call": {"action": "read-thread@1", "args": {"channel": {"$recorded": "fabricTest"}, "ts": {"$recorded": "synthetic1"}}, "checks": [{"pointer": "/messages/0/ts", "equals": {"$recorded": "synthetic1"}}]}},
-    {"call": {"action": "search-messages@1", "args": {"words": "[SYNTHETIC] Fabric message", "channel": {"$recorded": "fabricTest"}}, "checks": [{"pointer": "/matches", "present": true}]}},
+    {"call": {"action": "search-messages@1", "args": {"words": "[SYNTHETIC] Fabric message", "channel": {"$recorded": "fabricTest"}}, "checks": [
+     {"pointer": "/matches", "where": {"/ts": {"$recorded": "synthetic1"}}, "field": "/channel", "equals": {"$recorded": "fabricTest"}},
+     {"pointer": "/matches", "where": {"/ts": {"$recorded": "synthetic2"}}, "field": "/channel", "equals": {"$recorded": "fabricTest"}}]}},
     {"call": {"action": "find-person@1", "args": {"user": {"$recorded": "ownerUser"}}, "checks": [{"pointer": "/people/0/id", "equals": {"$recorded": "ownerUser"}}]}},
+    {"call": {"action": "find-person@1", "args": {"email": {"$recorded": "ownerEmail"}}, "checks": [{"pointer": "/people/0/id", "equals": {"$recorded": "ownerUser"}}]}},
+    {"call": {"action": "find-person@1", "args": {"name": {"$recorded": "ownerName"}}, "checks": [{"pointer": "/people/0/id", "equals": {"$recorded": "ownerUser"}}]}},
     {"call": {"action": "read-canvas@1", "args": {"canvas": {"$recorded": "canvas"}}, "checks": [{"pointer": "/canvas", "equals": {"$recorded": "canvas"}}, {"pointer": "/content", "present": true}]}}
    ]
   },

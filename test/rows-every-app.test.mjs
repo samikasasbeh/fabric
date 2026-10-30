@@ -633,8 +633,9 @@ test('F10.18: with GitHub\'s certified actions, a write row offers Allow for its
   assert.deepEqual([proxyRow('tok', 'group:github.issues.write').mode, proxyRow('tok', 'group:github.issues.write').allowedModes], ['ask', ['ask', 'deny']]);
   const job = await f.app.runtime.createProxyJob({connectionId: 'tok', request: {method: 'POST', path: '/repos/o/r/issues', body: {title: 't'}}}, owner);
   assert.deepEqual([job.status, f.api.length], ['awaiting_approval', 0], 'a raw request on the row still asks, and nothing was sent');
-  // Hand test B22, 2026-10-30: before any account connects, the page never says GitHub's operations are undiscovered. Slack's are candidates, so it still does.
+  // Hand test B22, 2026-10-30: before any account connects, the page never says GitHub's operations are undiscovered. Nor Slack's since step 22 certified them.
   store.delete('connections', 'tok');
   const empty = appId => f.json('GET', `/api/ui/apps/${appId}`);
-  assert.deepEqual([(await empty('github')).body.discovery, (await empty('slack')).body.discovery.state], [{state: 'ready'}, 'missing']);
+  assert.deepEqual([(await empty('github')).body.discovery, (await empty('slack')).body.discovery], [{state: 'ready'}, {state: 'ready'}]);
+  assert.equal((await empty('gmail')).body.discovery.state, 'missing', 'with no stored map Gmail\'s actions are only candidates, so its page still says so');
 });
