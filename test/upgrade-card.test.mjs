@@ -5,7 +5,7 @@ import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {randomUUID, createHash} from 'node:crypto';
 import {compileOpenApi} from '../lib/compiler.mjs';
-import {fixture} from './fixtures/signin-fixture.mjs';
+import {fixture, noShippedActions} from './fixtures/signin-fixture.mjs';
 import {v1Definition} from './fixtures/auth-v1/urls.mjs';
 import {OAuth2Provider} from '../lib/providers/oauth2.mjs';
 import {Store} from '../lib/store.mjs';
@@ -40,8 +40,8 @@ const REPOS = 'github.repos.read', ISSUES = 'github.issues.read', GISTS = 'githu
 const FULL = ['gist', 'read:org', 'read:user', 'repo', 'workflow'], CARD = [[PROFILE, false, true], [REPOS, true, true], [ISSUES, true, true], [GISTS, true, true]];
 
 async function setup(t) {
-  const f = await fixture(t), store = f.app.store;
-  // Only this synthetic GitHub's operations: the fixture's own two would sit in their rows by request (F10.6), with the rows' scope data.
+  const f = await fixture(t, {actions: await noShippedActions(t)}), store = f.app.store;
+  // Only this synthetic GitHub's operations (and none of GitHub's certified actions, which would join its rows): the fixture's own two would sit in their rows by request (F10.6), with the rows' scope data.
   for (const capability of [f.read, f.write]) store.delete('capabilities', capability.id);
   const caps = Object.fromEntries(compileOpenApi({appId: 'github', document: doc}).capabilities.map(cap => [cap.name, {...cap, status: 'active'}]));
   for (const cap of Object.values(caps)) store.put('capabilities', cap);

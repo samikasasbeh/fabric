@@ -16,7 +16,7 @@
 //   POST   .../pulls; GET .../pulls/{pull_number}; GET .../pulls/{pull_number}/files; PUT .../pulls/{pull_number}/merge;
 //   POST   .../pulls/{pull_number}/reviews; GET .../pulls/{pull_number}/reviews/{review_id}
 //   GET    .../commits/{ref}/check-runs; GET .../actions/workflows/{workflow_id}; POST .../actions/workflows/{workflow_id}/dispatches;
-//   GET    .../actions/workflows/{workflow_id}/runs
+//   GET    .../actions/workflows/{workflow_id}/runs; GET .../actions/runs/{run_id}
 //
 // Errors use GitHub's shape {message, documentation_url}, a 422 adding errors. Without "Authorization: Bearer <token>" (or "token
 // <token>") every route answers 401 Bad credentials. Every authenticated answer carries X-OAuth-Scopes, the token's scopes as "a, b, c",
@@ -63,7 +63,8 @@
 // - Check runs per commit (addCheckRun()). Workflows by id or file name, with state. A dispatch {ref, inputs?} needs an active workflow, a
 //   branch, and only the inputs the workflow declares, each a string, its required ones present (else 422); it answers 204 and records a
 //   workflow_dispatch run on the ref's head, which the runs list (event, branch, per_page, page; newest first) shows only once runLag(n)
-//   reads of it have passed.
+//   reads of it have passed. With return_run_details true (a boolean, else 422) it answers 200 {workflow_run_id, run_url, html_url}
+//   instead, and GET .../actions/runs/{run_id} reads that run at once, whatever the list's lag, as GitHub does.
 //
 // The network contract is lib/network.mjs's seam: `request` takes its options and answers {status, headers, data}. Refused before sending,
 // with sent false: a URL that is not https on 443 or carries credentials, an origin outside allowedOrigins or not GitHub's API, an
@@ -490,6 +491,13 @@ export class GitHubSimulator {
         const {items, headers} = this.#page(runs, query, `/repos/${found.fullName}/actions/workflows/${params.workflow_id}/runs`);
         return ok({total_count: runs.length, workflow_runs: items.map(({hiddenReads, inputs, ...run}) => (void hiddenReads, void inputs, {...run}))}, headers);
       }),
+      R('GET', repo('/actions/runs/{run_id}'), ({state, params}) => {
+        const found = this.#reach(state, params), run = found.runs.find(item => String(item.id) === params.run_id);
+        if (!run) notFound();
+        const {hiddenReads, inputs, ...view} = run;
+        void hiddenReads, void inputs;
+        return ok(view);
+      }),
     ];
   }
 
@@ -603,9 +611,12 @@ export class GitHubSimulator {
     if (Object.values(inputs).some(value => typeof value !== 'string')) refuse(422, 'Invalid value for inputs: every input is a string');
     const required = Object.entries(workflow.inputs).filter(([name, spec]) => spec.required && inputs[name] === undefined).map(([name]) => name);
     if (required.length) refuse(422, `Required input '${required[0]}' not provided`);
-    found.runs.push({id: 5_000_000 + state.next.run++, name: workflow.name, workflow_id: workflow.id, event: 'workflow_dispatch', head_branch: ref, head_sha: found.branches[ref], status: 'queued',
-      conclusion: null, created_at: iso(this.clock()), html_url: `https://github.com/${found.fullName}/actions/runs/${state.next.run - 1}`, inputs: {...inputs}, hiddenReads: this.lag});
-    return empty();
+    if (given.return_run_details !== undefined && typeof given.return_run_details !== 'boolean') refuse(422, 'return_run_details is not a boolean');
+    const id = 5_000_000 + state.next.run++, htmlUrl = `https://github.com/${found.fullName}/actions/runs/${id}`;
+    found.runs.push({id, name: workflow.name, workflow_id: workflow.id, event: 'workflow_dispatch', head_branch: ref, head_sha: found.branches[ref], status: 'queued',
+      conclusion: null, created_at: iso(this.clock()), html_url: htmlUrl, inputs: {...inputs}, hiddenReads: this.lag});
+    if (given.return_run_details !== true) return empty();
+    return ok({workflow_run_id: id, run_url: `https://api.github.com/repos/${found.fullName}/actions/runs/${id}`, html_url: htmlUrl});
   }
   #search({state, query}) {
     const q = query.get('q') ?? '', tokens = q.match(/"[^"]*"|\S+/g) ?? [];

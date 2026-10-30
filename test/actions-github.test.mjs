@@ -42,6 +42,7 @@ const ROUTES = Object.freeze({
   pulls: 'POST /repos/{owner}/{repo}/pulls', pull: 'GET /repos/{owner}/{repo}/pulls/{pull_number}', files: 'GET /repos/{owner}/{repo}/pulls/{pull_number}/files',
   merge: 'PUT /repos/{owner}/{repo}/pulls/{pull_number}/merge', review: 'POST /repos/{owner}/{repo}/pulls/{pull_number}/reviews', checks: 'GET /repos/{owner}/{repo}/commits/{ref}/check-runs',
   dispatch: 'POST /repos/{owner}/{repo}/actions/workflows/{workflow_id}/dispatches', runs: 'GET /repos/{owner}/{repo}/actions/workflows/{workflow_id}/runs',
+  run: 'GET /repos/{owner}/{repo}/actions/runs/{run_id}',
   repos: 'GET /user/repos', search: 'GET /search/issues'});
 const GITHUB_ERROR = (status, message) => ({status, data: {message, documentation_url: 'https://docs.github.com/rest'}});
 
@@ -87,7 +88,9 @@ const fileOf = (h, path, branch = 'main') => {
 /** GitHub's shipped file with each id recomputed from its content, as an author writes them. */
 const currentFile = (deps = githubDeps()) => withIds(githubFile(), deps);
 
-test('the file: 15 actions, each placed in its row with its effect and hints (section 2), with no map; no certified block, no superseded id', () => {
+// F10.18 listed churn: step 18's live pass (run 5XBI3UND) certified all 15, each naming the shipped evidence; that each names the hash of
+// exactly its definition, with a passing record, is test/live-evidence.test.mjs's, so an edit of the file is caught here by what it breaks.
+test('the file: 15 actions, each placed in its row with its effect and hints (section 2), with no map; each certified by step 18\'s evidence, no superseded id', () => {
   const file = currentFile(), {actions} = validateActionFile(file, githubDeps());
   assert.deepEqual(actions.map(entry => entry.key), Object.keys(TABLE));
   for (const entry of actions) {
@@ -95,7 +98,7 @@ test('the file: 15 actions, each placed in its row with its effect and hints (se
     assert.deepEqual([entry.version, entry.row, entry.effect, entry.action.hints, entry.unplaced, entry.sensitive], [1, row, effect, hints, false, false], entry.key);
     assert.ok(entry.placements.every(placement => !placement.unplaced && placement.groupId.startsWith('github.')), entry.key);
     assert.equal(entry.placements.filter(placement => placement.phase === 'perform').at(-1).groupId, row, `${entry.key}: the last perform step lands in its row`);
-    assert.equal(entry.action.certified, undefined, `${entry.key}: certified only by step 18's evidence`);
+    assert.deepEqual([Object.keys(entry.action.certified), entry.action.certified.evidence], [['evidence', 'definitionHash'], 'docs/live-evidence/github/actions.json'], `${entry.key}: certified by step 18's evidence`);
     assert.deepEqual(entry.action.pinnedParameters, undefined);
     // Every step asks for GitHub's JSON as a constant; Fabric adds User-Agent, X-GitHub-Api-Version and Authorization itself.
     for (const step of [...entry.action.prepare, ...entry.action.perform, ...(entry.action.verify?.requests ?? [])]) assert.deepEqual(step.headers, {Accept: {const: 'application/vnd.github+json'}}, `${entry.key} ${step.id}`);
@@ -362,26 +365,49 @@ test('Review changes and checks: mergeable null on the first read sends the seco
 });
 
 // ---- run a workflow ------------------------------------------------------------------------------------------------------------------------------
-test('Run a workflow: inputs arrive as strings; a repeated name refuses name_repeated; a disabled workflow refuses wrong_state; a run not listed yet ends unverified', async t => {
+test('Run a workflow: inputs arrive as strings and GitHub answers the new run, which is read back by its id; a repeated name refuses name_repeated; a disabled workflow refuses wrong_state', async t => {
   const h = githubHarness(t);
   const job = await prepared(h, 'run-workflow v1', {repository: REPO, workflow: 'fabric-synthetic.yml', branch: 'main', inputs: [{name: 'greeting', value: 'hello'}]});
-  assert.deepEqual(bodyOf(h, job), {ref: 'main', inputs: {greeting: 'hello'}});
+  assert.deepEqual(bodyOf(h, job), {ref: 'main', inputs: {greeting: 'hello'}, return_run_details: true});
   assert.deepEqual([h.fields(job).Workflow, h.fields(job).Branch, h.fields(job).Inputs], ['Fabric synthetic (.github/workflows/fabric-synthetic.yml)', 'main', 'greeting']);
   const done = ended(await h.approve(job), 'succeeded', null);
   const run = h.simulator.state().repos[REPO].runs.at(-1);
   assert.deepEqual([run.inputs, run.head_branch, run.event, done.result.verification.status], [{greeting: 'hello'}, 'main', 'workflow_dispatch', 'verified']);
-  assert.deepEqual(h.simulator.calls.at(-1).query, {event: 'workflow_dispatch', branch: 'main', per_page: '10'});
+  assert.deepEqual([done.result.data.runId, done.result.data.runUrl, done.result.data.branch], [run.id, run.html_url, 'main']);
+  const read = h.simulator.calls.at(-1);
+  assert.deepEqual([read.route, read.path.endsWith(`/actions/runs/${run.id}`)], [ROUTES.run, true], 'the readback reads the run by the id GitHub answered');
+  assert.equal(h.simulator.calls.filter(call => call.route === ROUTES.runs).length, 0, 'the runs list is never read');
   refusedAs(await h.run('run-workflow v1', {repository: REPO, workflow: 'fabric-synthetic.yml', branch: 'main', inputs: [{name: 'greeting', value: 'a'}, {name: 'GREETING', value: 'b'}]}), 'name_repeated');
   refusedAs(await h.run('run-workflow v1', {repository: REPO, workflow: 'fabric-synthetic.yml', branch: 'main', inputs: [{name: '1abc', value: 'a'}]}), 'name_invalid');
   h.simulator.addWorkflow(REPO, {file: 'off.yml', name: 'Off', state: 'disabled_manually'});
   refusedAs(await h.run('run-workflow v1', {repository: REPO, workflow: 'off.yml', branch: 'main', inputs: []}), 'wrong_state');
   assert.equal(h.simulator.writes().length, 1, 'nothing more dispatched');
-  // A run GitHub lists only a moment later: the readback cannot see it yet (on a fresh repository, since any earlier dispatch run on the
-  // branch also matches: open question 4).
+});
+
+// F10.17 open question 4, closed by reading the run by id: a run the list shows only a moment later still verifies, and an earlier run on the
+// same branch never verifies a dispatch that did not happen.
+test('Run a workflow: a run the list does not show yet verifies; an earlier run on the branch does not verify a swallowed dispatch; a run answered for another branch, event, workflow or id does not verify', async t => {
   const lag = githubHarness(t);
-  lag.simulator.runLag(1);
-  const lagging = ended(await approved(lag, 'run-workflow v1', {repository: REPO, workflow: 'fabric-synthetic.yml', branch: 'main', inputs: []}), 'uncertain', 'outcome_uncertain');
-  assert.deepEqual([lagging.result.verification.status, lag.simulator.writes().length], ['unverified', 1], 'never retried');
+  lag.simulator.runLag(3);
+  assert.equal(ended(await approved(lag, 'run-workflow v1', WORKFLOW), 'succeeded', null).result.verification.status, 'verified');
+  const earlier = githubHarness(t);
+  await api(earlier, 'POST', `/repos/${REPO}/actions/workflows/fabric-synthetic.yml/dispatches`, {ref: 'main'});
+  await swallowed(earlier, ROUTES.dispatch, 'run-workflow v1', WORKFLOW);
+  assert.equal(earlier.simulator.state().repos[REPO].runs.length, 1, 'only the earlier run exists');
+  // The same crafted answer with nothing changed verifies, so each refusal below is its one field.
+  const answered = (h, change) => {
+    const id = 5_000_000 + h.simulator.state().next.run, workflow = h.simulator.state().repos[REPO].workflows.find(item => item.path.endsWith('/fabric-synthetic.yml'));
+    h.simulator.fail(ROUTES.run, {status: 200, data: {id, workflow_id: workflow.id, event: 'workflow_dispatch', head_branch: 'main', ...change}});
+  };
+  const same = githubHarness(t);
+  answered(same, {});
+  assert.equal(ended(await approved(same, 'run-workflow v1', WORKFLOW), 'succeeded', null).result.verification.status, 'verified');
+  for (const change of [{head_branch: 'other'}, {event: 'push'}, {workflow_id: 1}, {id: 1}]) {
+    const h = githubHarness(t);
+    answered(h, change);
+    const job = ended(await approved(h, 'run-workflow v1', WORKFLOW), 'uncertain', 'outcome_uncertain');
+    assert.deepEqual([job.result.verification.status, h.simulator.writes().length], ['unverified', 1], `${JSON.stringify(change)}: never retried`);
+  }
 });
 
 // ---- spacing, modes and secrets ------------------------------------------------------------------------------------------------------------------------------
@@ -681,6 +707,8 @@ test('the live plan H0 to H12 passes step 12\'s plan check against the shipped f
   const undoOf = id => checked.plan.tests.find(item => item.id === id).undo;
   assert.deepEqual(['H7', 'H11', 'H7-undo', 'H9'].map(undoOf), [{test: 'H7-undo'}, {test: 'H12'}, {test: 'H12'}, {test: 'H12'}]);
   assert.deepEqual(kinds('H7-undo'), ['call']);
+  // H10 reads its run back by the id GitHub answers, inside the action, so it waits on no list and needs no owner step.
+  assert.deepEqual([kinds('H10'), steps('H10')[0].call.checks], [['call'], [{pointer: '/branch', equals: 'main'}, {pointer: '/runId', present: true}]]);
   assert.deepEqual(checked.plan.tests.filter(item => item.cleanup).map(item => item.id), ['H2-undo', 'H12']);
   assert.ok(checked.plan.tests.filter(item => !item.cleanup).every(item => ![...item.steps, ...(item.undo?.steps ?? [])].some(step => step.ask || step.oneTimeAsk)), 'no action test asks for a delete');
   // Every repository the plan names is the sandbox.

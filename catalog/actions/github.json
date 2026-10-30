@@ -25,7 +25,8 @@
    "preview": [
     {"label":"Page","expr":{"input":"/page"}}
    ],
-   "definitive": [401,403]
+   "definitive": [401,403],
+   "certified": {"evidence":"docs/live-evidence/github/actions.json","definitionHash":"7eaf0328ce977f699b71fc8aa690d747d4ea620b76050c4a25f096a3c95227dc"}
   },
   {
    "id": "github.action.find-issues.v1.02044bbd7c7e006838fb6c35",
@@ -48,7 +49,8 @@
     {"label":"Query","expr":{"pick":{"transform":"text.githubQuery@1","args":{"type":{"input":"/type"},"repo":{"when":{"present":{"input":"/repository"}},"then":{"object":{"owner":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/owner"},"name":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/repo"}}}},"scope":{"input":"/involvement"},"state":{"input":"/state"},"text":{"input":"/text"}}},"pointer":"/q"}},
     {"label":"Page","expr":{"input":"/page"}}
    ],
-   "definitive": [403,422]
+   "definitive": [403,422],
+   "certified": {"evidence":"docs/live-evidence/github/actions.json","definitionHash":"1dbd65d29ca78b7a61ebf7cbb9fffeffcb3c2427f89527ef24e1dc3b63289789"}
   },
   {
    "id": "github.action.read-conversation.v1.e421b0ea9953ff16d370cd91",
@@ -75,7 +77,8 @@
     {"label":"Issue","expr":{"input":"/number"}},
     {"label":"Page","expr":{"input":"/page"}}
    ],
-   "definitive": [403,404,410]
+   "definitive": [403,404,410],
+   "certified": {"evidence":"docs/live-evidence/github/actions.json","definitionHash":"e175581920915fd48f2b827e90cb9510ee23b036031d096d2149ef3af31cb92d"}
   },
   {
    "id": "github.action.create-issue.v1.c9bec5d8bc47fa48059b573c",
@@ -106,7 +109,8 @@
     {"label":"Labels to add (GitHub creates any the repository lacks)","expr":{"pick":{"transform":"text.joinList@1","args":{"items":{"when":{"present":{"input":"/labels"}},"then":{"input":"/labels"}},"mailboxes":{"when":{"absent":{"input":"/labels"}},"then":{"const":[]}}}},"pointer":"/text"}},
     {"label":"Mentions (GitHub notifies them)","expr":{"pick":{"transform":"text.joinList@1","args":{"items":{"pick":{"transform":"text.mentions@1","args":{"text":{"input":"/body"}}},"pointer":"/mentions"}}},"pointer":"/text"}}
    ],
-   "definitive": [400,403,404,410,422]
+   "definitive": [400,403,404,410,422],
+   "certified": {"evidence":"docs/live-evidence/github/actions.json","definitionHash":"8edd6d560b562bd3ca435b30c0dba265b9d8be63f041dead8dc5a3f9a220bd4f"}
   },
   {
    "id": "github.action.update-issue.v1.b492da5b4964684b39f0c713",
@@ -145,7 +149,8 @@
     {"label":"Body","expr":{"input":"/body"}},
     {"label":"Mentions (GitHub notifies them)","expr":{"pick":{"transform":"text.joinList@1","args":{"items":{"pick":{"transform":"text.mentions@1","args":{"text":{"input":"/body"}}},"pointer":"/mentions"}}},"pointer":"/text"}}
    ],
-   "definitive": [400,403,404,410,422]
+   "definitive": [400,403,404,410,422],
+   "certified": {"evidence":"docs/live-evidence/github/actions.json","definitionHash":"f93a075a1d96d1a6bd11c932b23d3ea0f439564408339fa76c044cb7d9ee9d0f"}
   },
   {
    "id": "github.action.update-labels.v1.c6f89bf34371b691d7f68ce8",
@@ -180,7 +185,8 @@
     {"label":"Labels to add (GitHub creates any the repository lacks)","expr":{"pick":{"transform":"text.joinList@1","args":{"items":{"input":"/add"}}},"pointer":"/text"}},
     {"label":"Labels to remove","expr":{"pick":{"transform":"text.joinList@1","args":{"items":{"input":"/remove"}}},"pointer":"/text"}}
    ],
-   "definitive": [400,403,404,410,422]
+   "definitive": [400,403,404,410,422],
+   "certified": {"evidence":"docs/live-evidence/github/actions.json","definitionHash":"ee7c2a9f29b0f8e853cd08cac48b9749ae8b2d94e20131ec8d574e5a3980b031"}
   },
   {
    "id": "github.action.comment.v1.d657b7a00e107176a012610b",
@@ -213,7 +219,8 @@
     {"label":"Comment","expr":{"input":"/body"}},
     {"label":"Mentions (GitHub notifies them)","expr":{"pick":{"transform":"text.joinList@1","args":{"items":{"pick":{"transform":"text.mentions@1","args":{"text":{"input":"/body"}}},"pointer":"/mentions"}}},"pointer":"/text"}}
    ],
-   "definitive": [403,404,410,422]
+   "definitive": [403,404,410,422],
+   "certified": {"evidence":"docs/live-evidence/github/actions.json","definitionHash":"7542ae0abbebed141f1ed085ddbeb70bcd94b5b5ba8fa933db6cf09d3a7cfc5e"}
   },
   {
    "id": "github.action.read-file.v1.fa3435d02533e347f85f4226",
@@ -237,7 +244,8 @@
     {"label":"File","expr":{"input":"/path"}},
     {"label":"Branch","expr":{"input":"/ref"}}
    ],
-   "definitive": [403,404]
+   "definitive": [403,404],
+   "certified": {"evidence":"docs/live-evidence/github/actions.json","definitionHash":"6a4298035dc8480f55121863bcd921d441a8032c23404dcb7bb2852780500637"}
   },
   {
    "id": "github.action.put-file.v1.ce394f8955de120b896ab074",
@@ -272,7 +280,8 @@
     {"label":"Commit message","expr":{"input":"/message"}},
     {"label":"New content (first 10,000 characters)","expr":{"input":"/content"},"truncate":10000}
    ],
-   "definitive": [400,403,404,409,422]
+   "definitive": [400,403,404,409,422],
+   "certified": {"evidence":"docs/live-evidence/github/actions.json","definitionHash":"207508299b821ba89aff864ccfaae9188af4a984034bbfeb114a4662edec3782"}
   },
   {
    "id": "github.action.create-branch.v1.ec07786b5577c5f693c2d8f0",
@@ -304,7 +313,8 @@
     {"label":"From branch","expr":{"pick":{"transform":"ids.gitRefName@1","args":{"name":{"input":"/from"}}},"pointer":"/name"}},
     {"label":"From commit","expr":{"step":"base","pointer":"/object/sha"}}
    ],
-   "definitive": [403,404,409,422]
+   "definitive": [403,404,409,422],
+   "certified": {"evidence":"docs/live-evidence/github/actions.json","definitionHash":"ba39b0013e5150b7bf4555e831fbd7297dd8a931631ed48c2709a83ca3867c75"}
   },
   {
    "id": "github.action.open-pull.v1.78d232ca1676e41db054b66a",
@@ -337,7 +347,8 @@
     {"label":"Body","expr":{"input":"/body"}},
     {"label":"Mentions (GitHub notifies them)","expr":{"pick":{"transform":"text.joinList@1","args":{"items":{"pick":{"transform":"text.mentions@1","args":{"text":{"input":"/body"}}},"pointer":"/mentions"}}},"pointer":"/text"}}
    ],
-   "definitive": [403,404,422]
+   "definitive": [403,404,422],
+   "certified": {"evidence":"docs/live-evidence/github/actions.json","definitionHash":"e22f951d136241826188c6164be4e83647c5cd8e05962aaf8449065ae30d1415"}
   },
   {
    "id": "github.action.review-pull.v1.0c36a40a075ef87c2c16489b",
@@ -365,7 +376,8 @@
     {"label":"Pull request","expr":{"input":"/number"}},
     {"label":"Page","expr":{"input":"/page"}}
    ],
-   "definitive": [403,404,422]
+   "definitive": [403,404,422],
+   "certified": {"evidence":"docs/live-evidence/github/actions.json","definitionHash":"b2b68e6038b0147057cfdce964e40aefcce7f8fe817a2e34c934e2eadef0b723"}
   },
   {
    "id": "github.action.submit-review.v1.b82c182fd58d54fed83ae316",
@@ -402,7 +414,8 @@
     {"label":"Review","expr":{"input":"/body"}},
     {"label":"Mentions (GitHub notifies them)","expr":{"pick":{"transform":"text.joinList@1","args":{"items":{"pick":{"transform":"text.mentions@1","args":{"text":{"input":"/body"}}},"pointer":"/mentions"}}},"pointer":"/text"}}
    ],
-   "definitive": [403,404,422]
+   "definitive": [403,404,422],
+   "certified": {"evidence":"docs/live-evidence/github/actions.json","definitionHash":"e5ee42afa95087fe58a8dd2d356852e8269ba2596025939c8f220b7e8ec756fa"}
   },
   {
    "id": "github.action.merge-pull.v1.46cefb8daba8743b703c4513",
@@ -442,19 +455,20 @@
     {"label":"Commit title","expr":{"input":"/commitTitle"}},
     {"label":"Commit message","expr":{"input":"/commitMessage"}}
    ],
-   "definitive": [403,404,405,409,422]
+   "definitive": [403,404,405,409,422],
+   "certified": {"evidence":"docs/live-evidence/github/actions.json","definitionHash":"74859aefe5fbeb98c663e938ebfe6e8bd1f5da38fda90a8ef063c05821c25e9f"}
   },
   {
-   "id": "github.action.run-workflow.v1.448cfb94a56d5d427ef6ac84",
+   "id": "github.action.run-workflow.v1.23a37ff39ca31b0a2d6d2de0",
    "key": "run-workflow",
    "version": 1,
    "name": "Run a workflow",
-   "description": "Starts one GitHub Actions workflow that can be run by hand, on a branch, with its inputs as text. The run shows in the workflow's runs a moment later.",
+   "description": "Starts one GitHub Actions workflow that can be run by hand, on a branch, with its inputs as text. GitHub answers with the new run, which Fabric reads back by its id.",
    "effect": "write",
    "row": "github.actions.run",
    "hints": {"readOnly":false,"destructive":false,"idempotent":false,"openWorld":true},
    "inputSchema": {"type":"object","properties":{"repository":{"type":"string","minLength":3,"maxLength":140,"description":"The repository, as owner/name, such as octo-org/platform."},"workflow":{"type":"string","minLength":1,"maxLength":255,"description":"The workflow's file name, such as ci.yml, or its id."},"branch":{"type":"string","minLength":1,"maxLength":255,"description":"A branch name, such as main or fabric/notes."},"inputs":{"type":"array","minItems":0,"maxItems":25,"items":{"type":"object","properties":{"name":{"type":"string","minLength":1,"maxLength":100},"value":{"type":"string","maxLength":1000}},"required":["name","value"],"additionalProperties":false},"description":"The workflow's inputs as name and text value; [] for none."}},"required":["repository","workflow","branch","inputs"],"additionalProperties":false},
-   "outputSchema": {"type":"object","properties":{"workflowId":{"type":"integer","minimum":1,"maximum":9007199254740991},"workflowPath":{"type":"string","maxLength":1000},"branch":{"type":"string","maxLength":255}},"required":["workflowId"],"additionalProperties":false},
+   "outputSchema": {"type":"object","properties":{"workflowId":{"type":"integer","minimum":1,"maximum":9007199254740991},"workflowPath":{"type":"string","maxLength":1000},"branch":{"type":"string","maxLength":255},"runId":{"type":"integer","minimum":1,"maximum":9007199254740991},"runUrl":{"type":"string","maxLength":1000}},"required":["workflowId","runId"],"additionalProperties":false},
    "guards": [
     {"transform":"collections.oneOf@1","args":{"value":{"step":"workflow","pointer":"/state"},"set":{"const":["active"]},"fold":{"const":"none"}},"refuse":"wrong_state","after":"workflow"}
    ],
@@ -462,21 +476,22 @@
     {"id":"workflow","method":"GET","path":"/repos/{owner}/{repo}/actions/workflows/{workflow_id}","params":{"owner":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/owner"},"repo":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/repo"},"workflow_id":{"input":"/workflow"}},"headers":{"Accept":{"const":"application/vnd.github+json"}},"expect":{"status":[200],"require":[]}}
    ],
    "perform": [
-    {"id":"dispatch","method":"POST","path":"/repos/{owner}/{repo}/actions/workflows/{workflow_id}/dispatches","params":{"owner":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/owner"},"repo":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/repo"},"workflow_id":{"input":"/workflow"}},"headers":{"Accept":{"const":"application/vnd.github+json"}},"body":{"object":{"ref":{"pick":{"transform":"ids.gitRefName@1","args":{"name":{"input":"/branch"}}},"pointer":"/name"},"inputs":{"transform":"collections.stringValues@1","args":{"values":{"input":"/inputs"}}}}},"expect":{"status":[204],"require":[]}}
+    {"id":"dispatch","method":"POST","path":"/repos/{owner}/{repo}/actions/workflows/{workflow_id}/dispatches","params":{"owner":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/owner"},"repo":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/repo"},"workflow_id":{"input":"/workflow"}},"headers":{"Accept":{"const":"application/vnd.github+json"}},"body":{"object":{"ref":{"pick":{"transform":"ids.gitRefName@1","args":{"name":{"input":"/branch"}}},"pointer":"/name"},"inputs":{"transform":"collections.stringValues@1","args":{"values":{"input":"/inputs"}}},"return_run_details":{"const":true}}},"expect":{"status":[200],"require":[{"present":{"pointer":"/workflow_run_id"}}]}}
    ],
    "verify": {
-    "requests": [{"id":"runs","method":"GET","path":"/repos/{owner}/{repo}/actions/workflows/{workflow_id}/runs","params":{"owner":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/owner"},"repo":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/repo"},"workflow_id":{"input":"/workflow"}},"query":{"event":{"const":"workflow_dispatch"},"branch":{"pick":{"transform":"ids.gitRefName@1","args":{"name":{"input":"/branch"}}},"pointer":"/name"},"per_page":{"const":10}},"headers":{"Accept":{"const":"application/vnd.github+json"}},"expect":{"status":[200],"require":[]}}],
-    "identity": [{"kind":"membership","step":"runs","listHas":{"list":"/workflow_runs","where":[{"field":"/head_branch","equals":{"pick":{"transform":"ids.gitRefName@1","args":{"name":{"input":"/branch"}}},"pointer":"/name"}},{"field":"/event","equals":{"const":"workflow_dispatch"}}]}}],
-    "assert": []
+    "requests": [{"id":"run","method":"GET","path":"/repos/{owner}/{repo}/actions/runs/{run_id}","params":{"owner":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/owner"},"repo":{"pick":{"transform":"ids.ownerRepo@1","args":{"value":{"input":"/repository"}}},"pointer":"/repo"},"run_id":{"step":"dispatch","pointer":"/workflow_run_id"}},"headers":{"Accept":{"const":"application/vnd.github+json"}},"expect":{"status":[200],"require":[]}}],
+    "identity": [{"kind":"readback","step":"run","pointer":"/id","equals":{"step":"dispatch","pointer":"/workflow_run_id"}}],
+    "assert": [{"step":"run","equals":{"pointer":"/event","value":{"const":"workflow_dispatch"}}},{"step":"run","equals":{"pointer":"/head_branch","value":{"pick":{"transform":"ids.gitRefName@1","args":{"name":{"input":"/branch"}}},"pointer":"/name"}}},{"step":"run","equals":{"pointer":"/workflow_id","value":{"step":"workflow","pointer":"/id"}}}]
    },
-   "output": {"workflowId":{"step":"workflow","pointer":"/id"},"workflowPath":{"step":"workflow","pointer":"/path"},"branch":{"pick":{"transform":"ids.gitRefName@1","args":{"name":{"input":"/branch"}}},"pointer":"/name"}},
+   "output": {"workflowId":{"step":"workflow","pointer":"/id"},"workflowPath":{"step":"workflow","pointer":"/path"},"branch":{"pick":{"transform":"ids.gitRefName@1","args":{"name":{"input":"/branch"}}},"pointer":"/name"},"runId":{"step":"dispatch","pointer":"/workflow_run_id"},"runUrl":{"step":"dispatch","pointer":"/html_url"}},
    "preview": [
     {"label":"Repository","expr":{"input":"/repository"}},
     {"label":"Workflow","expr":{"concat":[{"step":"workflow","pointer":"/name"},{"const":" ("},{"step":"workflow","pointer":"/path"},{"const":")"}],"max":2000}},
     {"label":"Branch","expr":{"pick":{"transform":"ids.gitRefName@1","args":{"name":{"input":"/branch"}}},"pointer":"/name"}},
     {"label":"Inputs","expr":{"pick":{"transform":"text.joinList@1","args":{"items":{"each":{"input":"/inputs"},"as":"input","max":25,"do":{"pick":{"var":"input"},"pointer":"/name"}}}},"pointer":"/text"}}
    ],
-   "definitive": [403,404,422]
+   "definitive": [403,404,422],
+   "certified": {"evidence":"docs/live-evidence/github/actions.json","definitionHash":"d299eed88bc155f2f85347e2535816f89aab26d6e3980d932ad36ee82c60f16f"}
   }
  ]
 }

@@ -16,7 +16,7 @@ The current work is five apps done in depth.
 | --- | --- | --- |
 | Gmail | 13 | 13 |
 | Google Calendar | 13 | 13 |
-| GitHub | 15 | In progress |
+| GitHub | 15 | 15 |
 | Notion | 16 | Not yet |
 | Slack | 13 | Not yet |
 

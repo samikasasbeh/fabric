@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {compileOpenApi} from '../lib/compiler.mjs';
 import {validatePermissionGroups} from '../lib/permission-groups.mjs';
-import {fixture} from './fixtures/signin-fixture.mjs';
+import {fixture, noShippedActions} from './fixtures/signin-fixture.mjs';
 import {describeApp, needsConfirm, rowRequest, decide, MODE_LABEL, confirmedRequest} from '../public/hosted-app.js';
 import {errorOf} from '../public/hosted-base.js';
 
@@ -20,7 +20,8 @@ const groups = validatePermissionGroups({schemaVersion: 1, appId: 'github', grou
 ]});
 
 async function setup(t) {
-  const f = await fixture(t);
+  // Only the synthetic operations below: GitHub's certified actions would join these injected rows without their read steps' rows.
+  const f = await fixture(t, {actions: await noShippedActions(t)});
   const caps = compileOpenApi({appId: 'github', document: doc}).capabilities.map(cap => ({...cap, status: 'active'}));
   for (const cap of caps) f.app.store.put('capabilities', cap);
   const by = id => caps.find(cap => cap.name === id || cap.id.includes(id.toLowerCase()));

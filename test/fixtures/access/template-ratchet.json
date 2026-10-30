@@ -28,7 +28,7 @@
    "row-scope-data": true,
    "defaults": true,
    "actions": true,
-   "live-evidence": false,
+   "live-evidence": true,
    "sign-in-evidence": true
   },
   "notion": {

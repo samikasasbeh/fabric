@@ -18,7 +18,7 @@ import {offeredLevels, heldLevel} from '../lib/access-levels.mjs';
 import {operationScopes} from '../lib/continuations.mjs';
 import {describeApp, needsConfirm, confirmText, confirmedRowRequest, rowRequest, NOTE_WORDS} from '../public/hosted-app.js';
 import {baseFor} from '../public/hosted-base.js';
-import {fixture, owner} from './fixtures/signin-fixture.mjs';
+import {fixture, owner, noShippedActions} from './fixtures/signin-fixture.mjs';
 import {fixture as handoffFixture} from './fixtures/continuation-fixture.mjs';
 import {SIMULATORS} from './fixtures/oauth-simulators.mjs';
 import {v1Definition} from './fixtures/auth-v1/urls.mjs';
@@ -68,9 +68,10 @@ const account = (store, id, appId, origin, extra = {}) => store.put('connections
   allowedOrigins: [origin], createdAt: '2026-10-11T10:00:00.000Z', ...extra});
 
 // ---- the single-owner server (shipped rows, version 1 definitions) -------------------------------------------------------
-async function local(t) {
-  const f = await fixture(t), store = f.app.store;
-  // No map and no typed operation: every GitHub row comes from the proxy's view of the account.
+async function local(t, {shipped = false} = {}) {
+  const f = await fixture(t, shipped ? {} : {actions: await noShippedActions(t)}), store = f.app.store;
+  // No map, no typed operation and, unless `shipped`, no action: every GitHub row comes from the proxy's view of the account. With
+  // `shipped`, GitHub's certified actions join their rows (the last test of this file).
   store.delete('applicationMaps', 'github'); store.delete('capabilities', f.read.id); store.delete('capabilities', f.write.id);
   account(store, 'tok', 'github', 'https://api.github.com');
   const view = async (appId = 'github', ref = 'tok') => f.json('GET', `/api/ui/apps/${appId}?account=${encodeURIComponent(ref)}`);
@@ -609,4 +610,27 @@ test('the shipped markers reach the owner page: Gmail settings reads say how man
   const [manage] = shown(notion).filter(row => row.groupId === 'notion.connection.manage'), [beta] = shown(notion).filter(row => row.groupId === 'notion.agents.read');
   assert.deepEqual([manage.accessNote, manage.noteText, manage.needsAccess], [UNAVAILABLE_REASONS['client-credentials-only'], [], false]);
   assert.deepEqual(beta.noteText, [CONDITION_WORDS.beta, CONDITION_WORDS['plan-dependent']]);
+});
+
+// ---- F10.18: GitHub's certified actions on their rows ------------------------------------------------------------------------
+// Step 18's live pass certified GitHub's 15 actions, which place with no map. Each joins the row it declares (F10.11 part k): a write
+// row with actions offers Allow for them behind the standing consent, while the row's raw requests keep the proxy's own choices.
+test('F10.18: with GitHub\'s certified actions, a write row offers Allow for its actions, raw requests on it still ask, and the page drops the raw-requests-only notice', async t => {
+  const {f, store, view, post, proxyRow} = await local(t, {shipped: true}), page = (await view()).body;
+  assert.equal(rowsOf(page).length, 13);
+  assert.deepEqual(page.discovery, {state: 'ready'}, 'reviewed actions are typed operations, so the page never says raw requests only');
+  const issues = rowIn(page, 'github.issues.write');
+  assert.deepEqual([issues.mode, issues.allowedModes, issues.allowNeedsConfirm], ['ask', ['allow', 'ask', 'deny'], true]);
+  assert.deepEqual(rowIn(page, 'github.gists.write').allowedModes, ['ask', 'deny'], 'a write row no action joins offers what its raw requests may');
+  assert.equal((await post('permissions', {groupId: 'github.issues.write', mode: 'allow', etag: issues.etag})).body.code, 'confirm_required');
+  const set = await post('permissions', {groupId: 'github.issues.write', mode: 'allow', etag: issues.etag, confirmAllow: true});
+  assert.equal(set.status, 200);
+  assert.deepEqual([rowIn(set.body, 'github.issues.write').mode, rowIn(set.body, 'github.issues.write').notes], ['allow', ['raw_requests_ask']]);
+  const connection = store.get('connections', 'tok'), actions = store.list('capabilities').filter(capability => capability.driver === 'action' && capability.appId === 'github');
+  assert.equal(actions.length, 15);
+  const issueActions = actions.filter(capability => ['create-issue', 'update-issue', 'update-labels'].some(key => capability.id.startsWith(`github.action.${key}.`)));
+  assert.deepEqual(issueActions.map(capability => f.app.runtime.permissions.decision(connection, capability).mode), ['allow', 'allow', 'allow']);
+  assert.deepEqual([proxyRow('tok', 'group:github.issues.write').mode, proxyRow('tok', 'group:github.issues.write').allowedModes], ['ask', ['ask', 'deny']]);
+  const job = await f.app.runtime.createProxyJob({connectionId: 'tok', request: {method: 'POST', path: '/repos/o/r/issues', body: {title: 't'}}}, owner);
+  assert.deepEqual([job.status, f.api.length], ['awaiting_approval', 0], 'a raw request on the row still asks, and nothing was sent');
 });

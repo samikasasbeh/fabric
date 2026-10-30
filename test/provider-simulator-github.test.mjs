@@ -322,6 +322,23 @@ test('workflows: by id or file name with state; a dispatch needs an existing ref
   assert.deepEqual([listedChecks.data.total_count, listedChecks.data.check_runs[0].id, listedChecks.data.check_runs[0].conclusion], [1, checks.id, 'success']);
 });
 
+test('workflows: a dispatch with return_run_details answers 200 with the new run, which reads back by its id at once while the list still lags', async () => {
+  const simulator = sim(), path = rest => repoPath(SANDBOX, rest);
+  const dispatch = body => send(simulator, 'POST', path('/actions/workflows/fabric-synthetic.yml/dispatches'), {body});
+  assert.equal((await dispatch({ref: 'main', return_run_details: 'yes'})).status, 422, 'return_run_details is a boolean');
+  assert.deepEqual(simulator.state().repos[SANDBOX].runs, [], 'a refused dispatch records no run');
+  simulator.runLag(5);
+  const sent = await dispatch({ref: 'main', return_run_details: true}), id = sent.data.workflow_run_id;
+  assert.deepEqual([sent.status, Object.keys(sent.data).sort(), sent.data.run_url, sent.data.html_url],
+    [200, ['html_url', 'run_url', 'workflow_run_id'], `https://api.github.com/repos/${SANDBOX}/actions/runs/${id}`, `https://github.com/${SANDBOX}/actions/runs/${id}`]);
+  const run = await send(simulator, 'GET', path(`/actions/runs/${id}`));
+  assert.deepEqual([run.status, run.data.id, run.data.event, run.data.head_branch, run.data.head_sha, run.data.html_url, Object.hasOwn(run.data, 'inputs'), Object.hasOwn(run.data, 'hiddenReads')],
+    [200, id, 'workflow_dispatch', 'main', simulator.head(SANDBOX, 'main'), sent.data.html_url, false, false]);
+  assert.equal((await send(simulator, 'GET', path('/actions/workflows/fabric-synthetic.yml/runs'), {query: {per_page: 10}})).data.total_count, 0, 'the list still lags');
+  assert.deepEqual([(await dispatch({ref: 'main', return_run_details: false})).status, (await dispatch({ref: 'main'})).status], [204, 204], 'false or absent answers 204');
+  assert.equal((await send(simulator, 'GET', path(`/actions/runs/${id + 1000}`))).status, 404);
+});
+
 test('a restricted organization answers 403 with GitHub\'s documented message on its repositories only; organizations and gists read with their scopes', async () => {
   const simulator = sim();
   assert.equal((await send(simulator, 'GET', repoPath(ORG_REPO, '/issues/1'))).status, 404, 'no issue 1 there, but reachable');

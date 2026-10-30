@@ -1,0 +1,3623 @@
+{
+ "github.action.comment.v1.d657b7a00e107176a012610b": {
+  "definitionHash": "7542ae0abbebed141f1ed085ddbeb70bcd94b5b5ba8fa933db6cf09d3a7cfc5e",
+  "harnessHash": "7486366c59d0f96b08bcc8ea30ec3943954645aa102528f3f6900b15f8fccba2",
+  "passed": true,
+  "ranAt": "2026-10-30T00:28:44.547Z",
+  "runId": "5XBI3UND",
+  "runtime": {
+   "icu": "78.2",
+   "node": "25.8.1",
+   "tz": "2026a",
+   "unicode": "17.0"
+  },
+  "schemaVersion": 1,
+  "tests": [
+   {
+    "checks": [
+     {
+      "name": "step 1: comment@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 1: saves comment",
+      "passed": true
+     },
+     {
+      "name": "step 2: status",
+      "passed": true
+     },
+     {
+      "name": "step 2: /id equals",
+      "passed": true
+     },
+     {
+      "name": "step 2: /body equals",
+      "passed": true
+     }
+    ],
+    "jobs": [
+     {
+      "approvals": [
+       {
+        "at": "2026-10-30T00:22:44.504Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "14d41cdb-d630-4f54-b3ad-2aef9e5abb23",
+      "status": "succeeded"
+     }
+    ],
+    "passed": true,
+    "requests": [
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/issues/{issue_number}"
+     },
+     {
+      "bodyHmac": "625c1a75cd1dac20336c256342d317f898b43e037b5a8250466fb81ea5c4b4b5",
+      "identity": "6511759279",
+      "method": "POST",
+      "status": 201,
+      "template": "/repos/{owner}/{repo}/issues/{issue_number}/comments"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/issues/comments/{comment_id}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/issues/comments/{comment_id}"
+     }
+    ],
+    "test": "H2",
+    "undo": {
+     "test": "H2-undo"
+    }
+   }
+  ],
+  "transforms": {
+   "ids.ownerRepo@1": "32051417dc971e851a8773e45e5961abeb6e6807044028d05214e3dcb79e69f2",
+   "text.joinList@1": "1f75825537a4063657cd6dbd224bce5b4af8e05a651ff3738ea9c2eacf736053",
+   "text.mentions@1": "6ae1116a685f7a42f89436f15d86c6a75170bb278c083154d09e9cb29ae9eb06"
+  }
+ },
+ "github.action.create-branch.v1.ec07786b5577c5f693c2d8f0": {
+  "definitionHash": "ba39b0013e5150b7bf4555e831fbd7297dd8a931631ed48c2709a83ca3867c75",
+  "harnessHash": "7486366c59d0f96b08bcc8ea30ec3943954645aa102528f3f6900b15f8fccba2",
+  "passed": true,
+  "ranAt": "2026-10-30T00:28:44.547Z",
+  "runId": "5XBI3UND",
+  "runtime": {
+   "icu": "78.2",
+   "node": "25.8.1",
+   "tz": "2026a",
+   "unicode": "17.0"
+  },
+  "schemaVersion": 1,
+  "tests": [
+   {
+    "checks": [
+     {
+      "name": "step 1: create-branch@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 1: saves h7Commit",
+      "passed": true
+     },
+     {
+      "name": "step 1: /sha present",
+      "passed": true
+     },
+     {
+      "name": "step 2: status",
+      "passed": true
+     },
+     {
+      "name": "step 2: /object/sha equals",
+      "passed": true
+     },
+     {
+      "name": "step 3: put-file@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 3: saves h7File",
+      "passed": true
+     },
+     {
+      "name": "step 4: read-file@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 4: /text equals",
+      "passed": true
+     },
+     {
+      "name": "step 4: /sha equals",
+      "passed": true
+     },
+     {
+      "name": "step 5: open-pull@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 5: saves h7Pull",
+      "passed": true
+     },
+     {
+      "name": "step 5: /draft equals",
+      "passed": true
+     },
+     {
+      "name": "step 6: status",
+      "passed": true
+     },
+     {
+      "name": "step 6: /number equals",
+      "passed": true
+     },
+     {
+      "name": "step 6: /draft equals",
+      "passed": true
+     }
+    ],
+    "jobs": [
+     {
+      "approvals": [
+       {
+        "at": "2026-10-30T00:24:03.047Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "83ac9204-f135-48b3-bbba-92f4c1fd7bd9",
+      "status": "succeeded"
+     }
+    ],
+    "passed": true,
+    "requests": [
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/git/ref/{+ref}"
+     },
+     {
+      "bodyHmac": "766b6e85cb58523d9d6d089dff282f9f32b3eca24e68a3d96694e2c5f7d248a9",
+      "identity": null,
+      "method": "POST",
+      "status": 201,
+      "template": "/repos/{owner}/{repo}/git/refs"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/git/ref/{+ref}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/git/ref/{+ref}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 404,
+      "template": "/repos/{owner}/{repo}/contents/{+path}"
+     },
+     {
+      "bodyHmac": "7926f4f5c95a80e3b0a2ca16e14c1233c2e2a0adce8f2a1d685bdd38ec0bde8a",
+      "identity": null,
+      "method": "PUT",
+      "status": 201,
+      "template": "/repos/{owner}/{repo}/contents/{+path}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/contents/{+path}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/contents/{+path}"
+     },
+     {
+      "bodyHmac": "8a66225201e8edfb918ca3718e8ba78b0309c6f4c29047e56aa376e9e7e33b53",
+      "identity": "5077523616",
+      "method": "POST",
+      "status": 201,
+      "template": "/repos/{owner}/{repo}/pulls"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/pulls/{pull_number}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/pulls/{pull_number}"
+     }
+    ],
+    "test": "H7",
+    "undo": {
+     "test": "H7-undo"
+    }
+   },
+   {
+    "checks": [
+     {
+      "name": "step 1: create-branch@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 1: /sha present",
+      "passed": true
+     },
+     {
+      "name": "step 2: create-branch@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 2: /sha present",
+      "passed": true
+     },
+     {
+      "name": "step 3: put-file@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 4: open-pull@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 4: saves h9Pull",
+      "passed": true
+     },
+     {
+      "name": "step 5: one job succeeded and one failed with 409",
+      "passed": true
+     },
+     {
+      "name": "step 5: the readback equals the job that landed",
+      "passed": true
+     },
+     {
+      "name": "step 7: merge-pull@1 failed with 409",
+      "passed": true
+     },
+     {
+      "name": "step 8: merge-pull@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 8: /merged equals",
+      "passed": true
+     },
+     {
+      "name": "step 9: /merged equals",
+      "passed": true
+     },
+     {
+      "name": "step 9: /merge_commit_sha present",
+      "passed": true
+     }
+    ],
+    "jobs": [
+     {
+      "approvals": [
+       {
+        "at": "2026-10-30T00:25:26.120Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "32aa1691-4f13-4b79-8f9e-af8ccfdd44ef",
+      "status": "succeeded"
+     },
+     {
+      "approvals": [
+       {
+        "at": "2026-10-30T00:25:36.276Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "45ec94ae-3063-4500-a58c-474e1fb4a11e",
+      "status": "succeeded"
+     }
+    ],
+    "passed": true,
+    "requests": [
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/git/ref/{+ref}"
+     },
+     {
+      "bodyHmac": "4e7f67da5a60e4d7fa3639c764ab7a62e9541bf2883eabc6b4227525e40a0117",
+      "identity": null,
+      "method": "POST",
+      "status": 201,
+      "template": "/repos/{owner}/{repo}/git/refs"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/git/ref/{+ref}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/git/ref/{+ref}"
+     },
+     {
+      "bodyHmac": "7f4759026105ea9a177b92e2be9d7a1723e44a422dc6b3aec5d3547403d9fa67",
+      "identity": null,
+      "method": "POST",
+      "status": 201,
+      "template": "/repos/{owner}/{repo}/git/refs"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/git/ref/{+ref}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 404,
+      "template": "/repos/{owner}/{repo}/contents/{+path}"
+     },
+     {
+      "bodyHmac": "48d33c3d726369c8e994480670311bd4123b641079580bae6272d8700a8dbf55",
+      "identity": null,
+      "method": "PUT",
+      "status": 201,
+      "template": "/repos/{owner}/{repo}/contents/{+path}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/contents/{+path}"
+     },
+     {
+      "bodyHmac": "ed9866fc1697fcbf08e3d7e8d43a53644a8a3c09d3fa92300501dd2efa8a3ba9",
+      "identity": "5077536067",
+      "method": "POST",
+      "status": 201,
+      "template": "/repos/{owner}/{repo}/pulls"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/pulls/{pull_number}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/contents/{+path}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/contents/{+path}"
+     },
+     {
+      "bodyHmac": "ae216ac57b020ea6336d0bfc8dd1cea3a00bb4e70bab4f63c7bcf4ba5beeb832",
+      "identity": null,
+      "method": "PUT",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/contents/{+path}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/contents/{+path}"
+     },
+     {
+      "bodyHmac": "ae216ac57b020ea6336d0bfc8dd1cea3a00bb4e70bab4f63c7bcf4ba5beeb832",
+      "identity": null,
+      "method": "PUT",
+      "status": 409,
+      "template": "/repos/{owner}/{repo}/contents/{+path}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/contents/{+path}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/pulls/{pull_number}"
+     },
+     {
+      "bodyHmac": "7bd9b2c7bbb7f1e4b0fa46130e1526f52d902e69d4fabc497adf03dc527d4d0b",
+      "identity": null,
+      "method": "PUT",
+      "status": 409,
+      "template": "/repos/{owner}/{repo}/pulls/{pull_number}/merge"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/pulls/{pull_number}"
+     },
+     {
+      "bodyHmac": "d9c7ffb838a0bf8c319c4b07e7ff177e5d96c85906abf53152301933407088cf",
+      "identity": null,
+      "method": "PUT",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/pulls/{pull_number}/merge"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/pulls/{pull_number}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/pulls/{pull_number}"
+     }
+    ],
+    "test": "H9",
+    "undo": {
+     "test": "H12"
+    }
+   }
+  ],
+  "transforms": {
+   "ids.gitRefName@1": "c09a13f602fd32a9722f489909d0d851d1cecb52bb50a15495d1ccd865c7fad4",
+   "ids.ownerRepo@1": "32051417dc971e851a8773e45e5961abeb6e6807044028d05214e3dcb79e69f2"
+  }
+ },
+ "github.action.create-issue.v1.c9bec5d8bc47fa48059b573c": {
+  "definitionHash": "8edd6d560b562bd3ca435b30c0dba265b9d8be63f041dead8dc5a3f9a220bd4f",
+  "harnessHash": "7486366c59d0f96b08bcc8ea30ec3943954645aa102528f3f6900b15f8fccba2",
+  "passed": true,
+  "ranAt": "2026-10-30T00:28:44.547Z",
+  "runId": "5XBI3UND",
+  "runtime": {
+   "icu": "78.2",
+   "node": "25.8.1",
+   "tz": "2026a",
+   "unicode": "17.0"
+  },
+  "schemaVersion": 1,
+  "tests": [
+   {
+    "checks": [
+     {
+      "name": "step 1: create-issue@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 1: saves created",
+      "passed": true
+     },
+     {
+      "name": "step 1: /title equals",
+      "passed": true
+     },
+     {
+      "name": "step 2: status",
+      "passed": true
+     },
+     {
+      "name": "step 2: /number equals",
+      "passed": true
+     }
+    ],
+    "jobs": [
+     {
+      "approvals": [
+       {
+        "at": "2026-10-30T00:23:46.578Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "61ab0349-0dc8-4999-8ef3-6f2353c564b9",
+      "status": "succeeded"
+     }
+    ],
+    "passed": true,
+    "requests": [
+     {
+      "bodyHmac": "dc0217815c62caa30189ea9318b84efa5cec36b189ff5c53feed93964d1da158",
+      "identity": "6110856259",
+      "method": "POST",
+      "status": 201,
+      "template": "/repos/{owner}/{repo}/issues"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/issues/{issue_number}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/issues/{issue_number}"
+     }
+    ],
+    "test": "H6",
+    "undo": {
+     "checks": [
+      {
+       "name": "step 1: update-issue@1 succeeded",
+       "passed": true
+      },
+      {
+       "name": "step 1: /state equals",
+       "passed": true
+      }
+     ],
+     "jobs": [
+      {
+       "approvals": [
+        {
+         "at": "2026-10-30T00:23:54.758Z",
+         "phase": "final"
+        }
+       ],
+       "errorCode": null,
+       "id": "262508f7-2514-4af7-b4b6-698cfd4defe8",
+       "status": "succeeded"
+      }
+     ],
+     "passed": true,
+     "requests": [
+      {
+       "bodyHmac": null,
+       "identity": null,
+       "method": "GET",
+       "status": 200,
+       "template": "/repos/{owner}/{repo}/issues/{issue_number}"
+      },
+      {
+       "bodyHmac": "3a1a680981be5530546ece2d647467f84e437529c2c570dfcbe972a9c47c85bc",
+       "identity": null,
+       "method": "PATCH",
+       "status": 200,
+       "template": "/repos/{owner}/{repo}/issues/{issue_number}"
+      },
+      {
+       "bodyHmac": null,
+       "identity": null,
+       "method": "GET",
+       "status": 200,
+       "template": "/repos/{owner}/{repo}/issues/{issue_number}"
+      }
+     ]
+    }
+   }
+  ],
+  "transforms": {
+   "ids.ownerRepo@1": "32051417dc971e851a8773e45e5961abeb6e6807044028d05214e3dcb79e69f2",
+   "text.joinList@1": "1f75825537a4063657cd6dbd224bce5b4af8e05a651ff3738ea9c2eacf736053",
+   "text.mentions@1": "6ae1116a685f7a42f89436f15d86c6a75170bb278c083154d09e9cb29ae9eb06"
+  }
+ },
+ "github.action.find-issues.v1.02044bbd7c7e006838fb6c35": {
+  "definitionHash": "1dbd65d29ca78b7a61ebf7cbb9fffeffcb3c2427f89527ef24e1dc3b63289789",
+  "harnessHash": "7486366c59d0f96b08bcc8ea30ec3943954645aa102528f3f6900b15f8fccba2",
+  "passed": true,
+  "ranAt": "2026-10-30T00:28:44.547Z",
+  "runId": "5XBI3UND",
+  "runtime": {
+   "icu": "78.2",
+   "node": "25.8.1",
+   "tz": "2026a",
+   "unicode": "17.0"
+  },
+  "schemaVersion": 1,
+  "tests": [
+   {
+    "checks": [
+     {
+      "name": "step 1: list-repos@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 1: /repositories present",
+      "passed": true
+     },
+     {
+      "name": "step 2: saves numberA",
+      "passed": true
+     },
+     {
+      "name": "step 2: status",
+      "passed": true
+     },
+     {
+      "name": "step 3: saves numberB",
+      "passed": true
+     },
+     {
+      "name": "step 3: status",
+      "passed": true
+     },
+     {
+      "name": "step 3: /title equals",
+      "passed": true
+     },
+     {
+      "name": "step 4: saves numberC",
+      "passed": true
+     },
+     {
+      "name": "step 4: status",
+      "passed": true
+     },
+     {
+      "name": "step 4: /labels count",
+      "passed": true
+     },
+     {
+      "name": "step 5: find-issues@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 5: /items present",
+      "passed": true
+     },
+     {
+      "name": "step 6: read-conversation@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 6: /number equals",
+      "passed": true
+     },
+     {
+      "name": "step 7: read-file@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 7: /path equals",
+      "passed": true
+     },
+     {
+      "name": "step 7: /text present",
+      "passed": true
+     }
+    ],
+    "jobs": [
+     {
+      "approvals": [
+       {
+        "at": "2026-10-30T00:22:21.286Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "36d346d3-356f-4ba2-b017-53a4b37ca6d2",
+      "status": "succeeded"
+     }
+    ],
+    "passed": true,
+    "requests": [
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/user/repos"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/issues/{issue_number}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/issues/{issue_number}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/issues/{issue_number}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/search/issues"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/issues/{issue_number}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/issues/{issue_number}/comments"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/contents/{+path}"
+     }
+    ],
+    "test": "H1",
+    "undo": {
+     "none": "The test changes nothing."
+    }
+   }
+  ],
+  "transforms": {
+   "ids.ownerRepo@1": "32051417dc971e851a8773e45e5961abeb6e6807044028d05214e3dcb79e69f2",
+   "text.githubQuery@1": "9edb259e4043ae3c1bbd7ddeefb234e6b74abec1a05d6832c37761d235e632b5"
+  }
+ },
+ "github.action.list-repos.v1.1e11c13a7303c5fa36468f02": {
+  "definitionHash": "7eaf0328ce977f699b71fc8aa690d747d4ea620b76050c4a25f096a3c95227dc",
+  "harnessHash": "7486366c59d0f96b08bcc8ea30ec3943954645aa102528f3f6900b15f8fccba2",
+  "passed": true,
+  "ranAt": "2026-10-30T00:28:44.547Z",
+  "runId": "5XBI3UND",
+  "runtime": {
+   "icu": "78.2",
+   "node": "25.8.1",
+   "tz": "2026a",
+   "unicode": "17.0"
+  },
+  "schemaVersion": 1,
+  "tests": [
+   {
+    "checks": [
+     {
+      "name": "step 1: list-repos@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 1: /repositories present",
+      "passed": true
+     },
+     {
+      "name": "step 2: saves numberA",
+      "passed": true
+     },
+     {
+      "name": "step 2: status",
+      "passed": true
+     },
+     {
+      "name": "step 3: saves numberB",
+      "passed": true
+     },
+     {
+      "name": "step 3: status",
+      "passed": true
+     },
+     {
+      "name": "step 3: /title equals",
+      "passed": true
+     },
+     {
+      "name": "step 4: saves numberC",
+      "passed": true
+     },
+     {
+      "name": "step 4: status",
+      "passed": true
+     },
+     {
+      "name": "step 4: /labels count",
+      "passed": true
+     },
+     {
+      "name": "step 5: find-issues@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 5: /items present",
+      "passed": true
+     },
+     {
+      "name": "step 6: read-conversation@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 6: /number equals",
+      "passed": true
+     },
+     {
+      "name": "step 7: read-file@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 7: /path equals",
+      "passed": true
+     },
+     {
+      "name": "step 7: /text present",
+      "passed": true
+     }
+    ],
+    "jobs": [
+     {
+      "approvals": [
+       {
+        "at": "2026-10-30T00:22:10.750Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "4a9efae1-6ef4-4850-bd65-ee3683eff259",
+      "status": "succeeded"
+     }
+    ],
+    "passed": true,
+    "requests": [
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/user/repos"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/issues/{issue_number}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/issues/{issue_number}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/issues/{issue_number}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/search/issues"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/issues/{issue_number}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/issues/{issue_number}/comments"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/contents/{+path}"
+     }
+    ],
+    "test": "H1",
+    "undo": {
+     "none": "The test changes nothing."
+    }
+   }
+  ],
+  "transforms": {}
+ },
+ "github.action.merge-pull.v1.46cefb8daba8743b703c4513": {
+  "definitionHash": "74859aefe5fbeb98c663e938ebfe6e8bd1f5da38fda90a8ef063c05821c25e9f",
+  "harnessHash": "7486366c59d0f96b08bcc8ea30ec3943954645aa102528f3f6900b15f8fccba2",
+  "passed": true,
+  "ranAt": "2026-10-30T00:28:44.547Z",
+  "runId": "5XBI3UND",
+  "runtime": {
+   "icu": "78.2",
+   "node": "25.8.1",
+   "tz": "2026a",
+   "unicode": "17.0"
+  },
+  "schemaVersion": 1,
+  "tests": [
+   {
+    "checks": [
+     {
+      "name": "step 1: create-branch@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 1: /sha present",
+      "passed": true
+     },
+     {
+      "name": "step 2: create-branch@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 2: /sha present",
+      "passed": true
+     },
+     {
+      "name": "step 3: put-file@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 4: open-pull@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 4: saves h9Pull",
+      "passed": true
+     },
+     {
+      "name": "step 5: one job succeeded and one failed with 409",
+      "passed": true
+     },
+     {
+      "name": "step 5: the readback equals the job that landed",
+      "passed": true
+     },
+     {
+      "name": "step 7: merge-pull@1 failed with 409",
+      "passed": true
+     },
+     {
+      "name": "step 8: merge-pull@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 8: /merged equals",
+      "passed": true
+     },
+     {
+      "name": "step 9: /merged equals",
+      "passed": true
+     },
+     {
+      "name": "step 9: /merge_commit_sha present",
+      "passed": true
+     }
+    ],
+    "jobs": [
+     {
+      "approvals": [
+       {
+        "at": "2026-10-30T00:28:14.904Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": "provider_failed",
+      "id": "27308ac1-84ef-4479-8d24-b1f8bceb8cfd",
+      "status": "failed"
+     },
+     {
+      "approvals": [
+       {
+        "at": "2026-10-30T00:28:25.625Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "cb18ee02-3d6a-423e-8474-cb3802d114ba",
+      "status": "succeeded"
+     }
+    ],
+    "passed": true,
+    "requests": [
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/git/ref/{+ref}"
+     },
+     {
+      "bodyHmac": "4e7f67da5a60e4d7fa3639c764ab7a62e9541bf2883eabc6b4227525e40a0117",
+      "identity": null,
+      "method": "POST",
+      "status": 201,
+      "template": "/repos/{owner}/{repo}/git/refs"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/git/ref/{+ref}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/git/ref/{+ref}"
+     },
+     {
+      "bodyHmac": "7f4759026105ea9a177b92e2be9d7a1723e44a422dc6b3aec5d3547403d9fa67",
+      "identity": null,
+      "method": "POST",
+      "status": 201,
+      "template": "/repos/{owner}/{repo}/git/refs"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/git/ref/{+ref}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 404,
+      "template": "/repos/{owner}/{repo}/contents/{+path}"
+     },
+     {
+      "bodyHmac": "48d33c3d726369c8e994480670311bd4123b641079580bae6272d8700a8dbf55",
+      "identity": null,
+      "method": "PUT",
+      "status": 201,
+      "template": "/repos/{owner}/{repo}/contents/{+path}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/contents/{+path}"
+     },
+     {
+      "bodyHmac": "ed9866fc1697fcbf08e3d7e8d43a53644a8a3c09d3fa92300501dd2efa8a3ba9",
+      "identity": "5077536067",
+      "method": "POST",
+      "status": 201,
+      "template": "/repos/{owner}/{repo}/pulls"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/pulls/{pull_number}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/contents/{+path}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/contents/{+path}"
+     },
+     {
+      "bodyHmac": "ae216ac57b020ea6336d0bfc8dd1cea3a00bb4e70bab4f63c7bcf4ba5beeb832",
+      "identity": null,
+      "method": "PUT",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/contents/{+path}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/contents/{+path}"
+     },
+     {
+      "bodyHmac": "ae216ac57b020ea6336d0bfc8dd1cea3a00bb4e70bab4f63c7bcf4ba5beeb832",
+      "identity": null,
+      "method": "PUT",
+      "status": 409,
+      "template": "/repos/{owner}/{repo}/contents/{+path}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/contents/{+path}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/pulls/{pull_number}"
+     },
+     {
+      "bodyHmac": "7bd9b2c7bbb7f1e4b0fa46130e1526f52d902e69d4fabc497adf03dc527d4d0b",
+      "identity": null,
+      "method": "PUT",
+      "status": 409,
+      "template": "/repos/{owner}/{repo}/pulls/{pull_number}/merge"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/pulls/{pull_number}"
+     },
+     {
+      "bodyHmac": "d9c7ffb838a0bf8c319c4b07e7ff177e5d96c85906abf53152301933407088cf",
+      "identity": null,
+      "method": "PUT",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/pulls/{pull_number}/merge"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/pulls/{pull_number}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/pulls/{pull_number}"
+     }
+    ],
+    "test": "H9",
+    "undo": {
+     "test": "H12"
+    }
+   }
+  ],
+  "transforms": {
+   "collections.oneOf@1": "e334ed47a5a88b64baa44b7cf147d86149641db988385d0bed626e89491ad644",
+   "ids.ownerRepo@1": "32051417dc971e851a8773e45e5961abeb6e6807044028d05214e3dcb79e69f2",
+   "text.joinList@1": "1f75825537a4063657cd6dbd224bce5b4af8e05a651ff3738ea9c2eacf736053"
+  }
+ },
+ "github.action.open-pull.v1.78d232ca1676e41db054b66a": {
+  "definitionHash": "e22f951d136241826188c6164be4e83647c5cd8e05962aaf8449065ae30d1415",
+  "harnessHash": "7486366c59d0f96b08bcc8ea30ec3943954645aa102528f3f6900b15f8fccba2",
+  "passed": true,
+  "ranAt": "2026-10-30T00:28:44.547Z",
+  "runId": "5XBI3UND",
+  "runtime": {
+   "icu": "78.2",
+   "node": "25.8.1",
+   "tz": "2026a",
+   "unicode": "17.0"
+  },
+  "schemaVersion": 1,
+  "tests": [
+   {
+    "checks": [
+     {
+      "name": "step 1: create-branch@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 1: saves h7Commit",
+      "passed": true
+     },
+     {
+      "name": "step 1: /sha present",
+      "passed": true
+     },
+     {
+      "name": "step 2: status",
+      "passed": true
+     },
+     {
+      "name": "step 2: /object/sha equals",
+      "passed": true
+     },
+     {
+      "name": "step 3: put-file@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 3: saves h7File",
+      "passed": true
+     },
+     {
+      "name": "step 4: read-file@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 4: /text equals",
+      "passed": true
+     },
+     {
+      "name": "step 4: /sha equals",
+      "passed": true
+     },
+     {
+      "name": "step 5: open-pull@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 5: saves h7Pull",
+      "passed": true
+     },
+     {
+      "name": "step 5: /draft equals",
+      "passed": true
+     },
+     {
+      "name": "step 6: status",
+      "passed": true
+     },
+     {
+      "name": "step 6: /number equals",
+      "passed": true
+     },
+     {
+      "name": "step 6: /draft equals",
+      "passed": true
+     }
+    ],
+    "jobs": [
+     {
+      "approvals": [
+       {
+        "at": "2026-10-30T00:24:26.873Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "53794f17-2f6f-4204-8e3c-7c91c96b2652",
+      "status": "succeeded"
+     }
+    ],
+    "passed": true,
+    "requests": [
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/git/ref/{+ref}"
+     },
+     {
+      "bodyHmac": "766b6e85cb58523d9d6d089dff282f9f32b3eca24e68a3d96694e2c5f7d248a9",
+      "identity": null,
+      "method": "POST",
+      "status": 201,
+      "template": "/repos/{owner}/{repo}/git/refs"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/git/ref/{+ref}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/git/ref/{+ref}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 404,
+      "template": "/repos/{owner}/{repo}/contents/{+path}"
+     },
+     {
+      "bodyHmac": "7926f4f5c95a80e3b0a2ca16e14c1233c2e2a0adce8f2a1d685bdd38ec0bde8a",
+      "identity": null,
+      "method": "PUT",
+      "status": 201,
+      "template": "/repos/{owner}/{repo}/contents/{+path}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/contents/{+path}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/contents/{+path}"
+     },
+     {
+      "bodyHmac": "8a66225201e8edfb918ca3718e8ba78b0309c6f4c29047e56aa376e9e7e33b53",
+      "identity": "5077523616",
+      "method": "POST",
+      "status": 201,
+      "template": "/repos/{owner}/{repo}/pulls"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/pulls/{pull_number}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/pulls/{pull_number}"
+     }
+    ],
+    "test": "H7",
+    "undo": {
+     "test": "H7-undo"
+    }
+   },
+   {
+    "checks": [
+     {
+      "name": "step 1: create-branch@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 1: /sha present",
+      "passed": true
+     },
+     {
+      "name": "step 2: create-branch@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 2: /sha present",
+      "passed": true
+     },
+     {
+      "name": "step 3: put-file@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 4: open-pull@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 4: saves h9Pull",
+      "passed": true
+     },
+     {
+      "name": "step 5: one job succeeded and one failed with 409",
+      "passed": true
+     },
+     {
+      "name": "step 5: the readback equals the job that landed",
+      "passed": true
+     },
+     {
+      "name": "step 7: merge-pull@1 failed with 409",
+      "passed": true
+     },
+     {
+      "name": "step 8: merge-pull@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 8: /merged equals",
+      "passed": true
+     },
+     {
+      "name": "step 9: /merged equals",
+      "passed": true
+     },
+     {
+      "name": "step 9: /merge_commit_sha present",
+      "passed": true
+     }
+    ],
+    "jobs": [
+     {
+      "approvals": [
+       {
+        "at": "2026-10-30T00:25:56.622Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "8998d621-7cbb-4af1-8ee9-5d4cd0e949e0",
+      "status": "succeeded"
+     }
+    ],
+    "passed": true,
+    "requests": [
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/git/ref/{+ref}"
+     },
+     {
+      "bodyHmac": "4e7f67da5a60e4d7fa3639c764ab7a62e9541bf2883eabc6b4227525e40a0117",
+      "identity": null,
+      "method": "POST",
+      "status": 201,
+      "template": "/repos/{owner}/{repo}/git/refs"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/git/ref/{+ref}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/git/ref/{+ref}"
+     },
+     {
+      "bodyHmac": "7f4759026105ea9a177b92e2be9d7a1723e44a422dc6b3aec5d3547403d9fa67",
+      "identity": null,
+      "method": "POST",
+      "status": 201,
+      "template": "/repos/{owner}/{repo}/git/refs"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/git/ref/{+ref}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 404,
+      "template": "/repos/{owner}/{repo}/contents/{+path}"
+     },
+     {
+      "bodyHmac": "48d33c3d726369c8e994480670311bd4123b641079580bae6272d8700a8dbf55",
+      "identity": null,
+      "method": "PUT",
+      "status": 201,
+      "template": "/repos/{owner}/{repo}/contents/{+path}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/contents/{+path}"
+     },
+     {
+      "bodyHmac": "ed9866fc1697fcbf08e3d7e8d43a53644a8a3c09d3fa92300501dd2efa8a3ba9",
+      "identity": "5077536067",
+      "method": "POST",
+      "status": 201,
+      "template": "/repos/{owner}/{repo}/pulls"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/pulls/{pull_number}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/contents/{+path}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/contents/{+path}"
+     },
+     {
+      "bodyHmac": "ae216ac57b020ea6336d0bfc8dd1cea3a00bb4e70bab4f63c7bcf4ba5beeb832",
+      "identity": null,
+      "method": "PUT",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/contents/{+path}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/contents/{+path}"
+     },
+     {
+      "bodyHmac": "ae216ac57b020ea6336d0bfc8dd1cea3a00bb4e70bab4f63c7bcf4ba5beeb832",
+      "identity": null,
+      "method": "PUT",
+      "status": 409,
+      "template": "/repos/{owner}/{repo}/contents/{+path}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/contents/{+path}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/pulls/{pull_number}"
+     },
+     {
+      "bodyHmac": "7bd9b2c7bbb7f1e4b0fa46130e1526f52d902e69d4fabc497adf03dc527d4d0b",
+      "identity": null,
+      "method": "PUT",
+      "status": 409,
+      "template": "/repos/{owner}/{repo}/pulls/{pull_number}/merge"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/pulls/{pull_number}"
+     },
+     {
+      "bodyHmac": "d9c7ffb838a0bf8c319c4b07e7ff177e5d96c85906abf53152301933407088cf",
+      "identity": null,
+      "method": "PUT",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/pulls/{pull_number}/merge"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/pulls/{pull_number}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/pulls/{pull_number}"
+     }
+    ],
+    "test": "H9",
+    "undo": {
+     "test": "H12"
+    }
+   }
+  ],
+  "transforms": {
+   "ids.gitRefName@1": "c09a13f602fd32a9722f489909d0d851d1cecb52bb50a15495d1ccd865c7fad4",
+   "ids.ownerRepo@1": "32051417dc971e851a8773e45e5961abeb6e6807044028d05214e3dcb79e69f2",
+   "text.joinList@1": "1f75825537a4063657cd6dbd224bce5b4af8e05a651ff3738ea9c2eacf736053",
+   "text.mentions@1": "6ae1116a685f7a42f89436f15d86c6a75170bb278c083154d09e9cb29ae9eb06"
+  }
+ },
+ "github.action.put-file.v1.ce394f8955de120b896ab074": {
+  "definitionHash": "207508299b821ba89aff864ccfaae9188af4a984034bbfeb114a4662edec3782",
+  "harnessHash": "7486366c59d0f96b08bcc8ea30ec3943954645aa102528f3f6900b15f8fccba2",
+  "passed": true,
+  "ranAt": "2026-10-30T00:28:44.547Z",
+  "runId": "5XBI3UND",
+  "runtime": {
+   "icu": "78.2",
+   "node": "25.8.1",
+   "tz": "2026a",
+   "unicode": "17.0"
+  },
+  "schemaVersion": 1,
+  "tests": [
+   {
+    "checks": [
+     {
+      "name": "step 1: create-branch@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 1: saves h7Commit",
+      "passed": true
+     },
+     {
+      "name": "step 1: /sha present",
+      "passed": true
+     },
+     {
+      "name": "step 2: status",
+      "passed": true
+     },
+     {
+      "name": "step 2: /object/sha equals",
+      "passed": true
+     },
+     {
+      "name": "step 3: put-file@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 3: saves h7File",
+      "passed": true
+     },
+     {
+      "name": "step 4: read-file@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 4: /text equals",
+      "passed": true
+     },
+     {
+      "name": "step 4: /sha equals",
+      "passed": true
+     },
+     {
+      "name": "step 5: open-pull@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 5: saves h7Pull",
+      "passed": true
+     },
+     {
+      "name": "step 5: /draft equals",
+      "passed": true
+     },
+     {
+      "name": "step 6: status",
+      "passed": true
+     },
+     {
+      "name": "step 6: /number equals",
+      "passed": true
+     },
+     {
+      "name": "step 6: /draft equals",
+      "passed": true
+     }
+    ],
+    "jobs": [
+     {
+      "approvals": [
+       {
+        "at": "2026-10-30T00:24:12.385Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "445b0ce9-9a19-4a74-9492-46c2e93544c1",
+      "status": "succeeded"
+     }
+    ],
+    "passed": true,
+    "requests": [
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/git/ref/{+ref}"
+     },
+     {
+      "bodyHmac": "766b6e85cb58523d9d6d089dff282f9f32b3eca24e68a3d96694e2c5f7d248a9",
+      "identity": null,
+      "method": "POST",
+      "status": 201,
+      "template": "/repos/{owner}/{repo}/git/refs"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/git/ref/{+ref}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/git/ref/{+ref}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 404,
+      "template": "/repos/{owner}/{repo}/contents/{+path}"
+     },
+     {
+      "bodyHmac": "7926f4f5c95a80e3b0a2ca16e14c1233c2e2a0adce8f2a1d685bdd38ec0bde8a",
+      "identity": null,
+      "method": "PUT",
+      "status": 201,
+      "template": "/repos/{owner}/{repo}/contents/{+path}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/contents/{+path}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/contents/{+path}"
+     },
+     {
+      "bodyHmac": "8a66225201e8edfb918ca3718e8ba78b0309c6f4c29047e56aa376e9e7e33b53",
+      "identity": "5077523616",
+      "method": "POST",
+      "status": 201,
+      "template": "/repos/{owner}/{repo}/pulls"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/pulls/{pull_number}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/pulls/{pull_number}"
+     }
+    ],
+    "test": "H7",
+    "undo": {
+     "test": "H7-undo"
+    }
+   },
+   {
+    "checks": [
+     {
+      "name": "step 1: status",
+      "passed": true
+     },
+     {
+      "name": "step 2: status",
+      "passed": true
+     },
+     {
+      "name": "step 3: put-file@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 3: /path equals",
+      "passed": true
+     }
+    ],
+    "jobs": [
+     {
+      "approvals": [
+       {
+        "at": "2026-10-30T00:25:03.637Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "714013cf-812e-4628-8089-4cee894e4e31",
+      "status": "succeeded"
+     }
+    ],
+    "passed": true,
+    "requests": [
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/gists"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/user/orgs"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 404,
+      "template": "/repos/{owner}/{repo}/contents/{+path}"
+     },
+     {
+      "bodyHmac": "62a0335d38b83d43072c63f19c52ce882804345d7a1ca3a1814c46e85c7ef07f",
+      "identity": null,
+      "method": "PUT",
+      "status": 201,
+      "template": "/repos/{owner}/{repo}/contents/{+path}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/contents/{+path}"
+     }
+    ],
+    "test": "H11",
+    "undo": {
+     "test": "H12"
+    }
+   },
+   {
+    "checks": [
+     {
+      "name": "step 1: create-branch@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 1: /sha present",
+      "passed": true
+     },
+     {
+      "name": "step 2: create-branch@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 2: /sha present",
+      "passed": true
+     },
+     {
+      "name": "step 3: put-file@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 4: open-pull@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 4: saves h9Pull",
+      "passed": true
+     },
+     {
+      "name": "step 5: one job succeeded and one failed with 409",
+      "passed": true
+     },
+     {
+      "name": "step 5: the readback equals the job that landed",
+      "passed": true
+     },
+     {
+      "name": "step 7: merge-pull@1 failed with 409",
+      "passed": true
+     },
+     {
+      "name": "step 8: merge-pull@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 8: /merged equals",
+      "passed": true
+     },
+     {
+      "name": "step 9: /merged equals",
+      "passed": true
+     },
+     {
+      "name": "step 9: /merge_commit_sha present",
+      "passed": true
+     }
+    ],
+    "jobs": [
+     {
+      "approvals": [
+       {
+        "at": "2026-10-30T00:25:46.275Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "4c781221-b95d-4ca5-9feb-a033b9667cf3",
+      "status": "succeeded"
+     },
+     {
+      "approvals": [
+       {
+        "at": "2026-10-30T00:26:10.037Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "e6ce7aba-b173-4a11-90a7-247ad657dc6c",
+      "status": "succeeded"
+     },
+     {
+      "approvals": [
+       {
+        "at": "2026-10-30T00:26:15.279Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": "provider_failed",
+      "id": "b02b6082-11f7-4d6e-9743-74bba616eab7",
+      "status": "failed"
+     }
+    ],
+    "passed": true,
+    "requests": [
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/git/ref/{+ref}"
+     },
+     {
+      "bodyHmac": "4e7f67da5a60e4d7fa3639c764ab7a62e9541bf2883eabc6b4227525e40a0117",
+      "identity": null,
+      "method": "POST",
+      "status": 201,
+      "template": "/repos/{owner}/{repo}/git/refs"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/git/ref/{+ref}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/git/ref/{+ref}"
+     },
+     {
+      "bodyHmac": "7f4759026105ea9a177b92e2be9d7a1723e44a422dc6b3aec5d3547403d9fa67",
+      "identity": null,
+      "method": "POST",
+      "status": 201,
+      "template": "/repos/{owner}/{repo}/git/refs"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/git/ref/{+ref}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 404,
+      "template": "/repos/{owner}/{repo}/contents/{+path}"
+     },
+     {
+      "bodyHmac": "48d33c3d726369c8e994480670311bd4123b641079580bae6272d8700a8dbf55",
+      "identity": null,
+      "method": "PUT",
+      "status": 201,
+      "template": "/repos/{owner}/{repo}/contents/{+path}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/contents/{+path}"
+     },
+     {
+      "bodyHmac": "ed9866fc1697fcbf08e3d7e8d43a53644a8a3c09d3fa92300501dd2efa8a3ba9",
+      "identity": "5077536067",
+      "method": "POST",
+      "status": 201,
+      "template": "/repos/{owner}/{repo}/pulls"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/pulls/{pull_number}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/contents/{+path}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/contents/{+path}"
+     },
+     {
+      "bodyHmac": "ae216ac57b020ea6336d0bfc8dd1cea3a00bb4e70bab4f63c7bcf4ba5beeb832",
+      "identity": null,
+      "method": "PUT",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/contents/{+path}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/contents/{+path}"
+     },
+     {
+      "bodyHmac": "ae216ac57b020ea6336d0bfc8dd1cea3a00bb4e70bab4f63c7bcf4ba5beeb832",
+      "identity": null,
+      "method": "PUT",
+      "status": 409,
+      "template": "/repos/{owner}/{repo}/contents/{+path}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/contents/{+path}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/pulls/{pull_number}"
+     },
+     {
+      "bodyHmac": "7bd9b2c7bbb7f1e4b0fa46130e1526f52d902e69d4fabc497adf03dc527d4d0b",
+      "identity": null,
+      "method": "PUT",
+      "status": 409,
+      "template": "/repos/{owner}/{repo}/pulls/{pull_number}/merge"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/pulls/{pull_number}"
+     },
+     {
+      "bodyHmac": "d9c7ffb838a0bf8c319c4b07e7ff177e5d96c85906abf53152301933407088cf",
+      "identity": null,
+      "method": "PUT",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/pulls/{pull_number}/merge"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/pulls/{pull_number}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/pulls/{pull_number}"
+     }
+    ],
+    "test": "H9",
+    "undo": {
+     "test": "H12"
+    }
+   }
+  ],
+  "transforms": {
+   "encoding.base64Encode@1": "12728e2dc25f855d121ea917c751b69680b1307e337b2ecda3413fb675623024",
+   "ids.gitRefName@1": "c09a13f602fd32a9722f489909d0d851d1cecb52bb50a15495d1ccd865c7fad4",
+   "ids.ownerRepo@1": "32051417dc971e851a8773e45e5961abeb6e6807044028d05214e3dcb79e69f2",
+   "ids.repoPath@1": "67aaaf2084942ffedbbec33b35653424cd5f3bcbc27a479d7bbd1dde46efe10f",
+   "text.joinList@1": "1f75825537a4063657cd6dbd224bce5b4af8e05a651ff3738ea9c2eacf736053"
+  }
+ },
+ "github.action.read-conversation.v1.e421b0ea9953ff16d370cd91": {
+  "definitionHash": "e175581920915fd48f2b827e90cb9510ee23b036031d096d2149ef3af31cb92d",
+  "harnessHash": "7486366c59d0f96b08bcc8ea30ec3943954645aa102528f3f6900b15f8fccba2",
+  "passed": true,
+  "ranAt": "2026-10-30T00:28:44.547Z",
+  "runId": "5XBI3UND",
+  "runtime": {
+   "icu": "78.2",
+   "node": "25.8.1",
+   "tz": "2026a",
+   "unicode": "17.0"
+  },
+  "schemaVersion": 1,
+  "tests": [
+   {
+    "checks": [
+     {
+      "name": "step 1: list-repos@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 1: /repositories present",
+      "passed": true
+     },
+     {
+      "name": "step 2: saves numberA",
+      "passed": true
+     },
+     {
+      "name": "step 2: status",
+      "passed": true
+     },
+     {
+      "name": "step 3: saves numberB",
+      "passed": true
+     },
+     {
+      "name": "step 3: status",
+      "passed": true
+     },
+     {
+      "name": "step 3: /title equals",
+      "passed": true
+     },
+     {
+      "name": "step 4: saves numberC",
+      "passed": true
+     },
+     {
+      "name": "step 4: status",
+      "passed": true
+     },
+     {
+      "name": "step 4: /labels count",
+      "passed": true
+     },
+     {
+      "name": "step 5: find-issues@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 5: /items present",
+      "passed": true
+     },
+     {
+      "name": "step 6: read-conversation@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 6: /number equals",
+      "passed": true
+     },
+     {
+      "name": "step 7: read-file@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 7: /path equals",
+      "passed": true
+     },
+     {
+      "name": "step 7: /text present",
+      "passed": true
+     }
+    ],
+    "jobs": [
+     {
+      "approvals": [
+       {
+        "at": "2026-10-30T00:22:29.512Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "8f996cd8-eebf-4cb5-b4cb-b4a890d1441a",
+      "status": "succeeded"
+     }
+    ],
+    "passed": true,
+    "requests": [
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/user/repos"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/issues/{issue_number}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/issues/{issue_number}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/issues/{issue_number}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/search/issues"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/issues/{issue_number}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/issues/{issue_number}/comments"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/contents/{+path}"
+     }
+    ],
+    "test": "H1",
+    "undo": {
+     "none": "The test changes nothing."
+    }
+   }
+  ],
+  "transforms": {
+   "ids.ownerRepo@1": "32051417dc971e851a8773e45e5961abeb6e6807044028d05214e3dcb79e69f2",
+   "text.truncate@1": "5cc13c14d60ef8c526e4d907e86559cf6d451b0d22012cd38dae19875ae625e6"
+  }
+ },
+ "github.action.read-file.v1.fa3435d02533e347f85f4226": {
+  "definitionHash": "6a4298035dc8480f55121863bcd921d441a8032c23404dcb7bb2852780500637",
+  "harnessHash": "7486366c59d0f96b08bcc8ea30ec3943954645aa102528f3f6900b15f8fccba2",
+  "passed": true,
+  "ranAt": "2026-10-30T00:28:44.547Z",
+  "runId": "5XBI3UND",
+  "runtime": {
+   "icu": "78.2",
+   "node": "25.8.1",
+   "tz": "2026a",
+   "unicode": "17.0"
+  },
+  "schemaVersion": 1,
+  "tests": [
+   {
+    "checks": [
+     {
+      "name": "step 1: list-repos@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 1: /repositories present",
+      "passed": true
+     },
+     {
+      "name": "step 2: saves numberA",
+      "passed": true
+     },
+     {
+      "name": "step 2: status",
+      "passed": true
+     },
+     {
+      "name": "step 3: saves numberB",
+      "passed": true
+     },
+     {
+      "name": "step 3: status",
+      "passed": true
+     },
+     {
+      "name": "step 3: /title equals",
+      "passed": true
+     },
+     {
+      "name": "step 4: saves numberC",
+      "passed": true
+     },
+     {
+      "name": "step 4: status",
+      "passed": true
+     },
+     {
+      "name": "step 4: /labels count",
+      "passed": true
+     },
+     {
+      "name": "step 5: find-issues@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 5: /items present",
+      "passed": true
+     },
+     {
+      "name": "step 6: read-conversation@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 6: /number equals",
+      "passed": true
+     },
+     {
+      "name": "step 7: read-file@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 7: /path equals",
+      "passed": true
+     },
+     {
+      "name": "step 7: /text present",
+      "passed": true
+     }
+    ],
+    "jobs": [
+     {
+      "approvals": [
+       {
+        "at": "2026-10-30T00:22:36.819Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "a42aedf3-5ef5-42a2-82fb-322452344a43",
+      "status": "succeeded"
+     }
+    ],
+    "passed": true,
+    "requests": [
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/user/repos"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/issues/{issue_number}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/issues/{issue_number}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/issues/{issue_number}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/search/issues"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/issues/{issue_number}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/issues/{issue_number}/comments"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/contents/{+path}"
+     }
+    ],
+    "test": "H1",
+    "undo": {
+     "none": "The test changes nothing."
+    }
+   },
+   {
+    "checks": [
+     {
+      "name": "step 1: create-branch@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 1: saves h7Commit",
+      "passed": true
+     },
+     {
+      "name": "step 1: /sha present",
+      "passed": true
+     },
+     {
+      "name": "step 2: status",
+      "passed": true
+     },
+     {
+      "name": "step 2: /object/sha equals",
+      "passed": true
+     },
+     {
+      "name": "step 3: put-file@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 3: saves h7File",
+      "passed": true
+     },
+     {
+      "name": "step 4: read-file@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 4: /text equals",
+      "passed": true
+     },
+     {
+      "name": "step 4: /sha equals",
+      "passed": true
+     },
+     {
+      "name": "step 5: open-pull@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 5: saves h7Pull",
+      "passed": true
+     },
+     {
+      "name": "step 5: /draft equals",
+      "passed": true
+     },
+     {
+      "name": "step 6: status",
+      "passed": true
+     },
+     {
+      "name": "step 6: /number equals",
+      "passed": true
+     },
+     {
+      "name": "step 6: /draft equals",
+      "passed": true
+     }
+    ],
+    "jobs": [
+     {
+      "approvals": [
+       {
+        "at": "2026-10-30T00:24:20.434Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "ca23b5d7-ed7b-42dd-ba13-a044b79d8afc",
+      "status": "succeeded"
+     }
+    ],
+    "passed": true,
+    "requests": [
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/git/ref/{+ref}"
+     },
+     {
+      "bodyHmac": "766b6e85cb58523d9d6d089dff282f9f32b3eca24e68a3d96694e2c5f7d248a9",
+      "identity": null,
+      "method": "POST",
+      "status": 201,
+      "template": "/repos/{owner}/{repo}/git/refs"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/git/ref/{+ref}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/git/ref/{+ref}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 404,
+      "template": "/repos/{owner}/{repo}/contents/{+path}"
+     },
+     {
+      "bodyHmac": "7926f4f5c95a80e3b0a2ca16e14c1233c2e2a0adce8f2a1d685bdd38ec0bde8a",
+      "identity": null,
+      "method": "PUT",
+      "status": 201,
+      "template": "/repos/{owner}/{repo}/contents/{+path}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/contents/{+path}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/contents/{+path}"
+     },
+     {
+      "bodyHmac": "8a66225201e8edfb918ca3718e8ba78b0309c6f4c29047e56aa376e9e7e33b53",
+      "identity": "5077523616",
+      "method": "POST",
+      "status": 201,
+      "template": "/repos/{owner}/{repo}/pulls"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/pulls/{pull_number}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/pulls/{pull_number}"
+     }
+    ],
+    "test": "H7",
+    "undo": {
+     "test": "H7-undo"
+    }
+   }
+  ],
+  "transforms": {
+   "encoding.base64Decode@1": "a440e82d01dc3069f6f976929c460af73daf3e46836ad1836090e49fedf044de",
+   "ids.gitRefName@1": "c09a13f602fd32a9722f489909d0d851d1cecb52bb50a15495d1ccd865c7fad4",
+   "ids.ownerRepo@1": "32051417dc971e851a8773e45e5961abeb6e6807044028d05214e3dcb79e69f2",
+   "ids.repoPath@1": "67aaaf2084942ffedbbec33b35653424cd5f3bcbc27a479d7bbd1dde46efe10f",
+   "text.truncate@1": "5cc13c14d60ef8c526e4d907e86559cf6d451b0d22012cd38dae19875ae625e6"
+  }
+ },
+ "github.action.review-pull.v1.0c36a40a075ef87c2c16489b": {
+  "definitionHash": "b2b68e6038b0147057cfdce964e40aefcce7f8fe817a2e34c934e2eadef0b723",
+  "harnessHash": "7486366c59d0f96b08bcc8ea30ec3943954645aa102528f3f6900b15f8fccba2",
+  "passed": true,
+  "ranAt": "2026-10-30T00:28:44.547Z",
+  "runId": "5XBI3UND",
+  "runtime": {
+   "icu": "78.2",
+   "node": "25.8.1",
+   "tz": "2026a",
+   "unicode": "17.0"
+  },
+  "schemaVersion": 1,
+  "tests": [
+   {
+    "checks": [
+     {
+      "name": "step 1: review-pull@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 1: saves h7Head",
+      "passed": true
+     },
+     {
+      "name": "step 1: /files count",
+      "passed": true
+     },
+     {
+      "name": "step 2: submit-review@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 2: /state equals",
+      "passed": true
+     },
+     {
+      "name": "step 2: /commitId equals",
+      "passed": true
+     }
+    ],
+    "jobs": [
+     {
+      "approvals": [
+       {
+        "at": "2026-10-30T00:24:41.389Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "e931fad6-f0eb-4e17-aba9-6572a37116d7",
+      "status": "succeeded"
+     }
+    ],
+    "passed": true,
+    "requests": [
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/pulls/{pull_number}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/commits/{ref}/check-runs"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/pulls/{pull_number}/files"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/pulls/{pull_number}"
+     },
+     {
+      "bodyHmac": "9c5972e3e2f0ae7e05c3400b853bbe4873776f761b9a15b0838395ac1ce4726e",
+      "identity": "5706664474",
+      "method": "POST",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/pulls/{pull_number}/reviews"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/pulls/{pull_number}/reviews/{review_id}"
+     }
+    ],
+    "test": "H8",
+    "undo": {
+     "none": "A submitted review cannot be deleted; it stays on H7's pull request, which H7-undo closes."
+    }
+   }
+  ],
+  "transforms": {
+   "ids.ownerRepo@1": "32051417dc971e851a8773e45e5961abeb6e6807044028d05214e3dcb79e69f2",
+   "text.truncate@1": "5cc13c14d60ef8c526e4d907e86559cf6d451b0d22012cd38dae19875ae625e6"
+  }
+ },
+ "github.action.run-workflow.v1.23a37ff39ca31b0a2d6d2de0": {
+  "definitionHash": "d299eed88bc155f2f85347e2535816f89aab26d6e3980d932ad36ee82c60f16f",
+  "harnessHash": "7486366c59d0f96b08bcc8ea30ec3943954645aa102528f3f6900b15f8fccba2",
+  "passed": true,
+  "ranAt": "2026-10-30T00:28:44.547Z",
+  "runId": "5XBI3UND",
+  "runtime": {
+   "icu": "78.2",
+   "node": "25.8.1",
+   "tz": "2026a",
+   "unicode": "17.0"
+  },
+  "schemaVersion": 1,
+  "tests": [
+   {
+    "checks": [
+     {
+      "name": "step 1: run-workflow@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 1: /branch equals",
+      "passed": true
+     },
+     {
+      "name": "step 1: /runId present",
+      "passed": true
+     }
+    ],
+    "jobs": [
+     {
+      "approvals": [
+       {
+        "at": "2026-10-30T00:28:41.849Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "ed1dd56a-a751-4a5a-852b-fc23dbc67cac",
+      "status": "succeeded"
+     }
+    ],
+    "passed": true,
+    "requests": [
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/actions/workflows/{workflow_id}"
+     },
+     {
+      "bodyHmac": "9c8df831618d5406fb7d65a8c787bccc5e365c7063a9de4deb2a61996301d631",
+      "identity": null,
+      "method": "POST",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/actions/workflows/{workflow_id}/dispatches"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/actions/runs/{run_id}"
+     }
+    ],
+    "test": "H10",
+    "undo": {
+     "none": "The workflow only echoes, and its run is GitHub's record."
+    }
+   }
+  ],
+  "transforms": {
+   "collections.oneOf@1": "e334ed47a5a88b64baa44b7cf147d86149641db988385d0bed626e89491ad644",
+   "collections.stringValues@1": "74cf29227deea3b399a97592f8c22c80cbc067500db433bb70cf95bb575a25b3",
+   "ids.gitRefName@1": "c09a13f602fd32a9722f489909d0d851d1cecb52bb50a15495d1ccd865c7fad4",
+   "ids.ownerRepo@1": "32051417dc971e851a8773e45e5961abeb6e6807044028d05214e3dcb79e69f2",
+   "text.joinList@1": "1f75825537a4063657cd6dbd224bce5b4af8e05a651ff3738ea9c2eacf736053"
+  }
+ },
+ "github.action.submit-review.v1.b82c182fd58d54fed83ae316": {
+  "definitionHash": "e5ee42afa95087fe58a8dd2d356852e8269ba2596025939c8f220b7e8ec756fa",
+  "harnessHash": "7486366c59d0f96b08bcc8ea30ec3943954645aa102528f3f6900b15f8fccba2",
+  "passed": true,
+  "ranAt": "2026-10-30T00:28:44.547Z",
+  "runId": "5XBI3UND",
+  "runtime": {
+   "icu": "78.2",
+   "node": "25.8.1",
+   "tz": "2026a",
+   "unicode": "17.0"
+  },
+  "schemaVersion": 1,
+  "tests": [
+   {
+    "checks": [
+     {
+      "name": "step 1: review-pull@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 1: saves h7Head",
+      "passed": true
+     },
+     {
+      "name": "step 1: /files count",
+      "passed": true
+     },
+     {
+      "name": "step 2: submit-review@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 2: /state equals",
+      "passed": true
+     },
+     {
+      "name": "step 2: /commitId equals",
+      "passed": true
+     }
+    ],
+    "jobs": [
+     {
+      "approvals": [
+       {
+        "at": "2026-10-30T00:24:51.329Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "dba086f8-645c-470b-9858-8324dec80dcb",
+      "status": "succeeded"
+     }
+    ],
+    "passed": true,
+    "requests": [
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/pulls/{pull_number}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/commits/{ref}/check-runs"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/pulls/{pull_number}/files"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/pulls/{pull_number}"
+     },
+     {
+      "bodyHmac": "9c5972e3e2f0ae7e05c3400b853bbe4873776f761b9a15b0838395ac1ce4726e",
+      "identity": "5706664474",
+      "method": "POST",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/pulls/{pull_number}/reviews"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/pulls/{pull_number}/reviews/{review_id}"
+     }
+    ],
+    "test": "H8",
+    "undo": {
+     "none": "A submitted review cannot be deleted; it stays on H7's pull request, which H7-undo closes."
+    }
+   }
+  ],
+  "transforms": {
+   "collections.oneOf@1": "e334ed47a5a88b64baa44b7cf147d86149641db988385d0bed626e89491ad644",
+   "ids.ownerRepo@1": "32051417dc971e851a8773e45e5961abeb6e6807044028d05214e3dcb79e69f2",
+   "text.joinList@1": "1f75825537a4063657cd6dbd224bce5b4af8e05a651ff3738ea9c2eacf736053",
+   "text.mentions@1": "6ae1116a685f7a42f89436f15d86c6a75170bb278c083154d09e9cb29ae9eb06"
+  }
+ },
+ "github.action.update-issue.v1.b492da5b4964684b39f0c713": {
+  "definitionHash": "f93a075a1d96d1a6bd11c932b23d3ea0f439564408339fa76c044cb7d9ee9d0f",
+  "harnessHash": "7486366c59d0f96b08bcc8ea30ec3943954645aa102528f3f6900b15f8fccba2",
+  "passed": true,
+  "ranAt": "2026-10-30T00:28:44.547Z",
+  "runId": "5XBI3UND",
+  "runtime": {
+   "icu": "78.2",
+   "node": "25.8.1",
+   "tz": "2026a",
+   "unicode": "17.0"
+  },
+  "schemaVersion": 1,
+  "tests": [
+   {
+    "checks": [
+     {
+      "name": "step 1: update-issue@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 1: /title equals",
+      "passed": true
+     },
+     {
+      "name": "step 2: status",
+      "passed": true
+     },
+     {
+      "name": "step 2: /title equals",
+      "passed": true
+     }
+    ],
+    "jobs": [
+     {
+      "approvals": [
+       {
+        "at": "2026-10-30T00:22:53.144Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "ce551322-388b-4e76-811f-d170039381b0",
+      "status": "succeeded"
+     }
+    ],
+    "passed": true,
+    "requests": [
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/issues/{issue_number}"
+     },
+     {
+      "bodyHmac": "6e24f356dda460ccd7c9121e2b88851bdf5154f5d0ada02411e3081e59fdf758",
+      "identity": null,
+      "method": "PATCH",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/issues/{issue_number}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/issues/{issue_number}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/issues/{issue_number}"
+     }
+    ],
+    "test": "H3",
+    "undo": {
+     "checks": [
+      {
+       "name": "step 1: update-issue@1 succeeded",
+       "passed": true
+      },
+      {
+       "name": "step 1: /title equals",
+       "passed": true
+      },
+      {
+       "name": "step 2: /title equals",
+       "passed": true
+      }
+     ],
+     "jobs": [
+      {
+       "approvals": [
+        {
+         "at": "2026-10-30T00:23:02.404Z",
+         "phase": "final"
+        }
+       ],
+       "errorCode": null,
+       "id": "6f7e2102-3ec5-42f6-a911-d3ad239c1c76",
+       "status": "succeeded"
+      }
+     ],
+     "passed": true,
+     "requests": [
+      {
+       "bodyHmac": null,
+       "identity": null,
+       "method": "GET",
+       "status": 200,
+       "template": "/repos/{owner}/{repo}/issues/{issue_number}"
+      },
+      {
+       "bodyHmac": "167ac18f9da3511e886961d5575a12e993c97eb9503698ef4cfeb516f6feff85",
+       "identity": null,
+       "method": "PATCH",
+       "status": 200,
+       "template": "/repos/{owner}/{repo}/issues/{issue_number}"
+      },
+      {
+       "bodyHmac": null,
+       "identity": null,
+       "method": "GET",
+       "status": 200,
+       "template": "/repos/{owner}/{repo}/issues/{issue_number}"
+      },
+      {
+       "bodyHmac": null,
+       "identity": null,
+       "method": "GET",
+       "status": 200,
+       "template": "/repos/{owner}/{repo}/issues/{issue_number}"
+      }
+     ]
+    }
+   },
+   {
+    "checks": [
+     {
+      "name": "step 1: update-issue@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 1: /state equals",
+      "passed": true
+     },
+     {
+      "name": "step 1: /stateReason equals",
+      "passed": true
+     },
+     {
+      "name": "step 2: /state equals",
+      "passed": true
+     },
+     {
+      "name": "step 2: /state_reason equals",
+      "passed": true
+     }
+    ],
+    "jobs": [
+     {
+      "approvals": [
+       {
+        "at": "2026-10-30T00:23:29.820Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "69bb267b-bbd2-462d-9696-d15b9f70f249",
+      "status": "succeeded"
+     }
+    ],
+    "passed": true,
+    "requests": [
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/issues/{issue_number}"
+     },
+     {
+      "bodyHmac": "3a1a680981be5530546ece2d647467f84e437529c2c570dfcbe972a9c47c85bc",
+      "identity": null,
+      "method": "PATCH",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/issues/{issue_number}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/issues/{issue_number}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/issues/{issue_number}"
+     }
+    ],
+    "test": "H5",
+    "undo": {
+     "checks": [
+      {
+       "name": "step 1: update-issue@1 succeeded",
+       "passed": true
+      },
+      {
+       "name": "step 1: /state equals",
+       "passed": true
+      }
+     ],
+     "jobs": [
+      {
+       "approvals": [
+        {
+         "at": "2026-10-30T00:23:38.596Z",
+         "phase": "final"
+        }
+       ],
+       "errorCode": null,
+       "id": "83024a2a-8b4b-477c-b995-7e2813e1144f",
+       "status": "succeeded"
+      }
+     ],
+     "passed": true,
+     "requests": [
+      {
+       "bodyHmac": null,
+       "identity": null,
+       "method": "GET",
+       "status": 200,
+       "template": "/repos/{owner}/{repo}/issues/{issue_number}"
+      },
+      {
+       "bodyHmac": "45bfb23f96596e23e69951afc5622d0831e4e3158e6ab02248fd3682b520ebbe",
+       "identity": null,
+       "method": "PATCH",
+       "status": 200,
+       "template": "/repos/{owner}/{repo}/issues/{issue_number}"
+      },
+      {
+       "bodyHmac": null,
+       "identity": null,
+       "method": "GET",
+       "status": 200,
+       "template": "/repos/{owner}/{repo}/issues/{issue_number}"
+      }
+     ]
+    }
+   },
+   {
+    "checks": [
+     {
+      "name": "step 1: create-issue@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 1: saves created",
+      "passed": true
+     },
+     {
+      "name": "step 1: /title equals",
+      "passed": true
+     },
+     {
+      "name": "step 2: status",
+      "passed": true
+     },
+     {
+      "name": "step 2: /number equals",
+      "passed": true
+     }
+    ],
+    "jobs": [],
+    "passed": true,
+    "requests": [
+     {
+      "bodyHmac": "dc0217815c62caa30189ea9318b84efa5cec36b189ff5c53feed93964d1da158",
+      "identity": "6110856259",
+      "method": "POST",
+      "status": 201,
+      "template": "/repos/{owner}/{repo}/issues"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/issues/{issue_number}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/issues/{issue_number}"
+     }
+    ],
+    "test": "H6",
+    "undo": {
+     "checks": [
+      {
+       "name": "step 1: update-issue@1 succeeded",
+       "passed": true
+      },
+      {
+       "name": "step 1: /state equals",
+       "passed": true
+      }
+     ],
+     "jobs": [
+      {
+       "approvals": [
+        {
+         "at": "2026-10-30T00:23:54.758Z",
+         "phase": "final"
+        }
+       ],
+       "errorCode": null,
+       "id": "262508f7-2514-4af7-b4b6-698cfd4defe8",
+       "status": "succeeded"
+      }
+     ],
+     "passed": true,
+     "requests": [
+      {
+       "bodyHmac": null,
+       "identity": null,
+       "method": "GET",
+       "status": 200,
+       "template": "/repos/{owner}/{repo}/issues/{issue_number}"
+      },
+      {
+       "bodyHmac": "3a1a680981be5530546ece2d647467f84e437529c2c570dfcbe972a9c47c85bc",
+       "identity": null,
+       "method": "PATCH",
+       "status": 200,
+       "template": "/repos/{owner}/{repo}/issues/{issue_number}"
+      },
+      {
+       "bodyHmac": null,
+       "identity": null,
+       "method": "GET",
+       "status": 200,
+       "template": "/repos/{owner}/{repo}/issues/{issue_number}"
+      }
+     ]
+    }
+   },
+   {
+    "checks": [
+     {
+      "name": "step 1: update-issue@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 1: /state equals",
+      "passed": true
+     }
+    ],
+    "jobs": [
+     {
+      "approvals": [
+       {
+        "at": "2026-10-30T00:25:15.134Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "5145555f-7837-4760-b143-2852a1297020",
+      "status": "succeeded"
+     }
+    ],
+    "passed": true,
+    "requests": [
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/issues/{issue_number}"
+     },
+     {
+      "bodyHmac": "167388483b378a11bb0bd639a5ac39fd866a8ab96394fe50c6dd8a005f1784b9",
+      "identity": null,
+      "method": "PATCH",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/issues/{issue_number}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/issues/{issue_number}"
+     }
+    ],
+    "test": "H7-undo",
+    "undo": {
+     "test": "H12"
+    }
+   }
+  ],
+  "transforms": {
+   "collections.oneOf@1": "e334ed47a5a88b64baa44b7cf147d86149641db988385d0bed626e89491ad644",
+   "ids.ownerRepo@1": "32051417dc971e851a8773e45e5961abeb6e6807044028d05214e3dcb79e69f2",
+   "text.joinList@1": "1f75825537a4063657cd6dbd224bce5b4af8e05a651ff3738ea9c2eacf736053",
+   "text.mentions@1": "6ae1116a685f7a42f89436f15d86c6a75170bb278c083154d09e9cb29ae9eb06"
+  }
+ },
+ "github.action.update-labels.v1.c6f89bf34371b691d7f68ce8": {
+  "definitionHash": "ee7c2a9f29b0f8e853cd08cac48b9749ae8b2d94e20131ec8d574e5a3980b031",
+  "harnessHash": "7486366c59d0f96b08bcc8ea30ec3943954645aa102528f3f6900b15f8fccba2",
+  "passed": true,
+  "ranAt": "2026-10-30T00:28:44.547Z",
+  "runId": "5XBI3UND",
+  "runtime": {
+   "icu": "78.2",
+   "node": "25.8.1",
+   "tz": "2026a",
+   "unicode": "17.0"
+  },
+  "schemaVersion": 1,
+  "tests": [
+   {
+    "checks": [
+     {
+      "name": "step 1: update-labels@1 succeeded",
+      "passed": true
+     },
+     {
+      "name": "step 1: /labels count",
+      "passed": true
+     },
+     {
+      "name": "step 2: /labels entry /name equals",
+      "passed": true
+     }
+    ],
+    "jobs": [
+     {
+      "approvals": [
+       {
+        "at": "2026-10-30T00:23:11.320Z",
+        "phase": "final"
+       }
+      ],
+      "errorCode": null,
+      "id": "fdd3f45e-257b-464d-ab01-878a2958d555",
+      "status": "succeeded"
+     }
+    ],
+    "passed": true,
+    "requests": [
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/issues/{issue_number}"
+     },
+     {
+      "bodyHmac": "9edbfc85a61c176200ba8125f8d42b6c0f1b6c5cfd78f8bd3a82bdb879e46ff0",
+      "identity": null,
+      "method": "POST",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/issues/{issue_number}/labels"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/issues/{issue_number}"
+     },
+     {
+      "bodyHmac": null,
+      "identity": null,
+      "method": "GET",
+      "status": 200,
+      "template": "/repos/{owner}/{repo}/issues/{issue_number}"
+     }
+    ],
+    "test": "H4",
+    "undo": {
+     "checks": [
+      {
+       "name": "step 1: update-labels@1 succeeded",
+       "passed": true
+      },
+      {
+       "name": "step 1: /labels count",
+       "passed": true
+      },
+      {
+       "name": "step 2: /labels count",
+       "passed": true
+      }
+     ],
+     "jobs": [
+      {
+       "approvals": [
+        {
+         "at": "2026-10-30T00:23:20.835Z",
+         "phase": "final"
+        }
+       ],
+       "errorCode": null,
+       "id": "9beb9ee8-8611-4d15-a984-771609314cb8",
+       "status": "succeeded"
+      }
+     ],
+     "passed": true,
+     "requests": [
+      {
+       "bodyHmac": null,
+       "identity": null,
+       "method": "GET",
+       "status": 200,
+       "template": "/repos/{owner}/{repo}/issues/{issue_number}"
+      },
+      {
+       "bodyHmac": null,
+       "identity": null,
+       "method": "DELETE",
+       "status": 200,
+       "template": "/repos/{owner}/{repo}/issues/{issue_number}/labels/{name}"
+      },
+      {
+       "bodyHmac": null,
+       "identity": null,
+       "method": "GET",
+       "status": 200,
+       "template": "/repos/{owner}/{repo}/issues/{issue_number}"
+      },
+      {
+       "bodyHmac": null,
+       "identity": null,
+       "method": "GET",
+       "status": 200,
+       "template": "/repos/{owner}/{repo}/issues/{issue_number}"
+      }
+     ]
+    }
+   }
+  ],
+  "transforms": {
+   "ids.ownerRepo@1": "32051417dc971e851a8773e45e5961abeb6e6807044028d05214e3dcb79e69f2",
+   "text.joinList@1": "1f75825537a4063657cd6dbd224bce5b4af8e05a651ff3738ea9c2eacf736053"
+  }
+ },
+ "run": {
+  "appId": "github",
+  "finishedAt": "2026-10-30T00:28:44.547Z",
+  "harnessHash": "7486366c59d0f96b08bcc8ea30ec3943954645aa102528f3f6900b15f8fccba2",
+  "rows": [],
+  "runId": "5XBI3UND",
+  "runtime": {
+   "icu": "78.2",
+   "node": "25.8.1",
+   "tz": "2026a",
+   "unicode": "17.0"
+  },
+  "startedAt": "2026-10-30T00:20:01.567Z",
+  "tests": [
+   {
+    "checks": [
+     {
+      "name": "step 2: status",
+      "passed": true
+     },
+     {
+      "name": "step 2: /login present",
+      "passed": true
+     }
+    ],
+    "jobs": [],
+    "passed": true,
+    "requests": [],
+    "test": "H0",
+    "undo": {
+     "none": "The test changes nothing."
+    }
+   }
+  ]
+ }
+}

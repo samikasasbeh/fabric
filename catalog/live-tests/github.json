@@ -154,12 +154,9 @@
   },
   {
    "id": "H10",
-   "name": "Run fabric-synthetic.yml on main and find the run",
+   "name": "Run fabric-synthetic.yml on main and read the run back by the id GitHub answers",
    "steps": [
-    {"call": {"action": "run-workflow@1", "args": {"repository": "samikasasbeh/fabric-sandbox-test", "workflow": "fabric-synthetic.yml", "branch": "main", "inputs": []}, "checks": [{"pointer": "/branch", "equals": "main"}]}},
-    {"owner": {"words": "GitHub lists a dispatched run a moment later. Press Enter; the runner then reads the workflow's runs until it shows one.",
-     "until": {"path": "/repos/samikasasbeh/fabric-sandbox-test/actions/workflows/fabric-synthetic.yml/runs", "query": {"event": "workflow_dispatch", "branch": "main", "per_page": "10"},
-      "checks": [{"pointer": "/workflow_runs/0/event", "equals": "workflow_dispatch"}, {"pointer": "/workflow_runs/0/head_branch", "equals": "main"}]}}}
+    {"call": {"action": "run-workflow@1", "args": {"repository": "samikasasbeh/fabric-sandbox-test", "workflow": "fabric-synthetic.yml", "branch": "main", "inputs": []}, "checks": [{"pointer": "/branch", "equals": "main"}, {"pointer": "/runId", "present": true}]}}
    ],
    "undo": {"none": "The workflow only echoes, and its run is GitHub's record."}
   },

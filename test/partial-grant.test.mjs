@@ -23,7 +23,7 @@ import {compileOpenApi} from '../lib/compiler.mjs';
 import {SIMULATORS, GoogleSimulator, GitHubSimulator, SlackSimulator} from './fixtures/oauth-simulators.mjs';
 import {v1Definition, PROVIDERS} from './fixtures/auth-v1/urls.mjs';
 import {googleV2, githubV2, notionV2, slackV2, GITHUB_SETTINGS, level} from './fixtures/auth-v2/definitions.mjs';
-import {fixture as signinFixture, ENV as SIGNIN_ENV} from './fixtures/signin-fixture.mjs';
+import {fixture as signinFixture, ENV as SIGNIN_ENV, noShippedActions} from './fixtures/signin-fixture.mjs';
 
 // F10.5 partial grants (T1, T2; docs/F10-FIVE-APPS-DEEP.md, docs/F10.5-BUILD-MAP.md section 4). Unticking an optional box at
 // the provider narrows the connection instead of failing the sign-in, and a token carrying a scope Fabric never holds is
@@ -906,7 +906,8 @@ test('an account request refused for a never-request scope records scope_refused
 });
 
 test('the single-owner server installs the access explainer: a version 2 sign-in without a required scope names the server\'s own row', async t => {
-  const f = await signinFixture(t);
+  // The fixture's map alone, without GitHub's certified actions, whose rows the explainer would name too.
+  const f = await signinFixture(t, {actions: await noShippedActions(t)});
   // The same twin, bound on the server's ConnectionManager, reads the explainer server.mjs installed there. The fixture's map
   // documents repo only for creating issues, which the app page shows in its Other changes row: the one permission it names.
   const twin = new OAuth2Provider(githubV2(), {store: f.app.store, vault: f.app.vault, connections: f.app.connections, request: req => f.sim.request(req), clock: () => f.now,

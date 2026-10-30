@@ -249,6 +249,8 @@ test('guard 21 (F10.17): GitHub text, labels, reviews, dispatches, H3\'s restore
   guard.begin('H10');
   passes(guard, at(SANDBOX, 'POST', '/actions/workflows/fabric-synthetic.yml/dispatches', {body: {ref: 'main', inputs: {}}}));
   passes(guard, at(SANDBOX, 'POST', '/actions/workflows/fabric-synthetic.yml/dispatches', {body: {ref: OWN}}));
+  passes(guard, at(SANDBOX, 'POST', '/actions/workflows/fabric-synthetic.yml/dispatches', {body: {ref: 'main', inputs: {}, return_run_details: true}}), 'asking for the run\'s id');
+  for (const value of [false, 'true', 1, null]) refuses(guard, at(SANDBOX, 'POST', '/actions/workflows/fabric-synthetic.yml/dispatches', {body: {ref: 'main', inputs: {}, return_run_details: value}}), 'workflow', String(value));
   refuses(guard, at(SANDBOX, 'POST', '/actions/workflows/deploy.yml/dispatches', {body: {ref: 'main', inputs: {}}}), 'workflow');
   refuses(guard, at(SANDBOX, 'POST', '/actions/workflows/12345/dispatches', {body: {ref: 'main', inputs: {}}}), 'workflow', 'by id');
   refuses(guard, at(SANDBOX, 'POST', '/actions/workflows/fabric-synthetic.yml/dispatches', {body: {ref: 'release', inputs: {}}}), 'branch');

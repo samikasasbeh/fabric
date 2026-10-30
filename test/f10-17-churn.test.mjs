@@ -158,5 +158,6 @@ test('GitHub\'s shipped action file holds current ids: each stored id is the one
   const ids = actionIds(file, deps);
   assert.deepEqual(file.actions.map(action => action.id), file.actions.map(action => ids.get(`${action.key} v${action.version}`).id));
   assert.equal(validateActionFile(file, deps).actions.length, 15);
-  assert.ok(file.actions.every(action => action.certified === undefined), 'no action is certified before step 18');
+  // Step 18's live pass (run 5XBI3UND) certified all 15: each names the shipped evidence, and test/live-evidence.test.mjs holds the hashes.
+  assert.ok(file.actions.every(action => action.certified?.evidence === 'docs/live-evidence/github/actions.json'), 'each certified by step 18\'s evidence');
 });

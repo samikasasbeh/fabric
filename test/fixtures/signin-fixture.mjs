@@ -18,6 +18,16 @@ export const doc = {openapi: '3.0.3', info: {title: 'Synthetic GitHub', version:
     requestBody: {content: {'application/json': {schema: {type: 'object', properties: {title: {type: 'string'}}, required: ['title']}}}}, responses: {201: {description: 'Created'}}}}}};
 export async function freePort() { const server = createServer(); server.listen(0, '127.0.0.1'); await once(server, 'listening'); const {port} = server.address(); await new Promise(resolve => server.close(resolve)); return port; }
 
+/**
+ * An action folder with no files, for a test of synthetic GitHub operations: since step 18 certified GitHub's shipped actions, they place
+ * with no map and would join the test's rows (F10.18 listed churn).
+ */
+export async function noShippedActions(t) {
+  const directory = await mkdtemp(path.join(tmpdir(), 'fabric-no-actions-'));
+  t.after(() => rm(directory, {recursive: true, force: true}));
+  return {directory};
+}
+
 /** `actions` (F10.11 part p) is the owner's server's action catalog seam, as createApp() takes it. */
 export async function fixture(t, {actions} = {}) {
   const previous = Object.fromEntries(Object.keys(ENV).map(key => [key, process.env[key]]));
