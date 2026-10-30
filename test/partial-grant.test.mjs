@@ -453,8 +453,11 @@ test('the permissions a missing scope leaves without access: no alternative avoi
 // permission. Fabric never asks for the full mailbox, so it is no way around a missing scope; a scope it may ask for still is.
 test('a scope Fabric never asks for is no alternative: the refusal names the permission, and only for a scope that is really missing', t => {
   const h = harness(t, googleV2()), FULL = 'https://mail.google.com/', TRASH = 'gmail.users.messages.trash', LABEL = 'Move emails to or from trash';
-  Object.assign(h.caps, seed(h.store, 'gmail', [...MAPS.gmail.operations, [TRASH, 'POST', '/gmail/v1/users/{userId}/messages/{id}/trash', [FULL, MODIFY]]]));
+  Object.assign(h.caps, seed(h.store, 'gmail', [...MAPS.gmail.operations, [TRASH, 'POST', '/gmail/v1/users/{userId}/messages/{id}/trash', [FULL, MODIFY]],
+    ['gmail.users.messages.delete', 'DELETE', '/gmail/v1/users/{userId}/messages/{id}', [FULL]]]));
   assert.ok(h.service.rowsNeeding('gmail', [MODIFY]).some(row => row.label === LABEL));
+  // Only the full mailbox serves a permanent delete, and no missing scope touches it, so no refusal ever names that row.
+  for (const scope of [MODIFY, SETTINGS]) assert.ok(!h.service.rowsNeeding('gmail', [scope]).some(row => row.label === 'Permanently delete emails'), scope);
   assert.ok(!h.service.rowsNeeding('gmail', [SETTINGS]).some(row => row.label === LABEL), 'a sign-in missing something else does not name it');
   assert.ok(!h.service.rowsNeeding('gmail', [CALENDAR]).some(row => row.label === LABEL));
   const other = harness(t, googleV2());
