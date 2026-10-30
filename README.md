@@ -17,7 +17,7 @@ The current work is five apps done in depth.
 | Gmail | 13 | 13 |
 | Google Calendar | 13 | 13 |
 | GitHub | 15 | 15 |
-| Notion | 16 | Not yet |
+| Notion | 16 | 16 |
 | Slack | 13 | Not yet |
 
 Fabric is not hosted yet. It runs on your own machine.

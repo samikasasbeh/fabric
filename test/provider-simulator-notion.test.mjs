@@ -150,6 +150,42 @@ test('markdown: get answers page_markdown with child tags; insert_content append
   for (const type of ['replace_content', 'replace_content_range']) assert.deepEqual(code(await patch({type, [type]: {new_str: 'x', content: 'x'}})), [400, 'not_simulated'], type);
 });
 
+test('markdown reads back as Notion reads it: a backslash before its marks, no blank lines, code and links as written; old_str matches with or without the backslashes', async () => {
+  const {simulator, a} = world();
+  const patch = body => send(simulator, 'PATCH', `/pages/${a.id}/markdown`, {body});
+  const written = '[SYNTHETIC] <x> {y} | z ^ ~ $ \\\n\n```\n[code]\n```\n[a link](https://example.com/p) [b]';
+  const answer = await patch({type: 'insert_content', insert_content: {content: written}});
+  assert.ok(answer.data.markdown.includes('\\[SYNTHETIC\\] \\<x\\> \\{y\\} \\| z \\^ \\~ \\$ \\\\\n```\n[code]\n```\n[a link](https://example.com/p) \\[b\\]'), answer.data.markdown);
+  assert.equal((await send(simulator, 'GET', `/pages/${a.id}/markdown`)).data.markdown, answer.data.markdown);
+  assert.equal(simulator.state().pages[a.id].text, `First line\nSecond line\n${written}`, 'stored as written: only the reading changes it');
+  const edit = (old_str, new_str) => patch({type: 'update_content', update_content: {content_updates: [{old_str, new_str}]}});
+  assert.equal((await edit('[SYNTHETIC] <x>', '[SYNTHETIC] <w>')).status, 200);
+  assert.equal((await edit('\\[SYNTHETIC\\] \\<w\\>', '[SYNTHETIC] <v>')).status, 200);
+  assert.ok(simulator.state().pages[a.id].text.includes('[SYNTHETIC] <v> {y}'));
+});
+
+test('markdown reads back in the forms the live probe of 2026-10-30 recorded: heading, bullet, count, fence language, table and italic rewritten; a real backslash matches as written', async () => {
+  const {simulator, a} = world();
+  const patch = body => send(simulator, 'PATCH', `/pages/${a.id}/markdown`, {body});
+  const answer = await patch({type: 'insert_content', insert_content: {content: '##### H5\n* star\n1. one\n1. two\n```js\nlet a = [1];\n```\n| a | b |\n| --- | --- |\n| 1 | 2 |\n\nafter gap\n---\n**bold** _it_ [l](https://example.com/p)'}});
+  assert.ok(answer.data.markdown.includes('#### H5\n- star\n1. one\n2. two\n```javascript\nlet a = [1];\n```\n<table header-row="true">\n<tr>\n<td>a</td>\n<td>b</td>\n</tr>\n<tr>\n<td>1</td>\n<td>2</td>\n</tr>\n</table>\nafter gap\n---\n**bold** *it* [l](https://example.com/p)'), answer.data.markdown);
+  const other = simulator.seedPage({title: 'Paths', parent: {page_id: a.id}, markdown: 'C:\\[dir]\nb[1]\nb\\[1]'});
+  const on = (old_str, new_str) => send(simulator, 'PATCH', `/pages/${other.id}/markdown`, {body: {type: 'update_content', update_content: {content_updates: [{old_str, new_str}]}}});
+  assert.equal((await on('C:\\[dir]', 'D:\\[dir]')).status, 200, 'the plain form of text holding a real backslash matches');
+  assert.equal((await on('b\\[1]', 'HIT')).status, 200);
+  assert.equal(simulator.state().pages[other.id].text, 'D:\\[dir]\nb[1]\nHIT', 'the line that equals old_str is the one changed');
+});
+
+test('an uploaded file\'s link is signed anew on every read, and stays out of the stored text', async () => {
+  const {simulator, a} = world();
+  simulator.uploadFile(a.id, 'image.png');
+  const read = async () => (await send(simulator, 'GET', `/pages/${a.id}/markdown`)).data.markdown;
+  const [one, two] = [await read(), await read()];
+  assert.match(one, /\?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=/);
+  assert.notEqual(one, two);
+  assert.ok(!simulator.state().pages[a.id].text.includes('X-Amz'));
+});
+
 test('removing a child page from the markdown is refused without allow_deleting_content, and with it moves the child to the trash', async () => {
   const {simulator, a, child} = world();
   const tag = `<page url="https://www.notion.so/${child.id.replace(/-/g, '')}">A1</page>`, patch = body => send(simulator, 'PATCH', `/pages/${a.id}/markdown`, {body});

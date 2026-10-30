@@ -1,0 +1,9 @@
+{
+ "active": true,
+ "appId": "notion",
+ "at": "2026-10-30T16:28:40.216Z",
+ "listsCapabilities": true,
+ "runId": "X4G5USDP",
+ "schemaVersion": 1,
+ "scope": "read_comment read_content insert_comment insert_content update_content read_user_with_email read_user_without_email"
+}

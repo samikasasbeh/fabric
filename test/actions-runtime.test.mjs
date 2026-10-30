@@ -760,10 +760,12 @@ test('part i: readback: verified on a match, uncertain on a mismatch; statusIn 4
     check({step: 'check', present: {pointer: '/name'}}), check({step: 'check', absent: {pointer: '/gone'}}), check({step: 'check', statusIn: [200]}),
     check({step: 'check', listHas: {list: '/labels', where: [{field: '/id', equals: {input: '/id'}}, {field: '/name', equals: {input: '/name'}}]}}),
     check({step: 'check', listLacks: {list: '/labels', where: [{field: '/id', equals: {const: 'L9'}}]}}), check({step: 'check', listLacks: {list: '/missing', where: [{field: '/id', equals: {const: 'L2'}}]}}),
-    check({anyOf: [{step: 'check', statusIn: [404]}, {step: 'check', present: {pointer: '/name'}}]})], [true, true, true, true, true, true, true, true, true]);
+    check({step: 'check', test: {equals: [{step: 'check', pointer: '/name'}, {const: 'Plan A'}]}}),
+    check({anyOf: [{step: 'check', statusIn: [404]}, {step: 'check', present: {pointer: '/name'}}]})], [true, true, true, true, true, true, true, true, true, true]);
   assert.deepEqual([check({step: 'check', equals: {pointer: '/name', value: {const: 'Plan B'}}}), check({step: 'check', contains: {pointer: '/tags', value: {const: ['a', 'c']}}}),
     check({step: 'check', listHas: {list: '/labels', where: [{field: '/id', equals: {const: 'L9'}}]}}), check({step: 'check', listLacks: {list: '/labels', where: [{field: '/id', equals: {input: '/id'}}]}}),
-    check({step: 'check', equals: {pointer: '/name', value: {input: '/missing'}}}), check({step: 'gone', statusIn: [200]})], [false, false, false, false, false, false]);
+    check({step: 'check', equals: {pointer: '/name', value: {input: '/missing'}}}), check({step: 'gone', statusIn: [200]}),
+    check({step: 'check', test: {equals: [{step: 'check', pointer: '/name'}, {const: 'Plan B'}]}}), check({step: 'gone', test: {equals: [{step: 'check', pointer: '/name'}, {const: 'Plan A'}]}})], [false, false, false, false, false, false, false, false]);
 });
 
 test('part i: expect.require: ok false on the first write fails, after a write is uncertain; a reviewed alternative (already_reacted) succeeds', async t => {

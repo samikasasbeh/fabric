@@ -1305,8 +1305,15 @@ test('part f: verification (spec line 748): identity by readback, address or mem
   refusedFile(edited('remove-labels', action => { action.verify.identity[0].listLacks.where = Array.from({length: 4}, () => ({field: '/name', equals: {item: ''}})); }), /where holds 1 to 3 conditions/);
   refusedFile(edited('remove-labels', action => { action.verify.identity[0].listLacks.where = [{field: '/name', equals: {const: 'x'}}]; }), /verify\.identity\[0\] reads only constants/);
   refusedFile(edited('remove-labels', action => { action.verify.identity[0].forEach = 'check'; }), /verify\.identity\[0\]\.forEach names a perform step that repeats with forEach/);
+  // A test is one equals over what its step answered, for a comparison only a transform can make: never in an expect.require.
+  const named = {equals: [{step: 'check', pointer: '/name'}, {const: 'x'}]};
+  assert.equal(entryOf(edited('remove-labels', action => { action.verify.assert = [{step: 'check', test: named}]; })).key, 'remove-labels');
+  refusedFile(edited('update-item', action => { action.perform[0].expect.require = [{test: named}]; }), /a test reads the frame, not one answer, so it has no place in expect\.require/);
   // Assertions are closed.
-  for (const [assertion, pattern] of [[{step: 'check', matches: {pointer: '/a'}}, /an assertion is one of equals, contains, present, absent, statusIn, listHas, listLacks and anyOf/],
+  for (const [assertion, pattern] of [[{step: 'check', matches: {pointer: '/a'}}, /an assertion is one of equals, contains, present, absent, statusIn, listHas, listLacks, test and anyOf/],
+    [{step: 'check', test: {matches: {}}}, /a test is one \{equals\}/], [{test: named}, /names the step it reads/], [{step: 'check', test: {equals: [{const: 'x'}, {const: 'x'}]}}, /a test reads the step it names/],
+    [{step: 'check', test: {equals: [{input: '/names'}, {const: ['x']}]}}, /a test reads the step it names/], [{step: 'check', test: {nonEmpty: {step: 'check', pointer: '/name'}}}, /a test is one \{equals\}/],
+    [{step: 'check', test: {anyOf: [{equals: [{input: '/names'}, {const: 'x'}]}, named]}}, /a test is one \{equals\}/], [{step: 'nothing', test: named}, /names step nothing, which has not run before this point/],
     [{step: 'check', statusIn: [99]}, /statusIn holds 1 to 16 HTTP status codes/], [{step: 'nothing', statusIn: [200]}, /names step nothing, which has not run before this point/],
     [{anyOf: [{step: 'check', statusIn: [200]}]}, /anyOf holds 2 to 4 assertions/], [{anyOf: [{step: 'check', statusIn: [200]}, {anyOf: [{step: 'check', statusIn: [200]}, {step: 'check', statusIn: [404]}]}]}, /an anyOf never nests/],
     [{step: 'check', equals: {pointer: '/a'}}, /equals is \{pointer, value\}/], [{statusIn: [200]}, /names the step it reads/]]) {

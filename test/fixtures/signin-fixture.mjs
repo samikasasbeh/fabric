@@ -19,8 +19,8 @@ export const doc = {openapi: '3.0.3', info: {title: 'Synthetic GitHub', version:
 export async function freePort() { const server = createServer(); server.listen(0, '127.0.0.1'); await once(server, 'listening'); const {port} = server.address(); await new Promise(resolve => server.close(resolve)); return port; }
 
 /**
- * An action folder with no files, for a test of synthetic GitHub operations: since step 18 certified GitHub's shipped actions, they place
- * with no map and would join the test's rows (F10.18 listed churn).
+ * An action folder with no files, for a test of synthetic GitHub or Notion operations: since steps 18 and 20 certified those apps' shipped
+ * actions, they place with no map and would join the test's rows (F10.18 listed churn).
  */
 export async function noShippedActions(t) {
   const directory = await mkdtemp(path.join(tmpdir(), 'fabric-no-actions-'));

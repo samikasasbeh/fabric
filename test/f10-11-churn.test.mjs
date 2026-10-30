@@ -15,7 +15,9 @@ const RECORDED = Object.freeze({
   'test/f10-3-binding-churn.test.mjs': '065852b410cf9d328b5aa9b64099d4704c3f1291773fa75134cbe03314e2bd7a',
   'test/f10-6-churn.test.mjs': '07ba6a2048fb2cfe5244e11126ccb4bef02633ebcc96e6775853b6e01f4ee367',
   'test/f10-7-churn.test.mjs': '33279665e24d056a1edea921dcc0633a4cf7f2f2cbaa350c5e963a382a0059df',
-  'test/local-mode-goldens.test.mjs': '20cc772cc2060294d0025283475597b8035f4ea25a78b14d4dc9a3c525baa8f5',
+  // F10.20 listed churn: step 20 certified Notion's 16 actions, which place with no map and would join this file's synthetic Notion row, so its
+  // one owner-page test on that row runs with no shipped actions. That test's server line is all that moved.
+  'test/local-mode-goldens.test.mjs': '27e00717b0a8204bed6c115a3557ed7a67c1debb418637806b50862dc4426afd',
   'test/provider-authority.test.mjs': '2b899188f47af3d16cd8eb429257c5630f32aa249a8a6cb8e53c6fcf4e564039',
 });
 const UNCHANGED = Object.freeze({

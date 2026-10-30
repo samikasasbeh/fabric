@@ -9,6 +9,7 @@ import {Store} from '../lib/store.mjs';
 import {PermissionManager} from '../lib/permissions.mjs';
 import {compileOpenApi} from '../lib/compiler.mjs';
 import {createApp} from '../server.mjs';
+import {noShippedActions} from './fixtures/signin-fixture.mjs';
 
 // F03 exit check 6, local mode unchanged.
 // (1) The single-owner binding and policy hashes equal a committed golden. Any change that moves them would quietly
@@ -111,10 +112,10 @@ test('the golden does not depend on the store, its clock or its designation', t 
 // picked by binding port 0 first, as test/hosted-catalog.test.mjs does.
 async function freePort() { const server = createServer(); server.listen(0, '127.0.0.1'); await once(server, 'listening'); const {port} = server.address(); await new Promise(resolve => server.close(resolve)); return port; }
 
-async function ownerServer(t) {
+async function ownerServer(t, {actions} = {}) {
   const dir = mkdtempSync(path.join(tmpdir(), 'fabric-local-owner-')), port = await freePort(), network = [];
   // A fixed clock keeps the health check from ever coming due; nothing here may reach a network.
-  const app = await createApp({dataDir: dir, port, clock: () => Date.parse('2026-10-11T10:00:00.000Z'), request: async req => { network.push(req.url); throw new Error('No network in this test.'); }});
+  const app = await createApp({dataDir: dir, port, clock: () => Date.parse('2026-10-11T10:00:00.000Z'), request: async req => { network.push(req.url); throw new Error('No network in this test.'); }, ...(actions ? {actions} : {})});
   await app.start();
   t.after(async () => { await app.close(); rmSync(dir, {recursive: true, force: true}); });
   const first = await fetch(`${app.origin}/api/state`), state = await first.json();
@@ -189,7 +190,7 @@ const plant = (store, fields) => store.put('connections', {driver: 'http', authM
 const rowOf = (view, groupId) => view.sections.flatMap(section => section.rows).find(row => row.groupId === groupId);
 
 test('owner page: Allow on a read row that holds a write member needs confirmAllow (F03.5 finding 1, single-owner path)', async t => {
-  const {app, call} = await ownerServer(t);
+  const {app, call} = await ownerServer(t, {actions: await noShippedActions(t)});
   seed(app.store, 'notion', 'https://api.notion.com', [['notion.pages.get', 'get', '/v1/pages/{page_id}'], ['notion.views.queries.create', 'post', '/v1/views/{view_id}/queries']]);
   plant(app.store, {id: 'notion-account', appId: 'notion', label: 'Notion', identity: {id: 'ws1:user1', displayName: 'User One'}, allowedOrigins: ['https://api.notion.com'], scopes: []});
   const view = await call('GET', '/api/ui/apps/notion');

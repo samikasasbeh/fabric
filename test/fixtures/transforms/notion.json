@@ -1264,6 +1264,412 @@
     ],
     "lines": "Cost: 12.5\nDue: 2026-11-02 to 2026-11-04\nFiles: receipt.pdf\nName: Taxi home\nNotes: first line second line\nStage: Open\nTags: red, blue"
    }
+  },
+  {
+   "name": "text shows behind Notion's backslashes, as the live run read it",
+   "transform": "notion.markdownShows@1",
+   "input": {
+    "before": "\\[SYNTHETIC\\] Fabric N1 body",
+    "after": "\\[SYNTHETIC\\] Fabric N1 body\n\\[SYNTHETIC\\] Fabric N2 marker",
+    "text": "[SYNTHETIC] Fabric N2 marker"
+   },
+   "output": {
+    "shows": true
+   }
+  },
+  {
+   "name": "rich text shows through everything Notion rewrote, the bytes of the live probe",
+   "transform": "notion.markdownShows@1",
+   "input": {
+    "before": "\\[SYNTHETIC\\] Fabric N10b 7OUT4PNU copied 7OUT4PNU probe",
+    "after": "\\[SYNTHETIC\\] Fabric N10b 7OUT4PNU copied 7OUT4PNU probe\n\\[SYNTHETIC\\] Fabric N10d 7OUT4PNU rich\n#### H5\n- star\n1. one\n2. two\n```javascript\nlet a = [1];\n```\n<table header-row=\"true\">\n<tr>\n<td>a</td>\n<td>b</td>\n</tr>\n<tr>\n<td>1</td>\n<td>2</td>\n</tr>\n</table>\nafter gap\n---\n**bold** *it* [l](https://example.com/p)\nplain line",
+    "text": "[SYNTHETIC] Fabric N10d 7OUT4PNU rich\n##### H5\n* star\n1. one\n1. two\n```js\nlet a = [1];\n```\n| a | b |\n| --- | --- |\n| 1 | 2 |\n\nafter gap\n---\n**bold** _it_ [l](https://example.com/p)\nplain line"
+   },
+   "output": {
+    "shows": true
+   }
+  },
+  {
+   "name": "every mark Notion escapes",
+   "transform": "notion.markdownShows@1",
+   "input": {
+    "before": "",
+    "after": "a \\\\ \\* \\~ \\` \\$ \\[ \\] \\< \\> \\{ \\} \\| \\^ z",
+    "text": "a \\ * ~ ` $ [ ] < > { } | ^ z"
+   },
+   "output": {
+    "shows": true
+   }
+  },
+  {
+   "name": "text copied from the markdown, backslashes and all, shows too",
+   "transform": "notion.markdownShows@1",
+   "input": {
+    "before": "x",
+    "after": "x\n\\[SYNTHETIC\\] note",
+    "text": "\\[SYNTHETIC\\] note"
+   },
+   "output": {
+    "shows": true
+   }
+  },
+  {
+   "name": "an edit inside a word shows by the first test",
+   "transform": "notion.markdownShows@1",
+   "input": {
+    "before": "concatenate",
+    "after": "condogenate",
+    "text": "dog",
+    "removed": "cat"
+   },
+   "output": {
+    "shows": true
+   }
+  },
+  {
+   "name": "a page that did not change shows nothing, however well the text matches: a swallowed write",
+   "transform": "notion.markdownShows@1",
+   "input": {
+    "before": "\\[SYNTHETIC\\] Done",
+    "after": "\\[SYNTHETIC\\] Done",
+    "text": "[SYNTHETIC] Done"
+   },
+   "output": {
+    "shows": false
+   }
+  },
+  {
+   "name": "a repeated line shows when the page changed",
+   "transform": "notion.markdownShows@1",
+   "input": {
+    "before": "\\[SYNTHETIC\\] Done",
+    "after": "\\[SYNTHETIC\\] Done\n\\[SYNTHETIC\\] Done",
+    "text": "[SYNTHETIC] Done"
+   },
+   "output": {
+    "shows": true
+   }
+  },
+  {
+   "name": "a link Notion signed anew is no change: a swallowed write on a page with an uploaded file",
+   "transform": "notion.markdownShows@1",
+   "input": {
+    "before": "Done\n![](https://prod-files-secure.s3.us-west-2.amazonaws.com/a/b/image.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=aaa&X-Amz-Signature=aaa&x-id=GetObject)",
+    "after": "Done\n![](https://prod-files-secure.s3.us-west-2.amazonaws.com/a/b/image.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=bbb&X-Amz-Signature=bbb&x-id=GetObject)",
+    "text": "Done"
+   },
+   "output": {
+    "shows": false
+   }
+  },
+  {
+   "name": "a landed write shows on a page whose file link was signed anew",
+   "transform": "notion.markdownShows@1",
+   "input": {
+    "before": "Plan\n![](https://prod-files-secure.s3.us-west-2.amazonaws.com/a/b/image.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=aaa&X-Amz-Signature=aaa&x-id=GetObject)",
+    "after": "Plan\n![](https://prod-files-secure.s3.us-west-2.amazonaws.com/a/b/image.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=bbb&X-Amz-Signature=bbb&x-id=GetObject)\nnew line",
+    "text": "new line"
+   },
+   "output": {
+    "shows": true
+   }
+  },
+  {
+   "name": "words keep their boundaries: 10.5 is not 105",
+   "transform": "notion.markdownShows@1",
+   "input": {
+    "before": "x",
+    "after": "x\n105 kg",
+    "text": "10.5 kg"
+   },
+   "output": {
+    "shows": false
+   }
+  },
+  {
+   "name": "digits run together are not a shorter number",
+   "transform": "notion.markdownShows@1",
+   "input": {
+    "before": "x",
+    "after": "x\nPay $1,000",
+    "text": "Pay 100"
+   },
+   "output": {
+    "shows": false
+   }
+  },
+  {
+   "name": "a word is not the end of another",
+   "transform": "notion.markdownShows@1",
+   "input": {
+    "before": "x",
+    "after": "x\nundone deal",
+    "text": "**done** deal"
+   },
+   "output": {
+    "shows": false
+   }
+  },
+  {
+   "name": "text that is not on the page does not show, though the page changed",
+   "transform": "notion.markdownShows@1",
+   "input": {
+    "before": "a",
+    "after": "a\n\\[SYNTHETIC\\] Fabric N2 marker",
+    "text": "[SYNTHETIC] Fabric N3 marker"
+   },
+   "output": {
+    "shows": false
+   }
+  },
+  {
+   "name": "a word cut from the middle does not show",
+   "transform": "notion.markdownShows@1",
+   "input": {
+    "before": "a",
+    "after": "alpha gamma",
+    "text": "alpha beta gamma"
+   },
+   "output": {
+    "shows": false
+   }
+  },
+  {
+   "name": "text of nothing but marks shows as written, whitespace aside",
+   "transform": "notion.markdownShows@1",
+   "input": {
+    "before": "above",
+    "after": "above\n---",
+    "text": "---\n"
+   },
+   "output": {
+    "shows": true
+   }
+  },
+  {
+   "name": "marks that are not there do not show, though no word disagrees",
+   "transform": "notion.markdownShows@1",
+   "input": {
+    "before": "above",
+    "after": "above\nbelow",
+    "text": "***"
+   },
+   "output": {
+    "shows": false
+   }
+  },
+  {
+   "name": "text of nothing but marks does not show on a page with no words either",
+   "transform": "notion.markdownShows@1",
+   "input": {
+    "before": "x",
+    "after": "---",
+    "text": "***"
+   },
+   "output": {
+    "shows": false
+   }
+  },
+  {
+   "name": "a removal shows when the page changed and the text is gone",
+   "transform": "notion.markdownShows@1",
+   "input": {
+    "before": "\\[SYNTHETIC\\] gone\n\\[SYNTHETIC\\] kept",
+    "after": "\\[SYNTHETIC\\] kept",
+    "text": "",
+    "removed": "[SYNTHETIC] gone"
+   },
+   "output": {
+    "shows": true
+   }
+  },
+  {
+   "name": "a removal behind backslashes is still there",
+   "transform": "notion.markdownShows@1",
+   "input": {
+    "before": "\\[SYNTHETIC\\] gone\nother",
+    "after": "\\[SYNTHETIC\\] gone",
+    "text": "",
+    "removed": "[SYNTHETIC] gone"
+   },
+   "output": {
+    "shows": false
+   }
+  },
+  {
+   "name": "a removal that changed nothing does not show",
+   "transform": "notion.markdownShows@1",
+   "input": {
+    "before": "one\ntwo",
+    "after": "one\ntwo",
+    "text": "",
+    "removed": "A\n\nB"
+   },
+   "output": {
+    "shows": false
+   }
+  },
+  {
+   "name": "a short removal is gone though its letters stand together elsewhere",
+   "transform": "notion.markdownShows@1",
+   "input": {
+    "before": "Ca bin and Cabin notes",
+    "after": "and Cabin notes",
+    "text": "",
+    "removed": "Ca bin"
+   },
+   "output": {
+    "shows": true
+   }
+  },
+  {
+   "name": "a removal is gone though the same words stand elsewhere with a mark between them",
+   "transform": "notion.markdownShows@1",
+   "input": {
+    "before": "Ca bin and Ca, bin notes",
+    "after": "and Ca, bin notes",
+    "text": "",
+    "removed": "Ca bin"
+   },
+   "output": {
+    "shows": true
+   }
+  },
+  {
+   "name": "whitespace for text is a removal: the old text must be gone",
+   "transform": "notion.markdownShows@1",
+   "input": {
+    "before": "foo bar",
+    "after": "foo bar baz",
+    "text": " ",
+    "removed": "foo"
+   },
+   "output": {
+    "shows": false
+   }
+  },
+  {
+   "name": "the old text may stay when the new text holds it",
+   "transform": "notion.markdownShows@1",
+   "input": {
+    "before": "Hello",
+    "after": "Hello there",
+    "text": "Hello there",
+    "removed": "Hello"
+   },
+   "output": {
+    "shows": true
+   }
+  },
+  {
+   "name": "an edit shows when Notion rewrites the new text into the old",
+   "transform": "notion.markdownShows@1",
+   "input": {
+    "before": "- item",
+    "after": "- item two",
+    "text": "* item two",
+    "removed": "- item"
+   },
+   "output": {
+    "shows": true
+   }
+  },
+  {
+   "name": "an edit that only changes escaping is a change",
+   "transform": "notion.markdownShows@1",
+   "input": {
+    "before": "\\[a\\](https://x.y)",
+    "after": "[a](https://x.y)",
+    "text": "[a](https://x.y)",
+    "removed": "\\[a\\](https://x.y)"
+   },
+   "output": {
+    "shows": true
+   }
+  },
+  {
+   "name": "a < and a > in text hold words between them, on the page",
+   "transform": "notion.markdownShows@1",
+   "input": {
+    "before": "keep x \\<= 5",
+    "after": "keep x \\<= 5\na =\\> b\nnext line",
+    "text": "a => b\n\nnext line"
+   },
+   "output": {
+    "shows": true
+   }
+  },
+  {
+   "name": "words between a < and a > in text are compared",
+   "transform": "notion.markdownShows@1",
+   "input": {
+    "before": "p",
+    "after": "p\nx \\< 9 and y \\> 2\n- item",
+    "text": "x < 1 and y > 2\n* item"
+   },
+   "output": {
+    "shows": false
+   }
+  },
+  {
+   "name": "words that look like a tag are compared",
+   "transform": "notion.markdownShows@1",
+   "input": {
+    "before": "p",
+    "after": "p\n- item",
+    "text": "<Pay Bob 100 today>\n* item"
+   },
+   "output": {
+    "shows": false
+   }
+  },
+  {
+   "name": "a bare fence shows through the language Notion gives it",
+   "transform": "notion.markdownShows@1",
+   "input": {
+    "before": "x",
+    "after": "x\n```plain text\ncode\n```\ny",
+    "text": "```\ncode\n```\ny"
+   },
+   "output": {
+    "shows": true
+   }
+  },
+  {
+   "name": "case decides nothing: Notion may lower a to-do mark",
+   "transform": "notion.markdownShows@1",
+   "input": {
+    "before": "",
+    "after": "- [x] buy milk",
+    "text": "- [X] buy milk"
+   },
+   "output": {
+    "shows": true
+   }
+  },
+  {
+   "name": "a before that is not a string refuses",
+   "transform": "notion.markdownShows@1",
+   "input": {
+    "before": {
+     "text": "x"
+    },
+    "after": "x",
+    "text": "x"
+   },
+   "refuses": "input_invalid"
+  },
+  {
+   "name": "an after that is not a string refuses",
+   "transform": "notion.markdownShows@1",
+   "input": {
+    "before": "x",
+    "after": {
+     "text": "x"
+    },
+    "text": "x"
+   },
+   "refuses": "input_invalid"
   }
  ]
 }

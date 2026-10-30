@@ -48,6 +48,14 @@
    ]}
   },
   {
+   "id": "N2b",
+   "name": "Add rich text at the end of N1's page, which Notion reads back rewritten",
+   "steps": [
+    {"call": {"action": "add-to-page@1", "args": {"page": {"$saved": "page"}, "content": {"$text": "rich\n##### H5\n* star\n1. one\n1. two\n```js\nlet a = [1];\n```\n| a | b |\n| --- | --- |\n| 1 | 2 |\n\nafter gap\n---\n**bold** _it_ [l](https://example.com/p)\n```\nbare\n```\n- [X] task\nplain line"}}, "checks": [{"pointer": "/id", "present": true}]}}
+   ],
+   "undo": {"none": "N8 trashes the page it stands on."}
+  },
+  {
    "id": "N3",
    "name": "Edit text on N1's page: a line this test adds, found once and replaced",
    "steps": [

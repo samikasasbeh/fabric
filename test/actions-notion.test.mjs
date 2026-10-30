@@ -8,7 +8,7 @@ import {validateActionFile} from '../lib/actions.mjs';
 import {PERMISSION_GROUPS} from '../lib/permission-groups.mjs';
 import {PROXY_CONFIGS} from '../lib/proxy-config.mjs';
 import {createGuard, RULES, NOTION_PERMANENT_DELETE} from '../lib/live-guard.mjs';
-import {checkPlan, fillPlaceholders} from '../lib/live-certify.mjs';
+import {checkPlan, evidenceRecords, fillPlaceholders} from '../lib/live-certify.mjs';
 import {ORIGIN as NOTION_ORIGIN} from './fixtures/provider-simulators/notion.mjs';
 import {ACTION_REFUSED, PREPARED, RUN_WORDS} from '../lib/actions-runtime.mjs';
 import {STATUS_WORDS} from '../lib/action-catalog.mjs';
@@ -81,7 +81,9 @@ const idOf = (source, name) => source.properties[name].id;
 /** Notion's shipped file with each id recomputed from its content, as an author writes them. */
 const currentFile = (deps = notionDeps()) => withIds(notionFile(), deps);
 
-test('the file: 16 actions, each placed in its row with its effect and hints; no certified block, no superseded id; at most 4 steps and 10 requests', () => {
+// Step 20's live pass (run X4G5USDP) certified all 16, each naming the shipped evidence; that each names the hash of exactly its definition,
+// with a passing record, is test/live-evidence.test.mjs's, so an edit of the file is caught here by what it breaks.
+test('the file: 16 actions, each placed in its row with its effect and hints; each certified by step 20\'s evidence, no superseded id; at most 4 steps and 10 requests', () => {
   const file = currentFile(), {actions} = validateActionFile(file, notionDeps());
   assert.deepEqual(actions.map(entry => entry.key), Object.keys(TABLE));
   for (const entry of actions) {
@@ -89,7 +91,7 @@ test('the file: 16 actions, each placed in its row with its effect and hints; no
     assert.deepEqual([entry.version, entry.row, entry.effect, entry.action.hints, entry.unplaced, entry.sensitive], [1, row, effect, hints, false, false], entry.key);
     assert.ok(entry.placements.every(placement => !placement.unplaced && placement.groupId.startsWith('notion.')), entry.key);
     assert.equal(entry.placements.filter(placement => placement.phase === 'perform').at(-1).groupId, row, `${entry.key}: the last perform step lands in its row`);
-    assert.equal(entry.action.certified, undefined, `${entry.key}: certified only by step 20's evidence`);
+    assert.deepEqual([Object.keys(entry.action.certified), entry.action.certified.evidence], [['evidence', 'definitionHash'], 'docs/live-evidence/notion/actions.json'], `${entry.key}: certified by step 20's evidence`);
     assert.ok(entry.placements.length <= 4, `${entry.key}: at most 4 steps`);
   }
   assert.deepEqual([file.specVersion, file.pinnedParameters, file.superseded, ['candidate', 'reviewed'].includes(file.reviewStatus)], ['fabric/0.2', {}, undefined, true]);
@@ -225,15 +227,115 @@ test('Update database row\'s schema at dispatch: an option added between prepare
 });
 
 // ---- markdown --------------------------------------------------------------------------------------------------------------------------
+test('The read-back goes by what changed: Notion\'s rewritten text confirms, and find works with or without its backslashes', async t => {
+  const h = notionHarness(t), {a} = world(h);
+  const content = '[SYNTHETIC] a * b ~ c ` d $ e [f] <g> {h} | i ^ j \\ k\n\n##### H5\n* star\n1. one\n1. two\n```js\nlet a = [1];\n```\n| a | b |\n| --- | --- |\n| 1 | 2 |\n[a link](https://example.com/x) _it_';
+  ended(await approved(h, 'add-to-page v1', {page: a.id, content}), 'succeeded', null);
+  assert.equal(stored(h, a.id).text, `Hello from A\n${content}`);
+  ended(await approved(h, 'edit-page-text v1', {page: a.id, find: '[f] <g>', replace: '[SYNTHETIC] {edited}'}), 'succeeded', null);
+  ended(await approved(h, 'edit-page-text v1', {page: a.id, find: '\\[SYNTHETIC\\] \\{edited\\}', replace: ''}), 'succeeded', null);
+  assert.ok(!stored(h, a.id).text.includes('edited'));
+});
+
+test('A change Notion swallowed never confirms: every form the review tried, on a page that already looks right', async t => {
+  const h = notionHarness(t), {a} = world(h);
+  const page = markdown => h.simulator.seedPage({title: 'Seeded', parent: {page_id: a.id}, markdown}).id;
+  for (const [markdown, content] of [['[SYNTHETIC] Done', '[SYNTHETIC] Done'], ['Plan', 'a'], ['Done.', '.'], ['105 kg', '10.5 kg'], ['Pay $1,000', 'Pay 100'], ['the end\nstart here', 'end start'], ['**Status: Done**', 'Status Done']]) {
+    const id = page(markdown);
+    await swallowed(h, ROUTES.markdown, 'add-to-page v1', {page: id, content});
+    assert.equal(stored(h, id).text, markdown);
+  }
+  for (const [markdown, find, replace] of [['Hello', 'Hello', '[SYNTHETIC] never there'], ['Hello', 'Hello', ''], ['$1000', '$1000', '$1,000'], ['x < 5', 'x < 5', 'x > 5'], ['one\ntwo', 'one\ntwo', 'one two'], ['[DRAFT] Plan', '[DRAFT] Plan', 'Plan'],
+    ['Stage Open\nClosed Tuesday', 'Open', 'Closed'], ['foo bar', 'foo', ' '], ['Release v1.2 notes', 'v1.2', 'v12'], ['a-b', 'a-b', 'a b'], ['A\n\nB', 'A\n\nB', '']]) {
+    const id = page(markdown);
+    await swallowed(h, ROUTES.markdown, 'edit-page-text v1', {page: id, find, replace});
+    assert.equal(stored(h, id).text, markdown);
+  }
+});
+
+test('A page that changed for another reason just before a swallowed write confirms nothing: the text must show, and a removal must be gone', async t => {
+  const h = notionHarness(t), {a} = world(h);
+  const race = async (key, input) => {
+    const job = await prepared(h, key, input), held = h.simulator.hold(ROUTES.markdown);
+    h.simulator.swallow(ROUTES.markdown);
+    const run = h.approve(job);
+    await held.reached;
+    h.simulator.data.pages[a.id].text += '\nSomeone else wrote this';
+    held.release();
+    return run;
+  };
+  assert.equal(ended(await race('add-to-page v1', {page: a.id, content: '[SYNTHETIC] never there'}), 'uncertain', 'outcome_uncertain').result.verification.status, 'unverified');
+  assert.equal(ended(await race('edit-page-text v1', {page: a.id, find: 'Hello from A', replace: ''}), 'uncertain', 'outcome_uncertain').result.verification.status, 'unverified');
+});
+
+test('A page with an uploaded file reads differently every time, and that is never taken for the write', async t => {
+  const h = notionHarness(t), {a} = world(h), page = h.simulator.seedPage({title: 'Files', parent: {page_id: a.id}, markdown: '[SYNTHETIC] Done\nold'});
+  h.simulator.uploadFile(page.id, 'image.png');
+  await swallowed(h, ROUTES.markdown, 'add-to-page v1', {page: page.id, content: '[SYNTHETIC] Done'});
+  await swallowed(h, ROUTES.markdown, 'edit-page-text v1', {page: page.id, find: 'old', replace: '[SYNTHETIC] Done'});
+  ended(await approved(h, 'add-to-page v1', {page: page.id, content: '[SYNTHETIC] landed'}), 'succeeded', null);
+});
+
+test('The page is read just before the write, so an edit during the approval wait is not taken for it', async t => {
+  const h = notionHarness(t), {a} = world(h), held = h.simulator.seedPage({title: 'Waits', parent: {page_id: a.id}, markdown: '[SYNTHETIC] Done'});
+  const job = await prepared(h, 'add-to-page v1', {page: held.id, content: '[SYNTHETIC] Done'});
+  h.simulator.data.pages[held.id].text += '\nA teammate wrote this during the wait';
+  h.simulator.swallow(ROUTES.markdown);
+  assert.equal(ended(await h.approve(job), 'uncertain', 'outcome_uncertain').result.verification.status, 'unverified');
+});
+
+test('A read-back Notion answers in a shape the comparison refuses leaves the write unverified: true words, its output kept, never "Nothing was sent"', async t => {
+  const h = notionHarness(t), {a} = world(h);
+  const job = await prepared(h, 'add-to-page v1', {page: a.id, content: '[SYNTHETIC] landed'});
+  h.simulator.fail('GET /pages/{page_id}/markdown', {status: 200, data: {object: 'page_markdown', id: a.id}});
+  const done = ended(await h.approve(job), 'uncertain', 'outcome_uncertain', {reason: 'not_verified'});
+  assert.equal(done.error, RUN_WORDS.unverified);
+  assert.equal(done.result.verification.status, 'unverified');
+  assert.equal(done.result.data.id, a.id);
+  assert.ok(stored(h, a.id).text.endsWith('[SYNTHETIC] landed'), 'the write landed');
+});
+
+test('A landed write whose output a transform refuses never says nothing was sent', async t => {
+  const h = notionHarness(t), {a} = world(h);
+  const job = await prepared(h, 'trash-page v1', {page: a.id});
+  h.simulator.fail(ROUTES.page, {status: 200, data: []});
+  const done = ended(await h.approve(job), 'uncertain', 'outcome_uncertain', {reason: 'not_verified'});
+  assert.equal(done.error, RUN_WORDS.unverified);
+  assert.equal(stored(h, a.id).in_trash, true, 'the write landed');
+});
+
+test('A landed write whose read-back cannot be built or sent never says nothing was sent, and keeps its code', async t => {
+  const h = notionHarness(t), {a} = world(h);
+  const job = await prepared(h, 'comment v1', {page: a.id, text: '[SYNTHETIC] landed'});
+  h.simulator.fail(ROUTES.comment, {status: 200, data: {object: 'comment'}});
+  const done = ended(await h.approve(job), 'uncertain', 'outcome_uncertain', {details: {reason: 'path_value'}});
+  assert.equal(done.error, RUN_WORDS.uncertain);
+  const lost = await prepared(h, 'rename-page v1', {page: a.id, title: '[SYNTHETIC] Renamed'});
+  const send = h.runtime.request;
+  h.runtime.request = async options => {
+    if (options.method === 'GET') throw Object.assign(new Error('no route'), {sent: false});
+    return send(options);
+  };
+  const failed = await h.approve(lost);
+  h.runtime.request = send;
+  assert.deepEqual([failed.status, failed.error], ['uncertain', RUN_WORDS.uncertain]);
+});
+
+test('A read-back too large to compare leaves the write unverified with true words', async t => {
+  const h = notionHarness(t), {a} = world(h), big = h.simulator.seedPage({title: 'Big', parent: {page_id: a.id}, markdown: 'word '.repeat(240_000)});
+  const done = ended(await approved(h, 'add-to-page v1', {page: big.id, content: '[SYNTHETIC] landed'}), 'uncertain', 'outcome_uncertain', {reason: 'not_verified'});
+  assert.equal(done.error, RUN_WORDS.unverified);
+  assert.ok(stored(h, big.id).text.endsWith('[SYNTHETIC] landed'), 'the write landed');
+});
 test('Add to page appends and reads back the added text; Edit page text replaces text found once, never sends allow_deleting_content, and text not found once fails with nothing changed', async t => {
   const h = notionHarness(t), {a} = world(h);
   const add = await prepared(h, 'add-to-page v1', {page: a.id, content: '[SYNTHETIC] marker'});
-  assert.deepEqual(bodyOf(h, add), {type: 'insert_content', insert_content: {content: '[SYNTHETIC] marker'}});
+  assert.deepEqual(bodyOf(h, add, 1), {type: 'insert_content', insert_content: {content: '[SYNTHETIC] marker'}});
   assert.deepEqual(h.fields(add), {Page: '[SYNTHETIC] A', Link: a.url, 'Text added': '[SYNTHETIC] marker'});
   const added = ended(await h.approve(add), 'succeeded', null);
   assert.deepEqual([added.result.verification.status, stored(h, a.id).text], ['verified', 'Hello from A\n[SYNTHETIC] marker']);
   const edit = await prepared(h, 'edit-page-text v1', {page: a.id, find: 'Hello from A', replace: '[SYNTHETIC] Hello edited'});
-  assert.deepEqual(bodyOf(h, edit), {type: 'update_content', update_content: {content_updates: [{old_str: 'Hello from A', new_str: '[SYNTHETIC] Hello edited'}]}});
+  assert.deepEqual(bodyOf(h, edit, 1), {type: 'update_content', update_content: {content_updates: [{old_str: 'Hello from A', new_str: '[SYNTHETIC] Hello edited'}]}});
   assert.deepEqual(h.fields(edit), {Page: '[SYNTHETIC] A', Link: a.url, Find: 'Hello from A', 'Replace with': '[SYNTHETIC] Hello edited'});
   ended(await h.approve(edit), 'succeeded', null);
   assert.equal(stored(h, a.id).text, '[SYNTHETIC] Hello edited\n[SYNTHETIC] marker');
@@ -427,6 +529,16 @@ test('credentials never reach a job, a prepared request, a card, an audit row or
   assert.equal(existsSync(shipped) ? readFileSync(shipped, 'utf8') : null, before, 'the shipped evidence is never written by a test');
 });
 
+// ---- the evidence of step 20's live run ----------------------------------------------------------------------------------------------
+test('Evidence: a step a body route moved fits by its own template, the trace keeping no body bytes, and a path no step names still does not', () => {
+  const restore = validateActionFile(currentFile(), notionDeps()).actions.find(entry => entry.key === 'restore-page');
+  const page = '/v1/pages/409e1475-16c6-8111-b5dc-e2826b3a8804';
+  const run = {appId: 'notion', runId: 'ABCDEFGH', order: ['N8'], rows: [], results: {N8: {id: 'N8', passed: true, calls: [{action: 'restore-page@1', actionId: restore.id, jobs: []}], proxies: [], reads: [], checks: [], undo: {kind: 'none', why: 'test'}}}};
+  const passed = trace => evidenceRecords(run, {key: Buffer.alloc(32, 1), entries: [restore], trace: () => trace, job: () => null}).records[restore.id].passed;
+  assert.equal(passed([{method: 'GET', path: page, bodyHmac: null, status: 200}, {method: 'PATCH', path: page, bodyHmac: 'hmac', status: 200}]), true);
+  assert.equal(passed([{method: 'PATCH', path: '/v1/blocks/409e1475-16c6-8111-b5dc-e2826b3a8804', bodyHmac: 'hmac', status: 200}]), false);
+});
+
 // ---- the simulator case list (check 5) -------------------------------------------------------------------------------------------------
 const MANIFEST = JSON.parse(readFileSync(new URL('./fixtures/provider-simulators/notion.cases.json', import.meta.url), 'utf8'));
 const ENTRIES = validateActionFile(currentFile(), notionDeps()).actions;
@@ -527,7 +639,7 @@ const planDeps = () => ({entries: ENTRIES, superseded: [], groups: PERMISSION_GR
 
 test('the live plan N0 to N11 passes step 12\'s plan check against the shipped file, calls all 16 actions, undoes every write, and deletes N9\'s and N10\'s comments through the one-time Ask', () => {
   const checked = checkPlan(PLAN(), planDeps()), steps = id => checked.plan.tests.find(item => item.id === id);
-  assert.deepEqual(checked.plan.tests.map(item => item.id), ['N0', 'N1', 'N2', 'N3', 'N4', 'N5', 'N6', 'N7', 'N8', 'N9', 'N10', 'N11']);
+  assert.deepEqual(checked.plan.tests.map(item => item.id), ['N0', 'N1', 'N2', 'N2b', 'N3', 'N4', 'N5', 'N6', 'N7', 'N8', 'N9', 'N10', 'N11']);
   assert.deepEqual([...checked.actions.keys()].sort(), ENTRIES.map(entry => `${entry.key}@${entry.version}`).sort());
   assert.deepEqual(Object.keys(checked.plan.recorded), ['pageA', 'pageB', 'database', 'dataSource', 'row1', 'ownerName']);
   assert.deepEqual(checked.plan.readRows, ['notion.content.read', 'notion.comments.read', 'notion.search.read']);
@@ -606,5 +718,5 @@ test('every step of the plan, its placeholders filled for a run, runs on the sim
   assert.equal(Object.values(state.pages).find(item => item.id === rows[0].id).properties.Count.number, 1);
   assert.deepEqual(Object.values(state.comments).filter(comment => !comment.deleted), []);
   assert.deepEqual([titleText(Object.values(state.pages).find(item => item.id === a.id)), Object.values(state.pages).find(item => item.id === b.id).text], ['[SYNTHETIC] A', 'Page B']);
-  assert.equal(guard.counts().writes, ['N1', 'N2', 'N3', 'N4', 'N5', 'N6', 'N7', 'N8', 'N9', 'N10', 'N11'].reduce((total, id) => total + (guard.counts().testWrites[id] ?? 0), 0));
+  assert.equal(guard.counts().writes, ['N1', 'N2', 'N2b', 'N3', 'N4', 'N5', 'N6', 'N7', 'N8', 'N9', 'N10', 'N11'].reduce((total, id) => total + (guard.counts().testWrites[id] ?? 0), 0));
 });

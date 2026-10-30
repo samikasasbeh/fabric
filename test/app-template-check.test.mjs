@@ -24,8 +24,9 @@ test('every template app matches the recorded ratchet, check by check', () => {
     for (const item of checks) if (!item.pass) assert.ok(item.reason && item.reason !== 'passes', `${appId} ${item.id} says why it fails`);
     // F10.21 listed churn: Slack passes checks 1 to 5 once its reviewed actions pass; its live checks wait for the operator's setup and do not gate.
     // F10.14 and F10.16 listed churn: Calendar and Gmail pass all eight on 2026-10-29, live evidence and sign-in evidence included.
-    // F10.18 listed churn: GitHub passes all eight on 2026-10-30, its 15 actions certified by run 5XBI3UND.
-    const grade = ['slack', 'google-calendar', 'gmail', 'github'].includes(appId);
+    // F10.18 listed churn: GitHub passes all eight on 2026-10-30, its 15 actions certified by run 5XBI3UND, and Notion the same day, its 16
+    // by run X4G5USDP.
+    const grade = ['slack', 'google-calendar', 'gmail', 'github', 'notion'].includes(appId);
     assert.equal(gatePasses(checks), grade, `${appId} is ${grade ? 'Muse-grade' : 'not Muse-grade yet'}`);
   }
   // Slack's live checks wait for the operator's setup and do not gate; every other app's checks all gate.

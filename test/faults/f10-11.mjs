@@ -490,7 +490,7 @@ export const FAULTS = Object.freeze([
   {id: "f1011-verify-lost", step: STEP, name: "A readback lost in flight ends the job without its output.",
     file: RUNNER, from: "if (!['outcome_uncertain', 'provider_failed'].includes(error?.code)) throw error;", to: "throw error;", tests: RUNTIME},
   {id: "f1011-verify-identities", step: STEP, name: "A readback mismatch ends succeeded: the identities are not checked (section 4, fault 13).",
-    file: RUNNER, from: "const ok = passed && asked.length > 0 && asked.every(item => identityHolds(state.entry, item, state.frame)) &&", to: "const ok = passed &&", tests: RUNTIME},
+    file: RUNNER, from: "try { ok = passed && asked.length > 0 && asked.every(item => identityHolds(state.entry, item, state.frame)) &&", to: "try { ok = passed &&", tests: RUNTIME},
   {id: "f1011-verify-asserts", step: STEP, name: "A readback mismatch ends succeeded: the assertions are not checked (section 4, fault 13).",
     file: RUNNER, from: " && verify.assert.every(node => holds(node, state.frame));", to: ";", tests: RUNTIME},
   {id: "f1011-verified", step: STEP, name: "An unverified write ends succeeded.",

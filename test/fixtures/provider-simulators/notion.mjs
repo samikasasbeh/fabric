@@ -37,11 +37,13 @@
 // - Markdown: get gives {object: 'page_markdown', id, markdown, truncated, unknown_block_ids}. A page's markdown is its text followed by
 //   one tag per child page (<page url="...">Title</page>) or database (<database url="...">Title</database>) that is not in the trash, in
 //   the order they were made, and one <unknown url="..." alt="block"/> per block unknown(pageId, block) added; those ids are listed in
-//   unknown_block_ids, and a get of one of them gives its own markdown. Patch takes one operation, by type:
+//   unknown_block_ids, and a get of one of them gives its own markdown. The text is what readBack() makes of what was written, never the
+//   same bytes when it holds a mark: [SYNTHETIC] reads \[SYNTHETIC\]. Patch takes one operation, by type:
 //     insert_content {content}: appends the content to the page's text (the simulator's own choice when neither after nor position is
 //       given; Notion marks the form deprecated);
 //     update_content {content_updates: [{old_str, new_str, replace_all_matches?}], allow_deleting_content?}: each update applies in order
-//       when old_str occurs exactly once (or every time with replace_all_matches); one that occurs more than once answers 400 and nothing
+//       when old_str occurs exactly once (or every time with replace_all_matches), with or without Notion's backslashes, as the live run
+//       of 2026-10-30 measured; one that occurs more than once answers 400 and nothing
 //       changes; when none occurs the call answers 400 and nothing changes, and when some do the misses come back as warnings. An edit
 //       that would drop a child page or database tag answers 400 unless allow_deleting_content is true, which then moves that child to the
 //       trash;
@@ -97,6 +99,33 @@ const hex = text => createHash('sha256').update(text).digest('hex');
 /** A Notion id as the API writes it: hyphenated, lower case. Undashed or upper-case ids are read the same. */
 const canonicalId = value => typeof value === 'string' && UUID.test(value) ? value.replace(/-/g, '').toLowerCase().replace(/^(.{8})(.{4})(.{4})(.{4})(.{12})$/, '$1-$2-$3-$4-$5') : null;
 const linkOf = id => `https://www.notion.so/${id.replace(/-/g, '')}`;
+/**
+ * A page's text as Notion reads it back, from its enhanced markdown reference and the live runs of 2026-10-30, which wrote these forms: blank
+ * lines gone; a heading 5 or 6 reads 4, a * bullet -, _italic_ *italic*; an ordered list counts up; a fence names its language in full; a pipe
+ * table reads as <table> tags with its divider gone; a backslash before each mark below outside a code fence and a link. * and ` stay, the
+ * simulator's own choice: most of them are marks, not text.
+ */
+const signedLink = (name, read) => `![](https://prod-files-secure.s3.us-west-2.amazonaws.com/workspace/${name}?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=${read}&X-Amz-Signature=${hex(String(read))}&x-id=GetObject)`;
+const readBack = text => {
+  const lines = text.split('\n').filter(line => line.trim() !== ''), out = [], tableRow = /^\|.*\|$/;
+  let fenced = false, number = 0;
+  for (let index = 0; index < lines.length; index++) {
+    const line = lines[index];
+    if (line.startsWith('```')) { fenced = !fenced; out.push(line.replace(/^```js\b/, '```javascript').replace(/^```py\b/, '```python')); continue; }
+    if (fenced) { out.push(line); continue; }
+    if (tableRow.test(line)) {
+      const rows = [];
+      while (index < lines.length && tableRow.test(lines[index])) rows.push(lines[index++]);
+      index--;
+      out.push('<table header-row="true">', ...rows.filter(row => !/^\|[\s|:-]*\|$/.test(row)).flatMap(row => ['<tr>', ...row.slice(1, -1).split('|').map(cell => `<td>${cell.trim()}</td>`), '</tr>']), '</table>');
+      continue;
+    }
+    number = /^\d+\. /.test(line) ? number + 1 : 0;
+    const marked = (number ? line.replace(/^\d+/, number) : line).replace(/^#{5,6} /, '#### ').replace(/^\* /, '- ').replace(/(^|\s)_([^_]+)_(?=\s|$)/g, '$1*$2*');
+    out.push(marked.split(/(\[[^\]]*\]\([^)]*\))/).map((part, at) => at % 2 ? part : part.replace(/[\\[\]<>{}|^~$]/g, '\\$&')).join(''));
+  }
+  return out.join('\n');
+};
 class Refusal extends Error { constructor(status, code, message, headers = {}) { super(message); Object.assign(this, {status, code, headers}); } }
 const refuse = (status, code, message, headers) => { throw new Refusal(status, code, message, headers); };
 const invalid = message => refuse(400, 'validation_error', message);
@@ -244,6 +273,12 @@ export class NotionApiSimulator {
       created_time: this.#now(), last_edited_time: this.#now(), created_by: user, resolved};
     this.data.comments[comment.id] = comment;
     return this.#comment(comment);
+  }
+  /** An uploaded file on a page: its link is signed anew on every read of the page's markdown, as the live run of 2026-10-30 measured. */
+  uploadFile(pageId, name) {
+    const page = this.data.pages[canonicalId(pageId)];
+    (page.files ??= []).push(name);
+    return this;
   }
   /** A block of a page that Notion could not render in its markdown, with its own markdown when read by its id. */
   unknown(pageId, {markdown = ''} = {}) {
@@ -461,7 +496,8 @@ export class NotionApiSimulator {
       return {object: 'page_markdown', id: block.id, markdown: block.markdown, truncated: false, unknown_block_ids: []};
     }
     const page = this.#visiblePage(id, state), unknown = Object.values(state.unknown).filter(item => item.page_id === page.id).map(item => item.id);
-    return {object: 'page_markdown', id: page.id, markdown: this.#render(state, page), truncated: unknown.length > 0, unknown_block_ids: unknown};
+    const files = (page.files ?? []).map(name => signedLink(name, this.fileReads = (this.fileReads ?? 0) + 1));
+    return {object: 'page_markdown', id: page.id, markdown: this.#render(state, {...page, text: [readBack(page.text), ...files].filter(Boolean).join('\n')}), truncated: unknown.length > 0, unknown_block_ids: unknown};
   }
   #editMarkdown({state, params, body}) {
     const given = this.#body(body), page = this.#writable(this.#visiblePage(params.page_id, state));
@@ -483,10 +519,10 @@ export class NotionApiSimulator {
       let markdown = this.#render(state, page), matched = 0;
       for (const [index, update] of updates.entries()) {
         if (!record(update) || typeof update.old_str !== 'string' || update.old_str === '' || typeof update.new_str !== 'string') invalid(`body.update_content.content_updates[${index}] should be {old_str, new_str}.`);
-        const count = markdown.split(update.old_str).length - 1;
+        const find = markdown.includes(update.old_str) ? update.old_str : update.old_str.replace(/\\([\\*~`$[\]<>{}|^])/g, '$1'), count = markdown.split(find).length - 1;
         if (count === 0) { warnings.push({code: 'old_str_not_found', message: `content_updates[${index}]: old_str was not found.`}); continue; }
         if (count > 1 && update.replace_all_matches !== true) invalid(`content_updates[${index}]: old_str matched ${count} times; give more context or set replace_all_matches.`);
-        markdown = update.replace_all_matches === true ? markdown.split(update.old_str).join(update.new_str) : markdown.replace(update.old_str, () => update.new_str);
+        markdown = update.replace_all_matches === true ? markdown.split(find).join(update.new_str) : markdown.replace(find, () => update.new_str);
         matched++;
       }
       if (matched === 0) invalid('No content_updates matched the page\'s content.');

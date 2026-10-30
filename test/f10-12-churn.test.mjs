@@ -42,7 +42,8 @@ const UNCHANGED = Object.freeze({
   // F10.15, F10.17, F10.19 and F10.21 listed churn: that test's golden reduction takes out Gmail's and GitHub's entries and puts back Notion's
   // files hash and Slack's two file hashes, and its ratchet reduction takes out their checks and puts back Notion's and Slack's actions checks.
   // F10.14 listed churn: its ratchet reduction also puts every app's live-evidence and sign-in-evidence checks back to false.
-  'test/f10-11-churn.test.mjs': 'c669ef36d287514f95b9edfe140bbf1a0e976a9503b14d21989419b1803710d9',
+  // F10.20 listed churn: step 20's digest of test/local-mode-goldens.test.mjs.
+  'test/f10-11-churn.test.mjs': '8b7e6cb48628b64c6844b1001810522790b64e8f250fa5a1ab58f53ec146a432',
 });
 // F10.13 listed churn (docs/F10.13-BUILD-MAP.md part 1): step 13 changes some of these on purpose. Calendar's rows gain one bindContent
 // block, and the file with that block taken out is byte for byte the recorded one. The golden's Calendar entry moves with it (and again

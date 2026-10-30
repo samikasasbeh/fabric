@@ -11,7 +11,7 @@ import {FabricProtocol} from '../lib/fabric-protocol.mjs';
 import {PERMISSION_GROUPS} from '../lib/permission-groups.mjs';
 import {PROXY_CONFIGS} from '../lib/proxy-config.mjs';
 import {RULES, createGuard} from '../lib/live-guard.mjs';
-import {checkPlan, fillPlaceholders} from '../lib/live-certify.mjs';
+import {checkPlan, evidenceRecords, fillPlaceholders} from '../lib/live-certify.mjs';
 import {githubHarness, githubDeps, githubFile, SANDBOX, FIVE, TOKEN, LOGIN, OWNER} from './fixtures/actions/github-harness.mjs';
 import {ORIGIN} from './fixtures/provider-simulators/github.mjs';
 import {caseTests} from './fixtures/provider-simulators/cases.mjs';
@@ -510,6 +510,15 @@ test('every write\'s card shows what its request sends and the item as read firs
   const file = await h.run('read-file v1', {repository: REPO, path: 'README.md', ref: 'main'});
   assert.deepEqual([file.status, h.fields(file)], ['awaiting_approval', {Repository: REPO, File: 'README.md', Branch: 'main'}]);
   assert.equal(h.simulator.writes().length, setup, 'nothing written before an approval');
+});
+
+// ---- evidence (step 20's review) -------------------------------------------------------------------------------------------------
+test('Evidence: a request of a step\'s shape that landed on a sibling member never fits: only a step a body route moved may stand in by its template', () => {
+  const read = validateActionFile(currentFile(), githubDeps()).actions.find(entry => entry.key === 'read-conversation');
+  const run = {appId: 'github', runId: 'ABCDEFGH', order: ['H1'], rows: [], results: {H1: {id: 'H1', passed: true, calls: [{action: 'read-conversation@1', actionId: read.id, jobs: []}], proxies: [], reads: [], checks: [], undo: {kind: 'none', why: 'test'}}}};
+  const passed = path => evidenceRecords(run, {key: Buffer.alloc(32, 1), entries: [read], trace: () => [{method: 'GET', path, bodyHmac: null, status: 200}], job: () => null}).records[read.id].passed;
+  assert.equal(passed('/repos/o/r/issues/7'), true);
+  assert.equal(passed('/repos/o/r/issues/events'), false, 'issues/events has the shape of issues/{issue_number}, and is another member');
 });
 
 // ---- the simulator case list (check 5) ---------------------------------------------------------------------------------------------------------

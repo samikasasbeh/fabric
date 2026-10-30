@@ -10,13 +10,14 @@ import {WRITABLE, READ_ONLY, kindOf, chunks} from '../lib/transforms/notion/_typ
 import {ROOT, readPins} from '../lib/transform-pins.mjs';
 import {vectorTests} from './fixtures/transform-vectors.mjs';
 
-// F10.19 part 1 (docs/F10.19-BUILD-MAP.md part 1 item 3; docs/F10.8-BUILD-MAP.md part k): the notion family. Six transforms read one type
+// F10.19 part 1 (docs/F10.19-BUILD-MAP.md part 1 item 3; docs/F10.8-BUILD-MAP.md part k): the notion family. Six of them read one type
 // table (notion/_types.v1.mjs), so what describe calls writable is exactly what schema binds, propertyValues writes and filter filters on:
 // notion.title@1, notion.plainValues@1, notion.describe@1, notion.schema@1 (kind schema), notion.propertyValues@1 (outputFrom) and
 // notion.filter@1. Text is cut by text.chunk@1's rule (2,000 UTF-16 units a piece, at most 100 pieces), copied into the table. Their codes
-// are a new error file, _shared/error.v3.mjs (step 17 owns v2). Spec lines 1187-1190.
-const TITLE = 'notion.title@1', PLAIN = 'notion.plainValues@1', DESCRIBE = 'notion.describe@1', SCHEMA = 'notion.schema@1', VALUES = 'notion.propertyValues@1', FILTER = 'notion.filter@1';
-const IDS = [TITLE, PLAIN, DESCRIBE, SCHEMA, VALUES, FILTER];
+// are a new error file, _shared/error.v3.mjs (step 17 owns v2). Spec lines 1187-1190. The seventh, notion.markdownShows@1, came with step 20's
+// live run: its vectors are in the fixture file.
+const TITLE = 'notion.title@1', PLAIN = 'notion.plainValues@1', DESCRIBE = 'notion.describe@1', SCHEMA = 'notion.schema@1', VALUES = 'notion.propertyValues@1', FILTER = 'notion.filter@1', SHOWS = 'notion.markdownShows@1';
+const IDS = [TITLE, PLAIN, DESCRIBE, SCHEMA, VALUES, FILTER, SHOWS];
 const NOTION_CODES = ['property_read_only', 'property_unknown', 'property_ambiguous', 'option_unknown', 'too_many_properties', 'too_many_options', 'too_many_conditions', 'too_many_chunks'];
 const refused = code => error => {
   assert.ok(error instanceof TransformError, `expected a TransformError, got ${error}`);
@@ -57,24 +58,30 @@ test('error.v3.mjs re-exports TransformError and adds the notion family; the reg
   assert.deepEqual(Object.fromEntries(CODES), {...V1, ids: [...V1.ids, ...LATER_V2.ids, ...LATER_V4.ids], collections: [...V1.collections, ...LATER_V2.collections], notion: NOTION_CODES});
 });
 
-test('six transforms are registered in the notion family, each passing checkEntry(), with the shapes the actions read', () => {
+test('seven transforms are registered in the notion family, each passing checkEntry(), with the shapes the actions read', () => {
   for (const id of IDS) {
     assert.ok(TRANSFORMS.has(id), id);
     assert.doesNotThrow(() => checkEntry(TRANSFORMS.get(id), FILES.get(id)), id);
   }
   const entry = id => TRANSFORMS.get(id);
-  assert.deepEqual(IDS.map(id => entry(id).kind), ['map', 'map', 'map', 'schema', 'map', 'map']);
-  assert.deepEqual(IDS.map(id => Object.keys(entry(id).stepData)), [['object'], ['page'], ['dataSource'], ['dataSource'], ['schema'], ['schema']]);
+  assert.deepEqual(IDS.map(id => entry(id).kind), ['map', 'map', 'map', 'schema', 'map', 'map', 'map']);
+  assert.deepEqual(IDS.map(id => Object.keys(entry(id).stepData)), [['object'], ['page'], ['dataSource'], ['dataSource'], ['schema'], ['schema'], ['before', 'after']]);
   assert.deepEqual(entry(VALUES).resolvedValues, {values: {schemaFrom: 'schema', maxBytes: 1_048_576}}, 'the stub\'s argument names (test/fixtures/actions/registry.mjs)');
   assert.deepEqual(Object.keys(entry(FILTER).resolvedValues), ['where']);
   assert.equal(entry(VALUES).outputFrom.argument, 'schema');
   assert.deepEqual(sorted(Object.keys(entry(VALUES).outputFrom.values)), sorted(WRITABLE), 'one reviewed value schema per writable type');
   const refuses = {[TITLE]: [], [PLAIN]: ['too_many_properties'], [DESCRIBE]: ['too_many_options', 'too_many_properties'], [SCHEMA]: ['too_many_options', 'too_many_properties'],
-    [VALUES]: ['option_unknown', 'property_ambiguous', 'property_read_only', 'property_unknown', 'too_many_chunks'], [FILTER]: ['property_read_only', 'property_unknown', 'too_many_conditions']};
+    [VALUES]: ['option_unknown', 'property_ambiguous', 'property_read_only', 'property_unknown', 'too_many_chunks'], [FILTER]: ['property_read_only', 'property_unknown', 'too_many_conditions'], [SHOWS]: []};
   for (const id of IDS) {
     assert.deepEqual(sorted(entry(id).refuses), refuses[id], id);
-    assert.deepEqual([entry(id).usesClock, entry(id).runtimeFacts, entry(id).pointerArgs], [false, [], []], id);
+    assert.deepEqual([entry(id).usesClock, entry(id).runtimeFacts, entry(id).pointerArgs], [false, id === SHOWS ? ['unicode'] : [], []], id);
   }
+});
+
+test('notion.markdownShows@1 stays linear on a page built to make a pattern backtrack', () => {
+  const started = performance.now();
+  for (const page of ['<table'.repeat(100_000), `${' '.repeat(500_000)}x`, '\n'.repeat(500_000), '`'.repeat(500_000)]) own(SHOWS, {before: 'x', after: page, text: 'y'});
+  assert.ok(performance.now() - started < 5000, 'a read-back runs on what a page holds, so its cost never grows with the square of it');
 });
 
 test('the type table: 13 writable types, 9 read only, and everything else unsupported', () => {
@@ -254,7 +261,7 @@ test('notion.filter@1: one condition per given property, naming its id, contains
 
 // The 38 pins of step 8 (sorted by id) and the harness pin at 3129ac4: adding the notion family moves none of them (docs/F10.8-BUILD-MAP.md part k).
 const STEP_8_PINS = '2f625158a8016c94716f242a8edcf810cee8a70c5f8bfbf705671a3bfa07c062', HARNESS = '7486366c59d0f96b08bcc8ea30ec3943954645aa102528f3f6900b15f8fccba2';
-test('six pins are added and none moved: not step 8\'s 38, not the harness; one re-pin, notion.plainValues@1\'s lines (part 2)', () => {
+test('seven pins are added and none moved: not step 8\'s 38, not the harness; one re-pin, notion.plainValues@1\'s lines (part 2)', () => {
   const pins = readPins(ROOT), byId = ([a], [b]) => a < b ? -1 : a > b ? 1 : 0;
   const notion = Object.keys(pins.transforms).filter(id => id.startsWith('notion.'));
   assert.deepEqual(sorted(notion), sorted(IDS));

@@ -26,7 +26,8 @@
     {"label":"Search","expr":{"input":"/query"}},
     {"label":"Kind","expr":{"input":"/kind"}}
    ],
-   "definitive": [400,403]
+   "definitive": [400,403],
+   "certified": {"evidence":"docs/live-evidence/notion/actions.json","definitionHash":"156c0bf8f55efbefa372efc4f3fa4d50c34bf51813310a4fa2715dd5b7302052"}
   },
   {
    "id": "notion.action.read-page.v1.8f38544764cab1730f27ac80",
@@ -49,7 +50,8 @@
    "preview": [
     {"label":"Page","expr":{"input":"/page"}}
    ],
-   "definitive": [400,403,404]
+   "definitive": [400,403,404],
+   "certified": {"evidence":"docs/live-evidence/notion/actions.json","definitionHash":"cb42bb95ac98172ed7d8a76cfddde8c85b1efde20496c226ab63f7b20d91e5f7"}
   },
   {
    "id": "notion.action.describe-database.v1.eca377131fbe90c1441c3643",
@@ -73,7 +75,8 @@
    "preview": [
     {"label":"Database","expr":{"input":"/database"}}
    ],
-   "definitive": [400,403,404]
+   "definitive": [400,403,404],
+   "certified": {"evidence":"docs/live-evidence/notion/actions.json","definitionHash":"3ae9689d5a26b33f9d6a8a59685c2dea9736dc1f845838e054580c19557fdf69"}
   },
   {
    "id": "notion.action.find-rows.v1.06ec3edae91fa7cef7460b69",
@@ -99,7 +102,8 @@
     {"label":"Database","expr":{"pick":{"transform":"notion.title@1","args":{"object":{"step":"source","pointer":""}}},"pointer":"/title"},"truncate":200},
     {"label":"Data source","expr":{"input":"/dataSource"}}
    ],
-   "definitive": [400,403,404]
+   "definitive": [400,403,404],
+   "certified": {"evidence":"docs/live-evidence/notion/actions.json","definitionHash":"97d8178cf70d03e0006ed4080c5bb52bb51a6c9c66eff5c8bfd6adca262b119a"}
   },
   {
    "id": "notion.action.create-page.v1.eef93754644dcae501d65b0b",
@@ -131,7 +135,8 @@
     {"label":"Title","expr":{"input":"/title"},"truncate":200},
     {"label":"Content","expr":{"input":"/content"},"truncate":500}
    ],
-   "definitive": [400,403,404,409]
+   "definitive": [400,403,404,409],
+   "certified": {"evidence":"docs/live-evidence/notion/actions.json","definitionHash":"d74e542ac089f477d01b4088d3c58e0d3006c4ddc6516755e0b441a2f1597bcc"}
   },
   {
    "id": "notion.action.add-row.v1.1552e76b5283f5494c3b6462",
@@ -162,7 +167,8 @@
     {"label":"Database","expr":{"pick":{"transform":"notion.title@1","args":{"object":{"step":"source","pointer":""}}},"pointer":"/title"},"truncate":200},
     {"label":"Data source","expr":{"input":"/dataSource"}}
    ],
-   "definitive": [400,403,404,409]
+   "definitive": [400,403,404,409],
+   "certified": {"evidence":"docs/live-evidence/notion/actions.json","definitionHash":"2cec88b040c728f0d052ca5b0f6bfd952fa3e03bc2f6522879c15ae4ad88dede"}
   },
   {
    "id": "notion.action.rename-page.v1.0548a0a00121eb683b5c01b2",
@@ -193,7 +199,8 @@
     {"label":"Link","expr":{"step":"page","pointer":"/url"}},
     {"label":"New title","expr":{"input":"/title"},"truncate":200}
    ],
-   "definitive": [400,403,404,409]
+   "definitive": [400,403,404,409],
+   "certified": {"evidence":"docs/live-evidence/notion/actions.json","definitionHash":"8ad9dc89dac561e65cb4064f2256de9632dfa08ca8711760e7498334083bd730"}
   },
   {
    "id": "notion.action.update-row.v1.faee38b11f08574b0ed1e553",
@@ -226,10 +233,11 @@
     {"label":"Database","expr":{"pick":{"transform":"notion.title@1","args":{"object":{"step":"source","pointer":""}}},"pointer":"/title"},"truncate":200},
     {"label":"Values now","expr":{"pick":{"transform":"notion.plainValues@1","args":{"page":{"step":"row","pointer":""}}},"pointer":"/lines"},"truncate":2000}
    ],
-   "definitive": [400,403,404,409]
+   "definitive": [400,403,404,409],
+   "certified": {"evidence":"docs/live-evidence/notion/actions.json","definitionHash":"be3c1f5ec5cb271b028dff6173e58f98f68b1ad854457857d36d7981df9c1038"}
   },
   {
-   "id": "notion.action.add-to-page.v1.c5d1608beb7fb3943f20a533",
+   "id": "notion.action.add-to-page.v1.80f29044fde078044b3f96fa",
    "key": "add-to-page",
    "version": 1,
    "name": "Add to page",
@@ -244,12 +252,13 @@
     {"id":"page","method":"GET","path":"/v1/pages/{page_id}","params":{"page_id":{"pick":{"transform":"ids.notionId@1","args":{"value":{"input":"/page"}}},"pointer":"/id"}},"expect":{"status":[200],"require":[]}}
    ],
    "perform": [
+    {"id":"before","method":"GET","path":"/v1/pages/{page_id}/markdown","params":{"page_id":{"step":"page","pointer":"/id"}},"expect":{"status":[200],"require":[]}},
     {"id":"add","method":"PATCH","path":"/v1/pages/{page_id}/markdown","params":{"page_id":{"step":"page","pointer":"/id"}},"body":{"object":{"type":{"const":"insert_content"},"insert_content":{"object":{"content":{"input":"/content"}}}}},"expect":{"status":[200],"require":[]}}
    ],
    "verify": {
     "requests": [{"id":"check","method":"GET","path":"/v1/pages/{page_id}/markdown","params":{"page_id":{"step":"page","pointer":"/id"}},"expect":{"status":[200],"require":[]}}],
     "identity": [{"kind":"readback","step":"check","pointer":"/id","equals":{"step":"page","pointer":"/id"}}],
-    "assert": [{"step":"check","contains":{"pointer":"/markdown","value":{"input":"/content"}}}]
+    "assert": [{"step":"check","test":{"equals":[{"pick":{"transform":"notion.markdownShows@1","args":{"before":{"step":"before","pointer":"/markdown"},"after":{"step":"check","pointer":"/markdown"},"text":{"input":"/content"}}},"pointer":"/shows"},{"const":true}]}}]
    },
    "output": {"id":{"step":"page","pointer":"/id"},"url":{"step":"page","pointer":"/url"},"title":{"pick":{"transform":"notion.title@1","args":{"object":{"step":"page","pointer":""}}},"pointer":"/title"}},
    "preview": [
@@ -257,10 +266,11 @@
     {"label":"Link","expr":{"step":"page","pointer":"/url"}},
     {"label":"Text added","expr":{"input":"/content"},"truncate":500}
    ],
-   "definitive": [400,403,404,409]
+   "definitive": [400,403,404,409],
+   "certified": {"evidence":"docs/live-evidence/notion/actions.json","definitionHash":"147d6cff687c3a5ce4589b4a5d8189c1b6dadb68836a4a6df6d581c18860aafb"}
   },
   {
-   "id": "notion.action.edit-page-text.v1.d46ebf5eae26b887f2252152",
+   "id": "notion.action.edit-page-text.v1.9c90e8b1fb3afcfff785c388",
    "key": "edit-page-text",
    "version": 1,
    "name": "Edit page text",
@@ -275,12 +285,13 @@
     {"id":"page","method":"GET","path":"/v1/pages/{page_id}","params":{"page_id":{"pick":{"transform":"ids.notionId@1","args":{"value":{"input":"/page"}}},"pointer":"/id"}},"expect":{"status":[200],"require":[]}}
    ],
    "perform": [
+    {"id":"before","method":"GET","path":"/v1/pages/{page_id}/markdown","params":{"page_id":{"step":"page","pointer":"/id"}},"expect":{"status":[200],"require":[]}},
     {"id":"edit","method":"PATCH","path":"/v1/pages/{page_id}/markdown","params":{"page_id":{"step":"page","pointer":"/id"}},"body":{"object":{"type":{"const":"update_content"},"update_content":{"object":{"content_updates":{"array":[{"object":{"old_str":{"input":"/find"},"new_str":{"input":"/replace"}}}]}}}}},"expect":{"status":[200],"require":[]}}
    ],
    "verify": {
     "requests": [{"id":"check","method":"GET","path":"/v1/pages/{page_id}/markdown","params":{"page_id":{"step":"page","pointer":"/id"}},"expect":{"status":[200],"require":[]}}],
     "identity": [{"kind":"readback","step":"check","pointer":"/id","equals":{"step":"page","pointer":"/id"}}],
-    "assert": [{"step":"check","contains":{"pointer":"/markdown","value":{"input":"/replace"}}}]
+    "assert": [{"step":"check","test":{"equals":[{"pick":{"transform":"notion.markdownShows@1","args":{"before":{"step":"before","pointer":"/markdown"},"after":{"step":"check","pointer":"/markdown"},"text":{"input":"/replace"},"removed":{"input":"/find"}}},"pointer":"/shows"},{"const":true}]}}]
    },
    "output": {"id":{"step":"page","pointer":"/id"},"url":{"step":"page","pointer":"/url"},"title":{"pick":{"transform":"notion.title@1","args":{"object":{"step":"page","pointer":""}}},"pointer":"/title"}},
    "preview": [
@@ -289,7 +300,8 @@
     {"label":"Find","expr":{"input":"/find"},"truncate":500},
     {"label":"Replace with","expr":{"input":"/replace"},"truncate":500}
    ],
-   "definitive": [400,403,404,409]
+   "definitive": [400,403,404,409],
+   "certified": {"evidence":"docs/live-evidence/notion/actions.json","definitionHash":"b0ca980502706271bbf1a9e218227a20572cc9943084aad2e1df4d343261ad26"}
   },
   {
    "id": "notion.action.move-page.v1.7e179049e60954a17a2a3ebe",
@@ -324,7 +336,8 @@
     {"label":"Move to","expr":{"pick":{"transform":"notion.title@1","args":{"object":{"step":"target","pointer":""}}},"pointer":"/title"},"truncate":200},
     {"label":"Move to link","expr":{"step":"target","pointer":"/url"}}
    ],
-   "definitive": [400,403,404,409]
+   "definitive": [400,403,404,409],
+   "certified": {"evidence":"docs/live-evidence/notion/actions.json","definitionHash":"661cdacfe4aea51a84b211dfea8ba3213f4a00d12399106d70ae8566840abe3c"}
   },
   {
    "id": "notion.action.trash-page.v1.4f3ded9b25b1681ae4acac72",
@@ -355,7 +368,8 @@
     {"label":"Link","expr":{"step":"page","pointer":"/url"}},
     {"label":"Trash","expr":{"const":"Notion keeps it in its trash; Restore brings it back."}}
    ],
-   "definitive": [400,403,404,409]
+   "definitive": [400,403,404,409],
+   "certified": {"evidence":"docs/live-evidence/notion/actions.json","definitionHash":"6f43564fc4cc3e478c4b3c4f410a675c706f681e602c600ffe281045623ee1c7"}
   },
   {
    "id": "notion.action.restore-page.v1.2a413ab713adb64d0fabb196",
@@ -385,7 +399,8 @@
     {"label":"Page","expr":{"pick":{"transform":"notion.title@1","args":{"object":{"step":"page","pointer":""}}},"pointer":"/title"},"truncate":200},
     {"label":"Link","expr":{"step":"page","pointer":"/url"}}
    ],
-   "definitive": [400,403,404,409]
+   "definitive": [400,403,404,409],
+   "certified": {"evidence":"docs/live-evidence/notion/actions.json","definitionHash":"cc6e2053a45cf15801ed50a0d9e63b194388aa61989bacc86455f0f8b352e79d"}
   },
   {
    "id": "notion.action.comment.v1.b123f391914b9dc30ec07eaf",
@@ -418,7 +433,8 @@
     {"label":"Reply in discussion","expr":{"input":"/discussionId"}},
     {"label":"Comment","expr":{"input":"/text"},"truncate":500}
    ],
-   "definitive": [400,403,404]
+   "definitive": [400,403,404],
+   "certified": {"evidence":"docs/live-evidence/notion/actions.json","definitionHash":"01a0e4fd1f9b8de7ee9e76fbe56e392e53c27afddb8c269113f43a1eba8c8426"}
   },
   {
    "id": "notion.action.read-comments.v1.5b4e5412519b7a6da8339755",
@@ -440,7 +456,8 @@
    "preview": [
     {"label":"Page","expr":{"input":"/page"}}
    ],
-   "definitive": [400,403,404]
+   "definitive": [400,403,404],
+   "certified": {"evidence":"docs/live-evidence/notion/actions.json","definitionHash":"83da612a017385378cf0bb5791d8e2a6d8aee65c4a14a8ed32b0e9d7aa30d82e"}
   },
   {
    "id": "notion.action.find-person.v1.25699335675866caf2984b61",
@@ -462,7 +479,8 @@
    "preview": [
     {"label":"Name","expr":{"input":"/name"}}
    ],
-   "definitive": [400,403]
+   "definitive": [400,403],
+   "certified": {"evidence":"docs/live-evidence/notion/actions.json","definitionHash":"de879ab0fbd9556c7a25b729c36f3a0e6f3304efc8f3de14daad09c84e38548a"}
   }
  ]
 }

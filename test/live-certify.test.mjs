@@ -525,10 +525,10 @@ test('harness 10: --check starts nothing and sends nothing; the command ignores 
   // --check: the shipped plans check offline (F10.13 listed churn: Calendar's plan ships with step 13; F10.15, F10.19 and F10.21 listed churn:
   // Gmail's, Notion's and Slack's with steps 15, 19 and 21); an app with none says so; nothing starts.
   assert.equal(await go(['--check']), 0);
-  assert.deepEqual(say.slice(-4), ['gmail: 12 tests check, calling 13 actions.', 'google-calendar: 14 tests check, calling 13 actions.', 'notion: 12 tests check, calling 16 actions.',
+  assert.deepEqual(say.slice(-4), ['gmail: 12 tests check, calling 13 actions.', 'google-calendar: 14 tests check, calling 13 actions.', 'notion: 13 tests check, calling 16 actions.',
     'slack: 7 tests check, calling 13 actions.']);
   assert.equal(await go(['notion', '--check']), 0);
-  assert.equal(say.at(-1), 'notion: 12 tests check, calling 16 actions.');
+  assert.equal(say.at(-1), 'notion: 13 tests check, calling 16 actions.');
   assert.equal(await go(['slack', '--check']), 0);
   assert.equal(await go(['google-calendar', '--check']), 0);
   assert.equal(await go(['gmail', '--check']), 0);

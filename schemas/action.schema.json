@@ -124,6 +124,7 @@
         { "type": "object", "additionalProperties": false, "required": ["statusIn"], "properties": { "statusIn": { "$ref": "#/$defs/codes" }, "step": { "$ref": "#/$defs/stepId" }, "when": { "$ref": "#/$defs/test" } } },
         { "type": "object", "additionalProperties": false, "required": ["listHas"], "properties": { "listHas": { "$ref": "#/$defs/listCheck" }, "step": { "$ref": "#/$defs/stepId" }, "when": { "$ref": "#/$defs/test" } } },
         { "type": "object", "additionalProperties": false, "required": ["listLacks"], "properties": { "listLacks": { "$ref": "#/$defs/listCheck" }, "step": { "$ref": "#/$defs/stepId" }, "when": { "$ref": "#/$defs/test" } } },
+        { "type": "object", "additionalProperties": false, "required": ["test"], "properties": { "test": { "type": "object", "additionalProperties": false, "required": ["equals"], "properties": { "equals": { "type": "array", "prefixItems": [{ "$ref": "#/$defs/expr" }, { "$ref": "#/$defs/constNode" }], "minItems": 2, "items": false } } }, "step": { "$ref": "#/$defs/stepId" }, "when": { "$ref": "#/$defs/test" } } },
         {
           "type": "object", "additionalProperties": false, "required": ["anyOf"],
           "properties": { "anyOf": { "type": "array", "minItems": 2, "maxItems": 4, "items": { "$ref": "#/$defs/assertion" } }, "when": { "$ref": "#/$defs/test" } }
