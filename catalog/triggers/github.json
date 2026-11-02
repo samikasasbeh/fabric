@@ -1,0 +1,2880 @@
+{
+ "schemaVersion": 1,
+ "appId": "github",
+ "specVersion": "fabric/0.2",
+ "reviewStatus": "candidate",
+ "pinnedParameters": {},
+ "triggers": [
+  {
+   "id": "github.trigger.issue-changed.v1.66c85de8a432534c99478829",
+   "key": "issue-changed",
+   "version": 1,
+   "name": "An issue was opened or changed",
+   "description": "Tells you when an issue in one repository is opened, edited, labelled, commented on, closed or reopened. It polls until Fabric is hosted. Pull requests are a separate trigger. A deleted issue is not reported. A change that lands during a long catch-up can skip one item.",
+   "delivery": {
+    "method": "webhook",
+    "registration": "api",
+    "fallback": "polling",
+    "register": {
+     "step": {
+      "id": "hook",
+      "method": "POST",
+      "path": "/repos/{owner}/{repo}/hooks",
+      "params": {
+       "owner": {
+        "pick": {
+         "transform": "ids.ownerRepo@1",
+         "args": {
+          "value": {
+           "input": "/repository"
+          }
+         }
+        },
+        "pointer": "/owner"
+       },
+       "repo": {
+        "pick": {
+         "transform": "ids.ownerRepo@1",
+         "args": {
+          "value": {
+           "input": "/repository"
+          }
+         }
+        },
+        "pointer": "/repo"
+       }
+      },
+      "body": {
+       "object": {
+        "name": {
+         "const": "web"
+        },
+        "active": {
+         "const": true
+        },
+        "events": {
+         "const": [
+          "issues"
+         ]
+        },
+        "config": {
+         "object": {
+          "url": {
+           "receiver": "github"
+          },
+          "content_type": {
+           "const": "json"
+          },
+          "insecure_ssl": {
+           "const": "0"
+          },
+          "secret": {
+           "secret": "hook"
+          }
+         }
+        }
+       }
+      },
+      "expect": {
+       "status": [
+        201
+       ],
+       "require": []
+      }
+     },
+     "keep": {
+      "hookId": "/id"
+     }
+    },
+    "teardown": {
+     "step": {
+      "id": "unhook",
+      "method": "DELETE",
+      "path": "/repos/{owner}/{repo}/hooks/{hook_id}",
+      "params": {
+       "owner": {
+        "pick": {
+         "transform": "ids.ownerRepo@1",
+         "args": {
+          "value": {
+           "input": "/repository"
+          }
+         }
+        },
+        "pointer": "/owner"
+       },
+       "repo": {
+        "pick": {
+         "transform": "ids.ownerRepo@1",
+         "args": {
+          "value": {
+           "input": "/repository"
+          }
+         }
+        },
+        "pointer": "/repo"
+       },
+       "hook_id": {
+        "kept": "hookId"
+       }
+      },
+      "expect": {
+       "status": [
+        204
+       ],
+       "require": []
+      }
+     },
+     "onFailure": "record-leftover"
+    },
+    "admission": {
+     "scheme": "hmac-sha256-header",
+     "header": "x-hub-signature-256",
+     "prefix": "sha256=",
+     "secret": "hook",
+     "route": {
+      "header": "x-github-hook-id",
+      "equals": {
+       "kept": "hookId"
+      }
+     },
+     "handshake": "github-ping",
+     "collapse": {
+      "header": "x-github-delivery"
+     },
+     "trust": "doorbell"
+    }
+   },
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "repository": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 140
+     }
+    },
+    "required": [
+     "repository"
+    ],
+    "additionalProperties": false
+   },
+   "resource": [
+    "repository"
+   ],
+   "poll": {
+    "source": {
+     "steps": [
+      {
+       "id": "issues",
+       "method": "GET",
+       "path": "/repos/{owner}/{repo}/issues",
+       "params": {
+        "owner": {
+         "pick": {
+          "transform": "ids.ownerRepo@1",
+          "args": {
+           "value": {
+            "input": "/repository"
+           }
+          }
+         },
+         "pointer": "/owner"
+        },
+        "repo": {
+         "pick": {
+          "transform": "ids.ownerRepo@1",
+          "args": {
+           "value": {
+            "input": "/repository"
+           }
+          }
+         },
+         "pointer": "/repo"
+        }
+       },
+       "query": {
+        "state": {
+         "const": "all"
+        },
+        "sort": {
+         "const": "updated"
+        },
+        "direction": {
+         "const": "asc"
+        },
+        "since": {
+         "cursor": "updated"
+        },
+        "per_page": {
+         "const": 30
+        }
+       },
+       "headers": {
+        "Accept": {
+         "const": "application/vnd.github+json"
+        },
+        "If-None-Match": {
+         "cursor": "etag"
+        }
+       },
+       "page": {
+        "next": {
+         "link": "next",
+         "param": "page"
+        },
+        "into": {
+         "query": "page"
+        },
+        "items": "",
+        "max": 10
+       },
+       "expect": {
+        "status": [
+         200,
+         304
+        ],
+        "require": []
+       }
+      }
+     ]
+    },
+    "seed": {
+     "step": {
+      "id": "latest",
+      "method": "GET",
+      "path": "/repos/{owner}/{repo}/issues",
+      "params": {
+       "owner": {
+        "pick": {
+         "transform": "ids.ownerRepo@1",
+         "args": {
+          "value": {
+           "input": "/repository"
+          }
+         }
+        },
+        "pointer": "/owner"
+       },
+       "repo": {
+        "pick": {
+         "transform": "ids.ownerRepo@1",
+         "args": {
+          "value": {
+           "input": "/repository"
+          }
+         }
+        },
+        "pointer": "/repo"
+       }
+      },
+      "query": {
+       "state": {
+        "const": "all"
+       },
+       "sort": {
+        "const": "updated"
+       },
+       "direction": {
+        "const": "desc"
+       },
+       "per_page": {
+        "const": 1
+       }
+      },
+      "headers": {
+       "Accept": {
+        "const": "application/vnd.github+json"
+       }
+      },
+      "expect": {
+       "status": [
+        200
+       ],
+       "require": []
+      }
+     },
+     "cursor": {
+      "name": "updated",
+      "pointer": "/0/updated_at"
+     }
+    },
+    "items": {
+     "step": "issues",
+     "pointer": ""
+    },
+    "itemVersion": "/updated_at",
+    "itemTime": {
+     "pointer": "/updated_at",
+     "format": "rfc3339"
+    },
+    "order": "asc",
+    "cursors": [
+     {
+      "name": "updated",
+      "kind": "high-water-time@1",
+      "next": {
+       "max": "itemTime"
+      },
+      "compare": "time.rfc3339ToEpochSeconds@1",
+      "overlapSeconds": 60
+     },
+     {
+      "name": "etag",
+      "kind": "etag@1",
+      "next": {
+       "step": "issues",
+       "header": "etag"
+      }
+     }
+    ],
+    "resync": {
+     "statusIn": []
+    },
+    "minIntervalSeconds": 60,
+    "itemId": {
+     "item": "/id"
+    }
+   },
+   "filter": [
+    {
+     "absent": {
+      "item": "/pull_request"
+     }
+    }
+   ],
+   "dedupe": {
+    "kind": "id+version"
+   },
+   "event": {
+    "schema": {
+     "type": "object",
+     "properties": {
+      "repository": {
+       "type": "string",
+       "maxLength": 140
+      },
+      "number": {
+       "type": "integer",
+       "minimum": 1
+      },
+      "state": {
+       "type": "string",
+       "maxLength": 16
+      },
+      "stateReason": {
+       "type": "string",
+       "maxLength": 16
+      },
+      "title": {
+       "type": "string",
+       "maxLength": 300
+      },
+      "author": {
+       "type": "string",
+       "maxLength": 60
+      },
+      "createdAt": {
+       "type": "string",
+       "maxLength": 32
+      },
+      "updatedAt": {
+       "type": "string",
+       "maxLength": 32
+      },
+      "url": {
+       "type": "string",
+       "maxLength": 400
+      }
+     },
+     "required": [
+      "repository",
+      "number",
+      "state",
+      "updatedAt"
+     ],
+     "additionalProperties": false
+    },
+    "id": {
+     "concat": [
+      {
+       "item": "/id"
+      },
+      {
+       "const": ":"
+      },
+      {
+       "item": "/updated_at"
+      }
+     ],
+     "max": 200
+    },
+    "occurredAt": {
+     "item": "/updated_at"
+    },
+    "fields": {
+     "repository": {
+      "input": "/repository"
+     },
+     "number": {
+      "item": "/number"
+     },
+     "state": {
+      "item": "/state"
+     },
+     "stateReason": {
+      "when": {
+       "nonEmpty": {
+        "item": "/state_reason"
+       }
+      },
+      "then": {
+       "item": "/state_reason"
+      }
+     },
+     "title": {
+      "pick": {
+       "transform": "text.truncate@1",
+       "args": {
+        "text": {
+         "item": "/title"
+        },
+        "max": {
+         "const": 300
+        }
+       }
+      },
+      "pointer": "/text"
+     },
+     "author": {
+      "when": {
+       "nonEmpty": {
+        "item": "/user/login"
+       }
+      },
+      "then": {
+       "item": "/user/login"
+      }
+     },
+     "createdAt": {
+      "item": "/created_at"
+     },
+     "updatedAt": {
+      "item": "/updated_at"
+     },
+     "url": {
+      "item": "/html_url"
+     }
+    },
+    "summary": [
+     {
+      "label": "Issue",
+      "expr": {
+       "item": "/title"
+      },
+      "truncate": 120
+     },
+     {
+      "label": "State",
+      "expr": {
+       "item": "/state"
+      }
+     }
+    ]
+   },
+   "backfill": {
+    "default": 0,
+    "max": 0
+   },
+   "retention": {
+    "days": 7
+   },
+   "bounds": {
+    "pages": 10,
+    "items": 300,
+    "pollSeconds": 10
+   },
+   "rows": [
+    "github.issues.read"
+   ]
+  },
+  {
+   "id": "github.trigger.comment-changed.v1.3ddbd15de440535f2e087540",
+   "key": "comment-changed",
+   "version": 1,
+   "name": "A comment was added or edited",
+   "description": "Tells you when a comment on an issue or pull request conversation in one repository is added or edited. Review comments on a diff and commit comments are not included. A deleted comment is not reported. It polls until Fabric is hosted. A change that lands during a long catch-up can skip one item.",
+   "delivery": {
+    "method": "webhook",
+    "registration": "api",
+    "fallback": "polling",
+    "register": {
+     "step": {
+      "id": "hook",
+      "method": "POST",
+      "path": "/repos/{owner}/{repo}/hooks",
+      "params": {
+       "owner": {
+        "pick": {
+         "transform": "ids.ownerRepo@1",
+         "args": {
+          "value": {
+           "input": "/repository"
+          }
+         }
+        },
+        "pointer": "/owner"
+       },
+       "repo": {
+        "pick": {
+         "transform": "ids.ownerRepo@1",
+         "args": {
+          "value": {
+           "input": "/repository"
+          }
+         }
+        },
+        "pointer": "/repo"
+       }
+      },
+      "body": {
+       "object": {
+        "name": {
+         "const": "web"
+        },
+        "active": {
+         "const": true
+        },
+        "events": {
+         "const": [
+          "issue_comment"
+         ]
+        },
+        "config": {
+         "object": {
+          "url": {
+           "receiver": "github"
+          },
+          "content_type": {
+           "const": "json"
+          },
+          "insecure_ssl": {
+           "const": "0"
+          },
+          "secret": {
+           "secret": "hook"
+          }
+         }
+        }
+       }
+      },
+      "expect": {
+       "status": [
+        201
+       ],
+       "require": []
+      }
+     },
+     "keep": {
+      "hookId": "/id"
+     }
+    },
+    "teardown": {
+     "step": {
+      "id": "unhook",
+      "method": "DELETE",
+      "path": "/repos/{owner}/{repo}/hooks/{hook_id}",
+      "params": {
+       "owner": {
+        "pick": {
+         "transform": "ids.ownerRepo@1",
+         "args": {
+          "value": {
+           "input": "/repository"
+          }
+         }
+        },
+        "pointer": "/owner"
+       },
+       "repo": {
+        "pick": {
+         "transform": "ids.ownerRepo@1",
+         "args": {
+          "value": {
+           "input": "/repository"
+          }
+         }
+        },
+        "pointer": "/repo"
+       },
+       "hook_id": {
+        "kept": "hookId"
+       }
+      },
+      "expect": {
+       "status": [
+        204
+       ],
+       "require": []
+      }
+     },
+     "onFailure": "record-leftover"
+    },
+    "admission": {
+     "scheme": "hmac-sha256-header",
+     "header": "x-hub-signature-256",
+     "prefix": "sha256=",
+     "secret": "hook",
+     "route": {
+      "header": "x-github-hook-id",
+      "equals": {
+       "kept": "hookId"
+      }
+     },
+     "handshake": "github-ping",
+     "collapse": {
+      "header": "x-github-delivery"
+     },
+     "trust": "doorbell"
+    }
+   },
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "repository": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 140
+     }
+    },
+    "required": [
+     "repository"
+    ],
+    "additionalProperties": false
+   },
+   "resource": [
+    "repository"
+   ],
+   "poll": {
+    "source": {
+     "steps": [
+      {
+       "id": "comments",
+       "method": "GET",
+       "path": "/repos/{owner}/{repo}/issues/comments",
+       "params": {
+        "owner": {
+         "pick": {
+          "transform": "ids.ownerRepo@1",
+          "args": {
+           "value": {
+            "input": "/repository"
+           }
+          }
+         },
+         "pointer": "/owner"
+        },
+        "repo": {
+         "pick": {
+          "transform": "ids.ownerRepo@1",
+          "args": {
+           "value": {
+            "input": "/repository"
+           }
+          }
+         },
+         "pointer": "/repo"
+        }
+       },
+       "query": {
+        "sort": {
+         "const": "updated"
+        },
+        "direction": {
+         "const": "asc"
+        },
+        "since": {
+         "cursor": "updated"
+        },
+        "per_page": {
+         "const": 30
+        }
+       },
+       "headers": {
+        "Accept": {
+         "const": "application/vnd.github+json"
+        },
+        "If-None-Match": {
+         "cursor": "etag"
+        }
+       },
+       "page": {
+        "next": {
+         "link": "next",
+         "param": "page"
+        },
+        "into": {
+         "query": "page"
+        },
+        "items": "",
+        "max": 10
+       },
+       "expect": {
+        "status": [
+         200,
+         304
+        ],
+        "require": []
+       }
+      }
+     ]
+    },
+    "seed": {
+     "step": {
+      "id": "latest",
+      "method": "GET",
+      "path": "/repos/{owner}/{repo}/issues/comments",
+      "params": {
+       "owner": {
+        "pick": {
+         "transform": "ids.ownerRepo@1",
+         "args": {
+          "value": {
+           "input": "/repository"
+          }
+         }
+        },
+        "pointer": "/owner"
+       },
+       "repo": {
+        "pick": {
+         "transform": "ids.ownerRepo@1",
+         "args": {
+          "value": {
+           "input": "/repository"
+          }
+         }
+        },
+        "pointer": "/repo"
+       }
+      },
+      "query": {
+       "sort": {
+        "const": "updated"
+       },
+       "direction": {
+        "const": "desc"
+       },
+       "per_page": {
+        "const": 1
+       }
+      },
+      "headers": {
+       "Accept": {
+        "const": "application/vnd.github+json"
+       }
+      },
+      "expect": {
+       "status": [
+        200
+       ],
+       "require": []
+      }
+     },
+     "cursor": {
+      "name": "updated",
+      "pointer": "/0/updated_at"
+     }
+    },
+    "items": {
+     "step": "comments",
+     "pointer": ""
+    },
+    "itemId": {
+     "item": "/id"
+    },
+    "itemVersion": "/updated_at",
+    "itemTime": {
+     "pointer": "/updated_at",
+     "format": "rfc3339"
+    },
+    "order": "asc",
+    "cursors": [
+     {
+      "name": "updated",
+      "kind": "high-water-time@1",
+      "next": {
+       "max": "itemTime"
+      },
+      "compare": "time.rfc3339ToEpochSeconds@1",
+      "overlapSeconds": 60
+     },
+     {
+      "name": "etag",
+      "kind": "etag@1",
+      "next": {
+       "step": "comments",
+       "header": "etag"
+      }
+     }
+    ],
+    "resync": {
+     "statusIn": []
+    },
+    "minIntervalSeconds": 60
+   },
+   "dedupe": {
+    "kind": "id+version"
+   },
+   "event": {
+    "schema": {
+     "type": "object",
+     "properties": {
+      "repository": {
+       "type": "string",
+       "maxLength": 140
+      },
+      "commentId": {
+       "type": "integer",
+       "minimum": 1
+      },
+      "issueUrl": {
+       "type": "string",
+       "maxLength": 400
+      },
+      "author": {
+       "type": "string",
+       "maxLength": 60
+      },
+      "createdAt": {
+       "type": "string",
+       "maxLength": 32
+      },
+      "updatedAt": {
+       "type": "string",
+       "maxLength": 32
+      },
+      "url": {
+       "type": "string",
+       "maxLength": 400
+      }
+     },
+     "required": [
+      "repository",
+      "commentId",
+      "updatedAt"
+     ],
+     "additionalProperties": false
+    },
+    "id": {
+     "concat": [
+      {
+       "item": "/id"
+      },
+      {
+       "const": ":"
+      },
+      {
+       "item": "/updated_at"
+      }
+     ],
+     "max": 200
+    },
+    "occurredAt": {
+     "item": "/updated_at"
+    },
+    "fields": {
+     "repository": {
+      "input": "/repository"
+     },
+     "commentId": {
+      "item": "/id"
+     },
+     "issueUrl": {
+      "item": "/issue_url"
+     },
+     "author": {
+      "when": {
+       "nonEmpty": {
+        "item": "/user/login"
+       }
+      },
+      "then": {
+       "item": "/user/login"
+      }
+     },
+     "createdAt": {
+      "item": "/created_at"
+     },
+     "updatedAt": {
+      "item": "/updated_at"
+     },
+     "url": {
+      "item": "/html_url"
+     }
+    },
+    "summary": [
+     {
+      "label": "Comment",
+      "expr": {
+       "item": "/body"
+      },
+      "truncate": 120
+     }
+    ]
+   },
+   "backfill": {
+    "default": 0,
+    "max": 0
+   },
+   "retention": {
+    "days": 7
+   },
+   "bounds": {
+    "pages": 10,
+    "items": 300,
+    "pollSeconds": 10
+   },
+   "rows": [
+    "github.issues.read"
+   ]
+  },
+  {
+   "id": "github.trigger.pull-changed.v1.a8a32d770fd7d6b4789a8fe5",
+   "key": "pull-changed",
+   "version": 1,
+   "name": "A pull request was opened or changed",
+   "description": "Tells you when a pull request in one repository is opened, edited, reviewed, commented on, closed or merged. It reads the same list as the issue trigger, so one request serves both. It polls until Fabric is hosted. A change that lands during a long catch-up can skip one item.",
+   "delivery": {
+    "method": "webhook",
+    "registration": "api",
+    "fallback": "polling",
+    "register": {
+     "step": {
+      "id": "hook",
+      "method": "POST",
+      "path": "/repos/{owner}/{repo}/hooks",
+      "params": {
+       "owner": {
+        "pick": {
+         "transform": "ids.ownerRepo@1",
+         "args": {
+          "value": {
+           "input": "/repository"
+          }
+         }
+        },
+        "pointer": "/owner"
+       },
+       "repo": {
+        "pick": {
+         "transform": "ids.ownerRepo@1",
+         "args": {
+          "value": {
+           "input": "/repository"
+          }
+         }
+        },
+        "pointer": "/repo"
+       }
+      },
+      "body": {
+       "object": {
+        "name": {
+         "const": "web"
+        },
+        "active": {
+         "const": true
+        },
+        "events": {
+         "const": [
+          "pull_request"
+         ]
+        },
+        "config": {
+         "object": {
+          "url": {
+           "receiver": "github"
+          },
+          "content_type": {
+           "const": "json"
+          },
+          "insecure_ssl": {
+           "const": "0"
+          },
+          "secret": {
+           "secret": "hook"
+          }
+         }
+        }
+       }
+      },
+      "expect": {
+       "status": [
+        201
+       ],
+       "require": []
+      }
+     },
+     "keep": {
+      "hookId": "/id"
+     }
+    },
+    "teardown": {
+     "step": {
+      "id": "unhook",
+      "method": "DELETE",
+      "path": "/repos/{owner}/{repo}/hooks/{hook_id}",
+      "params": {
+       "owner": {
+        "pick": {
+         "transform": "ids.ownerRepo@1",
+         "args": {
+          "value": {
+           "input": "/repository"
+          }
+         }
+        },
+        "pointer": "/owner"
+       },
+       "repo": {
+        "pick": {
+         "transform": "ids.ownerRepo@1",
+         "args": {
+          "value": {
+           "input": "/repository"
+          }
+         }
+        },
+        "pointer": "/repo"
+       },
+       "hook_id": {
+        "kept": "hookId"
+       }
+      },
+      "expect": {
+       "status": [
+        204
+       ],
+       "require": []
+      }
+     },
+     "onFailure": "record-leftover"
+    },
+    "admission": {
+     "scheme": "hmac-sha256-header",
+     "header": "x-hub-signature-256",
+     "prefix": "sha256=",
+     "secret": "hook",
+     "route": {
+      "header": "x-github-hook-id",
+      "equals": {
+       "kept": "hookId"
+      }
+     },
+     "handshake": "github-ping",
+     "collapse": {
+      "header": "x-github-delivery"
+     },
+     "trust": "doorbell"
+    }
+   },
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "repository": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 140
+     }
+    },
+    "required": [
+     "repository"
+    ],
+    "additionalProperties": false
+   },
+   "resource": [
+    "repository"
+   ],
+   "poll": {
+    "source": {
+     "steps": [
+      {
+       "id": "issues",
+       "method": "GET",
+       "path": "/repos/{owner}/{repo}/issues",
+       "params": {
+        "owner": {
+         "pick": {
+          "transform": "ids.ownerRepo@1",
+          "args": {
+           "value": {
+            "input": "/repository"
+           }
+          }
+         },
+         "pointer": "/owner"
+        },
+        "repo": {
+         "pick": {
+          "transform": "ids.ownerRepo@1",
+          "args": {
+           "value": {
+            "input": "/repository"
+           }
+          }
+         },
+         "pointer": "/repo"
+        }
+       },
+       "query": {
+        "state": {
+         "const": "all"
+        },
+        "sort": {
+         "const": "updated"
+        },
+        "direction": {
+         "const": "asc"
+        },
+        "since": {
+         "cursor": "updated"
+        },
+        "per_page": {
+         "const": 30
+        }
+       },
+       "headers": {
+        "Accept": {
+         "const": "application/vnd.github+json"
+        },
+        "If-None-Match": {
+         "cursor": "etag"
+        }
+       },
+       "page": {
+        "next": {
+         "link": "next",
+         "param": "page"
+        },
+        "into": {
+         "query": "page"
+        },
+        "items": "",
+        "max": 10
+       },
+       "expect": {
+        "status": [
+         200,
+         304
+        ],
+        "require": []
+       }
+      }
+     ]
+    },
+    "seed": {
+     "step": {
+      "id": "latest",
+      "method": "GET",
+      "path": "/repos/{owner}/{repo}/issues",
+      "params": {
+       "owner": {
+        "pick": {
+         "transform": "ids.ownerRepo@1",
+         "args": {
+          "value": {
+           "input": "/repository"
+          }
+         }
+        },
+        "pointer": "/owner"
+       },
+       "repo": {
+        "pick": {
+         "transform": "ids.ownerRepo@1",
+         "args": {
+          "value": {
+           "input": "/repository"
+          }
+         }
+        },
+        "pointer": "/repo"
+       }
+      },
+      "query": {
+       "state": {
+        "const": "all"
+       },
+       "sort": {
+        "const": "updated"
+       },
+       "direction": {
+        "const": "desc"
+       },
+       "per_page": {
+        "const": 1
+       }
+      },
+      "headers": {
+       "Accept": {
+        "const": "application/vnd.github+json"
+       }
+      },
+      "expect": {
+       "status": [
+        200
+       ],
+       "require": []
+      }
+     },
+     "cursor": {
+      "name": "updated",
+      "pointer": "/0/updated_at"
+     }
+    },
+    "items": {
+     "step": "issues",
+     "pointer": ""
+    },
+    "itemVersion": "/updated_at",
+    "itemTime": {
+     "pointer": "/updated_at",
+     "format": "rfc3339"
+    },
+    "order": "asc",
+    "cursors": [
+     {
+      "name": "updated",
+      "kind": "high-water-time@1",
+      "next": {
+       "max": "itemTime"
+      },
+      "compare": "time.rfc3339ToEpochSeconds@1",
+      "overlapSeconds": 60
+     },
+     {
+      "name": "etag",
+      "kind": "etag@1",
+      "next": {
+       "step": "issues",
+       "header": "etag"
+      }
+     }
+    ],
+    "resync": {
+     "statusIn": []
+    },
+    "minIntervalSeconds": 60,
+    "itemId": {
+     "item": "/number"
+    }
+   },
+   "filter": [
+    {
+     "present": {
+      "item": "/pull_request"
+     }
+    }
+   ],
+   "dedupe": {
+    "kind": "id+version"
+   },
+   "event": {
+    "schema": {
+     "type": "object",
+     "properties": {
+      "repository": {
+       "type": "string",
+       "maxLength": 140
+      },
+      "number": {
+       "type": "integer",
+       "minimum": 1
+      },
+      "state": {
+       "type": "string",
+       "maxLength": 16
+      },
+      "draft": {
+       "type": "boolean"
+      },
+      "mergedAt": {
+       "type": "string",
+       "maxLength": 32
+      },
+      "title": {
+       "type": "string",
+       "maxLength": 300
+      },
+      "author": {
+       "type": "string",
+       "maxLength": 60
+      },
+      "createdAt": {
+       "type": "string",
+       "maxLength": 32
+      },
+      "updatedAt": {
+       "type": "string",
+       "maxLength": 32
+      },
+      "url": {
+       "type": "string",
+       "maxLength": 400
+      }
+     },
+     "required": [
+      "repository",
+      "number",
+      "state",
+      "updatedAt"
+     ],
+     "additionalProperties": false
+    },
+    "id": {
+     "concat": [
+      {
+       "item": "/number"
+      },
+      {
+       "const": ":"
+      },
+      {
+       "item": "/updated_at"
+      }
+     ],
+     "max": 200
+    },
+    "occurredAt": {
+     "item": "/updated_at"
+    },
+    "fields": {
+     "repository": {
+      "input": "/repository"
+     },
+     "number": {
+      "item": "/number"
+     },
+     "state": {
+      "item": "/state"
+     },
+     "draft": {
+      "when": {
+       "present": {
+        "item": "/draft"
+       }
+      },
+      "then": {
+       "item": "/draft"
+      }
+     },
+     "mergedAt": {
+      "when": {
+       "nonEmpty": {
+        "item": "/pull_request/merged_at"
+       }
+      },
+      "then": {
+       "item": "/pull_request/merged_at"
+      }
+     },
+     "title": {
+      "pick": {
+       "transform": "text.truncate@1",
+       "args": {
+        "text": {
+         "item": "/title"
+        },
+        "max": {
+         "const": 300
+        }
+       }
+      },
+      "pointer": "/text"
+     },
+     "author": {
+      "when": {
+       "nonEmpty": {
+        "item": "/user/login"
+       }
+      },
+      "then": {
+       "item": "/user/login"
+      }
+     },
+     "createdAt": {
+      "item": "/created_at"
+     },
+     "updatedAt": {
+      "item": "/updated_at"
+     },
+     "url": {
+      "item": "/html_url"
+     }
+    },
+    "summary": [
+     {
+      "label": "Pull request",
+      "expr": {
+       "item": "/title"
+      },
+      "truncate": 120
+     },
+     {
+      "label": "State",
+      "expr": {
+       "item": "/state"
+      }
+     }
+    ]
+   },
+   "backfill": {
+    "default": 0,
+    "max": 0
+   },
+   "retention": {
+    "days": 7
+   },
+   "bounds": {
+    "pages": 10,
+    "items": 300,
+    "pollSeconds": 10
+   },
+   "rows": [
+    "github.issues.read"
+   ]
+  },
+  {
+   "id": "github.trigger.push.v1.53940d08a53524edb7c3a5c5",
+   "key": "push",
+   "version": 1,
+   "name": "A branch moved",
+   "description": "Tells you when a branch in one repository is pushed to, force pushed, created, deleted or merged into, one event for each change GitHub lists in the repository activity. Tags are not promised. It polls until Fabric is hosted.",
+   "delivery": {
+    "method": "webhook",
+    "registration": "api",
+    "fallback": "polling",
+    "register": {
+     "step": {
+      "id": "hook",
+      "method": "POST",
+      "path": "/repos/{owner}/{repo}/hooks",
+      "params": {
+       "owner": {
+        "pick": {
+         "transform": "ids.ownerRepo@1",
+         "args": {
+          "value": {
+           "input": "/repository"
+          }
+         }
+        },
+        "pointer": "/owner"
+       },
+       "repo": {
+        "pick": {
+         "transform": "ids.ownerRepo@1",
+         "args": {
+          "value": {
+           "input": "/repository"
+          }
+         }
+        },
+        "pointer": "/repo"
+       }
+      },
+      "body": {
+       "object": {
+        "name": {
+         "const": "web"
+        },
+        "active": {
+         "const": true
+        },
+        "events": {
+         "const": [
+          "push"
+         ]
+        },
+        "config": {
+         "object": {
+          "url": {
+           "receiver": "github"
+          },
+          "content_type": {
+           "const": "json"
+          },
+          "insecure_ssl": {
+           "const": "0"
+          },
+          "secret": {
+           "secret": "hook"
+          }
+         }
+        }
+       }
+      },
+      "expect": {
+       "status": [
+        201
+       ],
+       "require": []
+      }
+     },
+     "keep": {
+      "hookId": "/id"
+     }
+    },
+    "teardown": {
+     "step": {
+      "id": "unhook",
+      "method": "DELETE",
+      "path": "/repos/{owner}/{repo}/hooks/{hook_id}",
+      "params": {
+       "owner": {
+        "pick": {
+         "transform": "ids.ownerRepo@1",
+         "args": {
+          "value": {
+           "input": "/repository"
+          }
+         }
+        },
+        "pointer": "/owner"
+       },
+       "repo": {
+        "pick": {
+         "transform": "ids.ownerRepo@1",
+         "args": {
+          "value": {
+           "input": "/repository"
+          }
+         }
+        },
+        "pointer": "/repo"
+       },
+       "hook_id": {
+        "kept": "hookId"
+       }
+      },
+      "expect": {
+       "status": [
+        204
+       ],
+       "require": []
+      }
+     },
+     "onFailure": "record-leftover"
+    },
+    "admission": {
+     "scheme": "hmac-sha256-header",
+     "header": "x-hub-signature-256",
+     "prefix": "sha256=",
+     "secret": "hook",
+     "route": {
+      "header": "x-github-hook-id",
+      "equals": {
+       "kept": "hookId"
+      }
+     },
+     "handshake": "github-ping",
+     "collapse": {
+      "header": "x-github-delivery"
+     },
+     "trust": "doorbell"
+    }
+   },
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "repository": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 140
+     }
+    },
+    "required": [
+     "repository"
+    ],
+    "additionalProperties": false
+   },
+   "resource": [
+    "repository"
+   ],
+   "poll": {
+    "source": {
+     "steps": [
+      {
+       "id": "activity",
+       "method": "GET",
+       "path": "/repos/{owner}/{repo}/activity",
+       "params": {
+        "owner": {
+         "pick": {
+          "transform": "ids.ownerRepo@1",
+          "args": {
+           "value": {
+            "input": "/repository"
+           }
+          }
+         },
+         "pointer": "/owner"
+        },
+        "repo": {
+         "pick": {
+          "transform": "ids.ownerRepo@1",
+          "args": {
+           "value": {
+            "input": "/repository"
+           }
+          }
+         },
+         "pointer": "/repo"
+        }
+       },
+       "query": {
+        "per_page": {
+         "const": 100
+        }
+       },
+       "headers": {
+        "Accept": {
+         "const": "application/vnd.github+json"
+        },
+        "If-None-Match": {
+         "cursor": "etag"
+        }
+       },
+       "expect": {
+        "status": [
+         200,
+         304
+        ],
+        "require": []
+       }
+      }
+     ]
+    },
+    "items": {
+     "step": "activity",
+     "pointer": ""
+    },
+    "itemId": {
+     "item": "/id"
+    },
+    "itemVersion": null,
+    "itemTime": {
+     "pointer": "/timestamp",
+     "format": "rfc3339"
+    },
+    "order": "desc",
+    "cursors": [
+     {
+      "name": "seen",
+      "kind": "snapshot@1",
+      "compare": "collections.diff@1"
+     },
+     {
+      "name": "etag",
+      "kind": "etag@1",
+      "next": {
+       "step": "activity",
+       "header": "etag"
+      }
+     }
+    ],
+    "resync": {
+     "statusIn": []
+    },
+    "minIntervalSeconds": 60
+   },
+   "dedupe": {
+    "kind": "id"
+   },
+   "event": {
+    "schema": {
+     "type": "object",
+     "properties": {
+      "repository": {
+       "type": "string",
+       "maxLength": 140
+      },
+      "activityId": {
+       "type": "integer",
+       "minimum": 1
+      },
+      "activityType": {
+       "type": "string",
+       "maxLength": 32
+      },
+      "ref": {
+       "type": "string",
+       "maxLength": 300
+      },
+      "before": {
+       "type": "string",
+       "maxLength": 64
+      },
+      "after": {
+       "type": "string",
+       "maxLength": 64
+      },
+      "actor": {
+       "type": "string",
+       "maxLength": 60
+      },
+      "pushedAt": {
+       "type": "string",
+       "maxLength": 32
+      }
+     },
+     "required": [
+      "repository",
+      "activityId",
+      "activityType",
+      "ref",
+      "pushedAt"
+     ],
+     "additionalProperties": false
+    },
+    "id": {
+     "item": "/id"
+    },
+    "occurredAt": {
+     "item": "/timestamp"
+    },
+    "fields": {
+     "repository": {
+      "input": "/repository"
+     },
+     "activityId": {
+      "item": "/id"
+     },
+     "activityType": {
+      "item": "/activity_type"
+     },
+     "ref": {
+      "item": "/ref"
+     },
+     "before": {
+      "item": "/before"
+     },
+     "after": {
+      "item": "/after"
+     },
+     "actor": {
+      "when": {
+       "nonEmpty": {
+        "item": "/actor/login"
+       }
+      },
+      "then": {
+       "item": "/actor/login"
+      }
+     },
+     "pushedAt": {
+      "item": "/timestamp"
+     }
+    },
+    "summary": [
+     {
+      "label": "Change",
+      "expr": {
+       "item": "/activity_type"
+      }
+     },
+     {
+      "label": "Ref",
+      "expr": {
+       "item": "/ref"
+      },
+      "truncate": 120
+     }
+    ]
+   },
+   "backfill": {
+    "default": 0,
+    "max": 0
+   },
+   "retention": {
+    "days": 7
+   },
+   "bounds": {
+    "pages": 1,
+    "items": 100,
+    "pollSeconds": 10
+   },
+   "rows": [
+    "github.repos.read"
+   ]
+  },
+  {
+   "id": "github.trigger.workflow-run-finished.v1.f117acab199efd1c331a1f12",
+   "key": "workflow-run-finished",
+   "version": 1,
+   "name": "A workflow run finished",
+   "description": "Tells you when a GitHub Actions run in one repository finishes, one event for each attempt, with how it ended. Queued and running states are not reported. GitHub lists runs by when they started, so a run or a re-run that finishes behind the 100 newest can be missed. Fabric says so only when it finds a finished run at the end of what it reads. It polls until Fabric is hosted. A change that lands during a long catch-up can skip one item.",
+   "delivery": {
+    "method": "webhook",
+    "registration": "api",
+    "fallback": "polling",
+    "register": {
+     "step": {
+      "id": "hook",
+      "method": "POST",
+      "path": "/repos/{owner}/{repo}/hooks",
+      "params": {
+       "owner": {
+        "pick": {
+         "transform": "ids.ownerRepo@1",
+         "args": {
+          "value": {
+           "input": "/repository"
+          }
+         }
+        },
+        "pointer": "/owner"
+       },
+       "repo": {
+        "pick": {
+         "transform": "ids.ownerRepo@1",
+         "args": {
+          "value": {
+           "input": "/repository"
+          }
+         }
+        },
+        "pointer": "/repo"
+       }
+      },
+      "body": {
+       "object": {
+        "name": {
+         "const": "web"
+        },
+        "active": {
+         "const": true
+        },
+        "events": {
+         "const": [
+          "workflow_run"
+         ]
+        },
+        "config": {
+         "object": {
+          "url": {
+           "receiver": "github"
+          },
+          "content_type": {
+           "const": "json"
+          },
+          "insecure_ssl": {
+           "const": "0"
+          },
+          "secret": {
+           "secret": "hook"
+          }
+         }
+        }
+       }
+      },
+      "expect": {
+       "status": [
+        201
+       ],
+       "require": []
+      }
+     },
+     "keep": {
+      "hookId": "/id"
+     }
+    },
+    "teardown": {
+     "step": {
+      "id": "unhook",
+      "method": "DELETE",
+      "path": "/repos/{owner}/{repo}/hooks/{hook_id}",
+      "params": {
+       "owner": {
+        "pick": {
+         "transform": "ids.ownerRepo@1",
+         "args": {
+          "value": {
+           "input": "/repository"
+          }
+         }
+        },
+        "pointer": "/owner"
+       },
+       "repo": {
+        "pick": {
+         "transform": "ids.ownerRepo@1",
+         "args": {
+          "value": {
+           "input": "/repository"
+          }
+         }
+        },
+        "pointer": "/repo"
+       },
+       "hook_id": {
+        "kept": "hookId"
+       }
+      },
+      "expect": {
+       "status": [
+        204
+       ],
+       "require": []
+      }
+     },
+     "onFailure": "record-leftover"
+    },
+    "admission": {
+     "scheme": "hmac-sha256-header",
+     "header": "x-hub-signature-256",
+     "prefix": "sha256=",
+     "secret": "hook",
+     "route": {
+      "header": "x-github-hook-id",
+      "equals": {
+       "kept": "hookId"
+      }
+     },
+     "handshake": "github-ping",
+     "collapse": {
+      "header": "x-github-delivery"
+     },
+     "trust": "doorbell"
+    }
+   },
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "repository": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 140
+     }
+    },
+    "required": [
+     "repository"
+    ],
+    "additionalProperties": false
+   },
+   "resource": [
+    "repository"
+   ],
+   "poll": {
+    "source": {
+     "steps": [
+      {
+       "id": "runs",
+       "method": "GET",
+       "path": "/repos/{owner}/{repo}/actions/runs",
+       "params": {
+        "owner": {
+         "pick": {
+          "transform": "ids.ownerRepo@1",
+          "args": {
+           "value": {
+            "input": "/repository"
+           }
+          }
+         },
+         "pointer": "/owner"
+        },
+        "repo": {
+         "pick": {
+          "transform": "ids.ownerRepo@1",
+          "args": {
+           "value": {
+            "input": "/repository"
+           }
+          }
+         },
+         "pointer": "/repo"
+        }
+       },
+       "query": {
+        "status": {
+         "const": "completed"
+        },
+        "exclude_pull_requests": {
+         "const": "true"
+        },
+        "per_page": {
+         "const": 50
+        }
+       },
+       "headers": {
+        "Accept": {
+         "const": "application/vnd.github+json"
+        },
+        "If-None-Match": {
+         "cursor": "etag"
+        }
+       },
+       "page": {
+        "next": {
+         "link": "next",
+         "param": "page"
+        },
+        "into": {
+         "query": "page"
+        },
+        "items": "/workflow_runs",
+        "max": 2
+       },
+       "expect": {
+        "status": [
+         200,
+         304
+        ],
+        "require": []
+       }
+      }
+     ]
+    },
+    "items": {
+     "step": "runs",
+     "pointer": ""
+    },
+    "itemId": {
+     "item": "/id"
+    },
+    "itemVersion": "/run_attempt",
+    "itemTime": {
+     "pointer": "/updated_at",
+     "format": "rfc3339"
+    },
+    "order": "unordered",
+    "cursors": [
+     {
+      "name": "seen",
+      "kind": "snapshot@1",
+      "compare": "collections.diff@1"
+     },
+     {
+      "name": "etag",
+      "kind": "etag@1",
+      "next": {
+       "step": "runs",
+       "header": "etag"
+      }
+     }
+    ],
+    "resync": {
+     "statusIn": []
+    },
+    "minIntervalSeconds": 120
+   },
+   "dedupe": {
+    "kind": "id+version"
+   },
+   "event": {
+    "schema": {
+     "type": "object",
+     "properties": {
+      "repository": {
+       "type": "string",
+       "maxLength": 140
+      },
+      "runId": {
+       "type": "integer",
+       "minimum": 1
+      },
+      "attempt": {
+       "type": "integer",
+       "minimum": 1
+      },
+      "workflowId": {
+       "type": "integer",
+       "minimum": 1
+      },
+      "workflowName": {
+       "type": "string",
+       "maxLength": 200
+      },
+      "cause": {
+       "type": "string",
+       "maxLength": 64
+      },
+      "branch": {
+       "type": "string",
+       "maxLength": 255
+      },
+      "headSha": {
+       "type": "string",
+       "maxLength": 64
+      },
+      "conclusion": {
+       "type": "string",
+       "maxLength": 32
+      },
+      "finishedAt": {
+       "type": "string",
+       "maxLength": 32
+      },
+      "url": {
+       "type": "string",
+       "maxLength": 400
+      }
+     },
+     "required": [
+      "repository",
+      "runId",
+      "attempt",
+      "finishedAt"
+     ],
+     "additionalProperties": false
+    },
+    "id": {
+     "concat": [
+      {
+       "item": "/id"
+      },
+      {
+       "const": ":"
+      },
+      {
+       "item": "/run_attempt"
+      }
+     ],
+     "max": 200
+    },
+    "occurredAt": {
+     "item": "/updated_at"
+    },
+    "fields": {
+     "repository": {
+      "input": "/repository"
+     },
+     "runId": {
+      "item": "/id"
+     },
+     "attempt": {
+      "item": "/run_attempt"
+     },
+     "workflowId": {
+      "item": "/workflow_id"
+     },
+     "workflowName": {
+      "when": {
+       "nonEmpty": {
+        "item": "/name"
+       }
+      },
+      "then": {
+       "item": "/name"
+      }
+     },
+     "cause": {
+      "item": "/event"
+     },
+     "branch": {
+      "when": {
+       "nonEmpty": {
+        "item": "/head_branch"
+       }
+      },
+      "then": {
+       "item": "/head_branch"
+      }
+     },
+     "headSha": {
+      "item": "/head_sha"
+     },
+     "conclusion": {
+      "when": {
+       "nonEmpty": {
+        "item": "/conclusion"
+       }
+      },
+      "then": {
+       "item": "/conclusion"
+      }
+     },
+     "finishedAt": {
+      "item": "/updated_at"
+     },
+     "url": {
+      "item": "/html_url"
+     }
+    },
+    "summary": [
+     {
+      "label": "Run",
+      "expr": {
+       "item": "/display_title"
+      },
+      "truncate": 120
+     }
+    ]
+   },
+   "backfill": {
+    "default": 0,
+    "max": 0
+   },
+   "retention": {
+    "days": 7
+   },
+   "bounds": {
+    "pages": 2,
+    "items": 100,
+    "pollSeconds": 10
+   },
+   "rows": [
+    "github.repos.read"
+   ]
+  },
+  {
+   "id": "github.trigger.notification.v1.41b3657e6b53ebbb619a4f72",
+   "key": "notification",
+   "version": 1,
+   "name": "A GitHub notification arrived",
+   "description": "Tells you when a thread in your GitHub notifications is new or has news, in any repository you get notifications for. It always polls: GitHub has no webhook for notifications. It waits at least as long as GitHub says between polls. A change that lands during a long catch-up can skip one item.",
+   "delivery": {
+    "method": "polling",
+    "intervalSeconds": {
+     "default": 60,
+     "min": 60
+    }
+   },
+   "inputSchema": {
+    "type": "object",
+    "properties": {},
+    "required": [],
+    "additionalProperties": false
+   },
+   "resource": [],
+   "poll": {
+    "source": {
+     "steps": [
+      {
+       "id": "threads",
+       "method": "GET",
+       "path": "/notifications",
+       "query": {
+        "all": {
+         "const": "true"
+        },
+        "since": {
+         "cursor": "updated"
+        },
+        "per_page": {
+         "const": 50
+        }
+       },
+       "headers": {
+        "Accept": {
+         "const": "application/vnd.github+json"
+        },
+        "If-Modified-Since": {
+         "cursor": "modified"
+        }
+       },
+       "page": {
+        "next": {
+         "link": "next",
+         "param": "page"
+        },
+        "into": {
+         "query": "page"
+        },
+        "items": "",
+        "max": 10
+       },
+       "expect": {
+        "status": [
+         200,
+         304
+        ],
+        "require": []
+       }
+      }
+     ]
+    },
+    "seed": {
+     "step": {
+      "id": "latest",
+      "method": "GET",
+      "path": "/notifications",
+      "query": {
+       "all": {
+        "const": "true"
+       },
+       "per_page": {
+        "const": 1
+       }
+      },
+      "headers": {
+       "Accept": {
+        "const": "application/vnd.github+json"
+       }
+      },
+      "expect": {
+       "status": [
+        200
+       ],
+       "require": []
+      }
+     },
+     "cursor": {
+      "name": "updated",
+      "pointer": "/0/updated_at"
+     }
+    },
+    "items": {
+     "step": "threads",
+     "pointer": ""
+    },
+    "itemId": {
+     "item": "/id"
+    },
+    "itemVersion": "/updated_at",
+    "itemTime": {
+     "pointer": "/updated_at",
+     "format": "rfc3339"
+    },
+    "order": "unordered",
+    "cursors": [
+     {
+      "name": "updated",
+      "kind": "high-water-time@1",
+      "next": {
+       "max": "itemTime"
+      },
+      "compare": "time.rfc3339ToEpochSeconds@1",
+      "overlapSeconds": 60
+     },
+     {
+      "name": "modified",
+      "kind": "last-modified@1",
+      "next": {
+       "step": "threads",
+       "header": "last-modified"
+      }
+     }
+    ],
+    "resync": {
+     "statusIn": []
+    },
+    "minIntervalSeconds": 60
+   },
+   "dedupe": {
+    "kind": "id+version"
+   },
+   "event": {
+    "schema": {
+     "type": "object",
+     "properties": {
+      "threadId": {
+       "type": "string",
+       "maxLength": 32
+      },
+      "repository": {
+       "type": "string",
+       "maxLength": 140
+      },
+      "reason": {
+       "type": "string",
+       "maxLength": 40
+      },
+      "subjectType": {
+       "type": "string",
+       "maxLength": 40
+      },
+      "title": {
+       "type": "string",
+       "maxLength": 300
+      },
+      "updatedAt": {
+       "type": "string",
+       "maxLength": 32
+      }
+     },
+     "required": [
+      "threadId",
+      "repository",
+      "reason",
+      "updatedAt"
+     ],
+     "additionalProperties": false
+    },
+    "id": {
+     "concat": [
+      {
+       "item": "/id"
+      },
+      {
+       "const": ":"
+      },
+      {
+       "item": "/updated_at"
+      }
+     ],
+     "max": 200
+    },
+    "occurredAt": {
+     "item": "/updated_at"
+    },
+    "fields": {
+     "threadId": {
+      "item": "/id"
+     },
+     "repository": {
+      "item": "/repository/full_name"
+     },
+     "reason": {
+      "item": "/reason"
+     },
+     "subjectType": {
+      "when": {
+       "nonEmpty": {
+        "item": "/subject/type"
+       }
+      },
+      "then": {
+       "item": "/subject/type"
+      }
+     },
+     "title": {
+      "pick": {
+       "transform": "text.truncate@1",
+       "args": {
+        "text": {
+         "item": "/subject/title"
+        },
+        "max": {
+         "const": 300
+        }
+       }
+      },
+      "pointer": "/text"
+     },
+     "updatedAt": {
+      "item": "/updated_at"
+     }
+    },
+    "summary": [
+     {
+      "label": "Subject",
+      "expr": {
+       "item": "/subject/title"
+      },
+      "truncate": 120
+     },
+     {
+      "label": "Why",
+      "expr": {
+       "item": "/reason"
+      }
+     }
+    ]
+   },
+   "backfill": {
+    "default": 0,
+    "max": 0
+   },
+   "retention": {
+    "days": 7
+   },
+   "bounds": {
+    "pages": 10,
+    "items": 500,
+    "pollSeconds": 10
+   },
+   "rows": [
+    "github.profile.read"
+   ]
+  },
+  {
+   "id": "github.trigger.release-published.v1.d6621b37c5f9f71135bb53f0",
+   "key": "release-published",
+   "version": 1,
+   "name": "A release was published",
+   "description": "Tells you when a release in one repository is published, once for each release. Drafts and later edits are not reported, and a tag with no release is not one. GitHub lists releases by commit date, so a release on a commit older than the 90 newest can be missed. Fabric says so only when it finds a new release at the end of what it reads. It polls until Fabric is hosted. A change that lands during a long catch-up can skip one item.",
+   "delivery": {
+    "method": "webhook",
+    "registration": "api",
+    "fallback": "polling",
+    "register": {
+     "step": {
+      "id": "hook",
+      "method": "POST",
+      "path": "/repos/{owner}/{repo}/hooks",
+      "params": {
+       "owner": {
+        "pick": {
+         "transform": "ids.ownerRepo@1",
+         "args": {
+          "value": {
+           "input": "/repository"
+          }
+         }
+        },
+        "pointer": "/owner"
+       },
+       "repo": {
+        "pick": {
+         "transform": "ids.ownerRepo@1",
+         "args": {
+          "value": {
+           "input": "/repository"
+          }
+         }
+        },
+        "pointer": "/repo"
+       }
+      },
+      "body": {
+       "object": {
+        "name": {
+         "const": "web"
+        },
+        "active": {
+         "const": true
+        },
+        "events": {
+         "const": [
+          "release"
+         ]
+        },
+        "config": {
+         "object": {
+          "url": {
+           "receiver": "github"
+          },
+          "content_type": {
+           "const": "json"
+          },
+          "insecure_ssl": {
+           "const": "0"
+          },
+          "secret": {
+           "secret": "hook"
+          }
+         }
+        }
+       }
+      },
+      "expect": {
+       "status": [
+        201
+       ],
+       "require": []
+      }
+     },
+     "keep": {
+      "hookId": "/id"
+     }
+    },
+    "teardown": {
+     "step": {
+      "id": "unhook",
+      "method": "DELETE",
+      "path": "/repos/{owner}/{repo}/hooks/{hook_id}",
+      "params": {
+       "owner": {
+        "pick": {
+         "transform": "ids.ownerRepo@1",
+         "args": {
+          "value": {
+           "input": "/repository"
+          }
+         }
+        },
+        "pointer": "/owner"
+       },
+       "repo": {
+        "pick": {
+         "transform": "ids.ownerRepo@1",
+         "args": {
+          "value": {
+           "input": "/repository"
+          }
+         }
+        },
+        "pointer": "/repo"
+       },
+       "hook_id": {
+        "kept": "hookId"
+       }
+      },
+      "expect": {
+       "status": [
+        204
+       ],
+       "require": []
+      }
+     },
+     "onFailure": "record-leftover"
+    },
+    "admission": {
+     "scheme": "hmac-sha256-header",
+     "header": "x-hub-signature-256",
+     "prefix": "sha256=",
+     "secret": "hook",
+     "route": {
+      "header": "x-github-hook-id",
+      "equals": {
+       "kept": "hookId"
+      }
+     },
+     "handshake": "github-ping",
+     "collapse": {
+      "header": "x-github-delivery"
+     },
+     "trust": "doorbell"
+    }
+   },
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "repository": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 140
+     }
+    },
+    "required": [
+     "repository"
+    ],
+    "additionalProperties": false
+   },
+   "resource": [
+    "repository"
+   ],
+   "poll": {
+    "source": {
+     "steps": [
+      {
+       "id": "releases",
+       "method": "GET",
+       "path": "/repos/{owner}/{repo}/releases",
+       "params": {
+        "owner": {
+         "pick": {
+          "transform": "ids.ownerRepo@1",
+          "args": {
+           "value": {
+            "input": "/repository"
+           }
+          }
+         },
+         "pointer": "/owner"
+        },
+        "repo": {
+         "pick": {
+          "transform": "ids.ownerRepo@1",
+          "args": {
+           "value": {
+            "input": "/repository"
+           }
+          }
+         },
+         "pointer": "/repo"
+        }
+       },
+       "query": {
+        "per_page": {
+         "const": 10
+        }
+       },
+       "headers": {
+        "Accept": {
+         "const": "application/vnd.github+json"
+        },
+        "If-None-Match": {
+         "cursor": "etag"
+        }
+       },
+       "page": {
+        "next": {
+         "link": "next",
+         "param": "page"
+        },
+        "into": {
+         "query": "page"
+        },
+        "items": "",
+        "max": 9
+       },
+       "expect": {
+        "status": [
+         200,
+         304
+        ],
+        "require": []
+       }
+      }
+     ]
+    },
+    "items": {
+     "step": "releases",
+     "pointer": ""
+    },
+    "itemId": {
+     "item": "/id"
+    },
+    "itemVersion": null,
+    "itemTime": {
+     "pointer": "/published_at",
+     "format": "rfc3339"
+    },
+    "order": "unordered",
+    "cursors": [
+     {
+      "name": "seen",
+      "kind": "snapshot@1",
+      "compare": "collections.diff@1"
+     },
+     {
+      "name": "etag",
+      "kind": "etag@1",
+      "next": {
+       "step": "releases",
+       "header": "etag"
+      }
+     }
+    ],
+    "resync": {
+     "statusIn": []
+    },
+    "minIntervalSeconds": 300
+   },
+   "filter": [
+    {
+     "equals": [
+      {
+       "item": "/draft"
+      },
+      {
+       "const": false
+      }
+     ]
+    }
+   ],
+   "dedupe": {
+    "kind": "id"
+   },
+   "event": {
+    "schema": {
+     "type": "object",
+     "properties": {
+      "repository": {
+       "type": "string",
+       "maxLength": 140
+      },
+      "releaseId": {
+       "type": "integer",
+       "minimum": 1
+      },
+      "tag": {
+       "type": "string",
+       "maxLength": 255
+      },
+      "name": {
+       "type": "string",
+       "maxLength": 255
+      },
+      "prerelease": {
+       "type": "boolean"
+      },
+      "author": {
+       "type": "string",
+       "maxLength": 60
+      },
+      "publishedAt": {
+       "type": "string",
+       "maxLength": 32
+      },
+      "url": {
+       "type": "string",
+       "maxLength": 400
+      }
+     },
+     "required": [
+      "repository",
+      "releaseId",
+      "tag",
+      "publishedAt"
+     ],
+     "additionalProperties": false
+    },
+    "id": {
+     "item": "/id"
+    },
+    "occurredAt": {
+     "item": "/published_at"
+    },
+    "fields": {
+     "repository": {
+      "input": "/repository"
+     },
+     "releaseId": {
+      "item": "/id"
+     },
+     "tag": {
+      "item": "/tag_name"
+     },
+     "name": {
+      "when": {
+       "nonEmpty": {
+        "item": "/name"
+       }
+      },
+      "then": {
+       "item": "/name"
+      }
+     },
+     "prerelease": {
+      "item": "/prerelease"
+     },
+     "author": {
+      "when": {
+       "nonEmpty": {
+        "item": "/author/login"
+       }
+      },
+      "then": {
+       "item": "/author/login"
+      }
+     },
+     "publishedAt": {
+      "item": "/published_at"
+     },
+     "url": {
+      "item": "/html_url"
+     }
+    },
+    "summary": [
+     {
+      "label": "Release",
+      "expr": {
+       "item": "/tag_name"
+      },
+      "truncate": 120
+     }
+    ]
+   },
+   "backfill": {
+    "default": 0,
+    "max": 0
+   },
+   "retention": {
+    "days": 7
+   },
+   "bounds": {
+    "pages": 9,
+    "items": 90,
+    "pollSeconds": 10
+   },
+   "rows": [
+    "github.repos.read"
+   ]
+  }
+ ]
+}

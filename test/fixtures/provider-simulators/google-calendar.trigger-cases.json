@@ -1,0 +1,16 @@
+{
+ "schemaVersion": 1,
+ "appId": "google-calendar",
+ "simulator": "test/fixtures/provider-simulators/google-calendar.mjs",
+ "tests": ["test/triggers-calendar.test.mjs"],
+ "cases": {
+  "new-event v1": ["baseline-silent", "one-then-zero", "crash-before-cursor", "background-never", "row-never-mid-poll", "malformed-cursor", "caps", "resync-gap", "pause-on-refusal"],
+  "event-changed v1": ["baseline-silent", "one-then-zero", "crash-before-cursor", "background-never", "row-never-mid-poll", "malformed-cursor", "caps", "resync-gap", "pause-on-refusal"],
+  "event-cancelled v1": ["baseline-silent", "one-then-zero", "crash-before-cursor", "background-never", "row-never-mid-poll", "malformed-cursor", "caps", "resync-gap", "pause-on-refusal"],
+  "invitation-needs-response v1": ["baseline-silent", "one-then-zero", "crash-before-cursor", "background-never", "row-never-mid-poll", "malformed-cursor", "caps", "resync-gap", "pause-on-refusal"],
+  "guest-responded v1": ["baseline-silent", "one-then-zero", "crash-before-cursor", "background-never", "row-never-mid-poll", "malformed-cursor", "caps", "resync-gap", "pause-on-refusal"],
+  "starting-soon v1": ["baseline-silent", "one-then-zero", "crash-before-cursor", "background-never", "row-never-mid-poll", "malformed-cursor", "caps", "resync-gap", "pause-on-refusal"],
+  "calendar-list-changed v1": ["baseline-silent", "one-then-zero", "crash-before-cursor", "background-never", "row-never-mid-poll", "malformed-cursor", "caps", "resync-gap", "pause-on-refusal"],
+  "calendar-sharing-changed v1": ["baseline-silent", "one-then-zero", "crash-before-cursor", "background-never", "row-never-mid-poll", "malformed-cursor", "caps", "resync-gap", "pause-on-refusal"]
+ }
+}

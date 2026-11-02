@@ -1,0 +1,1208 @@
+{
+ "schemaVersion": 1,
+ "appId": "notion",
+ "triggers": true,
+ "note": "Notion's trigger pass, T1 to T8 of docs/I07-BUILD-MAP.md section 8, on pages A and B, the recorded database and row 1, on the certification Fabric, run with --triggers --leave. What it makes stays, marked synthetic. Your two hand steps are the image of T3, before the watches, and the row of T8, last. T2 answers probe P1, T3 P9, T4 P5 in the two stamps it saves, T5 P7, T6 P8 and T7 P6, and every poll's `within` holds P2.",
+ "recorded": {
+  "pageA": "The id of page A, a top page whose title starts with [SYNTHETIC], shared with Fabric's integration.",
+  "pageB": "The id of page B, a second top page whose title starts with [SYNTHETIC], shared the same way.",
+  "database": "The id of the synthetic database under page A, shared the same way.",
+  "dataSource": "The id of that database's one data source, as Describe database lists it.",
+  "row1": "The id of the database's first row, whose Count is 1 before the run."
+ },
+ "readRows": [
+  "notion.content.read",
+  "notion.comments.read"
+ ],
+ "tests": [
+  {
+   "id": "TS",
+   "name": "Make the two pages the watches name, and put one image on page B",
+   "steps": [
+    {
+     "call": {
+      "action": "create-page@1",
+      "args": {
+       "parent": {
+        "$recorded": "pageA"
+       },
+       "title": {
+        "$text": "content page"
+       },
+       "content": {
+        "$text": "first line"
+       }
+      },
+      "save": {
+       "contentPage": "/id"
+      }
+     }
+    },
+    {
+     "call": {
+      "action": "create-page@1",
+      "args": {
+       "parent": {
+        "$recorded": "pageA"
+       },
+       "title": {
+        "$text": "trash page"
+       }
+      },
+      "save": {
+       "trashPage": "/id"
+      }
+     }
+    },
+    {
+     "owner": {
+      "words": "In Notion, add one small image to page B if it holds none, once, then press Enter. T3 reads that page twice, and a signed link that changes must not read as a change."
+     }
+    }
+   ],
+   "undo": {
+    "none": "The two pages stay under A, marked synthetic."
+   }
+  },
+  {
+   "id": "TW",
+   "name": "Watch six sources. Each baseline stores nothing",
+   "steps": [
+    {
+     "watch": {
+      "trigger": "new-row@1",
+      "args": {
+       "dataSourceId": {
+        "$recorded": "dataSource"
+       }
+      },
+      "save": {
+       "newRow": "/id"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "newRow"
+      },
+      "events": 0
+     }
+    },
+    {
+     "watch": {
+      "trigger": "page-content-changed@1",
+      "args": {
+       "pages": [
+        {
+         "$saved": "contentPage"
+        },
+        {
+         "$recorded": "pageB"
+        }
+       ]
+      },
+      "save": {
+       "content": "/id"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "content"
+      },
+      "events": 0
+     }
+    },
+    {
+     "watch": {
+      "trigger": "new-comment@1",
+      "args": {
+       "pages": [
+        {
+         "$recorded": "pageA"
+        }
+       ]
+      },
+      "save": {
+       "comments": "/id"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "comments"
+      },
+      "events": 0
+     }
+    },
+    {
+     "watch": {
+      "trigger": "trashed-or-restored@1",
+      "args": {
+       "pages": [
+        {
+         "$saved": "trashPage"
+        }
+       ]
+      },
+      "save": {
+       "trash": "/id"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "trash"
+      },
+      "events": 0
+     }
+    },
+    {
+     "watch": {
+      "trigger": "schema-changed@1",
+      "args": {
+       "dataSourceId": {
+        "$recorded": "dataSource"
+       }
+      },
+      "save": {
+       "schema": "/id"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "schema"
+      },
+      "events": 0
+     }
+    },
+    {
+     "watch": {
+      "trigger": "new-child-page@1",
+      "args": {
+       "pages": [
+        {
+         "$recorded": "pageA"
+        },
+        {
+         "$recorded": "pageB"
+        }
+       ]
+      },
+      "save": {
+       "children": "/id"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "children"
+      },
+      "events": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "T1",
+   "name": "A new row gives one event, a re-poll none, and an old row edited none after 90 seconds",
+   "steps": [
+    {
+     "call": {
+      "action": "add-row@1",
+      "args": {
+       "dataSource": {
+        "$recorded": "dataSource"
+       },
+       "values": {
+        "Name": {
+         "$text": "row"
+        },
+        "Stage": "Open",
+        "Count": 2
+       }
+      },
+      "save": {
+       "row": "/id"
+      },
+      "checks": [
+       {
+        "pointer": "/parentType",
+        "equals": "data_source_id"
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "newRow"
+      },
+      "events": 1,
+      "within": 120,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/pageId",
+        "equals": {
+         "$saved": "row"
+        }
+       },
+       {
+        "pointer": "/events/0/fields/title",
+        "equals": {
+         "$text": "row"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "newRow"
+      },
+      "events": 0,
+      "itemsRead": 1
+     }
+    },
+    {
+     "call": {
+      "action": "update-row@1",
+      "args": {
+       "page": {
+        "$recorded": "row1"
+       },
+       "values": {
+        "Count": 5
+       }
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "newRow"
+      },
+      "events": 0,
+      "within": 90
+     }
+    }
+   ],
+   "undo": {
+    "steps": [
+     {
+      "call": {
+       "action": "update-row@1",
+       "args": {
+        "page": {
+         "$recorded": "row1"
+        },
+        "values": {
+         "Count": 1
+        }
+       }
+      }
+     }
+    ]
+   }
+  },
+  {
+   "id": "TW2",
+   "name": "Watch row changes now, so T1's writes sit behind its baseline",
+   "steps": [
+    {
+     "watch": {
+      "trigger": "row-changed@1",
+      "args": {
+       "dataSourceId": {
+        "$recorded": "dataSource"
+       }
+      },
+      "save": {
+       "rows": "/id"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "rows"
+      },
+      "events": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "T2",
+   "name": "A row edited gives one event, a re-poll none, and the same-minute undo one more. This answers probe P1",
+   "steps": [
+    {
+     "call": {
+      "action": "update-row@1",
+      "args": {
+       "page": {
+        "$recorded": "row1"
+       },
+       "values": {
+        "Count": 7
+       }
+      },
+      "save": {
+       "edited": "/id"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "rows"
+      },
+      "events": 1,
+      "within": 120,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/pageId",
+        "equals": {
+         "$saved": "edited"
+        }
+       },
+       {
+        "pointer": "/events/0/fields/changeKind",
+        "equals": "edited"
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "rows"
+      },
+      "events": 0,
+      "itemsRead": 1
+     }
+    },
+    {
+     "call": {
+      "action": "update-row@1",
+      "args": {
+       "page": {
+        "$recorded": "row1"
+       },
+       "values": {
+        "Count": 1
+       }
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "rows"
+      },
+      "events": 1,
+      "within": 120,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/pageId",
+        "equals": {
+         "$saved": "edited"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "rows"
+      },
+      "events": 0,
+      "itemsRead": 1
+     }
+    }
+   ],
+   "undo": {
+    "none": "The test's last write puts Count back to 1."
+   }
+  },
+  {
+   "id": "T3",
+   "name": "Page text changed gives one event, the change undone one more, a rename none, and an image's signed link none. This answers probe P9",
+   "steps": [
+    {
+     "call": {
+      "action": "add-to-page@1",
+      "args": {
+       "page": {
+        "$saved": "contentPage"
+       },
+       "content": {
+        "$text": "marker"
+       }
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "content"
+      },
+      "events": 1,
+      "within": 120,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/pageId",
+        "equals": {
+         "$saved": "contentPage"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "content"
+      },
+      "events": 0,
+      "itemsRead": 1
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "content"
+      },
+      "events": 0,
+      "within": 30,
+      "itemsRead": 1
+     }
+    },
+    {
+     "call": {
+      "action": "edit-page-text@1",
+      "args": {
+       "page": {
+        "$saved": "contentPage"
+       },
+       "find": {
+        "$text": "marker"
+       },
+       "replace": ""
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "content"
+      },
+      "events": 1,
+      "within": 120,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/pageId",
+        "equals": {
+         "$saved": "contentPage"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "call": {
+      "action": "rename-page@1",
+      "args": {
+       "page": {
+        "$saved": "contentPage"
+       },
+       "title": {
+        "$text": "renamed"
+       }
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "content"
+      },
+      "events": 0,
+      "within": 60,
+      "itemsRead": 1
+     }
+    }
+   ],
+   "undo": {
+    "none": "The page stays under A, marked synthetic."
+   }
+  },
+  {
+   "id": "T4",
+   "name": "A comment gives one event and a reply one more. The two saved stamps answer probe P5",
+   "steps": [
+    {
+     "read": {
+      "path": "/v1/pages/{page}",
+      "params": {
+       "page": {
+        "$recorded": "pageA"
+       }
+      },
+      "save": {
+       "stampBefore": "/last_edited_time"
+      },
+      "checks": [
+       {
+        "status": 200
+       }
+      ]
+     }
+    },
+    {
+     "call": {
+      "action": "comment@1",
+      "args": {
+       "page": {
+        "$recorded": "pageA"
+       },
+       "text": {
+        "$text": "comment"
+       }
+      },
+      "save": {
+       "comment": "/id",
+       "discussion": "/discussionId"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "comments"
+      },
+      "events": 1,
+      "within": 120,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/commentId",
+        "equals": {
+         "$saved": "comment"
+        }
+       },
+       {
+        "pointer": "/events/0/fields/discussionId",
+        "equals": {
+         "$saved": "discussion"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "comments"
+      },
+      "events": 0,
+      "itemsRead": 1
+     }
+    },
+    {
+     "read": {
+      "path": "/v1/pages/{page}",
+      "params": {
+       "page": {
+        "$recorded": "pageA"
+       }
+      },
+      "save": {
+       "stampAfter": "/last_edited_time"
+      },
+      "checks": [
+       {
+        "status": 200
+       }
+      ]
+     }
+    },
+    {
+     "call": {
+      "action": "comment@1",
+      "args": {
+       "discussionId": {
+        "$saved": "discussion"
+       },
+       "text": {
+        "$text": "reply"
+       }
+      },
+      "save": {
+       "replied": "/id"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "comments"
+      },
+      "events": 1,
+      "within": 120,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/commentId",
+        "equals": {
+         "$saved": "replied"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "comments"
+      },
+      "events": 0,
+      "itemsRead": 2
+     }
+    }
+   ],
+   "undo": {
+    "none": "The comments stay on A, marked synthetic: deleting one takes the owner's one-time Ask, and a test leaves what it makes."
+   }
+  },
+  {
+   "id": "T5",
+   "name": "A rename gives no event, and trash, restore and trash give one each. This answers probe P7",
+   "steps": [
+    {
+     "call": {
+      "action": "rename-page@1",
+      "args": {
+       "page": {
+        "$saved": "trashPage"
+       },
+       "title": {
+        "$text": "renamed"
+       }
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "trash"
+      },
+      "events": 0,
+      "within": 60,
+      "itemsRead": 1
+     }
+    },
+    {
+     "call": {
+      "action": "trash-page@1",
+      "args": {
+       "page": {
+        "$saved": "trashPage"
+       }
+      },
+      "checks": [
+       {
+        "pointer": "/inTrash",
+        "equals": true
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "trash"
+      },
+      "events": 1,
+      "within": 120,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/inTrash",
+        "equals": true
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "trash"
+      },
+      "events": 0,
+      "itemsRead": 1
+     }
+    },
+    {
+     "call": {
+      "action": "restore-page@1",
+      "args": {
+       "page": {
+        "$saved": "trashPage"
+       }
+      },
+      "checks": [
+       {
+        "pointer": "/inTrash",
+        "equals": false
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "trash"
+      },
+      "events": 1,
+      "within": 120,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/inTrash",
+        "equals": false
+       }
+      ]
+     }
+    },
+    {
+     "call": {
+      "action": "trash-page@1",
+      "args": {
+       "page": {
+        "$saved": "trashPage"
+       }
+      },
+      "checks": [
+       {
+        "pointer": "/inTrash",
+        "equals": true
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "trash"
+      },
+      "events": 1,
+      "within": 120,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/inTrash",
+        "equals": true
+       }
+      ]
+     }
+    }
+   ],
+   "undo": {
+    "none": "The page stays in Notion's trash, which you may empty by hand or leave."
+   }
+  },
+  {
+   "id": "T6",
+   "name": "A column added gives one event, its removal one more, and the schema ends as it started. This answers probe P8",
+   "steps": [
+    {
+     "call": {
+      "action": "describe-database@1",
+      "args": {
+       "database": {
+        "$recorded": "database"
+       }
+      },
+      "save": {
+       "columns": "/dataSources/0/properties",
+       "sourceId": "/dataSources/0/id"
+      },
+      "checks": [
+       {
+        "pointer": "/dataSources",
+        "count": 1
+       }
+      ]
+     }
+    },
+    {
+     "ask": {
+      "row": "notion.content.edit",
+      "requests": [
+       {
+        "method": "PATCH",
+        "path": "/v1/data_sources/{source}",
+        "params": {
+         "source": {
+          "$recorded": "dataSource"
+         }
+        },
+        "body": {
+         "properties": {
+          "[SYNTHETIC] Fabric trigger probe": {
+           "rich_text": {}
+          }
+         }
+        }
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "schema"
+      },
+      "events": 1,
+      "within": 120,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/dataSourceId",
+        "equals": {
+         "$saved": "sourceId"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "schema"
+      },
+      "events": 0,
+      "itemsRead": 1
+     }
+    },
+    {
+     "ask": {
+      "row": "notion.content.edit",
+      "requests": [
+       {
+        "method": "PATCH",
+        "path": "/v1/data_sources/{source}",
+        "params": {
+         "source": {
+          "$recorded": "dataSource"
+         }
+        },
+        "body": {
+         "properties": {
+          "[SYNTHETIC] Fabric trigger probe": null
+         }
+        }
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "schema"
+      },
+      "events": 1,
+      "within": 120,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/dataSourceId",
+        "equals": {
+         "$saved": "sourceId"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "schema"
+      },
+      "events": 0,
+      "itemsRead": 1
+     }
+    },
+    {
+     "call": {
+      "action": "describe-database@1",
+      "args": {
+       "database": {
+        "$recorded": "database"
+       }
+      },
+      "checks": [
+       {
+        "pointer": "/dataSources/0/properties",
+        "equals": {
+         "$saved": "columns"
+        }
+       }
+      ]
+     }
+    }
+   ],
+   "undo": {
+    "none": "The test's last write takes its own column away."
+   }
+  },
+  {
+   "id": "T7",
+   "name": "A child page gives one event, and on B one more when it moves there, and no other change gives any. This answers probe P6",
+   "steps": [
+    {
+     "read": {
+      "path": "/v1/pages/{page}",
+      "params": {
+       "page": {
+        "$recorded": "pageA"
+       }
+      },
+      "save": {
+       "idOfA": "/id"
+      },
+      "checks": [
+       {
+        "pointer": "/object",
+        "equals": "page"
+       }
+      ]
+     }
+    },
+    {
+     "read": {
+      "path": "/v1/pages/{page}",
+      "params": {
+       "page": {
+        "$recorded": "pageB"
+       }
+      },
+      "save": {
+       "idOfB": "/id"
+      },
+      "checks": [
+       {
+        "pointer": "/object",
+        "equals": "page"
+       }
+      ]
+     }
+    },
+    {
+     "call": {
+      "action": "create-page@1",
+      "args": {
+       "parent": {
+        "$recorded": "pageA"
+       },
+       "title": {
+        "$text": "child"
+       }
+      },
+      "save": {
+       "child": "/id"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "children"
+      },
+      "events": 1,
+      "within": 120,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/pageId",
+        "equals": {
+         "$saved": "child"
+        }
+       },
+       {
+        "pointer": "/events/0/fields/parentPageId",
+        "equals": {
+         "$saved": "idOfA"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "children"
+      },
+      "events": 0,
+      "itemsRead": 1
+     }
+    },
+    {
+     "call": {
+      "action": "rename-page@1",
+      "args": {
+       "page": {
+        "$saved": "child"
+       },
+       "title": {
+        "$text": "child renamed"
+       }
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "children"
+      },
+      "events": 0,
+      "within": 30,
+      "itemsRead": 1
+     }
+    },
+    {
+     "call": {
+      "action": "move-page@1",
+      "args": {
+       "page": {
+        "$saved": "child"
+       },
+       "to": {
+        "$recorded": "pageB"
+       }
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "children"
+      },
+      "events": 1,
+      "within": 120,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/pageId",
+        "equals": {
+         "$saved": "child"
+        }
+       },
+       {
+        "pointer": "/events/0/fields/parentPageId",
+        "equals": {
+         "$saved": "idOfB"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "call": {
+      "action": "move-page@1",
+      "args": {
+       "page": {
+        "$saved": "child"
+       },
+       "to": {
+        "$recorded": "pageA"
+       }
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "children"
+      },
+      "events": 0,
+      "within": 30
+     }
+    },
+    {
+     "call": {
+      "action": "trash-page@1",
+      "args": {
+       "page": {
+        "$saved": "child"
+       }
+      }
+     }
+    },
+    {
+     "call": {
+      "action": "restore-page@1",
+      "args": {
+       "page": {
+        "$saved": "child"
+       }
+      }
+     }
+    },
+    {
+     "call": {
+      "action": "trash-page@1",
+      "args": {
+       "page": {
+        "$saved": "child"
+       }
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "children"
+      },
+      "events": 0,
+      "within": 30
+     }
+    }
+   ],
+   "undo": {
+    "none": "The page stays in Notion's trash, which you may empty by hand or leave."
+   }
+  },
+  {
+   "id": "T8",
+   "name": "Access comments at Never pauses the watch, with no call to Notion",
+   "steps": [
+    {
+     "owner": {
+      "words": "On the Notion page of this Fabric, set Access comments to Never, then press Enter. Set it back to Allow when the run ends."
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "comments"
+      },
+      "paused": "permission_changed"
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "comments"
+      },
+      "paused": "permission_changed"
+     }
+    }
+   ],
+   "undo": {
+    "none": "The test changes one row by your hand, and you put it back."
+   }
+  }
+ ]
+}

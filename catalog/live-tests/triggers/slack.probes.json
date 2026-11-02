@@ -1,0 +1,374 @@
+{
+ "schemaVersion": 1,
+ "appId": "slack",
+ "probes": true,
+ "note": "Read probes P1 to P5 and P7 of docs/I07-BUILD-MAP.md section 6, run before the Slack simulator grows in step 4. P6 needs a real mention, so it runs with TR3. Each test is one question: yes means its checks hold. Answers go in section 12 by hand.",
+ "recorded": {
+  "fabricTest": "The id of #fabric-test (C followed by letters and digits).",
+  "selfDm": "The id of your direct message with yourself (D followed by letters and digits). It must hold under 200 messages.",
+  "ownerUser": "Your own Slack member id (U or W followed by letters and digits).",
+  "synthetic1": "The ts of the first synthetic message in #fabric-test, whose thread holds a reply.",
+  "beforeSynthetic1": "That ts less one second, such as 1761489999.000100 for 1761490000.000100.",
+  "latestReply": "The ts of the last reply in that thread.",
+  "reacted": "The ts of a message in #fabric-test with exactly one reaction, from one person.",
+  "closedDm": "The id of a direct message you have closed (D followed by letters and digits)."
+ },
+ "readRows": [
+  "slack.messages.read",
+  "slack.channels.read"
+ ],
+ "tests": [
+  {
+   "id": "P1",
+   "name": "Does a window with oldest set give its oldest message first? No means newest first, as the method page says.",
+   "steps": [
+    {
+     "read": {
+      "path": "/conversations.history",
+      "query": {
+       "channel": {
+        "$recorded": "fabricTest"
+       },
+       "limit": "1",
+       "oldest": {
+        "$recorded": "beforeSynthetic1"
+       }
+      },
+      "checks": [
+       {
+        "status": 200
+       },
+       {
+        "pointer": "/ok",
+        "equals": true
+       },
+       {
+        "pointer": "/messages/0/ts",
+        "equals": {
+         "$recorded": "synthetic1"
+        }
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "P2",
+   "name": "Does the parent come back when oldest is past it?",
+   "steps": [
+    {
+     "read": {
+      "path": "/conversations.replies",
+      "query": {
+       "channel": {
+        "$recorded": "fabricTest"
+       },
+       "ts": {
+        "$recorded": "synthetic1"
+       },
+       "limit": "5",
+       "oldest": {
+        "$recorded": "latestReply"
+       }
+      },
+      "checks": [
+       {
+        "status": 200
+       },
+       {
+        "pointer": "/ok",
+        "equals": true
+       },
+       {
+        "pointer": "/messages/0/ts",
+        "equals": {
+         "$recorded": "synthetic1"
+        }
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "P3",
+   "name": "Is latest_reply on the parent?",
+   "steps": [
+    {
+     "read": {
+      "path": "/conversations.replies",
+      "query": {
+       "channel": {
+        "$recorded": "fabricTest"
+       },
+       "ts": {
+        "$recorded": "synthetic1"
+       },
+       "limit": "1"
+      },
+      "checks": [
+       {
+        "status": 200
+       },
+       {
+        "pointer": "/ok",
+        "equals": true
+       },
+       {
+        "pointer": "/messages/0/latest_reply",
+        "equals": {
+         "$recorded": "latestReply"
+        }
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "P4-meta",
+   "name": "On a last page, is next_cursor present and empty?",
+   "steps": [
+    {
+     "read": {
+      "path": "/conversations.history",
+      "query": {
+       "channel": {
+        "$recorded": "selfDm"
+       },
+       "limit": "200"
+      },
+      "checks": [
+       {
+        "status": 200
+       },
+       {
+        "pointer": "/ok",
+        "equals": true
+       },
+       {
+        "pointer": "/response_metadata/next_cursor",
+        "equals": ""
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "P4-more",
+   "name": "On a last page, is has_more false?",
+   "steps": [
+    {
+     "read": {
+      "path": "/conversations.history",
+      "query": {
+       "channel": {
+        "$recorded": "selfDm"
+       },
+       "limit": "200"
+      },
+      "checks": [
+       {
+        "status": 200
+       },
+       {
+        "pointer": "/ok",
+        "equals": true
+       },
+       {
+        "pointer": "/has_more",
+        "equals": false
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "P5-replies",
+   "name": "Does history list a plain thread reply? The blocks expect no.",
+   "steps": [
+    {
+     "read": {
+      "path": "/conversations.history",
+      "query": {
+       "channel": {
+        "$recorded": "fabricTest"
+       },
+       "limit": "100"
+      },
+      "checks": [
+       {
+        "status": 200
+       },
+       {
+        "pointer": "/ok",
+        "equals": true
+       },
+       {
+        "pointer": "/messages",
+        "where": {
+         "/ts": {
+          "$recorded": "latestReply"
+         }
+        },
+        "field": "/ts",
+        "equals": {
+         "$recorded": "latestReply"
+        }
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "P5-parent",
+   "name": "Does history show the parent with its own ts as thread_ts?",
+   "steps": [
+    {
+     "read": {
+      "path": "/conversations.history",
+      "query": {
+       "channel": {
+        "$recorded": "fabricTest"
+       },
+       "limit": "100"
+      },
+      "checks": [
+       {
+        "status": 200
+       },
+       {
+        "pointer": "/ok",
+        "equals": true
+       },
+       {
+        "pointer": "/messages",
+        "where": {
+         "/ts": {
+          "$recorded": "synthetic1"
+         }
+        },
+        "field": "/thread_ts",
+        "equals": {
+         "$recorded": "synthetic1"
+        }
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "P5-reactions",
+   "name": "Do reactions read as a list of name, count and users, with a count of 1 here?",
+   "steps": [
+    {
+     "read": {
+      "path": "/conversations.history",
+      "query": {
+       "channel": {
+        "$recorded": "fabricTest"
+       },
+       "limit": "100"
+      },
+      "checks": [
+       {
+        "status": 200
+       },
+       {
+        "pointer": "/ok",
+        "equals": true
+       },
+       {
+        "pointer": "/messages",
+        "where": {
+         "/ts": {
+          "$recorded": "reacted"
+         }
+        },
+        "field": "/reactions/0/count",
+        "equals": 1
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "P7-self",
+   "name": "Does users.conversations list the self-DM, with you as its user?",
+   "steps": [
+    {
+     "read": {
+      "path": "/users.conversations",
+      "query": {
+       "types": "im",
+       "limit": "100"
+      },
+      "checks": [
+       {
+        "status": 200
+       },
+       {
+        "pointer": "/ok",
+        "equals": true
+       },
+       {
+        "pointer": "/channels",
+        "where": {
+         "/id": {
+          "$recorded": "selfDm"
+         }
+        },
+        "field": "/user",
+        "equals": {
+         "$recorded": "ownerUser"
+        }
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "P7-closed",
+   "name": "Does users.conversations list a closed direct message?",
+   "steps": [
+    {
+     "read": {
+      "path": "/users.conversations",
+      "query": {
+       "types": "im",
+       "limit": "100"
+      },
+      "checks": [
+       {
+        "status": 200
+       },
+       {
+        "pointer": "/ok",
+        "equals": true
+       },
+       {
+        "pointer": "/channels",
+        "where": {
+         "/id": {
+          "$recorded": "closedDm"
+         }
+        },
+        "field": "/id",
+        "equals": {
+         "$recorded": "closedDm"
+        }
+       }
+      ]
+     }
+    }
+   ]
+  }
+ ]
+}

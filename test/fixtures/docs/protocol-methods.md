@@ -1,0 +1,10 @@
+| `fabric.discover` |
+| `capabilities.list` |
+| `calls.create` |
+| `calls.get` |
+| `calls.cancel` |
+| `proxy.request` |
+| `triggers.list` |
+| `triggers.subscribe` |
+| `events.list` |
+| `triggers.unsubscribe` |

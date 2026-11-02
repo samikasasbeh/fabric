@@ -1,0 +1,15 @@
+{
+ "schemaVersion": 1,
+ "appId": "github",
+ "simulator": "test/fixtures/provider-simulators/github.mjs",
+ "tests": ["test/triggers-github.test.mjs", "test/triggers-github-walk.test.mjs"],
+ "cases": {
+  "issue-changed v1": ["baseline-silent", "one-then-zero", "crash-before-cursor", "background-never", "row-never-mid-poll", "malformed-cursor", "caps", "pause-on-refusal"],
+  "comment-changed v1": ["baseline-silent", "one-then-zero", "crash-before-cursor", "background-never", "row-never-mid-poll", "malformed-cursor", "caps", "pause-on-refusal"],
+  "pull-changed v1": ["baseline-silent", "one-then-zero", "crash-before-cursor", "background-never", "row-never-mid-poll", "malformed-cursor", "caps", "pause-on-refusal"],
+  "push v1": ["baseline-silent", "one-then-zero", "crash-before-cursor", "background-never", "row-never-mid-poll", "malformed-cursor", "caps", "resync-gap", "pause-on-refusal"],
+  "workflow-run-finished v1": ["baseline-silent", "one-then-zero", "crash-before-cursor", "background-never", "row-never-mid-poll", "malformed-cursor", "caps", "resync-gap", "pause-on-refusal"],
+  "notification v1": ["baseline-silent", "one-then-zero", "crash-before-cursor", "background-never", "row-never-mid-poll", "malformed-cursor", "caps", "pause-on-refusal"],
+  "release-published v1": ["baseline-silent", "one-then-zero", "crash-before-cursor", "background-never", "row-never-mid-poll", "malformed-cursor", "caps", "resync-gap", "pause-on-refusal"]
+ }
+}

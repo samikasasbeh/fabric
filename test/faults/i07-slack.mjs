@@ -1,0 +1,50 @@
+// Iteration 9 step 4 (docs/I07-BUILD-MAP.md step 4): Slack's seeded faults, in the format of test/faults/registry.mjs. `from` is copied exactly from the current file and occurs there once; `to` is the
+// faulty replacement the named tests must catch. The five after the table's ten guard what the step found in the engine, and the last what the merge found (docs/I07-BUILD-MAP.md section 12). Data only: nothing here reads or changes a file.
+const STEP = 'I07';
+const FILE = 'catalog/triggers/slack.json', RULES = 'lib/trigger-rules.mjs', GATE = 'lib/trigger-gate.mjs', RUNTIME = 'lib/trigger-runtime.mjs', REACTIONS = 'lib/transforms/collections/slackReactions.v1.mjs';
+const SIM = 'test/fixtures/provider-simulators/slack.mjs', TESTS = ['test/triggers-slack.test.mjs'], SIM_TESTS = ['test/provider-simulator-slack.test.mjs'];
+
+export const FAULTS = Object.freeze([
+  {id: 'i07-slack-reactions-cap', step: STEP, name: 'The transform drops `count` and reads the length of `users`, which Slack cuts short.',
+    file: REACTIONS, from: 'items.push({name: reaction.name, count: reaction.count, parent});', to: 'items.push({name: reaction.name, count: reaction.users?.length ?? 0, parent});', tests: [...TESTS, 'test/transforms-collections.test.mjs']},
+  {id: 'i07-slack-id', step: STEP, name: 'A key is `ts` alone, which is unique only within one conversation.',
+    file: FILE, from: '"itemId": {\n     "concat": [\n      {\n       "var": "conversation"\n      },\n      {\n       "const": ":"\n      },\n      {\n       "item": "/ts"\n      }\n     ],\n     "max": 64\n    },', to: '"itemId": {\n     "item": "/ts"\n    },',
+    also: [{from: '"id": {\n     "concat": [\n      {\n       "var": "conversation"\n      },\n      {\n       "const": ":"\n      },\n      {\n       "item": "/ts"\n      }\n     ],\n     "max": 64\n    },', to: '"id": {\n     "item": "/ts"\n    },'}], tests: TESTS},
+  {id: 'i07-slack-channel-check', step: STEP, name: 'A conversation id that does not fit passes at subscribe.',
+    file: RULES, from: "return ids.every(id => shape.test(id)) ? null : refusal('channel_id');", to: 'return null;', tests: TESTS},
+  {id: 'i07-slack-distributed', step: STEP, name: 'No refusal at subscribe under a distributed install.',
+    file: RULES, from: "if (slackDistribution === 'distributed' && SLACK_HISTORY_TRIGGERS.includes(`slack.${key}`)) return refusal('distributed');", to: '', tests: TESTS},
+  {id: 'i07-slack-distributed-gate', step: STEP, name: 'A running watch is not held by the gate under a distributed install.',
+    file: GATE, from: "if (SLACK_HISTORY_TRIGGERS.includes(`${item.appId}.${item.entry.key}`) && runtime.slackDistribution === 'distributed') return pause('provider_refused', 'distributed');", to: '', tests: TESTS},
+  {id: 'i07-slack-file-subtype', step: STEP, name: '`file-shared` reads `subtype`, not `files`.',
+    file: FILE, from: '"nonEmpty": {\n      "item": "/files"\n     }', to: '"equals": [\n      {\n       "item": "/subtype"\n      },\n      {\n       "const": "file_share"\n      }\n     ]', tests: TESTS},
+  {id: 'i07-slack-query-id', step: STEP, name: 'An unchecked id reaches the search query.',
+    file: RULES, from: ': args.channels ?? [], shape: SLACK_CHANNEL};', to: ": key === 'mention-search' ? [] : args.channels ?? [], shape: SLACK_CHANNEL};", tests: TESTS},
+  {id: 'i07-sim-slack-subtype', step: STEP, name: 'The simulator leaves a message\'s subtype out of what it lists.',
+    file: SIM, from: '...(message.subtype ? {subtype: message.subtype} : {}), ', to: '', tests: SIM_TESTS},
+  {id: 'i07-sim-slack-private', step: STEP, name: 'The simulator reads privacy from the first letter of an id.',
+    file: SIM, from: "const typeOf = channel => channel.is_im ? 'im' : channel.is_mpim ? 'mpim' : channel.is_private ? 'group' : 'channel';", to: "const typeOf = channel => ({C: 'channel', G: 'group', D: 'im'})[channel.id[0]];", tests: SIM_TESTS},
+  {id: 'i07-sim-slack-imports', step: STEP, name: 'The simulator imports the rules it is meant to check.',
+    file: SIM, from: "import {Buffer} from 'node:buffer';", to: "import {Buffer} from 'node:buffer';\nimport {PAUSE_ERRORS} from '../../../lib/trigger-rules.mjs';", tests: SIM_TESTS},
+  // Found while building step 4, and fixed in lib/trigger-runtime.mjs.
+  {id: 'i07-slack-window-full', step: STEP, name: 'A one-page window filled with new items loses what lies behind it, with no gap.',
+    file: RUNTIME, from: 'if (state.snapshot && (cut === \'bounds\' || filled)) {', to: 'if (state.snapshot && cut === \'bounds\') {', tests: TESTS},
+  {id: 'i07-slack-window-paged', step: STEP, name: 'A paged window that ends at its bound reads as if more lay behind it.',
+    file: RUNTIME, from: 'const filled = cut === null && Boolean(state.window) && state.pollStep.page === undefined && state.items >= state.bounds.items;', to: 'const filled = cut === null && Boolean(state.window) && state.items >= state.bounds.items;', tests: ['test/trigger-engine.test.mjs']},
+  {id: 'i07-slack-bound-once', step: STEP, name: 'A burst larger than a walk, inside the overlap, repeats its gap at every poll.',
+    file: RUNTIME, from: "if (!silent && (state.newKey || next !== stored || (poll.order !== 'desc' && (state.feed.unreadTo ?? null) === null))) { noteGap(state, 'bound'); out.unreadTo = state.now; }", to: "if (!silent) { noteGap(state, 'bound'); out.unreadTo = state.now; }", tests: TESTS},
+  {id: 'i07-slack-bound-notices', step: STEP, name: 'A walk of filtered notices stops past a real message with no gap.',
+    file: RUNTIME, from: "if (!silent && (state.newKey || next !== stored || (poll.order !== 'desc' && (state.feed.unreadTo ?? null) === null))) { noteGap(state, 'bound'); out.unreadTo = state.now; }", to: "if (!silent && (state.newKey || (poll.order !== 'desc' && (state.feed.unreadTo ?? null) === null))) { noteGap(state, 'bound'); out.unreadTo = state.now; }", tests: TESTS},
+  {id: 'i07-slack-bound-unordered', step: STEP, name: 'An unordered list stopped by its bounds drops its gap, though a new item can sit past the bound.',
+    file: RUNTIME, from: "if (!silent && (state.newKey || next !== stored || (poll.order !== 'desc' && (state.feed.unreadTo ?? null) === null))) { noteGap(state, 'bound'); out.unreadTo = state.now; }", to: "if (!silent && (state.newKey || next !== stored)) { noteGap(state, 'bound'); out.unreadTo = state.now; }", tests: ['test/trigger-runtime.test.mjs']},
+  {id: 'i07-slack-short-pages', step: STEP, name: 'A short page spends a walk\'s page, so one channel behind empty pages pauses as too much, and a small burst brings a gap.',
+    file: RUNTIME, from: 'if (!shortPage(state, step, state.steps.get(step.id).data)) state.fullPages++;', to: 'state.fullPages++;', tests: TESTS},
+  {id: 'i07-sim-slack-unreact', step: STEP, name: 'The last reactor leaves a count of zero Slack never sends, which hides that a return compares equal.',
+    file: SIM, from: 'reaction.users = reaction.users.filter(item => item !== user);\n    if (!reaction.users.length) message.reactions.splice(message.reactions.indexOf(reaction), 1);', to: 'reaction.users = reaction.users.filter(item => item !== user);', tests: SIM_TESTS},
+  {id: 'i07-sim-slack-short', step: STEP, name: 'Every page is filled to its limit, so a short page is never tried.',
+    file: SIM, from: 'const end = Math.min(limit === null ? list.length : start + limit, short === undefined ? Infinity : start + short);', to: 'const end = limit === null ? list.length : start + limit;', tests: SIM_TESTS},
+  {id: 'i07-sim-slack-broadcast', step: STEP, name: 'A broadcast reply holds parent_user_id, which Slack\'s page does not list, so a filter that leans on it reads as proven.',
+    file: SIM, from: "...(message.subtype === 'thread_broadcast' ? {} : {parent_user_id: parent.user})", to: 'parent_user_id: parent.user', tests: SIM_TESTS},
+  {id: 'i07-slack-reactions-filled', step: STEP, name: 'A full read of a list with no paging counts as a walk cut by its bound, so each new reaction on a busy channel brings a gap.',
+    file: RUNTIME, from: "else if (cut === 'bounds' && poll.order === 'unordered' && state.lenses.some(lens => lens.firedAtEnd)) {", to: "else if (poll.order === 'unordered' && state.lenses.some(lens => lens.firedAtEnd)) {", tests: TESTS},
+]);

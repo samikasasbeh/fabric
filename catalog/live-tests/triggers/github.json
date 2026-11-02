@@ -1,0 +1,978 @@
+{
+ "schemaVersion": 1,
+ "appId": "github",
+ "triggers": true,
+ "note": "GitHub's trigger pass, TH1 to TH9 of docs/I07-BUILD-MAP.md section 8, on samikasasbeh/fabric-sandbox-test and this run's branches, on the certification Fabric, run with --triggers --leave. What it makes stays there, marked synthetic. Your one hand step is the notification setting, first. TH4 answers probes 4 and 5, TH5 how long /activity takes to list a change, and TH7 probe 9 and the wait GitHub names. TH6 and TH8 save the newest run and release, which answers the first half of probe 7. Probes 1 to 3 run first through github.probes.json.",
+ "recorded": {},
+ "readRows": [
+  "github.issues.read",
+  "github.repos.read",
+  "github.profile.read"
+ ],
+ "tests": [
+  {
+   "id": "TS",
+   "name": "Have GitHub tell you of workflow runs",
+   "steps": [
+    {
+     "owner": {
+      "words": "In GitHub, open Settings, Notifications, System, Actions, and turn on On GitHub for every run, not only failed ones, once, then press Enter."
+     }
+    }
+   ]
+  },
+  {
+   "id": "TW",
+   "name": "Watch all seven sources. Each baseline stores nothing",
+   "steps": [
+    {
+     "watch": {
+      "trigger": "issue-changed@1",
+      "args": {
+       "repository": "samikasasbeh/fabric-sandbox-test"
+      },
+      "save": {
+       "issues": "/id"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "issues"
+      },
+      "events": 0
+     }
+    },
+    {
+     "watch": {
+      "trigger": "comment-changed@1",
+      "args": {
+       "repository": "samikasasbeh/fabric-sandbox-test"
+      },
+      "save": {
+       "comments": "/id"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "comments"
+      },
+      "events": 0
+     }
+    },
+    {
+     "watch": {
+      "trigger": "pull-changed@1",
+      "args": {
+       "repository": "samikasasbeh/fabric-sandbox-test"
+      },
+      "save": {
+       "pulls": "/id"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "pulls"
+      },
+      "events": 0
+     }
+    },
+    {
+     "watch": {
+      "trigger": "push@1",
+      "args": {
+       "repository": "samikasasbeh/fabric-sandbox-test"
+      },
+      "save": {
+       "pushes": "/id"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "pushes"
+      },
+      "events": 0
+     }
+    },
+    {
+     "watch": {
+      "trigger": "workflow-run-finished@1",
+      "args": {
+       "repository": "samikasasbeh/fabric-sandbox-test"
+      },
+      "save": {
+       "runs": "/id"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "runs"
+      },
+      "events": 0
+     }
+    },
+    {
+     "watch": {
+      "trigger": "notification@1",
+      "args": {},
+      "save": {
+       "threads": "/id"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "threads"
+      },
+      "events": 0,
+      "where": {
+       "/fields/repository": "samikasasbeh/fabric-sandbox-test"
+      }
+     }
+    },
+    {
+     "watch": {
+      "trigger": "release-published@1",
+      "args": {
+       "repository": "samikasasbeh/fabric-sandbox-test"
+      },
+      "save": {
+       "releases": "/id"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "releases"
+      },
+      "events": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "TH2",
+   "name": "An issue opened gives one event and its close one more, and the last of two re-polls is a 304",
+   "steps": [
+    {
+     "call": {
+      "action": "create-issue@1",
+      "args": {
+       "repository": "samikasasbeh/fabric-sandbox-test",
+       "title": {
+        "$text": "issue"
+       }
+      },
+      "save": {
+       "issue": "/number"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "issues"
+      },
+      "events": 1,
+      "within": 120,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/number",
+        "equals": {
+         "$saved": "issue"
+        }
+       },
+       {
+        "pointer": "/events/0/fields/state",
+        "equals": "open"
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "issues"
+      },
+      "events": 0
+     }
+    },
+    {
+     "call": {
+      "action": "update-issue@1",
+      "args": {
+       "repository": "samikasasbeh/fabric-sandbox-test",
+       "number": {
+        "$saved": "issue"
+       },
+       "state": "closed",
+       "closeAs": "not_planned"
+      },
+      "checks": [
+       {
+        "pointer": "/state",
+        "equals": "closed"
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "issues"
+      },
+      "events": 1,
+      "within": 120,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/state",
+        "equals": "closed"
+       },
+       {
+        "pointer": "/events/0/fields/stateReason",
+        "equals": "not_planned"
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "issues"
+      },
+      "events": 0
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "issues"
+      },
+      "events": 0,
+      "checks": [
+       {
+        "status": 304
+       }
+      ]
+     }
+    }
+   ],
+   "undo": {
+    "none": "The issue stays closed in the sandbox, marked synthetic."
+   }
+  },
+  {
+   "id": "TH3",
+   "name": "A comment gives one event, and one on its issue",
+   "steps": [
+    {
+     "call": {
+      "action": "comment@1",
+      "args": {
+       "repository": "samikasasbeh/fabric-sandbox-test",
+       "number": {
+        "$saved": "issue"
+       },
+       "body": {
+        "$text": "comment"
+       }
+      },
+      "save": {
+       "comment": "/id"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "comments"
+      },
+      "events": 1,
+      "within": 120,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/commentId",
+        "equals": {
+         "$saved": "comment"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "comments"
+      },
+      "events": 0
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "issues"
+      },
+      "events": 1,
+      "within": 120,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/number",
+        "equals": {
+         "$saved": "issue"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "issues"
+      },
+      "events": 0
+     }
+    }
+   ],
+   "undo": {
+    "none": "The comment stays, marked synthetic: deleting one takes the owner's one-time Ask, and a test leaves what it makes."
+   }
+  },
+  {
+   "id": "TH5",
+   "name": "A branch made, a push and a branch deleted give one event each. This reads how long /activity takes",
+   "steps": [
+    {
+     "call": {
+      "action": "create-branch@1",
+      "args": {
+       "repository": "samikasasbeh/fabric-sandbox-test",
+       "name": {
+        "$branch": "push"
+       },
+       "from": "main"
+      },
+      "checks": [
+       {
+        "pointer": "/sha",
+        "present": true
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "pushes"
+      },
+      "events": 1,
+      "within": 300,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/activityType",
+        "equals": "branch_creation"
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "pushes"
+      },
+      "events": 0
+     }
+    },
+    {
+     "call": {
+      "action": "put-file@1",
+      "args": {
+       "repository": "samikasasbeh/fabric-sandbox-test",
+       "path": "fabric-live/th5.md",
+       "branch": {
+        "$branch": "push"
+       },
+       "message": {
+        "$text": "add a file"
+       },
+       "content": {
+        "$text": "file"
+       }
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "pushes"
+      },
+      "events": 1,
+      "within": 300,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/activityType",
+        "equals": "push"
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "pushes"
+      },
+      "events": 0
+     }
+    },
+    {
+     "ask": {
+      "row": "github.code.write",
+      "requests": [
+       {
+        "method": "DELETE",
+        "path": "/repos/samikasasbeh/fabric-sandbox-test/git/refs/heads/{+branch}",
+        "params": {
+         "branch": {
+          "$branch": "push"
+         }
+        }
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "pushes"
+      },
+      "events": 1,
+      "within": 300,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/activityType",
+        "equals": "branch_deletion"
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "pushes"
+      },
+      "events": 0
+     }
+    }
+   ],
+   "undo": {
+    "none": "The test's last write deletes its own branch, and its commit stays in GitHub's record."
+   }
+  },
+  {
+   "id": "TH4",
+   "name": "A draft pull gives one event and no issue event, and a head push and a review give one each. These answer probes 4 and 5",
+   "steps": [
+    {
+     "call": {
+      "action": "create-branch@1",
+      "args": {
+       "repository": "samikasasbeh/fabric-sandbox-test",
+       "name": {
+        "$branch": "pull"
+       },
+       "from": "main"
+      },
+      "checks": [
+       {
+        "pointer": "/sha",
+        "present": true
+       }
+      ]
+     }
+    },
+    {
+     "call": {
+      "action": "put-file@1",
+      "args": {
+       "repository": "samikasasbeh/fabric-sandbox-test",
+       "path": "fabric-live/th4.md",
+       "branch": {
+        "$branch": "pull"
+       },
+       "message": {
+        "$text": "add a file"
+       },
+       "content": {
+        "$text": "file"
+       }
+      }
+     }
+    },
+    {
+     "call": {
+      "action": "open-pull@1",
+      "args": {
+       "repository": "samikasasbeh/fabric-sandbox-test",
+       "title": {
+        "$text": "draft"
+       },
+       "head": {
+        "$branch": "pull"
+       },
+       "base": "main",
+       "draft": true
+      },
+      "save": {
+       "pull": "/number"
+      },
+      "checks": [
+       {
+        "pointer": "/draft",
+        "equals": true
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "pulls"
+      },
+      "events": 1,
+      "within": 120,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/number",
+        "equals": {
+         "$saved": "pull"
+        }
+       },
+       {
+        "pointer": "/events/0/fields/draft",
+        "equals": true
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "pulls"
+      },
+      "events": 0
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "issues"
+      },
+      "events": 0
+     }
+    },
+    {
+     "call": {
+      "action": "put-file@1",
+      "args": {
+       "repository": "samikasasbeh/fabric-sandbox-test",
+       "path": "fabric-live/th4b.md",
+       "branch": {
+        "$branch": "pull"
+       },
+       "message": {
+        "$text": "add a second file"
+       },
+       "content": {
+        "$text": "second file"
+       }
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "pulls"
+      },
+      "events": 1,
+      "within": 120,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/number",
+        "equals": {
+         "$saved": "pull"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "call": {
+      "action": "submit-review@1",
+      "args": {
+       "repository": "samikasasbeh/fabric-sandbox-test",
+       "number": {
+        "$saved": "pull"
+       },
+       "event": "COMMENT",
+       "body": {
+        "$text": "review"
+       }
+      },
+      "checks": [
+       {
+        "pointer": "/state",
+        "equals": "COMMENTED"
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "pulls"
+      },
+      "events": 1,
+      "within": 120,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/number",
+        "equals": {
+         "$saved": "pull"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "pulls"
+      },
+      "events": 0
+     }
+    }
+   ],
+   "undo": {
+    "none": "The pull stays open as a draft on this run's branch, marked synthetic."
+   }
+  },
+  {
+   "id": "TH6",
+   "name": "A workflow run gives no event while it runs and one when it ends, and TH7's one sandbox notification. TH7 reads the same run, since a proof reads its write in its own test",
+   "steps": [
+    {
+     "call": {
+      "action": "run-workflow@1",
+      "args": {
+       "repository": "samikasasbeh/fabric-sandbox-test",
+       "workflow": "fabric-synthetic.yml",
+       "branch": "main",
+       "inputs": []
+      },
+      "save": {
+       "workflowRun": "/runId"
+      },
+      "checks": [
+       {
+        "pointer": "/branch",
+        "equals": "main"
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "runs"
+      },
+      "events": 0
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "runs"
+      },
+      "events": 1,
+      "within": 300,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/runId",
+        "equals": {
+         "$saved": "workflowRun"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "read": {
+      "path": "/repos/samikasasbeh/fabric-sandbox-test/actions/runs",
+      "query": {
+       "per_page": "1"
+      },
+      "save": {
+       "newestRun": "/workflow_runs/0/id"
+      },
+      "checks": [
+       {
+        "pointer": "/workflow_runs",
+        "count": 1
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "runs"
+      },
+      "events": 0
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "threads"
+      },
+      "events": 1,
+      "within": 300,
+      "floor": 30,
+      "where": {
+       "/fields/repository": "samikasasbeh/fabric-sandbox-test"
+      },
+      "checks": [
+       {
+        "pointer": "/events/0/fields/reason",
+        "equals": "ci_activity"
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "threads"
+      },
+      "events": 0,
+      "where": {
+       "/fields/repository": "samikasasbeh/fabric-sandbox-test"
+      }
+     }
+    }
+   ],
+   "undo": {
+    "none": "The workflow only echoes, and its run is GitHub's record."
+   }
+  },
+  {
+   "id": "TH8",
+   "name": "A prerelease gives one event with its tag",
+   "steps": [
+    {
+     "call": {
+      "action": "create-branch@1",
+      "args": {
+       "repository": "samikasasbeh/fabric-sandbox-test",
+       "name": {
+        "$branch": "rel"
+       },
+       "from": "main"
+      },
+      "checks": [
+       {
+        "pointer": "/sha",
+        "present": true
+       }
+      ]
+     }
+    },
+    {
+     "ask": {
+      "row": "github.code.write",
+      "requests": [
+       {
+        "method": "POST",
+        "path": "/repos/samikasasbeh/fabric-sandbox-test/releases",
+        "body": {
+         "tag_name": {
+          "$branch": "rel"
+         },
+         "target_commitish": {
+          "$branch": "rel"
+         },
+         "name": {
+          "$text": "release"
+         },
+         "draft": false,
+         "prerelease": true
+        }
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "releases"
+      },
+      "events": 1,
+      "within": 120,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/tag",
+        "equals": {
+         "$branch": "rel"
+        }
+       },
+       {
+        "pointer": "/events/0/fields/prerelease",
+        "equals": true
+       }
+      ]
+     }
+    },
+    {
+     "read": {
+      "path": "/repos/samikasasbeh/fabric-sandbox-test/releases",
+      "query": {
+       "per_page": "1"
+      },
+      "save": {
+       "newestRelease": "/0/tag_name"
+      },
+      "checks": [
+       {
+        "pointer": "",
+        "count": 1
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "releases"
+      },
+      "events": 0
+     }
+    }
+   ],
+   "undo": {
+    "none": "The prerelease and its branch stay in the sandbox, marked synthetic."
+   }
+  },
+  {
+   "id": "TH9",
+   "name": "Two issues and an edit with no poll between give exactly two events, no gap, and the latest title",
+   "steps": [
+    {
+     "call": {
+      "action": "create-issue@1",
+      "args": {
+       "repository": "samikasasbeh/fabric-sandbox-test",
+       "title": {
+        "$text": "first"
+       }
+      },
+      "save": {
+       "first": "/number"
+      }
+     }
+    },
+    {
+     "call": {
+      "action": "create-issue@1",
+      "args": {
+       "repository": "samikasasbeh/fabric-sandbox-test",
+       "title": {
+        "$text": "second"
+       }
+      },
+      "save": {
+       "second": "/number"
+      }
+     }
+    },
+    {
+     "call": {
+      "action": "update-issue@1",
+      "args": {
+       "repository": "samikasasbeh/fabric-sandbox-test",
+       "number": {
+        "$saved": "first"
+       },
+       "title": {
+        "$text": "latest title"
+       }
+      },
+      "checks": [
+       {
+        "pointer": "/title",
+        "equals": {
+         "$text": "latest title"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "issues"
+      },
+      "events": 2,
+      "within": 120,
+      "checks": [
+       {
+        "pointer": "/events",
+        "where": {
+         "/fields/number": {
+          "$saved": "first"
+         }
+        },
+        "field": "/fields/title",
+        "equals": {
+         "$text": "latest title"
+        }
+       },
+       {
+        "pointer": "/events",
+        "where": {
+         "/fields/number": {
+          "$saved": "second"
+         }
+        },
+        "field": "/fields/title",
+        "equals": {
+         "$text": "second"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "issues"
+      },
+      "events": 0
+     }
+    }
+   ],
+   "undo": {
+    "none": "The two issues stay open in the sandbox, marked synthetic."
+   }
+  }
+ ]
+}

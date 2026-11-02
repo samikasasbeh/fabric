@@ -1,8 +1,9 @@
 // Hosted activity (UI-4, docs/UI-0-SCREEN-CONTRACTS.md sections 3.10-3.11), served at /activity.
-// Renders only the activity view model from GET /api/ui/activity: approvals waiting for the owner, then
-// every agent call and account request by day. Lines come from the server; nothing is invented here.
+// Renders only the activity view model from GET /api/ui/activity: approvals waiting for the owner, then the
+// owner's watches, then every agent call and account request by day. Lines come from the server; nothing is invented here.
 import {describeApproval} from './hosted-approval.js';
 import {baseFor, makeApi, applyBrand, finish} from './hosted-base.js';
+import {visible} from './hosted-text.js';
 export {describeApproval};
 
 const STATUS_MARK = {succeeded: '✓', uncertain: '?', failed: '!', cancelled: '–', awaiting_approval: '…', queued: '…', running: '…',
@@ -23,6 +24,16 @@ export function describeItem(item) {
   const detail = [item.taskTitle ? item.title : null, item.summary].filter(Boolean).join(' · ');
   return {heading, detail, mark: STATUS_MARK[item.status] || '•', attention: ['uncertain', 'failed'].includes(item.status),
     open: item.openUrl && /^\/continue\/[0-9a-f-]{36}$/.test(item.openUrl) ? item.openUrl : null, by: item.agent ? `by ${item.agent}` : null};
+}
+
+/** Iteration 9 part 3d: the same words as the Background row of an app's page. */
+export const WATCHES_NOTE = 'Runs only while Fabric is running on this computer. Reads only.';
+/** What one Watches row shows. Its line is the server's, in fixed words. The parameters, the account and the agent's name come from elsewhere, so hidden characters show. Each action is the row's own {path, body}. */
+export function describeWatch(row) {
+  const action = (label, request, done) => request ? {label, request, done} : null;
+  return {heading: `${visible(row.name)} in ${visible(row.appName)}`, line: row.line, attention: row.attention === true, agentSays: row.taskTitle ? `Agent says: “${visible(row.taskTitle)}”` : null,
+    who: [row.account ? visible(row.account) : null, row.agent ? `asked by ${visible(row.agent)}` : null].filter(Boolean).join(' · '), details: row.details.map(({label, text}) => ({label, text: visible(text)})),
+    actions: [action('Pause', row.pause, 'Paused.'), action('Resume', row.resume, 'Resumed. It catches up before events start.'), action('Remove', row.remove, 'Removed.')].filter(Boolean)};
 }
 
 // ---- browser ------------------------------------------------------------------------
@@ -60,6 +71,16 @@ if (typeof document !== 'undefined') {
         : el('span', {class: 'perm-note'}, `${link?.developer?.appName || 'The app'} sends you a link to approve or reject this.`));
     return card;
   }
+  function watchNode(row) {
+    const model = describeWatch(row);
+    return el('li', {class: 'approval'},
+      el('div', {class: 'perm-copy'}, el('span', {class: 'perm-label'}, model.heading),
+        el('span', {class: `perm-note${model.attention ? ' attention' : ''}`}, model.line),
+        model.agentSays ? el('span', {class: 'perm-note'}, model.agentSays) : null,
+        el('span', {class: 'perm-note'}, model.who)),
+      el('details', {class: 'exact'}, el('summary', {}, 'Details'), model.details.flatMap(block => [el('span', {class: 'perm-note'}, block.label), el('pre', {}, block.text)])),
+      el('div', {class: 'confirm-actions'}, model.actions.map(action => el('button', {type: 'button', class: action.label === 'Remove' ? 'text-muted' : 'text-accent', onclick: () => decide(action.request, action.done)}, action.label))));
+  }
   function itemNode(item) {
     const model = describeItem(item);
     return el('li', {class: 'activity-row'},
@@ -73,8 +94,9 @@ if (typeof document !== 'undefined') {
     const back = !base.tenant ? el('a', {class: 'back', href: base.catalog}, '‹ Connectors') : link?.manage?.appId ? el('a', {class: 'back', href: base.app(link.manage.appId)}, '‹ Back') : el('a', {class: 'back', href: base.catalog}, '‹ Your apps');
     const parts = [back, el('h1', {}, 'Activity'), el('p', {class: 'lede'}, base.tenant ? `What ${link?.developer?.appName || 'the app'}'s agent did in your apps, and what is waiting for you.` : 'What your agents did, and what is waiting for you.')];
     if (page.approvals.length) parts.push(el('section', {class: 'group'}, el('h2', {class: 'section-label'}, 'Needs your approval'), el('ul', {class: 'rows'}, page.approvals.map(approvalNode))));
+    if (page.watches?.length) parts.push(el('section', {class: 'group'}, el('h2', {class: 'section-label'}, 'Watches'), el('p', {class: 'perm-note'}, WATCHES_NOTE), el('ul', {class: 'rows'}, page.watches.map(watchNode))));
     for (const day of shown) parts.push(el('section', {class: 'group'}, el('h2', {class: 'section-label'}, dayLabel(day.date)), el('ul', {class: 'rows'}, day.items.map(itemNode))));
-    if (!page.approvals.length && !shown.length) parts.push(el('p', {class: 'empty'}, 'Nothing yet. When an agent uses one of your apps, it shows up here.'));
+    if (!page.approvals.length && !page.watches?.length && !shown.length) parts.push(el('p', {class: 'empty'}, 'Nothing yet. When an agent uses one of your apps, it shows up here.'));
     if (page.nextCursor) parts.push(el('button', {type: 'button', class: 'more', onclick: () => { cursor = page.nextCursor; load(true); }}, 'Show earlier'));
     if (base.tenant) {
       const done = el('button', {type: 'button', class: 'text-accent', onclick: async () => {

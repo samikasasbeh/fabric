@@ -80,7 +80,7 @@ test('test/defaults-golden.test.mjs, test/f10-3-binding-churn.test.mjs, test/f10
 });
 
 // Part p (critique resolution 5): server code reaches the action modules only through the object lib/action-gate.mjs loads.
-const CONTAINED = ['lib/action-catalog.mjs', 'lib/actions.mjs', 'lib/actions-runtime.mjs', 'lib/action-expressions.mjs', 'lib/action-placement.mjs', 'lib/choice-sources.mjs', 'lib/transform-pins.mjs', 'lib/triggers.mjs'];
+const CONTAINED = ['lib/action-catalog.mjs', 'lib/actions.mjs', 'lib/actions-runtime.mjs', 'lib/action-expressions.mjs', 'lib/action-placement.mjs', 'lib/choice-sources.mjs', 'lib/transform-pins.mjs', 'lib/triggers.mjs', 'lib/trigger-runtime.mjs'];
 const contained = file => CONTAINED.includes(file) || file.startsWith('lib/transforms/');
 /** A file's relative imports: the static ones (from, and a bare import), and the import() calls with a literal path. */
 function importsOf(file) {

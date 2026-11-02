@@ -179,3 +179,14 @@ test('stringValues: a repeated name, in any ASCII case, refuses name_repeated; a
   for (const name of ['1abc', 'a b', '-a', 'a.b', 'é', 'a/b', '__proto__', 'constructor', 'prototype']) assert.throws(() => run(VALUES, {values: [{name, value: '1'}]}), refused('name_invalid'), name);
   assert.deepEqual(run(VALUES, {values: [{name: '_', value: '1'}, {name: 'a-b_c9', value: '2'}]}), {_: '1', 'a-b_c9': '2'});
 });
+
+// Iteration 9 step 4 (docs/I07-BUILD-MAP.md section 2.7): what a reaction watch reads. Slack caps `users` below `count` in a history answer, so count is the provider's own number, never a length.
+test('collections.slackReactions@1 reads step data, names its one code, and takes each count from Slack, since users is cut short of it', () => {
+  const REACTIONS = 'collections.slackReactions@1', entry = TRANSFORMS.get(REACTIONS);
+  assert.ok(entry, REACTIONS);
+  assert.deepEqual([Object.keys(entry.stepData), entry.stepData.list.maxBytes, entry.refuses, entry.pointerArgs, entry.usesClock, entry.runtimeFacts], [['list'], 2_097_152, ['too_many_items'], [], false, []]);
+  const message = {ts: '1761490000.000100', user: 'U0ADA0001', reactions: [{name: 'tada', users: ['U0ADA0001', 'U0GRACE01', 'U0OWNER01'], count: 7}]};
+  assert.deepEqual(run(REACTIONS, {list: [message]}).items, [{name: 'tada', count: 7, parent: {ts: message.ts, user: 'U0ADA0001'}}]);
+  assert.throws(() => run(REACTIONS, {list: 'messages'}), refused('input_invalid'));
+  assert.throws(() => run(REACTIONS, {}), refused('input_invalid'), 'the harness holds step data to being there');
+});

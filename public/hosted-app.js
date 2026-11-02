@@ -117,7 +117,7 @@ export function describeApp(detail, base = OWNER) {
     sections: (detail.sections || []).map(section => ({label: section.label, rows: section.rows.map(row => rowModel(row))})),
     // A developer's environment binds the change to the setting shown (etag); the owner's takes the mode alone.
     background: detail.background ? {mode: detail.background.mode, request: mode => ({path: `${accountPath(appId, ref)}/background`, body: {mode, ...(detail.background.etag ? {etag: detail.background.etag} : {})}}),
-      note: base.tenant ? 'Reads only.' : detail.background.runsWhile === 'runtime_running' ? 'Runs only while Fabric is running on this computer. Reads only.' : 'Reads only.'} : null,
+      note: base.tenant ? 'Reads only.' : detail.background.runsWhile === 'runtime_running' ? 'Runs only while Fabric is running on this computer. Reads only. Turning this off pauses its watches.' : 'Reads only.'} : null,
     reset: detail.canReset && ref ? {path: `${accountPath(appId, ref)}/reset`, body: {}} : null,
     discovery: detail.discovery?.state === 'missing' ? detail.discovery.message : null,
     limits: detail.limits ?? [],

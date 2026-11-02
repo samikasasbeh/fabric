@@ -106,7 +106,7 @@ test('part l: capabilities.list and fabric_list_capabilities list actions first;
   assert.deepEqual([listing.choices, updating.choices], [[{input: 'labelId', dependsOn: []}], [{input: 'itemId', dependsOn: []}, {input: 'labels', dependsOn: ['itemId']}]]);
   assert.deepEqual([updating.driver, updating.effect, updating.approval, listing.approval], ['action', 'write', 'ask', 'allow']);
   for (const operation of [files, writing]) for (const field of ['outputSchema', 'rows', 'choices']) assert.equal(Object.hasOwn(operation, field), false, `${operation.id}: ${field} is an action's`);
-  assert.deepEqual([protocolManifest.features.actions, protocolManifest.features.twoPhaseApproval, protocolManifest.methods.length], [true, true, 6], 'no method is added');
+  assert.deepEqual([protocolManifest.features.actions, protocolManifest.features.twoPhaseApproval, protocolManifest.methods.some(method => method.includes('action'))], [true, true, false], 'no method is added for actions');
   // MCP keeps Fabric's order and fields, with its own hint names.
   const mcp = await mcpOver(t, token, (authorization, envelope) => h.protocol.handle(authorization, envelope));
   const listed = (await listTool(mcp)).capabilities;
@@ -343,6 +343,6 @@ test('part l: continuations may ask for an active action, with the scopes its st
   assert.throws(() => asking.grantEntryFor(candidate.idOf('update-item v1')), {code: 'invalid_request'});
 });
 
-test('part l: the manifest still lists six methods', () => {
-  assert.deepEqual(protocolManifest.methods, ['fabric.discover', 'capabilities.list', 'calls.create', 'calls.get', 'calls.cancel', 'proxy.request']);
+test('part l: the manifest lists ten methods, none of them for actions', () => {
+  assert.deepEqual(protocolManifest.methods, ['fabric.discover', 'capabilities.list', 'calls.create', 'calls.get', 'calls.cancel', 'proxy.request', 'triggers.list', 'triggers.subscribe', 'events.list', 'triggers.unsubscribe']);
 });

@@ -24,6 +24,14 @@ export interface LocalAuthorityPort {
   policyRevision(id: string): number;
 }
 
+/** One poll for the trigger tables (lib/store.mjs): seen rows hold hashes only, and `payload` is any JSON of at most 8,192 bytes. */
+export type TriggerSeenRow = {lens: string; itemKey: string; valueHash: string; generation: number; connectionId: string};
+export type TriggerEvent = {clientId: string; subscriptionId: string; dedupeKey: string; connectionId: string; userRecordId?: string | null; kind: string; itemTime?: number; createdAt: number; expiresAt: number; payload: unknown};
+export type TriggerPoll = {feedId: string; seen?: TriggerSeenRow[]; seenLimits?: Record<string, {limit: number; evict: boolean}>; events?: TriggerEvent[]};
+export type TriggerPollResult = {added: Record<string, number>; overLimit: {lens: string; count: number}[]};
+export type TriggerSeenState = {valueHash: string; generation: number};
+export type TriggerEventRow = {sequence: number; subscriptionId: string; dedupeKey: string; connectionId: string; userRecordId: string | null; kind: string; createdAt: number; expiresAt: number; payload: unknown};
+
 /** Existing synchronous document API; not a transactional unit of work. */
 export interface DocumentStore {
   readonly authorityEnabled?: boolean;
@@ -37,6 +45,16 @@ export interface DocumentStore {
   delete(collection: string, id: string): boolean;
   audit(event: Record<string, unknown>): RepositoryDocument;
   close(): void;
+  /** Optional: the trigger tables, made by the first poll stored. One commit for one poll, never a general transaction. */
+  appendPoll?(poll: TriggerPoll): TriggerPollResult;
+  seenRows?(feedId: string, lens: string, keys: string[]): Map<string, TriggerSeenState>;
+  listEvents?(clientId: string, after: number, limit: number): TriggerEventRow[];
+  latestSequence?(clientId: string): number;
+  deleteSubscriptionEvents?(id: string): number;
+  deleteConnectionTriggerData?(connectionId: string): number;
+  deleteFeedSeen?(feedId: string): number;
+  deleteLensSeen?(feedId: string, lens: string): number;
+  sweepEvents?(now: number): number;
 }
 
 /** Credential contents remain inside local custody; metadata commits are separate. */

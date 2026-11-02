@@ -45,18 +45,19 @@ export function certifiedFile(change = () => {}) {
  * `codeHashes` (each transform's pin by default), `clock` (a fixed start you can move with advance()), `designated` (a designated
  * authority store with an owner principal, as the owner's own Fabric runs), `rows` (edits the fixture app's rows file before it is
  * validated, for the catalog and the permission decisions alike), `signIn` (the fixture app's reviewed sign-in), `files` (F10.11 part i:
- * more reviewed action files, of the RPC twin, written beside fixture.json with passing evidence) and `rpcSignIn` (the twin's reviewed sign-in;
- * F10.21 gives it an apiSuccessRequire). run(key, input) runs an action on its
- * app's account with the owner's principal; allow(key) sets its own record to Allow.
+ * more reviewed action files, of the RPC twin, written beside fixture.json with passing evidence), `rpcSignIn` (the twin's reviewed sign-in;
+ * F10.21 gives it an apiSuccessRequire) and `transforms` and `pins` (the registry and its pins; Iteration 9 adds one transform of its own in
+ * test/fixtures/actions/trigger-fixture.mjs). run(key, input) runs an action on its app's account with the owner's principal; allow(key) sets
+ * its own record to Allow.
  */
-export function actionHarness(t, {file = certifiedFile(), evidence, map = fixtureMap(), codeHashes = ids => Object.fromEntries(ids.map(id => [id, PINS[id]])), start = '2026-10-23T09:00:00.000Z', designated = false,
+export function actionHarness(t, {file = certifiedFile(), evidence, map = fixtureMap(), transforms = TRANSFORMS, pins = PINS, codeHashes = ids => Object.fromEntries(ids.map(id => [id, pins[id]])), start = '2026-10-23T09:00:00.000Z', designated = false,
   rows = change => change, signIn = fixtureSignIn(), files = [], rpcSignIn = fixtureSignIn('fixture-rpc')} = {}) {
   const root = mkdtempSync(path.join(tmpdir(), 'fabric-action-harness-'));
   let now = Date.parse(start);
   const clock = () => now;
   const groups = fixtureGroups(rows), configs = fixtureConfigs(groups), identities = new Map([['fixture', signIn], ['fixture-rpc', rpcSignIn]]);
   const maps = new Map(map ? [['fixture', map]] : []), choices = new Map([['fixture', fixtureChoices().sources]]);
-  const deps = {groups, configs, transforms: TRANSFORMS, pins: PINS, identities};
+  const deps = {groups, configs, transforms, pins, identities};
   const written = withIds(file, {...deps, maps, choices});
   // The catalog folder: the action file, its choice sources and the live evidence.
   const actions = path.join(root, 'catalog', 'actions'), choiceDir = path.join(root, 'catalog', 'choices'), live = path.join(root, 'docs', 'live-evidence', 'fixture');

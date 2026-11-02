@@ -359,7 +359,7 @@ test('part k: refused: cursors, delivery, admission, fallback, backfill, events,
     ['Slack events kept a week', slack(trigger => { trigger.retention = {days: 7}; }), /retention: Slack events are kept at most 24 hours: \{hours: 1 to 24\} \(spec line 1676\)/],
     ['a var that no resource.as binds', ownSteps(trigger => { trigger.poll.source.steps[0].query.kind = {var: 'kind'}; }), /\{var: 'kind'\} is read only inside the \{each\} that binds it, or in a trigger's poll when its resource\.as binds it/],
     ['a rows list that is not the poll rows', edited('github', trigger => { trigger.rows = ['github.repos.read']; }), /issue-activity v1: rows lists github\.repos\.read, and its poll, seed and enrich steps land in github\.issues\.read/],
-    ['resolvedInputs on a trigger', edited('github', trigger => { trigger.resolvedInputs = []; }), /issue-activity v1: a trigger's resource-dependent inputs wait for I07/],
+    ['resolvedInputs on a trigger', edited('github', trigger => { trigger.resolvedInputs = []; }), /issue-activity v1: a trigger holds no resource-dependent inputs: their schema steps would have to run again before every poll/],
     ['a lookup in a trigger\'s choices', edited('google-calendar', trigger => { trigger.choices[0].lookup = 'calendars'; }), /choices\[0\]: a trigger's choices take no lookup/],
     ['an unknown choice source', edited('google-calendar', trigger => { trigger.choices[0].source = 'nothing'; }), /event-changed v1: choices\[0\] names nothing, which is neither a choice source nor a version 1 option source of google-calendar/],
     ['dedupe by version without one', edited('github', trigger => { trigger.poll.itemVersion = null; }), /dedupe: id\+version needs an itemVersion/],
@@ -561,4 +561,94 @@ test('part k check: checkEvent() holds what I07\'s engine builds from one poll i
     ['an event of another shape', {...built, raw: repository}, /issue-activity v1: an event is \{itemId, id, occurredAt, fields, summary\}/],
   ]) assert.throws(() => checkEvent(entry, value), pattern, label);
   assert.throws(() => checkEvent({}, built), /checkEvent\(\) takes a trigger, or an entry validateTriggerFile\(\) returned/);
+});
+
+// ---- Iteration 9 part 1c (docs/I07-BUILD-MAP.md section 2.6): the two format changes --------------------------------------------------
+/** A fixture trigger with one enrich read per item, step `more`, that `edit` then reads from its filter, dedupe or event. */
+const enriched = (edit = () => {}) => ownSteps(trigger => {
+  trigger.poll.enrich = {max: 25, steps: [{id: 'more', method: 'GET', path: '/items/{item_id}', params: {item_id: {item: '/id'}}, maxResponseBytes: 65_536, expect: OK}]};
+  edit(trigger);
+});
+const EARLIER = {id: 'first', method: 'GET', path: '/labels', expect: OK};
+/** A content-hash trigger of the Calendar kind: `knownBy` is a list of expressions over the item. */
+const knownBy = (list, edit = () => {}) => ownSteps(trigger => { trigger.dedupe = {kind: 'content-hash', fields: [{item: '/name'}], knownBy: list}; edit(trigger); });
+const SERIES = [{item: '/seriesId'}, {item: '/id'}];
+
+test('section 2.6: a filter, a dedupe field, an event id, time, field and summary line each read an enrich step by id, and the validator keeps each as written', () => {
+  const entry = entryOf(enriched(trigger => {
+    trigger.filter = [{present: {step: 'more', pointer: '/owner'}}];
+    trigger.dedupe = {kind: 'content-hash', fields: [{step: 'more', pointer: '/name'}]};
+    trigger.event.id = {step: 'more', pointer: '/id'};
+    trigger.event.occurredAt = {step: 'more', pointer: '/updated'};
+    trigger.event.fields.name = {step: 'more', pointer: '/name'};
+    trigger.event.summary = [{label: 'Item', expr: {step: 'more', pointer: '/name'}}];
+  }));
+  assert.deepEqual(entry.placements.map(placement => [placement.stepId, placement.phase]), [['list', 'poll'], ['more', 'enrich']]);
+  assert.deepEqual(entry.trigger.filter, [{present: {step: 'more', pointer: '/owner'}}]);
+  // A second enrich step reads the first, and the event reads both.
+  assert.equal(entryOf(enriched(trigger => {
+    trigger.poll.enrich.steps.push({id: 'also', method: 'GET', path: '/items/{item_id}', params: {item_id: {step: 'more', pointer: '/id'}}, expect: OK});
+    trigger.event.fields.name = {step: 'also', pointer: '/name'};
+    trigger.event.fields.id = {step: 'more', pointer: '/id'};
+  })).key, 'item-changed');
+});
+
+test('section 2.6: only an enrich step is readable there: a read of the poll step, a seed, a later or an unknown step is still refused, and a reused action offers no step at all', () => {
+  const seeded = edit => enriched(trigger => { trigger.poll.seed = {step: {id: 'seed', method: 'GET', path: '/labels', expect: OK}, cursor: {name: 'since', pointer: '/now'}}; edit(trigger); });
+  for (const [label, file, pattern] of [
+    ['a filter that reads the poll step', enriched(trigger => { trigger.filter = [{present: {step: 'list', pointer: '/items'}}]; }), /item-changed v1: filter\[0\]\.present: reads step "list", which has not run before this point/],
+    ['a filter that reads an earlier poll step', enriched(trigger => { trigger.poll.source.steps.unshift(EARLIER); trigger.filter = [{present: {step: 'first', pointer: '/labels'}}]; }), /item-changed v1: filter\[0\]\.present: reads step "first", which has not run before this point/],
+    ['a filter that reads a seed step', seeded(trigger => { trigger.filter = [{present: {step: 'seed', pointer: '/now'}}]; }), /item-changed v1: filter\[0\]\.present: reads step "seed", which has not run before this point/],
+    ['a filter that reads an unknown step', enriched(trigger => { trigger.filter = [{present: {step: 'nothing', pointer: '/x'}}]; }), /item-changed v1: filter\[0\]\.present: reads step "nothing", which has not run before this point/],
+    ['a dedupe field that reads the poll step', enriched(trigger => { trigger.dedupe = {kind: 'content-hash', fields: [{step: 'list', pointer: '/items'}]}; }), /item-changed v1: dedupe\.fields\[0\]: reads step "list", which has not run before this point/],
+    ['a dedupe field that reads an unknown step', enriched(trigger => { trigger.dedupe = {kind: 'content-hash', fields: [{step: 'nothing', pointer: '/x'}]}; }), /item-changed v1: dedupe\.fields\[0\]: reads step "nothing", which has not run before this point/],
+    ['an event field that reads the poll step', enriched(trigger => { trigger.event.fields.name = {step: 'list', pointer: '/name'}; }), /item-changed v1: event\.fields\.name: reads step "list", which has not run before this point/],
+    ['an event id that reads an unknown step', enriched(trigger => { trigger.event.id = {step: 'nothing', pointer: '/x'}; }), /item-changed v1: event\.id: reads step "nothing", which has not run before this point/],
+    ['a summary line that reads the poll step', enriched(trigger => { trigger.event.summary[0].expr = {step: 'list', pointer: '/name'}; }), /item-changed v1: event\.summary\[0\] \(Item\): reads step "list", which has not run before this point/],
+    ['an enrich step that reads a later one', enriched(trigger => { trigger.poll.enrich.steps = [{id: 'first', method: 'GET', path: '/items/{item_id}', params: {item_id: {step: 'later', pointer: '/id'}}, expect: OK}, {id: 'later', method: 'GET', path: '/labels', expect: OK}]; }),
+      /item-changed v1: poll\.enrich\.steps\[0\] \(first\)\.params\.item_id: reads step "later", which has not run before this point/],
+    ['a filter with no enrich step at all', ownSteps(trigger => { trigger.filter = [{present: {step: 'more', pointer: '/x'}}]; }), /item-changed v1: filter\[0\]\.present: reads step "more", which has not run before this point/],
+    ['a filter on a reused action', fromAction(trigger => { trigger.filter = [{present: {step: 'source', pointer: '/x'}}]; }), /listed-item v1: filter\[0\]\.present: reads step "source", which has not run before this point/],
+    ['an event field on a reused action', fromAction(trigger => { trigger.event.fields.name = {step: 'source', pointer: '/x'}; }), /listed-item v1: event\.fields\.name: reads step "source", which has not run before this point/],
+    // An enrich read that fails skips its item, so nothing may fall back past one (the steps are never skippable).
+    ['an either that falls back past an enrich read', enriched(trigger => { trigger.event.fields.name = {either: [{step: 'more', pointer: '/name'}, {item: '/name'}]}; }), /item-changed v1: event\.fields\.name: the first branch of \{either\} must read a step that can be skipped/],
+    // An enrich answer is still step data: never whole in an event (I6, I9), and never a credential field.
+    ['a whole enrich answer in an event field', enriched(trigger => { trigger.event.schema.properties.all = {type: 'array', maxItems: 3, items: words(50)}; trigger.event.fields.all = {step: 'more', pointer: '/labels'}; }),
+      /item-changed v1: event\.fields\.all: copies step data whole: a raw step-data value sits only at a string, integer, number or boolean of event\.schema, and this one sits at an array \(I6, I9\)/],
+    ['an enrich pointer that reads a token', enriched(trigger => { trigger.filter = [{present: {step: 'more', pointer: '/access_token'}}]; }), /the pointer \/access_token reads access_token/],
+    ['a redirect Location in an event field', enriched(trigger => { trigger.event.fields.name = {pick: {transform: 'text.truncate@1', args: {text: {step: 'more', header: 'location'}, max: {const: 200}}}, pointer: '/text'}; }), /item-changed v1: event\.fields\.name\.pick\.args\.text: the location header is read only inside a request, as a transform argument: a redirect Location can carry a signed token/],
+    ['a Link header in a filter', enriched(trigger => { trigger.filter = [{present: {step: 'more', header: 'link'}}]; }), /item-changed v1: filter\[0\]\.present: the link header is read only inside a request, as a transform argument/],
+  ]) refused(file, pattern, DEPS, label);
+});
+
+test('section 2.6: dedupe.knownBy is one or two expressions over the item, on content-hash only: never an enrich read, a value with no item in it, or an unsteady key', () => {
+  const entry = entryOf(knownBy(SERIES));
+  assert.deepEqual(entry.trigger.dedupe, {kind: 'content-hash', fields: [{item: '/name'}], knownBy: SERIES});
+  assert.equal(entryOf(knownBy([{item: '/id'}])).key, 'item-changed', 'one expression');
+  assert.notEqual(triggerIds(knownBy(SERIES), DEPS).get('item-changed v1'), triggerIds(knownBy([{item: '/id'}]), DEPS).get('item-changed v1'), 'it is content, so a change gives a new id');
+  for (const [label, file, pattern] of [
+    ['knownBy on kind id', ownSteps(trigger => { trigger.dedupe = {kind: 'id', knownBy: SERIES}; }), /item-changed v1: dedupe is \{kind: 'id' \| 'id\+version'\} or \{kind: 'content-hash', fields\}/],
+    ['knownBy on kind id+version', ownSteps(trigger => { trigger.dedupe = {kind: 'id+version', knownBy: SERIES}; }), /item-changed v1: dedupe is \{kind: 'id' \| 'id\+version'\} or \{kind: 'content-hash', fields\}/],
+    ['knownBy that is not a list', knownBy({item: '/id'}), /item-changed v1: dedupe\.knownBy holds 1 or 2 expressions over the item/],
+    ['knownBy that is a string', knownBy('i'), /item-changed v1: dedupe\.knownBy holds 1 or 2 expressions over the item/],
+    ['an empty knownBy', knownBy([]), /item-changed v1: dedupe\.knownBy holds 1 or 2 expressions over the item/],
+    ['three expressions', knownBy([...SERIES, {item: '/name'}]), /item-changed v1: dedupe\.knownBy holds 1 or 2 expressions over the item/],
+    ['an enrich read', enriched(trigger => { trigger.dedupe = {kind: 'content-hash', fields: [{item: '/name'}], knownBy: [{step: 'more', pointer: '/id'}]}; }), /item-changed v1: dedupe\.knownBy\[0\]: reads step "more", which has not run before this point/],
+    ['a constant', knownBy([{const: 'same'}]), /item-changed v1: dedupe\.knownBy\[0\] reads the poll item: an item is known by a value of its own \(section 2\.6\)/],
+    ['an object', knownBy([{object: {id: {item: '/id'}}}]), /item-changed v1: dedupe\.knownBy\[0\] is a string or an integer/],
+    ['a job key', knownBy([{concat: [{item: '/id'}, {jobKey: 'poll'}], max: 100}]), /item-changed v1: dedupe\.knownBy\[0\] never reads the clock or a job key: a seen row is found again by the same value on every poll \(section 2\.6\)/],
+    ['the clock', knownBy([{concat: [{item: '/id'}, {pick: {transform: 'rfc5322.build@1', args: {from: {object: {address: {const: 'owner@example.com'}}}, subject: {const: 'Hello'}, text: {const: 'Hi'}, now: {now: {}}}}, pointer: '/raw'}], max: 2000}]), /item-changed v1: dedupe\.knownBy\[0\] never reads the clock or a job key: a seen row is found again by the same value on every poll \(section 2\.6\)/],
+    ['a credential field', knownBy([{item: '/access_token'}]), /the pointer \/access_token reads access_token/],
+  ]) refused(file, pattern, DEPS, label);
+});
+
+test('section 2.6: both format changes pass schemas/trigger.schema.json under ajv, and the schema holds knownBy to one or two expressions', () => {
+  const ajv = new Ajv2020({strict: true, allErrors: true});
+  addFormats(ajv);
+  const check = ajv.compile(json('../schemas/trigger.schema.json'));
+  for (const [label, file] of [['knownBy', knownBy(SERIES)], ['one knownBy', knownBy([{item: '/id'}])],
+    ['enrich data', enriched(trigger => { trigger.filter = [{present: {step: 'more', pointer: '/owner'}}]; trigger.dedupe = {kind: 'content-hash', fields: [{step: 'more', pointer: '/name'}]}; trigger.event.fields.name = {step: 'more', pointer: '/name'}; })]]) {
+    assert.ok(check(file), `${label}: ${JSON.stringify(check.errors)}`);
+  }
+  for (const [label, file] of [['an empty knownBy', knownBy([])], ['three expressions', knownBy([...SERIES, {item: '/name'}])], ['an unknown dedupe field', ownSteps(trigger => { trigger.dedupe = {kind: 'id', extra: 1}; })]]) assert.equal(check(file), false, label);
 });

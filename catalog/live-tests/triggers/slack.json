@@ -1,0 +1,694 @@
+{
+ "schemaVersion": 1,
+ "appId": "slack",
+ "triggers": true,
+ "note": "Slack's trigger pass, TR1 to TR7 of docs/I07-BUILD-MAP.md section 8, in #fabric-test and your self-DM, on the certification Fabric, run with --triggers --leave. What it writes stays there, marked synthetic. TR6 and TR7 are your two hand steps, last and together, about a minute each. The mention of TR3 also answers probe P6. Slack's ts never expires, so no test ages a cursor, and overflow stays on the simulator.",
+ "recorded": {
+  "fabricTest": "The id of #fabric-test (C followed by letters and digits).",
+  "selfDm": "The id of your direct message with yourself (D followed by letters and digits).",
+  "ownerUser": "Your own Slack member id (U or W followed by letters and digits).",
+  "synthetic1": "The ts of the first synthetic message in #fabric-test, in whose thread TR4 replies.",
+  "synthetic2": "The ts of the second synthetic message in #fabric-test, with no reaction on it and among the newest 100 messages there.",
+  "privateChannel": "The name you will give the private channel of TR7: fabric-synthetic-tr7 and a date, which no run has used."
+ },
+ "readRows": [
+  "slack.messages.read",
+  "slack.messages.search",
+  "slack.channels.read"
+ ],
+ "tests": [
+  {
+   "id": "TW",
+   "name": "Watch all seven sources. Each baseline stores nothing",
+   "steps": [
+    {
+     "watch": {
+      "trigger": "new-message@1",
+      "args": {
+       "channels": [
+        {
+         "$recorded": "fabricTest"
+        }
+       ]
+      },
+      "save": {
+       "message": "/id"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "message"
+      },
+      "events": 0
+     }
+    },
+    {
+     "watch": {
+      "trigger": "new-dm@1",
+      "args": {
+       "conversations": [
+        {
+         "$recorded": "selfDm"
+        }
+       ]
+      },
+      "save": {
+       "direct": "/id"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "direct"
+      },
+      "events": 0
+     }
+    },
+    {
+     "watch": {
+      "trigger": "mention-search@1",
+      "args": {
+       "channels": [
+        {
+         "$recorded": "fabricTest"
+        }
+       ]
+      },
+      "save": {
+       "mention": "/id"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "mention"
+      },
+      "events": 0
+     }
+    },
+    {
+     "watch": {
+      "trigger": "thread-reply@1",
+      "args": {
+       "threads": [
+        {
+         "channel": {
+          "$recorded": "fabricTest"
+         },
+         "ts": {
+          "$recorded": "synthetic1"
+         }
+        }
+       ]
+      },
+      "save": {
+       "reply": "/id"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "reply"
+      },
+      "events": 0
+     }
+    },
+    {
+     "watch": {
+      "trigger": "reaction-recent@1",
+      "args": {
+       "channels": [
+        {
+         "$recorded": "fabricTest"
+        }
+       ]
+      },
+      "save": {
+       "reaction": "/id"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "reaction"
+      },
+      "events": 0
+     }
+    },
+    {
+     "watch": {
+      "trigger": "file-shared@1",
+      "args": {
+       "channels": [
+        {
+         "$recorded": "fabricTest"
+        }
+       ]
+      },
+      "save": {
+       "file": "/id"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "file"
+      },
+      "events": 0
+     }
+    },
+    {
+     "watch": {
+      "trigger": "conversation-joined@1",
+      "args": {
+       "kinds": [
+        "private_channel"
+       ]
+      },
+      "save": {
+       "joined": "/id"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "joined"
+      },
+      "events": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "TR1",
+   "name": "A message in #fabric-test gives one event, and a re-poll and two edits give none",
+   "steps": [
+    {
+     "call": {
+      "action": "send-message@1",
+      "args": {
+       "channel": {
+        "$recorded": "fabricTest"
+       },
+       "text": {
+        "$text": "v1"
+       }
+      },
+      "save": {
+       "sent": "/ts"
+      },
+      "checks": [
+       {
+        "pointer": "/channel",
+        "equals": {
+         "$recorded": "fabricTest"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "message"
+      },
+      "events": 1,
+      "within": 120,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/ts",
+        "equals": {
+         "$saved": "sent"
+        }
+       },
+       {
+        "pointer": "/events/0/fields/channel",
+        "equals": {
+         "$recorded": "fabricTest"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "message"
+      },
+      "events": 0,
+      "itemsRead": 1
+     }
+    },
+    {
+     "call": {
+      "action": "edit-message@1",
+      "args": {
+       "channel": {
+        "$recorded": "fabricTest"
+       },
+       "ts": {
+        "$saved": "sent"
+       },
+       "text": {
+        "$text": "v2"
+       }
+      }
+     }
+    },
+    {
+     "call": {
+      "action": "edit-message@1",
+      "args": {
+       "channel": {
+        "$recorded": "fabricTest"
+       },
+       "ts": {
+        "$saved": "sent"
+       },
+       "text": {
+        "$text": "v1"
+       }
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "message"
+      },
+      "events": 0,
+      "itemsRead": 1
+     }
+    }
+   ],
+   "undo": {
+    "none": "The message stays in #fabric-test, marked synthetic: chat.delete is on the Never row and the guard refuses it."
+   }
+  },
+  {
+   "id": "TR2",
+   "name": "A direct message to yourself gives one event, and a re-poll gives none",
+   "steps": [
+    {
+     "call": {
+      "action": "send-dm@1",
+      "args": {
+       "user": {
+        "$recorded": "ownerUser"
+       },
+       "text": {
+        "$text": "direct message"
+       }
+      },
+      "save": {
+       "sent": "/ts"
+      },
+      "checks": [
+       {
+        "pointer": "/channel",
+        "equals": {
+         "$recorded": "selfDm"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "direct"
+      },
+      "events": 1,
+      "within": 120,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/ts",
+        "equals": {
+         "$saved": "sent"
+        }
+       },
+       {
+        "pointer": "/events/0/fields/channel",
+        "equals": {
+         "$recorded": "selfDm"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "direct"
+      },
+      "events": 0,
+      "itemsRead": 1
+     }
+    }
+   ],
+   "undo": {
+    "none": "The message stays in your self-DM, marked synthetic."
+   }
+  },
+  {
+   "id": "TR3",
+   "name": "A mention of you shows in search within 5 minutes, once. This answers probe P6",
+   "steps": [
+    {
+     "ask": {
+      "row": "slack.messages.send",
+      "requests": [
+       {
+        "method": "POST",
+        "path": "/chat.postMessage",
+        "body": {
+         "channel": {
+          "$recorded": "fabricTest"
+         },
+         "text": {
+          "$mention": "ownerUser"
+         },
+         "parse": "none",
+         "link_names": false,
+         "unfurl_links": false,
+         "unfurl_media": false
+        }
+       }
+      ]
+     }
+    },
+    {
+     "read": {
+      "path": "/conversations.history",
+      "query": {
+       "channel": {
+        "$recorded": "fabricTest"
+       },
+       "limit": "1"
+      },
+      "save": {
+       "mentioned": "/messages/0/ts"
+      },
+      "checks": [
+       {
+        "status": 200
+       },
+       {
+        "pointer": "/messages/0/text",
+        "equals": {
+         "$mention": "ownerUser"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "mention"
+      },
+      "events": 1,
+      "within": 300,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/ts",
+        "equals": {
+         "$saved": "mentioned"
+        }
+       },
+       {
+        "pointer": "/events/0/fields/channel",
+        "equals": {
+         "$recorded": "fabricTest"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "mention"
+      },
+      "events": 0,
+      "itemsRead": 1
+     }
+    }
+   ],
+   "undo": {
+    "none": "The message stays in #fabric-test, marked synthetic."
+   }
+  },
+  {
+   "id": "TR4",
+   "name": "A reply in the synthetic thread gives one event, and none for its parent",
+   "steps": [
+    {
+     "call": {
+      "action": "reply-thread@1",
+      "args": {
+       "channel": {
+        "$recorded": "fabricTest"
+       },
+       "ts": {
+        "$recorded": "synthetic1"
+       },
+       "text": {
+        "$text": "reply"
+       }
+      },
+      "save": {
+       "replied": "/ts"
+      },
+      "checks": [
+       {
+        "pointer": "/threadTs",
+        "equals": {
+         "$recorded": "synthetic1"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "reply"
+      },
+      "events": 1,
+      "within": 120,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/ts",
+        "equals": {
+         "$saved": "replied"
+        }
+       },
+       {
+        "pointer": "/events/0/fields/threadTs",
+        "equals": {
+         "$recorded": "synthetic1"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "reply"
+      },
+      "events": 0,
+      "itemsRead": 1
+     }
+    }
+   ],
+   "undo": {
+    "none": "The reply stays in the synthetic thread, marked synthetic."
+   }
+  },
+  {
+   "id": "TR5",
+   "name": "A reaction gives one event with its count, and taking it off gives none",
+   "steps": [
+    {
+     "call": {
+      "action": "react@1",
+      "args": {
+       "do": "add",
+       "channel": {
+        "$recorded": "fabricTest"
+       },
+       "ts": {
+        "$recorded": "synthetic2"
+       },
+       "emoji": "white_check_mark"
+      },
+      "checks": [
+       {
+        "pointer": "/emoji",
+        "equals": "white_check_mark"
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "reaction"
+      },
+      "events": 1,
+      "within": 120,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/ts",
+        "equals": {
+         "$recorded": "synthetic2"
+        }
+       },
+       {
+        "pointer": "/events/0/fields/emoji",
+        "equals": "white_check_mark"
+       },
+       {
+        "pointer": "/events/0/fields/count",
+        "equals": 1
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "reaction"
+      },
+      "events": 0,
+      "itemsRead": 1
+     }
+    },
+    {
+     "call": {
+      "action": "react@1",
+      "args": {
+       "do": "remove",
+       "channel": {
+        "$recorded": "fabricTest"
+       },
+       "ts": {
+        "$recorded": "synthetic2"
+       },
+       "emoji": "white_check_mark"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "reaction"
+      },
+      "events": 0
+     }
+    }
+   ],
+   "undo": {
+    "none": "The test takes its own reaction off in its last write."
+   }
+  },
+  {
+   "id": "TR6",
+   "name": "A file you share in #fabric-test gives one event with its name",
+   "steps": [
+    {
+     "owner": {
+      "words": "In Slack, share a small text file named fabric-synthetic.txt in #fabric-test, then press Enter."
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "file"
+      },
+      "events": 1,
+      "within": 120,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/fileName",
+        "equals": "fabric-synthetic.txt"
+       },
+       {
+        "pointer": "/events/0/fields/channel",
+        "equals": {
+         "$recorded": "fabricTest"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "file"
+      },
+      "events": 0,
+      "itemsRead": 1
+     }
+    }
+   ],
+   "undo": {
+    "none": "The file stays in #fabric-test."
+   }
+  },
+  {
+   "id": "TR7",
+   "name": "A private channel you create gives one event with its kind and name",
+   "steps": [
+    {
+     "owner": {
+      "words": "In Slack, create a private channel with the name you recorded as privateChannel, then press Enter."
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "joined"
+      },
+      "events": 1,
+      "within": 600,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/kind",
+        "equals": "private_channel"
+       },
+       {
+        "pointer": "/events/0/fields/name",
+        "equals": {
+         "$recorded": "privateChannel"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "joined"
+      },
+      "events": 0,
+      "itemsRead": 1
+     }
+    }
+   ],
+   "undo": {
+    "none": "The private channel stays, with a name that says it is synthetic."
+   }
+  }
+ ]
+}

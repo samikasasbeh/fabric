@@ -13,7 +13,8 @@ import {describeConnectionOptions} from './lib/connection-options.mjs';
 import {GoogleOAuthManager} from './lib/oauth.mjs';
 import {OAuth2Provider} from './lib/providers/oauth2.mjs';
 import {ContinuationService} from './lib/continuations.mjs';
-import {catalogPage,activityPage,approvalPage} from './lib/ui-contracts.mjs';
+import {SubscriptionService} from './lib/subscriptions.mjs';
+import {catalogPage,activityPage,approvalPage,watchApprovalPage} from './lib/ui-contracts.mjs';
 import {AppDetailService} from './lib/app-detail.mjs';
 import {definitionFor,reviewedProviderIds} from './lib/providers/definitions.mjs';
 import {RELAY_PORTS,relayed,relayOrigin,relayRedirect,relayPortHelp} from './lib/oauth-relay.mjs';
@@ -21,6 +22,7 @@ import {LocalDriver,workspaceCapabilities} from './lib/local-driver.mjs';
 import {BrowserBridge} from './lib/browser-bridge.mjs';
 import {Runtime} from './lib/runtime.mjs';
 import {HeartbeatScheduler} from './lib/heartbeat.mjs';
+import {TriggerEngine} from './lib/trigger-engine.mjs';
 import {AcquisitionEngine} from './lib/acquisition.mjs';
 import {DiscoveryEngine} from './lib/discovery.mjs';
 import {validateCapability,canonicalHash} from './lib/compiler.mjs';
@@ -87,7 +89,7 @@ export async function createApp({dataDir=process.env.FABRIC_DATA_DIR||path.join(
     ownerPrincipal=validatePrincipal(localAuthority.ownerPrincipal);
     if(ownerPrincipal.kind!=='local_owner') throw new Error('A configured local owner is required.');
   }
-  const origin=`http://127.0.0.1:${port}`;const store=new LocalRepository({store:new Store({dataDir,clock,...(localAuthority?{localAuthority:localAuthority.mode}:{})}),...(ownerPrincipal?{scope:ownerPrincipal.scope}:{})});
+  const origin=`http://127.0.0.1:${port}`;const store=new LocalRepository({store:new Store({dataDir,clock,secureDelete:true,...(localAuthority?{localAuthority:localAuthority.mode}:{})}),...(ownerPrincipal?{scope:ownerPrincipal.scope}:{})});
   if(ownerPrincipal) {
     try {
       const designation={id:'owner',schemaVersion:1,ownerPrincipal};
@@ -195,6 +197,11 @@ export async function createApp({dataDir=process.env.FABRIC_DATA_DIR||path.join(
     return connections.get(connection.id);
   }
   const heartbeats=new HeartbeatScheduler({store,runtime,checkConnection,clock});
+  // Iteration 9: the poll engine (docs/I07-BUILD-MAP.md part 2c). Nothing runs until the server listens.
+  const triggers=new TriggerEngine({store,runtime,clock,certification:Boolean(certification)});
+  // Iteration 9 parts 3a and 3b: an agent's watches, on either store mode. A poll that lands wakes the agents waiting on it.
+  const subscriptions=new SubscriptionService({store,runtime,protocol,triggers,clock,origin,appName:id=>catalog().find(app=>app.id===id)?.name||id});
+  protocol.subscriptions=subscriptions;triggers.notify=clientId=>subscriptions.notify(clientId);
   if(!store.list('heartbeats').length) heartbeats.create({name:'Connection health',intervalSeconds:60});
   const sessions=new Map();
   function session(req,res) {
@@ -250,8 +257,8 @@ export async function createApp({dataDir=process.env.FABRIC_DATA_DIR||path.join(
         if(req.method!=='GET'&&!secureEqual(req.headers['x-fabric-csrf'],s.csrf)) return json(res,403,{error:'Session expired or missing CSRF token. Refresh Fabric.'});
         if(route==='/api/browser-setup'&&req.method==='GET') return json(res,200,await setup.status());
         if(route==='/api/session-browser'&&req.method==='GET') return json(res,200,await persistentBrowser.availability());
-        if(route==='/api/state'&&req.method==='GET') return json(res,200,{catalog:catalog(),connections:connectionViews(),runtime:runtimeView(),capabilities:store.list('capabilities'),applicationMaps:store.list('applicationMaps'),jobs:store.list('jobs').slice(-100).reverse(),activity:store.list('activity').slice(-100).reverse(),heartbeats:store.list('heartbeats'),capabilityStats:store.list('capabilityStats'),pendingHandoffs:continuations.pendingCount(),settings:{modelConfigured:acquisition.configured,modelName:acquisition.modelName||null,googleOAuthConfigured:oauth.configured,googleOAuth:oauth.configuration(),oauthProviders:Object.fromEntries([...oauthProviders].map(([id,provider])=>[id,{name:provider.name,...provider.availability(),redirectUri:provider.redirectUri,authorizationOrigin:new URL(provider.definition.authorization.url).origin,apps:provider.appIds,consentMode:provider.consentMode}])),persistentBrowser:await persistentBrowser.availability(),browserExtension:{directory:(await setup.status()).directory,browsers:['Chrome','Edge']}},csrfToken:s.csrf,workspaceRoot:local.root});
-        if(route==='/api/status'&&req.method==='GET') return json(res,200,{product:'Fabric',pendingHandoffs:continuations.pendingCount(),runtime:runtimeView(),connections:connectionViews().map(({id,appId,driver,status,transport,persistentSession,bridgeVersion,sessionScope,browserEvidence,lifecycle})=>({id,appId,driver,status,...(transport?{transport,persistentSession}:{}),...(bridgeVersion?{bridgeVersion}:{}),...(sessionScope?{sessionScope}:{}),...(browserEvidence?{browserEvidence}:{}),lifecycle})),discovery:{autonomous:false,applications:store.list('applicationMaps').map(m=>({appId:m.appId,discoveredAt:m.discoveredAt,counts:m.counts})),capabilityCount:store.list('capabilities').length},execution:{pendingApprovals:store.list('jobs').filter(j=>j.status==='awaiting_approval').length,jobCount:store.list('jobs').length},agent:{transport:'fabric/0.1',alwaysOnAgent:false,activeClients:protocol.listClients().filter(c=>c.status==='active'&&Date.parse(c.expiresAt)>clock()).length}});
+        if(route==='/api/state'&&req.method==='GET') return json(res,200,{catalog:catalog(),connections:connectionViews(),runtime:runtimeView(),capabilities:store.list('capabilities'),applicationMaps:store.list('applicationMaps'),jobs:store.list('jobs').slice(-100).reverse(),activity:store.list('activity').slice(-100).reverse(),heartbeats:store.list('heartbeats'),capabilityStats:store.list('capabilityStats'),pendingHandoffs:continuations.pendingCount(),pendingWatches:subscriptions.pendingCount(),settings:{modelConfigured:acquisition.configured,modelName:acquisition.modelName||null,googleOAuthConfigured:oauth.configured,googleOAuth:oauth.configuration(),oauthProviders:Object.fromEntries([...oauthProviders].map(([id,provider])=>[id,{name:provider.name,...provider.availability(),redirectUri:provider.redirectUri,authorizationOrigin:new URL(provider.definition.authorization.url).origin,apps:provider.appIds,consentMode:provider.consentMode}])),persistentBrowser:await persistentBrowser.availability(),browserExtension:{directory:(await setup.status()).directory,browsers:['Chrome','Edge']}},csrfToken:s.csrf,workspaceRoot:local.root});
+        if(route==='/api/status'&&req.method==='GET') return json(res,200,{product:'Fabric',pendingHandoffs:continuations.pendingCount(),runtime:runtimeView(),connections:connectionViews().map(({id,appId,driver,status,transport,persistentSession,bridgeVersion,sessionScope,browserEvidence,lifecycle})=>({id,appId,driver,status,...(transport?{transport,persistentSession}:{}),...(bridgeVersion?{bridgeVersion}:{}),...(sessionScope?{sessionScope}:{}),...(browserEvidence?{browserEvidence}:{}),lifecycle})),discovery:{autonomous:false,applications:store.list('applicationMaps').map(m=>({appId:m.appId,discoveredAt:m.discoveredAt,counts:m.counts})),capabilityCount:store.list('capabilities').length},execution:{pendingApprovals:store.list('jobs').filter(j=>j.status==='awaiting_approval').length,jobCount:store.list('jobs').length,pendingWatches:subscriptions.pendingCount()},agent:{transport:'fabric/0.1',alwaysOnAgent:false,activeClients:protocol.listClients().filter(c=>c.status==='active'&&Date.parse(c.expiresAt)>clock()).length}});
         if(req.method==='GET'&&/^\/api\/pair\/[^/]+\/status$/.test(route)) return json(res,200,browser.status(decodeURIComponent(route.split('/')[3])));
         if(req.method==='GET'&&route==='/api/catalog/search') return json(res,200,{apps:resolver.search(u.searchParams.get('q')||'')});
         if(req.method==='GET'&&route==='/api/clients') return json(res,200,{clients:protocol.listClients(),protocol:protocolManifest});
@@ -262,8 +269,9 @@ export async function createApp({dataDir=process.env.FABRIC_DATA_DIR||path.join(
           const names={appName:id=>catalog().find(app=>app.id===id)?.name||id||null,capabilityName:id=>store.get('capabilities',id)?.name||null,accountName:shown,clientName:id=>id?store.get('clientGrants',id)?.name||null:null,now:clock(),
             // F10.11 part j: an action job's card shows its prepared bytes, read here; without them it offers no Approve.
             prepared:id=>store.get('actionPrepared',id)};
-          if(approvalRoute){const job=store.get('jobs',approvalRoute[1]);if(!job) return json(res,404,{error:'This approval is not in this Fabric.',code:'not_found'});return json(res,200,approvalPage(job,names));}
-          return json(res,200,await ownerContinuation(()=>activityPage({jobs:store.list('jobs'),continuations:store.authorityEnabled?store.list('continuations'):[],...names,cursor:u.searchParams.get('cursor')||undefined})));}
+          // Iteration 9 part 3c: a watch's card opens on the same page as a job's, so /approve/<id> needs no change.
+          if(approvalRoute){const job=store.get('jobs',approvalRoute[1]);if(job) return json(res,200,approvalPage(job,names));const watch=subscriptions.record(approvalRoute[1]);if(!watch) return json(res,404,{error:'This approval is not in this Fabric.',code:'not_found'});return json(res,200,watchApprovalPage(watch,{...names,facts:subscriptions.ownerFacts(watch)}));}
+          return json(res,200,await ownerContinuation(()=>activityPage({jobs:store.list('jobs'),continuations:store.authorityEnabled?store.list('continuations'):[],subscriptions:subscriptions.ownerList(),watchFacts:watch=>subscriptions.ownerFacts(watch),...names,cursor:u.searchParams.get('cursor')||undefined})));}
         if(req.method==='GET'&&appRoute) return json(res,200,await ownerContinuation(()=>appDetails.view(appRoute[1],u.searchParams.get('account')||undefined)));
         if(req.method==='GET'&&route==='/api/continuations') return json(res,200,{continuations:await ownerContinuation(()=>continuations.ownerList())});
         if(req.method==='GET'&&/^\/api\/continuations\/[^/]+$/.test(route)) return json(res,200,await ownerContinuation(()=>continuations.ownerView(decodeURIComponent(route.split('/')[3]))));
@@ -398,6 +406,13 @@ export async function createApp({dataDir=process.env.FABRIC_DATA_DIR||path.join(
           return json(res,200,await runtime.approve(route.split('/')[3],data.approvalDigest,ownerPrincipal));
         }
         if(/^\/api\/jobs\/[^/]+\/cancel$/.test(route)) return json(res,200,runtime.cancel(route.split('/')[3]));
+        // Iteration 9 parts 3c and 3d: the owner's decisions on a watch, behind the session and CSRF checks above. Approve and Resume take only the digest shown, as a job's approval does.
+        const watchRoute=/^\/api\/ui\/watches\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\/(approve|decline|pause|resume|remove)$/.exec(route);
+        if(watchRoute){
+          const [,id,verb]=watchRoute,digested=verb==='approve'||verb==='resume';
+          if(Object.keys(data).some(key=>!digested||key!=='approvalDigest'))throw new Error(digested?'This accepts only the digest of the watch shown.':'This takes no fields.');
+          return json(res,200,digested?subscriptions[verb](id,data.approvalDigest,ownerPrincipal):subscriptions[verb](id,ownerPrincipal));
+        }
         if(route==='/api/heartbeats') return json(res,201,heartbeats.create(data,ownerPrincipal));
         if(/^\/api\/heartbeats\/[^/]+\/(pause|resume)$/.test(route)) return json(res,200,heartbeats.setEnabled(route.split('/')[3],route.endsWith('/resume')));
         return json(res,404,{error:'Unknown API operation.'});
@@ -415,7 +430,7 @@ export async function createApp({dataDir=process.env.FABRIC_DATA_DIR||path.join(
     }catch(error){if(!res.headersSent) json(res,error.httpStatus??(error.code==='browser_revoked'?401:error.code==='ENOENT'?404:400),{...(error.view?{view:error.view}:{}),...(error.upgrade?{upgrade:{rows:error.upgrade.rows,etag:error.upgrade.etag}}:{}),...(Array.isArray(error.siblings)?{siblings:error.siblings.map(item=>({connectionId:item.connectionId,appId:item.appId,displayName:item.displayName,waiting:item.waiting===true}))}:{}),...(Array.isArray(error.affected)?{affected:error.affected.map(item=>({connectionId:item.connectionId,appId:item.appId}))}:{}),error:String(error.message||'Request failed.').slice(0,800),code:error.code||'invalid_request'});else res.end();}
   }
   const server=http.createServer(handler);server.requestTimeout=60000;server.headersTimeout=15000;
-  return {server,store,vault,connections,oauth,local,device,resolver,runtime,browser,persistentBrowser,heartbeats,acquisition,discovery,factory,protocol,continuations,actions,origin,start:()=>new Promise((resolve,reject)=>{server.once('error',reject);server.listen(port,'127.0.0.1',()=>{heartbeats.start();resolve();});}),close:async()=>{clearInterval(retention);heartbeats.stop();browser.close();await persistentBrowser.shutdown();await new Promise(resolve=>server.close(resolve));await continuations.drain();store.close();}};
+  return {server,store,vault,connections,oauth,local,device,resolver,runtime,browser,persistentBrowser,heartbeats,triggers,subscriptions,acquisition,discovery,factory,protocol,continuations,actions,origin,start:()=>new Promise((resolve,reject)=>{server.once('error',reject);server.listen(port,'127.0.0.1',()=>{heartbeats.start();triggers.start();resolve();});}),close:async()=>{clearInterval(retention);heartbeats.stop();subscriptions.close();await triggers.stop();browser.close();await persistentBrowser.shutdown();await new Promise(resolve=>server.close(resolve));await continuations.drain();store.close();}};
 }
 
 /** The data folder's lock (runtime.lock): one Fabric per folder. A lock whose process is gone is taken over. Returns its release.

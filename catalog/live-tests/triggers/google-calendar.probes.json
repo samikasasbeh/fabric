@@ -1,0 +1,132 @@
+{
+ "schemaVersion": 1,
+ "appId": "google-calendar",
+ "probes": true,
+ "note": "Read probes P2 and P3 of docs/I07-BUILD-MAP.md section 6, on one calendar an earlier run left, run before the Calendar simulator grows in step 8. Each test is one question: yes means its checks hold. A plan cannot cut a saved value, so P3 sends a fixed token in Google's form, not a truncated real one. Answers go in section 12 by hand.",
+ "recorded": {
+  "leftoverCalendar": "The id of a run calendar an earlier live run left, ending in @group.calendar.google.com."
+ },
+ "readRows": [
+  "google-calendar.events.read"
+ ],
+ "tests": [
+  {
+   "id": "P2-fields",
+   "name": "With the feed's own query, does the fields mask keep nextSyncToken?",
+   "steps": [
+    {
+     "read": {
+      "path": "/calendars/{calendar}/events",
+      "params": {
+       "calendar": {
+        "$recorded": "leftoverCalendar"
+       }
+      },
+      "query": {
+       "maxResults": "250",
+       "showHiddenInvitations": "true",
+       "fields": "nextPageToken,nextSyncToken,items(id,etag,status,updated,summary,description,location,start,end,recurrence,recurringEventId,originalStartTime,eventType,organizer(email,self),attendees(email,self,organizer,responseStatus),attendeesOmitted,htmlLink)"
+      },
+      "checks": [
+       {
+        "status": 200
+       },
+       {
+        "pointer": "/nextSyncToken",
+        "present": true
+       }
+      ],
+      "save": {
+       "syncToken": "/nextSyncToken"
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "P2-same",
+   "name": "Does that token read again under the same query?",
+   "steps": [
+    {
+     "read": {
+      "path": "/calendars/{calendar}/events",
+      "params": {
+       "calendar": {
+        "$recorded": "leftoverCalendar"
+       }
+      },
+      "query": {
+       "maxResults": "250",
+       "showHiddenInvitations": "true",
+       "fields": "nextPageToken,nextSyncToken,items(id,etag,status,updated,summary,description,location,start,end,recurrence,recurringEventId,originalStartTime,eventType,organizer(email,self),attendees(email,self,organizer,responseStatus),attendeesOmitted,htmlLink)",
+       "syncToken": {
+        "$saved": "syncToken"
+       }
+      },
+      "checks": [
+       {
+        "status": 200
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "P2-changed",
+   "name": "Under that token, does a changed query answer 400?",
+   "steps": [
+    {
+     "read": {
+      "path": "/calendars/{calendar}/events",
+      "params": {
+       "calendar": {
+        "$recorded": "leftoverCalendar"
+       }
+      },
+      "query": {
+       "maxResults": "100",
+       "showHiddenInvitations": "true",
+       "fields": "nextPageToken,nextSyncToken,items(id,etag,status,updated,summary,description,location,start,end,recurrence,recurringEventId,originalStartTime,eventType,organizer(email,self),attendees(email,self,organizer,responseStatus),attendeesOmitted,htmlLink)",
+       "syncToken": {
+        "$saved": "syncToken"
+       }
+      },
+      "checks": [
+       {
+        "status": 400
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "P3-damaged",
+   "name": "Does a damaged token answer 410? No, with a 400, means 410 stays on the simulator.",
+   "steps": [
+    {
+     "read": {
+      "path": "/calendars/{calendar}/events",
+      "params": {
+       "calendar": {
+        "$recorded": "leftoverCalendar"
+       }
+      },
+      "query": {
+       "maxResults": "250",
+       "showHiddenInvitations": "true",
+       "fields": "nextPageToken,nextSyncToken,items(id,etag,status,updated,summary,description,location,start,end,recurrence,recurringEventId,originalStartTime,eventType,organizer(email,self),attendees(email,self,organizer,responseStatus),attendeesOmitted,htmlLink)",
+       "syncToken": "CPDAlvWDx70CEPDAlvWDx70CGAU="
+      },
+      "checks": [
+       {
+        "status": 410
+       }
+      ]
+     }
+    }
+   ]
+  }
+ ]
+}

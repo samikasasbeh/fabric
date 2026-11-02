@@ -10,6 +10,8 @@ import {mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync} from 'node:
 import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {Store} from '../../../lib/store.mjs';
+import {LocalRepository} from '../../../lib/repositories/local.mts';
+import {OWNER as DESIGNATED_OWNER} from './slack-rig.mjs';
 import {Vault} from '../../../lib/vault.mjs';
 import {ConnectionManager} from '../../../lib/connections.mjs';
 import {OAuth2Provider} from '../../../lib/providers/oauth2.mjs';
@@ -59,7 +61,7 @@ export function certified(file, deps) {
  * with its shown digest; card(job) is its approval item, fields(job) the card's field lines as {label: value} and prepared(job) its prepared
  * row; setRow(groupId, mode) sets a row; allow(key) sets an action's own record to Allow.
  */
-export function notionHarness(t, {file = notionFile(), capabilities = CAPABILITIES, rows = change => change, evidence = true, start = '2026-10-26T12:00:00.000Z', email = OWNER.email, wrap = inner => inner} = {}) {
+export function notionHarness(t, {file = notionFile(), capabilities = CAPABILITIES, rows = change => change, evidence = true, start = '2026-10-26T12:00:00.000Z', email = OWNER.email, wrap = inner => inner, designated = false} = {}) {
   const root = mkdtempSync(path.join(tmpdir(), 'fabric-notion-harness-'));
   let now = Date.parse(start);
   const clock = () => now;
@@ -75,7 +77,8 @@ export function notionHarness(t, {file = notionFile(), capabilities = CAPABILITI
       {passed: true, transforms: Object.fromEntries(entry.transforms.map(id => [id, PINS.transforms[id]])), definitionHash: entry.definitionHash}]))));
   }
   const simulator = new NotionApiSimulator({clock, token: TOKEN, owner: {name: OWNER.name, email}, capabilities: [...capabilities]}), request = wrap(simulator.request);
-  const store = new Store({dataDir: data, clock}), vault = new Vault(data);
+  // A certification Fabric is designated, and only a designated store takes the proxy entry a live run's grant holds.
+  const plain = new Store({dataDir: data, clock, ...(designated ? {localAuthority: 'new'} : {})}), store = designated ? new LocalRepository({store: plain, scope: DESIGNATED_OWNER.scope}) : plain, vault = new Vault(data);
   t.after(() => { store.close(); rmSync(root, {recursive: true, force: true}); });
   const at = new Date(now).toISOString();
   store.put('connections', {id: ACCOUNT, appId: 'notion', providerId: 'notion', driver: 'http', authMethod: 'oauth', authRevision: 'r1', status: 'ready', label: 'Notion',
@@ -90,7 +93,7 @@ export function notionHarness(t, {file = notionFile(), capabilities = CAPABILITI
   const proxyPolicy = new ProxyPolicy({store, permissions, groups, configs: PROXY_CONFIGS});
   const catalog = loadActionCatalog({directory: actions, evidenceRoot: root, maps: deps.maps, deps: {groups, configs: PROXY_CONFIGS, identities: deps.identities},
     codeHashes: ids => Object.fromEntries(ids.map(id => [id, PINS.transforms[id]]))});
-  const runtime = new Runtime({store, permissions, proxyPolicy, connections, request, clock, actions: catalog});
+  const runtime = new Runtime({store, permissions, proxyPolicy, connections, request, clock, actions: catalog, ...(designated ? {ownerPrincipal: DESIGNATED_OWNER} : {})});
   seedActions(store, catalog);
   const idOf = key => [...catalog.entries.values()].find(item => `${item.entry.key} v${item.entry.version}` === key)?.entry.id;
   const card = job => approvalItem(job, {prepared: id => store.get(PREPARED, id)});

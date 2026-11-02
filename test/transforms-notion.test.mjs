@@ -6,6 +6,7 @@ import {FAMILY_CODES as V1, TransformError} from '../lib/transforms/_shared/erro
 import {FAMILY_CODES as V3, TransformError as V3Error} from '../lib/transforms/_shared/error.v3.mjs';
 import {FAMILY_CODES as LATER_V2} from '../lib/transforms/_shared/error.v2.mjs';
 import {FAMILY_CODES as LATER_V4} from '../lib/transforms/_shared/error.v4.mjs';
+import {FAMILY_CODES as LATER_V5} from '../lib/transforms/_shared/error.v5.mjs';
 import {WRITABLE, READ_ONLY, kindOf, chunks} from '../lib/transforms/notion/_types.v1.mjs';
 import {ROOT, readPins} from '../lib/transform-pins.mjs';
 import {vectorTests} from './fixtures/transform-vectors.mjs';
@@ -53,9 +54,9 @@ test('error.v3.mjs re-exports TransformError and adds the notion family; the reg
   assert.equal(V3Error, TransformError);
   assert.deepEqual(V3, {notion: NOTION_CODES});
   assert.ok(Object.isFrozen(V3) && Object.isFrozen(V3.notion));
-  // F10.17's error.v2.mjs adds path_invalid to ids and name_invalid and name_repeated to collections, and F10.21's error.v4.mjs emoji_invalid
-  // to ids, lists only.
-  assert.deepEqual(Object.fromEntries(CODES), {...V1, ids: [...V1.ids, ...LATER_V2.ids, ...LATER_V4.ids], collections: [...V1.collections, ...LATER_V2.collections], notion: NOTION_CODES});
+  // F10.17's error.v2.mjs adds path_invalid to ids and name_invalid and name_repeated to collections, F10.21's error.v4.mjs emoji_invalid to ids,
+  // and Iteration 9's error.v5.mjs link_invalid to ids, lists only.
+  assert.deepEqual(Object.fromEntries(CODES), {...V1, ids: [...V1.ids, ...LATER_V2.ids, ...LATER_V4.ids, ...LATER_V5.ids], collections: [...V1.collections, ...LATER_V2.collections], notion: NOTION_CODES});
 });
 
 test('seven transforms are registered in the notion family, each passing checkEntry(), with the shapes the actions read', () => {
@@ -264,10 +265,15 @@ const STEP_8_PINS = '2f625158a8016c94716f242a8edcf810cee8a70c5f8bfbf705671a3bfa0
 test('seven pins are added and none moved: not step 8\'s 38, not the harness; one re-pin, notion.plainValues@1\'s lines (part 2)', () => {
   const pins = readPins(ROOT), byId = ([a], [b]) => a < b ? -1 : a > b ? 1 : 0;
   const notion = Object.keys(pins.transforms).filter(id => id.startsWith('notion.'));
-  assert.deepEqual(sorted(notion), sorted(IDS));
+  // Iteration 9 step 5 adds two, which its Notion triggers read (test/triggers-notion.test.mjs).
+  assert.deepEqual(sorted(notion), sorted([...IDS, 'notion.markdownFingerprint@1', 'notion.rowFingerprint@1']));
   // F10.17 adds its own three pins (ids.repoPath@1, text.mentions@1 and collections.stringValues@1) and F10.21 its two (text.slackQuery@1
   // and ids.slackEmoji@1), each pinned by its own churn test.
   const later = new Set(['ids.repoPath@1', 'text.mentions@1', 'collections.stringValues@1', 'text.slackQuery@1', 'ids.slackEmoji@1']);
+  later.add('collections.slackReactions@1'); // Iteration 9 step 4's one, pinned by test/transforms-collections.test.mjs.
+  later.add('ids.linkPage@1'); // Iteration 9 listed churn (docs/I07-BUILD-MAP.md step 6): its own pin, held by test/triggers-github.test.mjs.
+  for (const id of ['collections.gmailHistory@1', 'collections.gmailSentBefore@1']) later.add(id); // Iteration 9 step 7's two, pinned by test/transforms-gmail.test.mjs.
+  for (const id of ['collections.calendarGuests@1', 'collections.calendarSelf@1', 'time.isAfter@1', 'time.offsetFromNow@1']) later.add(id); // Iteration 9 step 8's four, pinned by test/triggers-calendar.test.mjs.
   const before = Object.fromEntries(Object.entries(pins.transforms).filter(([id]) => !id.startsWith('notion.') && !later.has(id)).sort(byId));
   assert.equal(Object.keys(before).length, 38);
   assert.equal(createHash('sha256').update(JSON.stringify(before)).digest('hex'), STEP_8_PINS);

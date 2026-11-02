@@ -1,6 +1,6 @@
 import {assertSameScope, validateScope} from '../../contracts/identity.mts';
 import type {LocalScope, Scope} from '../../contracts/identity.mts';
-import type {DocumentStore, LocalRepositoryGuarantees, LocalRepositoryPort, RepositoryDocument} from '../../contracts/repository.mts';
+import type {DocumentStore, LocalRepositoryGuarantees, LocalRepositoryPort, RepositoryDocument, TriggerEventRow, TriggerPoll, TriggerPollResult, TriggerSeenState} from '../../contracts/repository.mts';
 
 const LOCAL_SCOPE: LocalScope = Object.freeze({schemaVersion: 1, kind: 'local', localOwnerId: 'local-runtime'});
 const GUARANTEES: LocalRepositoryGuarantees = Object.freeze({
@@ -50,6 +50,19 @@ export class LocalRepository implements LocalRepositoryPort {
   listWhere(collection: string, field: string, value: string): RepositoryDocument[] {
     return typeof this.#store.listWhere === 'function' ? this.#store.listWhere(collection, field, value) : this.#store.list(collection).filter(document => document[field] === value);
   }
+  /** Iteration 9: the trigger tables (lib/store.mjs). A store without them holds nothing, so reads answer empty, deletes remove nothing, and only a poll refuses. */
+  appendPoll(poll: TriggerPoll): TriggerPollResult {
+    if (typeof this.#store.appendPoll !== 'function') throw new RepositoryError('unsupported_repository_operation', 'This store holds no trigger tables.');
+    return this.#store.appendPoll(poll);
+  }
+  seenRows(feedId: string, lens: string, keys: string[]): Map<string, TriggerSeenState> { return typeof this.#store.seenRows === 'function' ? this.#store.seenRows(feedId, lens, keys) : new Map(); }
+  listEvents(clientId: string, after: number, limit: number): TriggerEventRow[] { return typeof this.#store.listEvents === 'function' ? this.#store.listEvents(clientId, after, limit) : []; }
+  latestSequence(clientId: string): number { return typeof this.#store.latestSequence === 'function' ? this.#store.latestSequence(clientId) : 0; }
+  deleteSubscriptionEvents(id: string): number { return typeof this.#store.deleteSubscriptionEvents === 'function' ? this.#store.deleteSubscriptionEvents(id) : 0; }
+  deleteConnectionTriggerData(connectionId: string): number { return typeof this.#store.deleteConnectionTriggerData === 'function' ? this.#store.deleteConnectionTriggerData(connectionId) : 0; }
+  deleteFeedSeen(feedId: string): number { return typeof this.#store.deleteFeedSeen === 'function' ? this.#store.deleteFeedSeen(feedId) : 0; }
+  deleteLensSeen(feedId: string, lens: string): number { return typeof this.#store.deleteLensSeen === 'function' ? this.#store.deleteLensSeen(feedId, lens) : 0; }
+  sweepEvents(now: number): number { return typeof this.#store.sweepEvents === 'function' ? this.#store.sweepEvents(now) : 0; }
   put(collection: string, document: RepositoryDocument): RepositoryDocument { return this.#store.put(collection, document); }
   delete(collection: string, id: string): boolean { return this.#store.delete(collection, id); }
   audit(event: Record<string, unknown>): RepositoryDocument { return this.#store.audit(event); }

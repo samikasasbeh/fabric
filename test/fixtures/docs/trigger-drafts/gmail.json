@@ -1,0 +1,2505 @@
+{
+ "schemaVersion": 1,
+ "appId": "gmail",
+ "specVersion": "fabric/0.2",
+ "reviewStatus": "candidate",
+ "pinnedParameters": {
+  "userId": "me"
+ },
+ "triggers": [
+  {
+   "id": "gmail.trigger.new-inbox-email.v1.ff7db483792db029670085e1",
+   "key": "new-inbox-email",
+   "version": 1,
+   "name": "New email in your inbox",
+   "description": "Tells you once about each new email that lands in your inbox, with its sender and subject. It does not read the body.",
+   "delivery": {
+    "method": "polling",
+    "intervalSeconds": {
+     "default": 120,
+     "min": 60
+    }
+   },
+   "inputSchema": {
+    "type": "object",
+    "properties": {},
+    "additionalProperties": false
+   },
+   "resource": [],
+   "poll": {
+    "seed": {
+     "step": {
+      "id": "profile",
+      "method": "GET",
+      "path": "/gmail/v1/users/{userId}/profile",
+      "maxResponseBytes": 4096,
+      "expect": {
+       "status": [
+        200
+       ],
+       "require": []
+      }
+     },
+     "cursor": {
+      "name": "history",
+      "pointer": "/historyId"
+     }
+    },
+    "source": {
+     "steps": [
+      {
+       "id": "history",
+       "method": "GET",
+       "path": "/gmail/v1/users/{userId}/history",
+       "query": {
+        "startHistoryId": {
+         "cursor": "history"
+        },
+        "maxResults": {
+         "const": "500"
+        }
+       },
+       "page": {
+        "next": {
+         "pointer": "/nextPageToken"
+        },
+        "into": {
+         "query": "pageToken"
+        },
+        "items": "/history",
+        "max": 10
+       },
+       "maxResponseBytes": 2097152,
+       "expect": {
+        "status": [
+         200
+        ],
+        "require": []
+       }
+      }
+     ]
+    },
+    "items": {
+     "pick": {
+      "transform": "collections.gmailHistory@1",
+      "args": {
+       "list": {
+        "step": "history",
+        "pointer": ""
+       },
+       "kind": {
+        "const": "messagesAdded"
+       }
+      }
+     },
+     "pointer": "/items"
+    },
+    "itemId": {
+     "item": "/id"
+    },
+    "itemVersion": null,
+    "order": "asc",
+    "cursors": [
+     {
+      "name": "history",
+      "kind": "history-id@1",
+      "next": {
+       "step": "history",
+       "pointer": "/historyId"
+      },
+      "compare": "time.decimalCompare@1",
+      "lastPageOnly": true
+     }
+    ],
+    "resync": {
+     "statusIn": [
+      404
+     ]
+    },
+    "enrich": {
+     "max": 25,
+     "steps": [
+      {
+       "id": "meta",
+       "method": "GET",
+       "path": "/gmail/v1/users/{userId}/messages/{id}",
+       "params": {
+        "id": {
+         "item": "/id"
+        }
+       },
+       "query": {
+        "format": {
+         "const": "metadata"
+        },
+        "metadataHeaders": {
+         "const": [
+          "From",
+          "Subject"
+         ]
+        }
+       },
+       "maxResponseBytes": 65536,
+       "expect": {
+        "status": [
+         200,
+         404
+        ],
+        "require": []
+       }
+      }
+     ]
+    },
+    "minIntervalSeconds": 60
+   },
+   "filter": [
+    {
+     "status": {
+      "step": "meta",
+      "in": [
+       200
+      ]
+     }
+    },
+    {
+     "nonEmpty": {
+      "pick": {
+       "transform": "collections.findBy@1",
+       "args": {
+        "list": {
+         "step": "meta",
+         "pointer": ""
+        },
+        "items": {
+         "const": "/labelIds"
+        },
+        "field": {
+         "const": ""
+        },
+        "id": {
+         "const": ""
+        },
+        "value": {
+         "const": "INBOX"
+        },
+        "fold": {
+         "const": "none"
+        },
+        "require": {
+         "const": "any"
+        }
+       }
+      },
+      "pointer": "/matches"
+     }
+    }
+   ],
+   "dedupe": {
+    "kind": "id"
+   },
+   "event": {
+    "schema": {
+     "type": "object",
+     "properties": {
+      "messageId": {
+       "type": "string",
+       "minLength": 1,
+       "maxLength": 64
+      },
+      "threadId": {
+       "type": "string",
+       "minLength": 1,
+       "maxLength": 64
+      },
+      "from": {
+       "type": "string",
+       "minLength": 1,
+       "maxLength": 256
+      },
+      "subject": {
+       "type": "string",
+       "maxLength": 256
+      },
+      "receivedAt": {
+       "type": "string",
+       "minLength": 1,
+       "maxLength": 24
+      }
+     },
+     "required": [
+      "messageId",
+      "threadId",
+      "receivedAt"
+     ],
+     "additionalProperties": false
+    },
+    "id": {
+     "item": "/id"
+    },
+    "occurredAt": {
+     "step": "meta",
+     "pointer": "/internalDate"
+    },
+    "fields": {
+     "messageId": {
+      "item": "/id"
+     },
+     "threadId": {
+      "item": "/threadId"
+     },
+     "from": {
+      "when": {
+       "present": {
+        "pick": {
+         "transform": "rfc5322.decodeGmailPayload@1",
+         "args": {
+          "message": {
+           "step": "meta",
+           "pointer": ""
+          }
+         }
+        },
+        "pointer": "/summary/from/0/address"
+       }
+      },
+      "then": {
+       "pick": {
+        "transform": "text.truncate@1",
+        "args": {
+         "text": {
+          "pick": {
+           "transform": "rfc5322.decodeGmailPayload@1",
+           "args": {
+            "message": {
+             "step": "meta",
+             "pointer": ""
+            }
+           }
+          },
+          "pointer": "/summary/from/0/address"
+         },
+         "max": {
+          "const": 256
+         }
+        }
+       },
+       "pointer": "/text"
+      }
+     },
+     "subject": {
+      "when": {
+       "present": {
+        "pick": {
+         "transform": "rfc5322.decodeGmailPayload@1",
+         "args": {
+          "message": {
+           "step": "meta",
+           "pointer": ""
+          }
+         }
+        },
+        "pointer": "/summary/subject"
+       }
+      },
+      "then": {
+       "pick": {
+        "transform": "text.truncate@1",
+        "args": {
+         "text": {
+          "pick": {
+           "transform": "rfc5322.decodeGmailPayload@1",
+           "args": {
+            "message": {
+             "step": "meta",
+             "pointer": ""
+            }
+           }
+          },
+          "pointer": "/summary/subject"
+         },
+         "max": {
+          "const": 256
+         }
+        }
+       },
+       "pointer": "/text"
+      }
+     },
+     "receivedAt": {
+      "pick": {
+       "transform": "time.epochMillisStringToRfc3339@1",
+       "args": {
+        "millis": {
+         "step": "meta",
+         "pointer": "/internalDate"
+        }
+       }
+      },
+      "pointer": "/time"
+     }
+    },
+    "summary": [
+     {
+      "label": "From",
+      "expr": {
+       "pick": {
+        "transform": "rfc5322.decodeGmailPayload@1",
+        "args": {
+         "message": {
+          "step": "meta",
+          "pointer": ""
+         }
+        }
+       },
+       "pointer": "/summary/from/0/address"
+      }
+     },
+     {
+      "label": "Subject",
+      "expr": {
+       "pick": {
+        "transform": "rfc5322.decodeGmailPayload@1",
+        "args": {
+         "message": {
+          "step": "meta",
+          "pointer": ""
+         }
+        }
+       },
+       "pointer": "/summary/subject"
+      },
+      "truncate": 120
+     }
+    ]
+   },
+   "backfill": {
+    "default": 0,
+    "max": 25
+   },
+   "retention": {
+    "days": 7
+   },
+   "bounds": {
+    "pages": 10,
+    "items": 500,
+    "pollSeconds": 10
+   },
+   "rows": [
+    "gmail.messages.read"
+   ]
+  },
+  {
+   "id": "gmail.trigger.label-added.v1.5e2da9f8fadc31a413748b59",
+   "key": "label-added",
+   "version": 1,
+   "name": "Label added to an email",
+   "description": "Tells you once each time the label you choose is added to an email already in your mailbox. A label Gmail applies as mail arrives may not count; see the notes.",
+   "delivery": {
+    "method": "polling",
+    "intervalSeconds": {
+     "default": 120,
+     "min": 60
+    }
+   },
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "labelId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+     }
+    },
+    "required": [
+     "labelId"
+    ],
+    "additionalProperties": false
+   },
+   "choices": [
+    {
+     "input": "labelId",
+     "source": "labels"
+    }
+   ],
+   "resource": [],
+   "poll": {
+    "seed": {
+     "step": {
+      "id": "profile",
+      "method": "GET",
+      "path": "/gmail/v1/users/{userId}/profile",
+      "maxResponseBytes": 4096,
+      "expect": {
+       "status": [
+        200
+       ],
+       "require": []
+      }
+     },
+     "cursor": {
+      "name": "history",
+      "pointer": "/historyId"
+     }
+    },
+    "source": {
+     "steps": [
+      {
+       "id": "history",
+       "method": "GET",
+       "path": "/gmail/v1/users/{userId}/history",
+       "query": {
+        "startHistoryId": {
+         "cursor": "history"
+        },
+        "maxResults": {
+         "const": "500"
+        }
+       },
+       "page": {
+        "next": {
+         "pointer": "/nextPageToken"
+        },
+        "into": {
+         "query": "pageToken"
+        },
+        "items": "/history",
+        "max": 10
+       },
+       "maxResponseBytes": 2097152,
+       "expect": {
+        "status": [
+         200
+        ],
+        "require": []
+       }
+      }
+     ]
+    },
+    "items": {
+     "pick": {
+      "transform": "collections.gmailHistory@1",
+      "args": {
+       "list": {
+        "step": "history",
+        "pointer": ""
+       },
+       "kind": {
+        "const": "labelsAdded"
+       },
+       "labelId": {
+        "input": "/labelId"
+       }
+      }
+     },
+     "pointer": "/items"
+    },
+    "itemId": {
+     "concat": [
+      {
+       "item": "/recordId"
+      },
+      {
+       "const": ":"
+      },
+      {
+       "item": "/id"
+      }
+     ],
+     "max": 200
+    },
+    "itemVersion": null,
+    "order": "asc",
+    "cursors": [
+     {
+      "name": "history",
+      "kind": "history-id@1",
+      "next": {
+       "step": "history",
+       "pointer": "/historyId"
+      },
+      "compare": "time.decimalCompare@1",
+      "lastPageOnly": true
+     }
+    ],
+    "resync": {
+     "statusIn": [
+      404
+     ]
+    },
+    "enrich": {
+     "max": 25,
+     "steps": [
+      {
+       "id": "meta",
+       "method": "GET",
+       "path": "/gmail/v1/users/{userId}/messages/{id}",
+       "params": {
+        "id": {
+         "item": "/id"
+        }
+       },
+       "query": {
+        "format": {
+         "const": "metadata"
+        },
+        "metadataHeaders": {
+         "const": [
+          "From",
+          "Subject"
+         ]
+        }
+       },
+       "maxResponseBytes": 65536,
+       "expect": {
+        "status": [
+         200,
+         404
+        ],
+        "require": []
+       }
+      },
+      {
+       "id": "label",
+       "method": "GET",
+       "path": "/gmail/v1/users/{userId}/labels/{id}",
+       "params": {
+        "id": {
+         "input": "/labelId"
+        }
+       },
+       "maxResponseBytes": 4096,
+       "expect": {
+        "status": [
+         200,
+         404
+        ],
+        "require": []
+       }
+      }
+     ]
+    },
+    "minIntervalSeconds": 60
+   },
+   "filter": [
+    {
+     "status": {
+      "step": "meta",
+      "in": [
+       200
+      ]
+     }
+    },
+    {
+     "status": {
+      "step": "label",
+      "in": [
+       200
+      ]
+     }
+    }
+   ],
+   "dedupe": {
+    "kind": "id"
+   },
+   "event": {
+    "schema": {
+     "type": "object",
+     "properties": {
+      "messageId": {
+       "type": "string",
+       "minLength": 1,
+       "maxLength": 64
+      },
+      "threadId": {
+       "type": "string",
+       "minLength": 1,
+       "maxLength": 64
+      },
+      "labelId": {
+       "type": "string",
+       "minLength": 1,
+       "maxLength": 256
+      },
+      "labelName": {
+       "type": "string",
+       "minLength": 1,
+       "maxLength": 225
+      },
+      "from": {
+       "type": "string",
+       "minLength": 1,
+       "maxLength": 256
+      },
+      "subject": {
+       "type": "string",
+       "maxLength": 256
+      },
+      "historyRecordId": {
+       "type": "string",
+       "minLength": 1,
+       "maxLength": 20
+      }
+     },
+     "required": [
+      "messageId",
+      "threadId",
+      "labelId",
+      "historyRecordId"
+     ],
+     "additionalProperties": false
+    },
+    "id": {
+     "concat": [
+      {
+       "item": "/recordId"
+      },
+      {
+       "const": ":"
+      },
+      {
+       "item": "/id"
+      }
+     ],
+     "max": 200
+    },
+    "occurredAt": {
+     "step": "meta",
+     "pointer": "/internalDate"
+    },
+    "fields": {
+     "messageId": {
+      "item": "/id"
+     },
+     "threadId": {
+      "item": "/threadId"
+     },
+     "labelId": {
+      "input": "/labelId"
+     },
+     "labelName": {
+      "step": "label",
+      "pointer": "/name"
+     },
+     "from": {
+      "when": {
+       "present": {
+        "pick": {
+         "transform": "rfc5322.decodeGmailPayload@1",
+         "args": {
+          "message": {
+           "step": "meta",
+           "pointer": ""
+          }
+         }
+        },
+        "pointer": "/summary/from/0/address"
+       }
+      },
+      "then": {
+       "pick": {
+        "transform": "text.truncate@1",
+        "args": {
+         "text": {
+          "pick": {
+           "transform": "rfc5322.decodeGmailPayload@1",
+           "args": {
+            "message": {
+             "step": "meta",
+             "pointer": ""
+            }
+           }
+          },
+          "pointer": "/summary/from/0/address"
+         },
+         "max": {
+          "const": 256
+         }
+        }
+       },
+       "pointer": "/text"
+      }
+     },
+     "subject": {
+      "when": {
+       "present": {
+        "pick": {
+         "transform": "rfc5322.decodeGmailPayload@1",
+         "args": {
+          "message": {
+           "step": "meta",
+           "pointer": ""
+          }
+         }
+        },
+        "pointer": "/summary/subject"
+       }
+      },
+      "then": {
+       "pick": {
+        "transform": "text.truncate@1",
+        "args": {
+         "text": {
+          "pick": {
+           "transform": "rfc5322.decodeGmailPayload@1",
+           "args": {
+            "message": {
+             "step": "meta",
+             "pointer": ""
+            }
+           }
+          },
+          "pointer": "/summary/subject"
+         },
+         "max": {
+          "const": 256
+         }
+        }
+       },
+       "pointer": "/text"
+      }
+     },
+     "historyRecordId": {
+      "item": "/recordId"
+     }
+    },
+    "summary": [
+     {
+      "label": "Label",
+      "expr": {
+       "step": "label",
+       "pointer": "/name"
+      }
+     },
+     {
+      "label": "Subject",
+      "expr": {
+       "pick": {
+        "transform": "rfc5322.decodeGmailPayload@1",
+        "args": {
+         "message": {
+          "step": "meta",
+          "pointer": ""
+         }
+        }
+       },
+       "pointer": "/summary/subject"
+      },
+      "truncate": 120
+     }
+    ]
+   },
+   "backfill": {
+    "default": 0,
+    "max": 0
+   },
+   "retention": {
+    "days": 7
+   },
+   "bounds": {
+    "pages": 10,
+    "items": 500,
+    "pollSeconds": 10
+   },
+   "rows": [
+    "gmail.labels.read",
+    "gmail.messages.read"
+   ]
+  },
+  {
+   "id": "gmail.trigger.email-sent.v1.dac0f782b56aa82efd11e096",
+   "key": "email-sent",
+   "version": 1,
+   "name": "Email you sent",
+   "description": "Tells you once about each email sent from this mailbox, from Gmail or through Fabric, with its first recipient and subject.",
+   "delivery": {
+    "method": "polling",
+    "intervalSeconds": {
+     "default": 120,
+     "min": 60
+    }
+   },
+   "inputSchema": {
+    "type": "object",
+    "properties": {},
+    "additionalProperties": false
+   },
+   "resource": [],
+   "poll": {
+    "seed": {
+     "step": {
+      "id": "profile",
+      "method": "GET",
+      "path": "/gmail/v1/users/{userId}/profile",
+      "maxResponseBytes": 4096,
+      "expect": {
+       "status": [
+        200
+       ],
+       "require": []
+      }
+     },
+     "cursor": {
+      "name": "history",
+      "pointer": "/historyId"
+     }
+    },
+    "source": {
+     "steps": [
+      {
+       "id": "history",
+       "method": "GET",
+       "path": "/gmail/v1/users/{userId}/history",
+       "query": {
+        "startHistoryId": {
+         "cursor": "history"
+        },
+        "maxResults": {
+         "const": "500"
+        }
+       },
+       "page": {
+        "next": {
+         "pointer": "/nextPageToken"
+        },
+        "into": {
+         "query": "pageToken"
+        },
+        "items": "/history",
+        "max": 10
+       },
+       "maxResponseBytes": 2097152,
+       "expect": {
+        "status": [
+         200
+        ],
+        "require": []
+       }
+      }
+     ]
+    },
+    "items": {
+     "pick": {
+      "transform": "collections.gmailHistory@1",
+      "args": {
+       "list": {
+        "step": "history",
+        "pointer": ""
+       },
+       "kind": {
+        "const": "messagesAdded"
+       }
+      }
+     },
+     "pointer": "/items"
+    },
+    "itemId": {
+     "item": "/id"
+    },
+    "itemVersion": null,
+    "order": "asc",
+    "cursors": [
+     {
+      "name": "history",
+      "kind": "history-id@1",
+      "next": {
+       "step": "history",
+       "pointer": "/historyId"
+      },
+      "compare": "time.decimalCompare@1",
+      "lastPageOnly": true
+     }
+    ],
+    "resync": {
+     "statusIn": [
+      404
+     ]
+    },
+    "enrich": {
+     "max": 25,
+     "steps": [
+      {
+       "id": "meta",
+       "method": "GET",
+       "path": "/gmail/v1/users/{userId}/messages/{id}",
+       "params": {
+        "id": {
+         "item": "/id"
+        }
+       },
+       "query": {
+        "format": {
+         "const": "metadata"
+        },
+        "metadataHeaders": {
+         "const": [
+          "To",
+          "Subject"
+         ]
+        }
+       },
+       "maxResponseBytes": 65536,
+       "expect": {
+        "status": [
+         200,
+         404
+        ],
+        "require": []
+       }
+      }
+     ]
+    },
+    "minIntervalSeconds": 60
+   },
+   "filter": [
+    {
+     "status": {
+      "step": "meta",
+      "in": [
+       200
+      ]
+     }
+    },
+    {
+     "nonEmpty": {
+      "pick": {
+       "transform": "collections.findBy@1",
+       "args": {
+        "list": {
+         "step": "meta",
+         "pointer": ""
+        },
+        "items": {
+         "const": "/labelIds"
+        },
+        "field": {
+         "const": ""
+        },
+        "id": {
+         "const": ""
+        },
+        "value": {
+         "const": "SENT"
+        },
+        "fold": {
+         "const": "none"
+        },
+        "require": {
+         "const": "any"
+        }
+       }
+      },
+      "pointer": "/matches"
+     }
+    }
+   ],
+   "dedupe": {
+    "kind": "id"
+   },
+   "event": {
+    "schema": {
+     "type": "object",
+     "properties": {
+      "messageId": {
+       "type": "string",
+       "minLength": 1,
+       "maxLength": 64
+      },
+      "threadId": {
+       "type": "string",
+       "minLength": 1,
+       "maxLength": 64
+      },
+      "to": {
+       "type": "string",
+       "minLength": 1,
+       "maxLength": 256
+      },
+      "subject": {
+       "type": "string",
+       "maxLength": 256
+      },
+      "receivedAt": {
+       "type": "string",
+       "minLength": 1,
+       "maxLength": 24
+      }
+     },
+     "required": [
+      "messageId",
+      "threadId",
+      "receivedAt"
+     ],
+     "additionalProperties": false
+    },
+    "id": {
+     "item": "/id"
+    },
+    "occurredAt": {
+     "step": "meta",
+     "pointer": "/internalDate"
+    },
+    "fields": {
+     "messageId": {
+      "item": "/id"
+     },
+     "threadId": {
+      "item": "/threadId"
+     },
+     "to": {
+      "when": {
+       "present": {
+        "pick": {
+         "transform": "rfc5322.decodeGmailPayload@1",
+         "args": {
+          "message": {
+           "step": "meta",
+           "pointer": ""
+          }
+         }
+        },
+        "pointer": "/summary/to/0/address"
+       }
+      },
+      "then": {
+       "pick": {
+        "transform": "text.truncate@1",
+        "args": {
+         "text": {
+          "pick": {
+           "transform": "rfc5322.decodeGmailPayload@1",
+           "args": {
+            "message": {
+             "step": "meta",
+             "pointer": ""
+            }
+           }
+          },
+          "pointer": "/summary/to/0/address"
+         },
+         "max": {
+          "const": 256
+         }
+        }
+       },
+       "pointer": "/text"
+      }
+     },
+     "subject": {
+      "when": {
+       "present": {
+        "pick": {
+         "transform": "rfc5322.decodeGmailPayload@1",
+         "args": {
+          "message": {
+           "step": "meta",
+           "pointer": ""
+          }
+         }
+        },
+        "pointer": "/summary/subject"
+       }
+      },
+      "then": {
+       "pick": {
+        "transform": "text.truncate@1",
+        "args": {
+         "text": {
+          "pick": {
+           "transform": "rfc5322.decodeGmailPayload@1",
+           "args": {
+            "message": {
+             "step": "meta",
+             "pointer": ""
+            }
+           }
+          },
+          "pointer": "/summary/subject"
+         },
+         "max": {
+          "const": 256
+         }
+        }
+       },
+       "pointer": "/text"
+      }
+     },
+     "receivedAt": {
+      "pick": {
+       "transform": "time.epochMillisStringToRfc3339@1",
+       "args": {
+        "millis": {
+         "step": "meta",
+         "pointer": "/internalDate"
+        }
+       }
+      },
+      "pointer": "/time"
+     }
+    },
+    "summary": [
+     {
+      "label": "To",
+      "expr": {
+       "pick": {
+        "transform": "rfc5322.decodeGmailPayload@1",
+        "args": {
+         "message": {
+          "step": "meta",
+          "pointer": ""
+         }
+        }
+       },
+       "pointer": "/summary/to/0/address"
+      }
+     },
+     {
+      "label": "Subject",
+      "expr": {
+       "pick": {
+        "transform": "rfc5322.decodeGmailPayload@1",
+        "args": {
+         "message": {
+          "step": "meta",
+          "pointer": ""
+         }
+        }
+       },
+       "pointer": "/summary/subject"
+      },
+      "truncate": 120
+     }
+    ]
+   },
+   "backfill": {
+    "default": 0,
+    "max": 25
+   },
+   "retention": {
+    "days": 7
+   },
+   "bounds": {
+    "pages": 10,
+    "items": 500,
+    "pollSeconds": 10
+   },
+   "rows": [
+    "gmail.messages.read"
+   ]
+  },
+  {
+   "id": "gmail.trigger.reply-on-my-thread.v1.85fa4f97525705e346b8539b",
+   "key": "reply-on-my-thread",
+   "version": 1,
+   "name": "Reply on a conversation you wrote in",
+   "description": "Tells you once when someone else adds a message to a conversation you already sent a message in.",
+   "delivery": {
+    "method": "polling",
+    "intervalSeconds": {
+     "default": 120,
+     "min": 60
+    }
+   },
+   "inputSchema": {
+    "type": "object",
+    "properties": {},
+    "additionalProperties": false
+   },
+   "resource": [],
+   "poll": {
+    "seed": {
+     "step": {
+      "id": "profile",
+      "method": "GET",
+      "path": "/gmail/v1/users/{userId}/profile",
+      "maxResponseBytes": 4096,
+      "expect": {
+       "status": [
+        200
+       ],
+       "require": []
+      }
+     },
+     "cursor": {
+      "name": "history",
+      "pointer": "/historyId"
+     }
+    },
+    "source": {
+     "steps": [
+      {
+       "id": "history",
+       "method": "GET",
+       "path": "/gmail/v1/users/{userId}/history",
+       "query": {
+        "startHistoryId": {
+         "cursor": "history"
+        },
+        "maxResults": {
+         "const": "500"
+        }
+       },
+       "page": {
+        "next": {
+         "pointer": "/nextPageToken"
+        },
+        "into": {
+         "query": "pageToken"
+        },
+        "items": "/history",
+        "max": 10
+       },
+       "maxResponseBytes": 2097152,
+       "expect": {
+        "status": [
+         200
+        ],
+        "require": []
+       }
+      }
+     ]
+    },
+    "items": {
+     "pick": {
+      "transform": "collections.gmailHistory@1",
+      "args": {
+       "list": {
+        "step": "history",
+        "pointer": ""
+       },
+       "kind": {
+        "const": "messagesAdded"
+       }
+      }
+     },
+     "pointer": "/items"
+    },
+    "itemId": {
+     "item": "/id"
+    },
+    "itemVersion": null,
+    "order": "asc",
+    "cursors": [
+     {
+      "name": "history",
+      "kind": "history-id@1",
+      "next": {
+       "step": "history",
+       "pointer": "/historyId"
+      },
+      "compare": "time.decimalCompare@1",
+      "lastPageOnly": true
+     }
+    ],
+    "resync": {
+     "statusIn": [
+      404
+     ]
+    },
+    "enrich": {
+     "max": 25,
+     "steps": [
+      {
+       "id": "meta",
+       "method": "GET",
+       "path": "/gmail/v1/users/{userId}/messages/{id}",
+       "params": {
+        "id": {
+         "item": "/id"
+        }
+       },
+       "query": {
+        "format": {
+         "const": "metadata"
+        },
+        "metadataHeaders": {
+         "const": [
+          "From",
+          "Subject"
+         ]
+        }
+       },
+       "maxResponseBytes": 65536,
+       "expect": {
+        "status": [
+         200,
+         404
+        ],
+        "require": []
+       }
+      },
+      {
+       "id": "thread",
+       "method": "GET",
+       "path": "/gmail/v1/users/{userId}/threads/{id}",
+       "params": {
+        "id": {
+         "item": "/threadId"
+        }
+       },
+       "query": {
+        "format": {
+         "const": "minimal"
+        }
+       },
+       "maxResponseBytes": 262144,
+       "expect": {
+        "status": [
+         200,
+         404
+        ],
+        "require": []
+       }
+      }
+     ]
+    },
+    "minIntervalSeconds": 60
+   },
+   "filter": [
+    {
+     "status": {
+      "step": "meta",
+      "in": [
+       200
+      ]
+     }
+    },
+    {
+     "status": {
+      "step": "thread",
+      "in": [
+       200
+      ]
+     }
+    },
+    {
+     "nonEmpty": {
+      "pick": {
+       "transform": "collections.findBy@1",
+       "args": {
+        "list": {
+         "step": "meta",
+         "pointer": ""
+        },
+        "items": {
+         "const": "/labelIds"
+        },
+        "field": {
+         "const": ""
+        },
+        "id": {
+         "const": ""
+        },
+        "value": {
+         "const": "INBOX"
+        },
+        "fold": {
+         "const": "none"
+        },
+        "require": {
+         "const": "any"
+        }
+       }
+      },
+      "pointer": "/matches"
+     }
+    },
+    {
+     "absent": {
+      "pick": {
+       "transform": "collections.findBy@1",
+       "args": {
+        "list": {
+         "step": "meta",
+         "pointer": ""
+        },
+        "items": {
+         "const": "/labelIds"
+        },
+        "field": {
+         "const": ""
+        },
+        "id": {
+         "const": ""
+        },
+        "value": {
+         "const": "SENT"
+        },
+        "fold": {
+         "const": "none"
+        },
+        "require": {
+         "const": "any"
+        }
+       }
+      },
+      "pointer": "/matches/0"
+     }
+    },
+    {
+     "equals": [
+      {
+       "pick": {
+        "transform": "collections.gmailSentBefore@1",
+        "args": {
+         "thread": {
+          "step": "thread",
+          "pointer": ""
+         },
+         "messageId": {
+          "item": "/id"
+         }
+        }
+       },
+       "pointer": "/sentBefore"
+      },
+      {
+       "const": true
+      }
+     ]
+    }
+   ],
+   "dedupe": {
+    "kind": "id"
+   },
+   "event": {
+    "schema": {
+     "type": "object",
+     "properties": {
+      "messageId": {
+       "type": "string",
+       "minLength": 1,
+       "maxLength": 64
+      },
+      "threadId": {
+       "type": "string",
+       "minLength": 1,
+       "maxLength": 64
+      },
+      "from": {
+       "type": "string",
+       "minLength": 1,
+       "maxLength": 256
+      },
+      "subject": {
+       "type": "string",
+       "maxLength": 256
+      },
+      "receivedAt": {
+       "type": "string",
+       "minLength": 1,
+       "maxLength": 24
+      }
+     },
+     "required": [
+      "messageId",
+      "threadId",
+      "receivedAt"
+     ],
+     "additionalProperties": false
+    },
+    "id": {
+     "item": "/id"
+    },
+    "occurredAt": {
+     "step": "meta",
+     "pointer": "/internalDate"
+    },
+    "fields": {
+     "messageId": {
+      "item": "/id"
+     },
+     "threadId": {
+      "item": "/threadId"
+     },
+     "from": {
+      "when": {
+       "present": {
+        "pick": {
+         "transform": "rfc5322.decodeGmailPayload@1",
+         "args": {
+          "message": {
+           "step": "meta",
+           "pointer": ""
+          }
+         }
+        },
+        "pointer": "/summary/from/0/address"
+       }
+      },
+      "then": {
+       "pick": {
+        "transform": "text.truncate@1",
+        "args": {
+         "text": {
+          "pick": {
+           "transform": "rfc5322.decodeGmailPayload@1",
+           "args": {
+            "message": {
+             "step": "meta",
+             "pointer": ""
+            }
+           }
+          },
+          "pointer": "/summary/from/0/address"
+         },
+         "max": {
+          "const": 256
+         }
+        }
+       },
+       "pointer": "/text"
+      }
+     },
+     "subject": {
+      "when": {
+       "present": {
+        "pick": {
+         "transform": "rfc5322.decodeGmailPayload@1",
+         "args": {
+          "message": {
+           "step": "meta",
+           "pointer": ""
+          }
+         }
+        },
+        "pointer": "/summary/subject"
+       }
+      },
+      "then": {
+       "pick": {
+        "transform": "text.truncate@1",
+        "args": {
+         "text": {
+          "pick": {
+           "transform": "rfc5322.decodeGmailPayload@1",
+           "args": {
+            "message": {
+             "step": "meta",
+             "pointer": ""
+            }
+           }
+          },
+          "pointer": "/summary/subject"
+         },
+         "max": {
+          "const": 256
+         }
+        }
+       },
+       "pointer": "/text"
+      }
+     },
+     "receivedAt": {
+      "pick": {
+       "transform": "time.epochMillisStringToRfc3339@1",
+       "args": {
+        "millis": {
+         "step": "meta",
+         "pointer": "/internalDate"
+        }
+       }
+      },
+      "pointer": "/time"
+     }
+    },
+    "summary": [
+     {
+      "label": "From",
+      "expr": {
+       "pick": {
+        "transform": "rfc5322.decodeGmailPayload@1",
+        "args": {
+         "message": {
+          "step": "meta",
+          "pointer": ""
+         }
+        }
+       },
+       "pointer": "/summary/from/0/address"
+      }
+     },
+     {
+      "label": "Subject",
+      "expr": {
+       "pick": {
+        "transform": "rfc5322.decodeGmailPayload@1",
+        "args": {
+         "message": {
+          "step": "meta",
+          "pointer": ""
+         }
+        }
+       },
+       "pointer": "/summary/subject"
+      },
+      "truncate": 120
+     }
+    ]
+   },
+   "backfill": {
+    "default": 0,
+    "max": 25
+   },
+   "retention": {
+    "days": 7
+   },
+   "bounds": {
+    "pages": 10,
+    "items": 500,
+    "pollSeconds": 10
+   },
+   "rows": [
+    "gmail.messages.read"
+   ]
+  },
+  {
+   "id": "gmail.trigger.new-email-with-attachment.v1.d5db0f3cf0dcfd7f317ec2b4",
+   "key": "new-email-with-attachment",
+   "version": 1,
+   "name": "New email with an attachment",
+   "description": "Tells you once about each new email in your inbox that has an attachment, with its sender, subject and the first file's name, which the sender chose. Fabric reads each new message in full to check. No body or file content reaches the event.",
+   "delivery": {
+    "method": "polling",
+    "intervalSeconds": {
+     "default": 120,
+     "min": 60
+    }
+   },
+   "inputSchema": {
+    "type": "object",
+    "properties": {},
+    "additionalProperties": false
+   },
+   "resource": [],
+   "poll": {
+    "seed": {
+     "step": {
+      "id": "profile",
+      "method": "GET",
+      "path": "/gmail/v1/users/{userId}/profile",
+      "maxResponseBytes": 4096,
+      "expect": {
+       "status": [
+        200
+       ],
+       "require": []
+      }
+     },
+     "cursor": {
+      "name": "history",
+      "pointer": "/historyId"
+     }
+    },
+    "source": {
+     "steps": [
+      {
+       "id": "history",
+       "method": "GET",
+       "path": "/gmail/v1/users/{userId}/history",
+       "query": {
+        "startHistoryId": {
+         "cursor": "history"
+        },
+        "maxResults": {
+         "const": "500"
+        }
+       },
+       "page": {
+        "next": {
+         "pointer": "/nextPageToken"
+        },
+        "into": {
+         "query": "pageToken"
+        },
+        "items": "/history",
+        "max": 10
+       },
+       "maxResponseBytes": 2097152,
+       "expect": {
+        "status": [
+         200
+        ],
+        "require": []
+       }
+      }
+     ]
+    },
+    "items": {
+     "pick": {
+      "transform": "collections.gmailHistory@1",
+      "args": {
+       "list": {
+        "step": "history",
+        "pointer": ""
+       },
+       "kind": {
+        "const": "messagesAdded"
+       }
+      }
+     },
+     "pointer": "/items"
+    },
+    "itemId": {
+     "item": "/id"
+    },
+    "itemVersion": null,
+    "order": "asc",
+    "cursors": [
+     {
+      "name": "history",
+      "kind": "history-id@1",
+      "next": {
+       "step": "history",
+       "pointer": "/historyId"
+      },
+      "compare": "time.decimalCompare@1",
+      "lastPageOnly": true
+     }
+    ],
+    "resync": {
+     "statusIn": [
+      404
+     ]
+    },
+    "enrich": {
+     "max": 25,
+     "steps": [
+      {
+       "id": "full",
+       "method": "GET",
+       "path": "/gmail/v1/users/{userId}/messages/{id}",
+       "params": {
+        "id": {
+         "item": "/id"
+        }
+       },
+       "query": {
+        "format": {
+         "const": "full"
+        }
+       },
+       "maxResponseBytes": 2097152,
+       "expect": {
+        "status": [
+         200,
+         404
+        ],
+        "require": []
+       }
+      }
+     ]
+    },
+    "minIntervalSeconds": 60
+   },
+   "filter": [
+    {
+     "status": {
+      "step": "full",
+      "in": [
+       200
+      ]
+     }
+    },
+    {
+     "nonEmpty": {
+      "pick": {
+       "transform": "collections.findBy@1",
+       "args": {
+        "list": {
+         "step": "full",
+         "pointer": ""
+        },
+        "items": {
+         "const": "/labelIds"
+        },
+        "field": {
+         "const": ""
+        },
+        "id": {
+         "const": ""
+        },
+        "value": {
+         "const": "INBOX"
+        },
+        "fold": {
+         "const": "none"
+        },
+        "require": {
+         "const": "any"
+        }
+       }
+      },
+      "pointer": "/matches"
+     }
+    },
+    {
+     "nonEmpty": {
+      "pick": {
+       "transform": "rfc5322.decodeGmailPayload@1",
+       "args": {
+        "message": {
+         "step": "full",
+         "pointer": ""
+        }
+       }
+      },
+      "pointer": "/attachments"
+     }
+    }
+   ],
+   "dedupe": {
+    "kind": "id"
+   },
+   "event": {
+    "schema": {
+     "type": "object",
+     "properties": {
+      "messageId": {
+       "type": "string",
+       "minLength": 1,
+       "maxLength": 64
+      },
+      "threadId": {
+       "type": "string",
+       "minLength": 1,
+       "maxLength": 64
+      },
+      "from": {
+       "type": "string",
+       "minLength": 1,
+       "maxLength": 256
+      },
+      "subject": {
+       "type": "string",
+       "maxLength": 256
+      },
+      "receivedAt": {
+       "type": "string",
+       "minLength": 1,
+       "maxLength": 24
+      },
+      "firstFilename": {
+       "type": "string",
+       "maxLength": 256
+      }
+     },
+     "required": [
+      "messageId",
+      "threadId",
+      "receivedAt"
+     ],
+     "additionalProperties": false
+    },
+    "id": {
+     "item": "/id"
+    },
+    "occurredAt": {
+     "step": "full",
+     "pointer": "/internalDate"
+    },
+    "fields": {
+     "messageId": {
+      "item": "/id"
+     },
+     "threadId": {
+      "item": "/threadId"
+     },
+     "from": {
+      "when": {
+       "present": {
+        "pick": {
+         "transform": "rfc5322.decodeGmailPayload@1",
+         "args": {
+          "message": {
+           "step": "full",
+           "pointer": ""
+          }
+         }
+        },
+        "pointer": "/summary/from/0/address"
+       }
+      },
+      "then": {
+       "pick": {
+        "transform": "text.truncate@1",
+        "args": {
+         "text": {
+          "pick": {
+           "transform": "rfc5322.decodeGmailPayload@1",
+           "args": {
+            "message": {
+             "step": "full",
+             "pointer": ""
+            }
+           }
+          },
+          "pointer": "/summary/from/0/address"
+         },
+         "max": {
+          "const": 256
+         }
+        }
+       },
+       "pointer": "/text"
+      }
+     },
+     "subject": {
+      "when": {
+       "present": {
+        "pick": {
+         "transform": "rfc5322.decodeGmailPayload@1",
+         "args": {
+          "message": {
+           "step": "full",
+           "pointer": ""
+          }
+         }
+        },
+        "pointer": "/summary/subject"
+       }
+      },
+      "then": {
+       "pick": {
+        "transform": "text.truncate@1",
+        "args": {
+         "text": {
+          "pick": {
+           "transform": "rfc5322.decodeGmailPayload@1",
+           "args": {
+            "message": {
+             "step": "full",
+             "pointer": ""
+            }
+           }
+          },
+          "pointer": "/summary/subject"
+         },
+         "max": {
+          "const": 256
+         }
+        }
+       },
+       "pointer": "/text"
+      }
+     },
+     "receivedAt": {
+      "pick": {
+       "transform": "time.epochMillisStringToRfc3339@1",
+       "args": {
+        "millis": {
+         "step": "full",
+         "pointer": "/internalDate"
+        }
+       }
+      },
+      "pointer": "/time"
+     },
+     "firstFilename": {
+      "when": {
+       "present": {
+        "pick": {
+         "transform": "rfc5322.decodeGmailPayload@1",
+         "args": {
+          "message": {
+           "step": "full",
+           "pointer": ""
+          }
+         }
+        },
+        "pointer": "/attachments/0/filename"
+       }
+      },
+      "then": {
+       "pick": {
+        "transform": "text.truncate@1",
+        "args": {
+         "text": {
+          "pick": {
+           "transform": "rfc5322.decodeGmailPayload@1",
+           "args": {
+            "message": {
+             "step": "full",
+             "pointer": ""
+            }
+           }
+          },
+          "pointer": "/attachments/0/filename"
+         },
+         "max": {
+          "const": 256
+         }
+        }
+       },
+       "pointer": "/text"
+      }
+     }
+    },
+    "summary": [
+     {
+      "label": "From",
+      "expr": {
+       "pick": {
+        "transform": "rfc5322.decodeGmailPayload@1",
+        "args": {
+         "message": {
+          "step": "full",
+          "pointer": ""
+         }
+        }
+       },
+       "pointer": "/summary/from/0/address"
+      }
+     },
+     {
+      "label": "Subject",
+      "expr": {
+       "pick": {
+        "transform": "rfc5322.decodeGmailPayload@1",
+        "args": {
+         "message": {
+          "step": "full",
+          "pointer": ""
+         }
+        }
+       },
+       "pointer": "/summary/subject"
+      },
+      "truncate": 120
+     }
+    ]
+   },
+   "backfill": {
+    "default": 0,
+    "max": 25
+   },
+   "retention": {
+    "days": 7
+   },
+   "bounds": {
+    "pages": 10,
+    "items": 500,
+    "pollSeconds": 10
+   },
+   "rows": [
+    "gmail.messages.read"
+   ]
+  },
+  {
+   "id": "gmail.trigger.new-email-matching-search.v1.3c586dd390ca40a212e63778",
+   "key": "new-email-matching-search",
+   "version": 1,
+   "name": "New email matching a search",
+   "description": "Tells you once about each new email in the last 7 days that matches the search you set. Spam and Trash are left out.",
+   "delivery": {
+    "method": "polling",
+    "intervalSeconds": {
+     "default": 300,
+     "min": 120
+    }
+   },
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "search": {
+      "type": "object",
+      "properties": {
+       "from": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 1000
+       },
+       "to": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 1000
+       },
+       "subject": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 1000
+       },
+       "label": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 1000
+       },
+       "words": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 1000
+       },
+       "hasAttachment": {
+        "type": "boolean"
+       }
+      },
+      "additionalProperties": false
+     }
+    },
+    "required": [
+     "search"
+    ],
+    "additionalProperties": false
+   },
+   "resource": [
+    "search"
+   ],
+   "poll": {
+    "source": {
+     "steps": [
+      {
+       "id": "list",
+       "method": "GET",
+       "path": "/gmail/v1/users/{userId}/messages",
+       "query": {
+        "q": {
+         "concat": [
+          {
+           "pick": {
+            "transform": "text.gmailQuery@1",
+            "args": {
+             "from": {
+              "input": "/search/from"
+             },
+             "to": {
+              "input": "/search/to"
+             },
+             "subject": {
+              "input": "/search/subject"
+             },
+             "label": {
+              "input": "/search/label"
+             },
+             "words": {
+              "input": "/search/words"
+             },
+             "hasAttachment": {
+              "input": "/search/hasAttachment"
+             }
+            }
+           },
+           "pointer": "/q"
+          },
+          {
+           "const": " newer_than:7d"
+          }
+         ],
+         "max": 8300
+        },
+        "maxResults": {
+         "const": "100"
+        }
+       },
+       "page": {
+        "next": {
+         "pointer": "/nextPageToken"
+        },
+        "into": {
+         "query": "pageToken"
+        },
+        "items": "/messages",
+        "max": 5
+       },
+       "maxResponseBytes": 262144,
+       "expect": {
+        "status": [
+         200
+        ],
+        "require": []
+       }
+      }
+     ]
+    },
+    "items": {
+     "step": "list",
+     "pointer": ""
+    },
+    "itemId": {
+     "item": "/id"
+    },
+    "itemVersion": null,
+    "order": "unordered",
+    "cursors": [
+     {
+      "name": "seen",
+      "kind": "snapshot@1",
+      "compare": "collections.diff@1"
+     }
+    ],
+    "resync": {
+     "statusIn": []
+    },
+    "enrich": {
+     "max": 25,
+     "steps": [
+      {
+       "id": "meta",
+       "method": "GET",
+       "path": "/gmail/v1/users/{userId}/messages/{id}",
+       "params": {
+        "id": {
+         "item": "/id"
+        }
+       },
+       "query": {
+        "format": {
+         "const": "metadata"
+        },
+        "metadataHeaders": {
+         "const": [
+          "From",
+          "Subject"
+         ]
+        }
+       },
+       "maxResponseBytes": 65536,
+       "expect": {
+        "status": [
+         200,
+         404
+        ],
+        "require": []
+       }
+      }
+     ]
+    },
+    "minIntervalSeconds": 120
+   },
+   "filter": [
+    {
+     "status": {
+      "step": "meta",
+      "in": [
+       200
+      ]
+     }
+    },
+    {
+     "absent": {
+      "pick": {
+       "transform": "collections.findBy@1",
+       "args": {
+        "list": {
+         "step": "meta",
+         "pointer": ""
+        },
+        "items": {
+         "const": "/labelIds"
+        },
+        "field": {
+         "const": ""
+        },
+        "id": {
+         "const": ""
+        },
+        "value": {
+         "const": "DRAFT"
+        },
+        "fold": {
+         "const": "none"
+        },
+        "require": {
+         "const": "any"
+        }
+       }
+      },
+      "pointer": "/matches/0"
+     }
+    }
+   ],
+   "dedupe": {
+    "kind": "id"
+   },
+   "event": {
+    "schema": {
+     "type": "object",
+     "properties": {
+      "messageId": {
+       "type": "string",
+       "minLength": 1,
+       "maxLength": 64
+      },
+      "threadId": {
+       "type": "string",
+       "minLength": 1,
+       "maxLength": 64
+      },
+      "from": {
+       "type": "string",
+       "minLength": 1,
+       "maxLength": 256
+      },
+      "subject": {
+       "type": "string",
+       "maxLength": 256
+      },
+      "receivedAt": {
+       "type": "string",
+       "minLength": 1,
+       "maxLength": 24
+      }
+     },
+     "required": [
+      "messageId",
+      "threadId",
+      "receivedAt"
+     ],
+     "additionalProperties": false
+    },
+    "id": {
+     "item": "/id"
+    },
+    "occurredAt": {
+     "step": "meta",
+     "pointer": "/internalDate"
+    },
+    "fields": {
+     "messageId": {
+      "item": "/id"
+     },
+     "threadId": {
+      "item": "/threadId"
+     },
+     "from": {
+      "when": {
+       "present": {
+        "pick": {
+         "transform": "rfc5322.decodeGmailPayload@1",
+         "args": {
+          "message": {
+           "step": "meta",
+           "pointer": ""
+          }
+         }
+        },
+        "pointer": "/summary/from/0/address"
+       }
+      },
+      "then": {
+       "pick": {
+        "transform": "text.truncate@1",
+        "args": {
+         "text": {
+          "pick": {
+           "transform": "rfc5322.decodeGmailPayload@1",
+           "args": {
+            "message": {
+             "step": "meta",
+             "pointer": ""
+            }
+           }
+          },
+          "pointer": "/summary/from/0/address"
+         },
+         "max": {
+          "const": 256
+         }
+        }
+       },
+       "pointer": "/text"
+      }
+     },
+     "subject": {
+      "when": {
+       "present": {
+        "pick": {
+         "transform": "rfc5322.decodeGmailPayload@1",
+         "args": {
+          "message": {
+           "step": "meta",
+           "pointer": ""
+          }
+         }
+        },
+        "pointer": "/summary/subject"
+       }
+      },
+      "then": {
+       "pick": {
+        "transform": "text.truncate@1",
+        "args": {
+         "text": {
+          "pick": {
+           "transform": "rfc5322.decodeGmailPayload@1",
+           "args": {
+            "message": {
+             "step": "meta",
+             "pointer": ""
+            }
+           }
+          },
+          "pointer": "/summary/subject"
+         },
+         "max": {
+          "const": 256
+         }
+        }
+       },
+       "pointer": "/text"
+      }
+     },
+     "receivedAt": {
+      "pick": {
+       "transform": "time.epochMillisStringToRfc3339@1",
+       "args": {
+        "millis": {
+         "step": "meta",
+         "pointer": "/internalDate"
+        }
+       }
+      },
+      "pointer": "/time"
+     }
+    },
+    "summary": [
+     {
+      "label": "From",
+      "expr": {
+       "pick": {
+        "transform": "rfc5322.decodeGmailPayload@1",
+        "args": {
+         "message": {
+          "step": "meta",
+          "pointer": ""
+         }
+        }
+       },
+       "pointer": "/summary/from/0/address"
+      }
+     },
+     {
+      "label": "Subject",
+      "expr": {
+       "pick": {
+        "transform": "rfc5322.decodeGmailPayload@1",
+        "args": {
+         "message": {
+          "step": "meta",
+          "pointer": ""
+         }
+        }
+       },
+       "pointer": "/summary/subject"
+      },
+      "truncate": 120
+     }
+    ]
+   },
+   "backfill": {
+    "default": 0,
+    "max": 25
+   },
+   "retention": {
+    "days": 7
+   },
+   "bounds": {
+    "pages": 5,
+    "items": 500,
+    "pollSeconds": 10
+   },
+   "rows": [
+    "gmail.messages.read",
+    "gmail.messages.search"
+   ]
+  }
+ ]
+}

@@ -13,8 +13,8 @@
 // answers missing_scope with `needed` (the scope) and `provided` (the token's scopes, comma-joined, in the order given), from this table,
 // copied from each method's reference page (user tokens):
 //   users.conversations       channels:read, groups:read, im:read or mpim:read for each type asked (public_channel, private_channel, im, mpim)
-//   conversations.info        the read scope of the channel's type
-//   conversations.history,    the history scope of the channel's type: channels:history (C), groups:history (G), im:history (D)
+//   conversations.info        the read scope of the conversation's type
+//   conversations.history,    the history scope of the conversation's type: channels:history (public), groups:history (private), im:history (DM), mpim:history (group DM)
 //   conversations.replies
 //   chat.getPermalink, chat.scheduledMessages.list   none
 //   search.messages           search:read
@@ -95,11 +95,33 @@
 // state() is a copy of the state; notifications() the people Slack would have pinged. Switches, each for the next call to one method
 // unless {times} says how many: fail(name, {status?, headers?, data}) answers that instead and changes nothing; drop(name) applies the call,
 // then throws as a lost answer; swallow(name) answers as if applied but changes nothing; oversize(name, bytes) pads the answer;
-// hold(name) returns {reached, release()}. Test data, never recorded as calls: seed(channel, {ts?, user?, text, threadTs?}) and
-// post(channel, {user, text, threadTs?}) add someone's message and give its ts; edit(channel, ts, text) changes one; react(channel, ts,
-// name, user) adds someone else's reaction; revokeScope(scope) takes a scope from the token; closeEditWindow() closes every edit;
-// addPerson({id, name, realName, displayName?, email?, isBot?, deleted?}) and addChannel({id, name}) add a person and a public channel
-// the owner is in (step 21 part 2).
+// hold(name) returns {reached, release()}. Test data, never recorded as calls: seed(channel, {ts?, user?, text, threadTs?, subtype?, botId?,
+// files?, upload?, hidden?, blocks?}) and post(channel, the same) add someone's message and give its ts; edit(channel, ts, text) changes one;
+// delete(channel, ts) takes one away; react(channel, ts, name, user) adds someone else's reaction and unreact takes it back; revokeScope(scope)
+// takes a scope from the token; closeEditWindow() closes every edit; addPerson({id, name, realName, displayName?, email?, isBot?, deleted?}) adds a person;
+// addChannel({id, name, private?, mpim?, creator?, created?, members?}) adds a conversation; join(channel, user?), leave(channel, user?) and
+// archive(channel) change one; renameId(old, new) moves one to a new id, and the old id answers channel_not_found; expireCursors() makes
+// every page cursor handed out so far answer invalid_cursor; shortPages(...sizes) makes the next pages of a conversation list short, or empty at 0, each with a next cursor while more remain.
+//
+// What Slack's triggers read (Iteration 9, docs/I07-BUILD-MAP.md step 4), from the same pages:
+// - A message can carry subtype, bot_id, files, upload and blocks. A notice such as channel_join or channel_topic is a message, a
+//   bot_message has no user, and a message can hold blocks and empty text. A file can arrive with no subtype, and a file's own fields are
+//   all optional. An edit keeps its ts. A hidden message is not listed. A thread_broadcast reply sits in history and in its thread, and
+//   a plain reply only in its thread. A deleted message leaves history and search: a parent with replies stays in its thread as a hidden
+//   tombstone, and a parent with none answers thread_not_found.
+// - Privacy comes from is_private, never from the first letter of an id: a private channel can hold a C id. A group DM has is_mpim and
+//   reads under the mpim scopes. users.conversations items hold created, and a name and a creator on anything but a DM.
+// - A history answer caps a reaction's users below its count, and count stays true.
+// - tierLimit: true is Slack's own limit: per method, per workspace, per minute, Tier 2 at 20 (search.messages) and Tier 3 at 50
+//   (conversations.history, conversations.replies, users.conversations), answering 429 with Retry-After for what is left of the minute.
+// - reactions.list and files.list are not here: no trigger may read them, so a mistaken block is told unknown_method.
+// Switches, each a plain property, stay set until a test changes them. Two are open questions, and their defaults follow the method pages until a
+// probe answers (catalog/live-tests/triggers/slack.probes.json): oldestFirst (P1, a window with oldest reads from its oldest end) and
+// parentSurvivesOldest (P2, conversations.replies keeps the parent whatever oldest says). The others: lastPageMeta ('empty', 'null' or
+// 'missing': how a last page ends, as Slack allows all three); searchLagMs (a message reaches search this long after its ts); searchJoinMs
+// (matches in one conversation this close join into the newest, as Slack returns one of several in close proximity); searchHidden (a Set
+// of conversation ids that a filter set in Slack's own settings hides from a user token's results); searchDeprecated (search.messages
+// answers method_deprecated).
 import {Buffer} from 'node:buffer';
 
 export const ORIGIN = 'https://slack.com';
@@ -112,6 +134,10 @@ const DOMAIN = 'fabric-test';
 const DEFAULT_RESPONSE_HEADERS = ['content-type', 'etag', 'retry-after', 'x-ratelimit-remaining'];
 const UNSAFE_HEADER = /^(host|connection|transfer-encoding|content-length|upgrade|proxy-.*|forwarded|x-forwarded-.*)$/i;
 const DAY_SECONDS = 86_400, PACED = new Set(['conversations.history', 'conversations.replies']), PACE_MS = 60_000;
+/** Slack's tiers, requests a minute for each method in a workspace. */
+const TIERS = Object.freeze({'search.messages': 20, 'conversations.history': 50, 'conversations.replies': 50, 'users.conversations': 50});
+/** How many of a reaction's users a history answer lists. */
+const REACTORS_SHOWN = 3;
 // Standard emoji names the simulator knows (a sample of Slack's list, enough for the actions' tests); a skin tone may follow some.
 const EMOJI = new Set(['thumbsup', '+1', 'thumbsdown', '-1', 'white_check_mark', 'heavy_check_mark', 'x', 'eyes', 'tada', 'heart', 'rocket', 'raised_hands', 'smile', 'joy',
   'wave', 'pray', 'clap', 'fire', 'coffee', 'train', 'calendar', 'memo', 'hourglass']);
@@ -119,7 +145,9 @@ const STATUS_EMOJI = /^:[a-z0-9_+'-]{1,100}(?:::skin-tone-[2-6])?:$/;
 const WRITES = new Set(['chat.postMessage', 'chat.update', 'chat.scheduleMessage', 'chat.deleteScheduledMessage', 'reactions.add', 'reactions.remove', 'conversations.open', 'users.profile.set']);
 const READS = new Set(['users.conversations', 'conversations.info', 'conversations.history', 'conversations.replies', 'chat.getPermalink', 'chat.scheduledMessages.list', 'search.messages',
   'users.list', 'users.info', 'users.lookupByEmail', 'users.profile.get', 'reactions.get', 'canvases.getContent']);
-const READ_SCOPE = {C: 'channels:read', G: 'groups:read', D: 'im:read'}, HISTORY_SCOPE = {C: 'channels:history', G: 'groups:history', D: 'im:history'};
+const READ_SCOPE = {channel: 'channels:read', group: 'groups:read', im: 'im:read', mpim: 'mpim:read'}, HISTORY_SCOPE = {channel: 'channels:history', group: 'groups:history', im: 'im:history', mpim: 'mpim:history'};
+/** What a conversation is, from its own fields, for its scopes. */
+const typeOf = channel => channel.is_im ? 'im' : channel.is_mpim ? 'mpim' : channel.is_private ? 'group' : 'channel';
 const TYPE_SCOPE = {public_channel: 'channels:read', private_channel: 'groups:read', im: 'im:read', mpim: 'mpim:read'};
 const FIXED_SCOPE = {'search.messages': 'search:read', 'users.list': 'users:read', 'users.info': 'users:read', 'users.lookupByEmail': 'users:read.email', 'users.profile.get': 'users.profile:read',
   'users.profile.set': 'users.profile:write', 'chat.postMessage': 'chat:write', 'chat.update': 'chat:write', 'chat.scheduleMessage': 'chat:write', 'chat.deleteScheduledMessage': 'chat:write',
@@ -138,18 +166,18 @@ const oldestFirst = (a, b) => -newestFirst(a, b);
 const truthy = value => value === true || value === 'true' || value === 1 || value === '1';
 /** A whole number from a JSON number or a string of digits; null for anything else. */
 const whole = value => Number.isSafeInteger(value) ? value : typeof value === 'string' && /^-?[0-9]{1,15}$/.test(value) ? Number(value) : null;
-const cursorOf = index => Buffer.from(`next:${index}`).toString('base64');
-function startOf(cursor) {
+const cursorOf = (index, epoch) => Buffer.from(`next:${index}:${epoch}`).toString('base64');
+function startOf(cursor, epoch) {
   if (cursor === undefined || cursor === '') return 0;
-  const match = /^next:([0-9]{1,6})$/.exec(Buffer.from(String(cursor), 'base64').toString('utf8'));
-  return match ? Number(match[1]) : null;
+  const match = /^next:([0-9]{1,6}):([0-9]{1,6})$/.exec(Buffer.from(String(cursor), 'base64').toString('utf8'));
+  return match && Number(match[2]) === epoch ? Number(match[1]) : null;
 }
-/** One page of a list: {items, next} with next '' on the last page, or null for a cursor this list never gave. */
-function pageOf(list, {cursor, limit}) {
-  const start = startOf(cursor);
+/** One page of a list: {items, next} with next '' on the last page, or null for a cursor this list never gave or expireCursors() has since expired. */
+function pageOf(list, {cursor, limit, epoch, short}) {
+  const start = startOf(cursor, epoch);
   if (start === null || start > list.length) return null;
-  const end = limit === null ? list.length : start + limit;
-  return {items: list.slice(start, end), next: end < list.length ? cursorOf(end) : ''};
+  const end = Math.min(limit === null ? list.length : start + limit, short === undefined ? Infinity : start + short);
+  return {items: list.slice(start, end), next: end < list.length ? cursorOf(end, epoch) : ''};
 }
 /** True when a `token` argument sits anywhere in the arguments. */
 const holdsToken = value => Array.isArray(value) ? value.some(holdsToken) : record(value) && Object.entries(value).some(([key, item]) => key === 'token' || holdsToken(item));
@@ -162,12 +190,13 @@ function initialState(owner, start) {
   const people = [person(owner.id, owner.name, 'Fabric Owner', 'owner', 'owner@example.com'), person(IDS.ada, 'ada', 'Ada Lovelace', 'ada', 'ada@example.com'),
     person(IDS.grace, 'grace', 'Grace Hopper', 'grace', 'grace@example.com'), person(IDS.bot, 'fabric-bot', 'Fabric Bot', 'fabric-bot', undefined, {is_bot: true}),
     person(IDS.gone, 'gone', 'Former Member', 'gone', 'gone@example.com', {deleted: true})];
-  const channel = (id, name, members, extra = {}) => ({id, name, is_private: id.startsWith('G'), is_im: false, is_archived: false, members, messages: [], ...extra});
+  const made = Math.floor(start / 1000) - 30 * DAY_SECONDS;
+  const channel = (id, name, members, extra = {}) => ({id, name, is_private: false, is_im: false, is_mpim: false, is_archived: false, created: made, creator: owner.id, members, messages: [], ...extra});
   return {
     team: {id: owner.teamId, domain: DOMAIN}, owner: owner.id, people,
     channels: Object.fromEntries([channel(IDS.general, 'general', [owner.id, IDS.ada, IDS.grace]), channel(IDS.fabricTest, 'fabric-test', [owner.id, IDS.ada]),
-      channel(IDS.private, 'fabric-private', [owner.id]), channel(IDS.others, 'others', [IDS.ada]), channel(IDS.archived, 'old-news', [owner.id], {is_archived: true}),
-      channel(IDS.secret, 'secret', [IDS.ada]), channel(IDS.selfDm, owner.id, [owner.id], {is_im: true, user: owner.id})].map(item => [item.id, item])),
+      channel(IDS.private, 'fabric-private', [owner.id], {is_private: true}), channel(IDS.others, 'others', [IDS.ada]), channel(IDS.archived, 'old-news', [owner.id], {is_archived: true}),
+      channel(IDS.secret, 'secret', [IDS.ada], {is_private: true}), channel(IDS.selfDm, owner.id, [owner.id], {is_im: true, user: owner.id})].map(item => [item.id, item])),
     scheduled: [], canvases: {[IDS.canvas]: {id: IDS.canvas, title: '[SYNTHETIC] Fabric canvas', content: '# [SYNTHETIC] Fabric canvas\n\nA canvas Fabric reads in its tests.\n'}},
     notifications: [], editWindowOpen: true, created: start,
   };
@@ -175,11 +204,14 @@ function initialState(owner, start) {
 
 export class SlackSimulator {
   /** clock() gives the time ts values and statuses read; token is the bearer token; owner {id, teamId, name}; scopes the token's scopes. */
-  constructor({clock = () => Date.parse('2026-10-26T15:00:00.000Z'), token = 'xoxp-slack-simulator-token', owner = {id: IDS.owner, teamId: IDS.team, name: 'owner'}, scopes = [], rateLimit = false} = {}) {
+  constructor({clock = () => Date.parse('2026-10-26T15:00:00.000Z'), token = 'xoxp-slack-simulator-token', owner = {id: IDS.owner, teamId: IDS.team, name: 'owner'}, scopes = [], rateLimit = false, tierLimit = false} = {}) {
     this.clock = clock;
     this.token = token;
     this.scopes = [...scopes];
     this.rateLimit = rateLimit === true;
+    this.tierLimit = tierLimit === true;
+    this.tiers = new Map();
+    Object.assign(this, {lastPageMeta: 'empty', oldestFirst: false, parentSurvivesOldest: false, searchLagMs: 0, searchJoinMs: 0, searchHidden: new Set(), searchDeprecated: false, cursorEpoch: 0, pageSizes: []});
     this.calls = [];
     this.switches = new Map();
     this.holds = new Map();
@@ -234,25 +266,41 @@ export class SlackSimulator {
   }
   #nextTs() { return this.#tsAt(this.clock()); }
   /** Adds a message to a channel without a call; a given ts is used as it is. Returns its ts. */
-  seed(channel, {ts, user = IDS.ada, text, threadTs} = {}) {
-    const target = this.data.channels[channel];
-    if (!target) throw new Error(`No channel ${channel}.`);
+  seed(channel, {ts, user, text = '', threadTs, subtype, botId, files, upload, hidden, blocks} = {}) {
+    const target = this.#conversation(channel);
     const stamp = ts ?? this.#nextTs();
     if (!TS.test(stamp)) throw new Error('A ts is <seconds>.<6 digits>.');
     if (tsKey(stamp) > this.lastTs) this.lastTs = tsKey(stamp);
-    target.messages.push({type: 'message', ts: stamp, user, text, reactions: [], ...(threadTs ? {thread_ts: threadTs} : {})});
+    target.messages.push({type: 'message', ts: stamp, ...(subtype === 'bot_message' ? {} : {user: user ?? IDS.ada}), text, reactions: [], ...(threadTs ? {thread_ts: threadTs} : {}), ...(subtype ? {subtype} : {}),
+      ...(botId ? {botId} : {}), ...(files ? {files: structuredClone(files)} : {}), ...(upload ? {upload} : {}), ...(hidden ? {hidden} : {}), ...(blocks ? {blocks: structuredClone(blocks)} : {})});
     return stamp;
   }
   /** Someone else posts now. */
-  post(channel, {user, text, threadTs} = {}) { return this.seed(channel, {user, text, threadTs}); }
+  post(channel, options = {}) { return this.seed(channel, options); }
   /** Someone (or Slack) changes a message's text. */
   edit(channel, ts, text) { const message = this.#message(this.data, channel, ts); if (!message) throw new Error('No such message.'); message.text = text; message.edited = {user: message.user, ts: this.#nextTs()}; return this; }
+  /** A message goes: from history and search at once, though a parent with replies stays in its thread as a tombstone. */
+  delete(channel, ts) {
+    const target = this.#conversation(channel), message = this.#message(this.data, channel, ts);
+    if (!message) throw new Error('No such message.');
+    if (target.messages.some(item => item.thread_ts === ts && item.ts !== ts)) Object.assign(message, {subtype: 'tombstone', hidden: true, text: 'This message was deleted.', reactions: []});
+    else target.messages.splice(target.messages.indexOf(message), 1);
+    return this;
+  }
   /** Someone else reacts. */
   react(channel, ts, name, user) {
     const message = this.#message(this.data, channel, ts);
     if (!message) throw new Error('No such message.');
     const reaction = message.reactions.find(item => item.name === name) ?? (message.reactions.push({name, users: []}), message.reactions.at(-1));
     if (!reaction.users.includes(user)) reaction.users.push(user);
+    return this;
+  }
+  /** Someone takes their reaction back. */
+  unreact(channel, ts, name, user) {
+    const message = this.#message(this.data, channel, ts), reaction = message?.reactions.find(item => item.name === name);
+    if (!reaction) throw new Error('No such reaction.');
+    reaction.users = reaction.users.filter(item => item !== user);
+    if (!reaction.users.length) message.reactions.splice(message.reactions.indexOf(reaction), 1);
     return this;
   }
   #message(state, channel, ts) { return state.channels[channel]?.messages.find(item => item.ts === ts) ?? null; }
@@ -262,12 +310,43 @@ export class SlackSimulator {
     this.data.people.push(person(id, name, realName, displayName, email, {is_bot: isBot, deleted}));
     return this;
   }
-  /** A public channel the owner is in (F10.21 part 2: more conversations than one page holds). */
-  addChannel({id, name}) {
+  /** A conversation, by default a public channel the owner is in (F10.21 part 2: more conversations than one page holds). `mpim` makes a group DM. */
+  addChannel({id, name, private: hidden = false, mpim = false, creator = this.data.owner, created = Math.floor(this.clock() / 1000), members = [this.data.owner]}) {
     if (this.data.channels[id]) throw new Error(`${id} is taken.`);
-    this.data.channels[id] = {id, name, is_private: false, is_im: false, is_archived: false, members: [this.data.owner], messages: []};
+    this.data.channels[id] = {id, name, is_private: hidden || mpim, is_im: false, is_mpim: mpim, is_archived: false, created, creator, members: [...members], messages: []};
     return this;
   }
+  #conversation(id) {
+    const target = this.data.channels[id];
+    if (!target) throw new Error(`No channel ${id}.`);
+    return target;
+  }
+  /** Someone joins, and the channel holds the notice. */
+  join(channel, user = this.data.owner) {
+    const target = this.#conversation(channel);
+    if (!target.members.includes(user)) target.members.push(user);
+    this.seed(channel, {subtype: 'channel_join', user, text: `<@${user}> has joined the channel`});
+    return this;
+  }
+  /** Someone leaves, and the channel holds the notice. */
+  leave(channel, user = this.data.owner) {
+    const target = this.#conversation(channel);
+    target.members = target.members.filter(member => member !== user);
+    this.seed(channel, {subtype: 'channel_leave', user, text: `<@${user}> has left the channel`});
+    return this;
+  }
+  archive(channel) { this.#conversation(channel).is_archived = true; this.seed(channel, {subtype: 'channel_archive', user: this.data.owner, text: 'archived the channel'}); return this; }
+  /** A conversation moves to a new id, with everything in it. The old id then answers as one that never was. */
+  renameId(id, next) {
+    const target = this.#conversation(id);
+    if (this.data.channels[next]) throw new Error(`${next} is taken.`);
+    delete this.data.channels[id];
+    this.data.channels[next] = Object.assign(target, {id: next});
+    return this;
+  }
+  expireCursors() { this.cursorEpoch++; return this; }
+  /** The next pages of a conversation list hold at most these many items, each with a next cursor while more remain: Slack's pages say fewer than `limit` may come back before the end. 0 is an empty page. */
+  shortPages(...sizes) { this.pageSizes.push(...sizes); return this; }
 
   // ---- the methods ----------------------------------------------------------------------------------------------------------------------
   #person(state, id) { return state.people.find(item => item.id === id) ?? null; }
@@ -279,16 +358,17 @@ export class SlackSimulator {
   }
   #dm(state, user) {
     const id = user === state.owner ? IDS.selfDm : `D${user.slice(1)}`;
-    state.channels[id] ??= {id, name: user, is_private: true, is_im: true, is_archived: false, user, members: [state.owner, user], messages: []};
+    state.channels[id] ??= {id, name: user, is_private: true, is_im: true, is_mpim: false, is_archived: false, created: Math.floor(this.clock() / 1000), user, members: [state.owner, user], messages: []};
     return state.channels[id];
   }
   #shown(message, channel) {
     const replies = channel.messages.filter(item => item.thread_ts === message.ts && item.ts !== message.ts);
     const parent = message.thread_ts && message.thread_ts !== message.ts ? channel.messages.find(item => item.ts === message.thread_ts) : null;
-    return {type: 'message', user: message.user, text: message.text, ts: message.ts,
+    return {type: 'message', user: message.user, text: message.text, ts: message.ts, ...(message.subtype ? {subtype: message.subtype} : {}), ...(message.botId ? {bot_id: message.botId} : {}),
+      ...(message.files ? {files: structuredClone(message.files)} : {}), ...(message.upload ? {upload: true} : {}), ...(message.hidden ? {hidden: true} : {}), ...(message.blocks ? {blocks: structuredClone(message.blocks)} : {}),
       ...(replies.length ? {thread_ts: message.ts, reply_count: replies.length, latest_reply: replies.sort(oldestFirst).at(-1).ts} : {}),
-      ...(parent ? {thread_ts: parent.ts, parent_user_id: parent.user} : {}), ...(message.edited ? {edited: message.edited} : {}),
-      ...(message.reactions.length ? {reactions: message.reactions.map(item => ({name: item.name, users: [...item.users], count: item.users.length}))} : {})};
+      ...(parent ? {thread_ts: parent.ts, ...(message.subtype === 'thread_broadcast' ? {} : {parent_user_id: parent.user})} : {}), ...(message.edited ? {edited: message.edited} : {}),
+      ...(message.reactions.length ? {reactions: message.reactions.map(item => ({name: item.name, users: item.users.slice(0, REACTORS_SHOWN), count: item.users.length}))} : {})};
   }
   #permalink(state, channel, message) {
     const digits = message.ts.replace('.', '');
@@ -300,6 +380,22 @@ export class SlackSimulator {
     return list.filter(item => {
       const key = tsKey(item.ts);
       return (oldest === null || (inclusive ? key >= oldest : key > oldest)) && (latest === null || (inclusive ? key <= latest : key < latest));
+    });
+  }
+  /** How a list says where it ends. */
+  #listEnd(next) {
+    if (next !== '' || this.lastPageMeta === 'empty') return {response_metadata: {next_cursor: next}};
+    return this.lastPageMeta === 'null' ? {response_metadata: {next_cursor: null}} : {};
+  }
+  /** Of matches newest first, those in one conversation close to a match already kept join into it. */
+  #joined(matches) {
+    if (this.searchJoinMs <= 0) return matches;
+    const kept = new Map(), reach = BigInt(this.searchJoinMs) * 1000n;
+    return matches.filter(match => {
+      const last = kept.get(match.channel.id), key = tsKey(match.ts);
+      if (last !== undefined && last - key <= reach) return false;
+      kept.set(match.channel.id, key);
+      return true;
     });
   }
   #limit(value, max, fallback) { if (value === undefined) return fallback; const limit = whole(value); return limit !== null && limit >= 1 && limit <= max ? limit : undefined; }
@@ -322,12 +418,12 @@ export class SlackSimulator {
     'users.conversations': ({state, args}) => {
       const types = String(args.types ?? 'public_channel').split(','), limit = this.#limit(args.limit, 999, 100);
       if (limit === undefined || types.some(type => !TYPE_SCOPE[type])) return no(limit === undefined ? 'invalid_limit' : 'invalid_types');
-      const kind = channel => channel.is_im ? 'im' : channel.is_private ? 'private_channel' : 'public_channel';
+      const kind = channel => channel.is_im ? 'im' : channel.is_mpim ? 'mpim' : channel.is_private ? 'private_channel' : 'public_channel';
       const list = Object.values(state.channels).filter(channel => channel.members.includes(state.owner) && types.includes(kind(channel)) && !(truthy(args.exclude_archived) && channel.is_archived));
-      const page = pageOf(list, {cursor: args.cursor, limit});
+      const page = pageOf(list, {cursor: args.cursor, limit, epoch: this.cursorEpoch, short: this.pageSizes.shift()});
       if (!page) return no('invalid_cursor');
-      return done({channels: page.items.map(channel => ({id: channel.id, name: channel.name, is_channel: !channel.is_private && !channel.is_im, is_group: channel.is_private && !channel.is_im,
-        is_im: channel.is_im, is_mpim: false, is_private: channel.is_private, is_archived: channel.is_archived, ...(channel.is_im ? {user: channel.user} : {})})), response_metadata: {next_cursor: page.next}});
+      return done({channels: page.items.map(channel => ({id: channel.id, ...(channel.is_im ? {} : {name: channel.name}), is_channel: !channel.is_private && !channel.is_im, is_group: channel.is_private && !channel.is_im && !channel.is_mpim,
+        is_im: channel.is_im, is_mpim: channel.is_mpim, is_private: channel.is_private, is_archived: channel.is_archived, created: channel.created, ...(channel.is_im ? {user: channel.user} : {creator: channel.creator})})), ...this.#listEnd(page.next)});
     },
     'conversations.info': ({state, args}) => {
       const channel = state.channels[args.channel];
@@ -339,10 +435,11 @@ export class SlackSimulator {
       const channel = state.channels[args.channel], limit = this.#limit(args.limit, 999, 100);
       if (!channel || !this.#canRead(state, channel)) return no('channel_not_found');
       if (limit === undefined) return no('invalid_limit');
-      const top = this.#window(channel.messages.filter(item => !item.thread_ts || item.thread_ts === item.ts), args).sort(newestFirst);
-      const page = pageOf(top, {cursor: args.cursor, limit});
+      const listed = channel.messages.filter(item => !item.hidden && (!item.thread_ts || item.thread_ts === item.ts || item.subtype === 'thread_broadcast'));
+      const top = this.#window(listed, args).sort(this.oldestFirst && args.oldest !== undefined ? oldestFirst : newestFirst);
+      const page = pageOf(top, {cursor: args.cursor, limit, epoch: this.cursorEpoch, short: this.pageSizes.shift()});
       if (!page) return no('invalid_cursor');
-      return done({messages: page.items.map(item => this.#shown(item, channel)), has_more: page.next !== '', pin_count: 0, response_metadata: {next_cursor: page.next}});
+      return done({messages: page.items.map(item => this.#shown(item, channel)), has_more: page.next !== '', pin_count: 0, ...this.#listEnd(page.next)});
     },
     'conversations.replies': ({state, args}) => {
       const channel = state.channels[args.channel], limit = this.#limit(args.limit, 1000, 1000);
@@ -351,10 +448,10 @@ export class SlackSimulator {
       const named = typeof args.ts === 'string' ? channel.messages.find(item => item.ts === args.ts) : null;
       if (!named) return no('thread_not_found');
       const root = named.thread_ts && named.thread_ts !== named.ts ? channel.messages.find(item => item.ts === named.thread_ts) : named;
-      const thread = [root, ...channel.messages.filter(item => item.thread_ts === root.ts && item.ts !== root.ts).sort(oldestFirst)];
-      const page = pageOf(this.#window(thread, args), {cursor: args.cursor, limit});
+      const thread = [root, ...channel.messages.filter(item => item.thread_ts === root.ts && item.ts !== root.ts && !item.hidden).sort(oldestFirst)], cut = this.#window(thread, args);
+      const page = pageOf(this.parentSurvivesOldest && !cut.includes(root) ? [root, ...cut] : cut, {cursor: args.cursor, limit, epoch: this.cursorEpoch, short: this.pageSizes.shift()});
       if (!page) return no('invalid_cursor');
-      return done({messages: page.items.map(item => this.#shown(item, channel)), has_more: page.next !== '', response_metadata: {next_cursor: page.next}});
+      return done({messages: page.items.map(item => this.#shown(item, channel)), has_more: page.next !== '', ...this.#listEnd(page.next)});
     },
     'chat.getPermalink': ({state, args}) => {
       const channel = state.channels[args.channel];
@@ -368,6 +465,7 @@ export class SlackSimulator {
       return done({scheduled_messages: list.map(item => ({id: item.id, channel_id: item.channel_id, post_at: item.post_at, date_created: item.date_created, text: item.text})), response_metadata: {next_cursor: ''}});
     },
     'search.messages': ({state, args}) => {
+      if (this.searchDeprecated) return no('method_deprecated');
       const query = typeof args.query === 'string' ? args.query.trim() : '';
       if (!query) return no('no_query');
       const count = this.#limit(args.count, 100, 20), pageNumber = this.#limit(args.page, 100, 1);
@@ -377,8 +475,9 @@ export class SlackSimulator {
       const fold = text => text.toLowerCase();
       const matches = [];
       for (const channel of Object.values(state.channels)) {
-        if (!this.#canRead(state, channel) || (parsed.in && channel.id !== parsed.in)) continue;
+        if (!this.#canRead(state, channel) || (parsed.in && channel.id !== parsed.in) || this.searchHidden.has(channel.id)) continue;
         for (const message of channel.messages) {
+          if (message.hidden || tsKey(message.ts) / 1000n + BigInt(this.searchLagMs) > BigInt(this.clock())) continue;
           const seconds = Number(tsKey(message.ts) / 1_000_000n), text = fold(message.text);
           if ((parsed.from && message.user !== parsed.from) || (parsed.after !== null && seconds < parsed.after + DAY_SECONDS) || (parsed.before !== null && seconds >= parsed.before)) continue;
           if (!parsed.phrases.every(phrase => text.includes(fold(phrase))) || !parsed.words.every(word => text.includes(fold(word)))) continue;
@@ -386,17 +485,17 @@ export class SlackSimulator {
             text: message.text, permalink: this.#permalink(state, channel, message)});
         }
       }
-      matches.sort(newestFirst);
-      if ((args.sort === 'timestamp' && args.sort_dir === 'asc')) matches.reverse();
-      const pages = Math.max(1, Math.ceil(matches.length / count)), start = (pageNumber - 1) * count;
-      return done({query, messages: {matches: matches.slice(start, start + count), paging: {count, total: matches.length, page: pageNumber, pages}, total: matches.length}});
+      const shown = this.#joined(matches.sort(newestFirst));
+      if ((args.sort === 'timestamp' && args.sort_dir === 'asc')) shown.reverse();
+      const pages = Math.max(1, Math.ceil(shown.length / count)), start = (pageNumber - 1) * count;
+      return done({query, messages: {matches: shown.slice(start, start + count), paging: {count, total: shown.length, page: pageNumber, pages}, total: shown.length}});
     },
     'users.list': ({state, args}) => {
       const limit = this.#limit(args.limit, 1000, null);
       if (limit === undefined) return no('invalid_limit');
-      const page = pageOf(state.people, {cursor: args.cursor, limit});
+      const page = pageOf(state.people, {cursor: args.cursor, limit, epoch: this.cursorEpoch});
       if (!page) return no('invalid_cursor');
-      return done({members: page.items.map(item => this.#user(item)), response_metadata: {next_cursor: page.next}});
+      return done({members: page.items.map(item => this.#user(item)), ...this.#listEnd(page.next)});
     },
     'users.info': ({state, args}) => { const found = this.#person(state, args.user); return found ? done({user: this.#user(found)}) : no('user_not_found'); },
     'users.lookupByEmail': ({state, args}) => {
@@ -440,7 +539,7 @@ export class SlackSimulator {
       }
       const ts = this.#nextTs(), message = {type: 'message', ts, user: state.owner, text: typeof text === 'string' ? text : '', reactions: [],
         ...(args.thread_ts !== undefined ? {thread_ts: args.thread_ts} : {}), ...(Array.isArray(args.blocks) ? {blocks: structuredClone(args.blocks)} : {}),
-        ...(Array.isArray(args.attachments) && args.attachments.length ? {attachments: structuredClone(args.attachments)} : {}), ...(truthy(args.reply_broadcast) ? {reply_broadcast: true} : {})};
+        ...(Array.isArray(args.attachments) && args.attachments.length ? {attachments: structuredClone(args.attachments)} : {}), ...(truthy(args.reply_broadcast) ? {reply_broadcast: true, subtype: 'thread_broadcast'} : {})};
       channel.messages.push(message);
       this.#notify(state, channel.id, ts, message.text, {parse: args.parse, linkNames: args.link_names === true || args.link_names === 'true' || args.link_names === 1});
       return done({channel: channel.id, ts, message: {type: 'message', user: state.owner, text: message.text, ts, ...(message.thread_ts ? {thread_ts: message.thread_ts} : {})}});
@@ -542,13 +641,13 @@ export class SlackSimulator {
     if (!reaction.users.length) message.reactions.splice(message.reactions.indexOf(reaction), 1);
     return done();
   }
-  /** The scope a call needs, or null for none. The history and read scopes depend on the channel's type; an unknown channel needs none here. */
+  /** The scope a call needs, or null for none. The history and read scopes depend on the conversation's type, never its id; an unknown channel needs none here. */
   #needs(state, name, args) {
     if (FIXED_SCOPE[name]) return FIXED_SCOPE[name];
     if (name === 'users.conversations') return String(args.types ?? 'public_channel').split(',').map(type => TYPE_SCOPE[type]).find(scope => scope && !this.scopes.includes(scope)) ?? null;
-    const kind = typeof args.channel === 'string' ? args.channel[0] : null;
-    if (name === 'conversations.info' && state.channels[args.channel]) return READ_SCOPE[kind] ?? null;
-    if (PACED.has(name) && state.channels[args.channel]) return HISTORY_SCOPE[kind] ?? null;
+    const channel = state.channels[args.channel];
+    if (name === 'conversations.info' && channel) return READ_SCOPE[typeOf(channel)];
+    if (PACED.has(name) && channel) return HISTORY_SCOPE[typeOf(channel)];
     return null;
   }
 
@@ -606,6 +705,11 @@ export class SlackSimulator {
       const last = this.paced.get(name), now = this.clock();
       if (last !== undefined && now - last < PACE_MS) return {status: 429, headers: {'retry-after': String(Math.ceil((last + PACE_MS - now) / 1000))}, data: {ok: false, error: 'ratelimited'}};
       this.paced.set(name, now);
+    }
+    if (this.tierLimit && Object.hasOwn(TIERS, name)) {
+      const held = this.tiers.get(name), now = this.clock();
+      if (held && now - held.start < PACE_MS && held.count >= TIERS[name]) return {status: 429, headers: {'retry-after': String(Math.ceil((held.start + PACE_MS - now) / 1000))}, data: {ok: false, error: 'ratelimited'}};
+      this.tiers.set(name, held && now - held.start < PACE_MS ? {...held, count: held.count + 1} : {start: now, count: 1});
     }
     this.#deliver(this.data);
     const chosen = this.#take(name);

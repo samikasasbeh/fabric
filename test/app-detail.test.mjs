@@ -202,6 +202,7 @@ test('the page model maps every action to its exact request', () => {
   assert.deepEqual(rowRequest(detail, read, 'ask'), {path: '/api/ui/apps/github/accounts/a-1/permissions', body: {groupId: 'g.read', mode: 'ask', etag: 'e1'}});
   assert.deepEqual(rowRequest(detail, write, 'ask', {review: true}).body, {groupId: 'g.write', mode: 'ask', etag: 'e3', review: true});
   assert.deepEqual(model.background.request('deny'), {path: '/api/ui/apps/github/accounts/a-1/background', body: {mode: 'deny'}});
+  assert.equal(model.background.note, 'Runs only while Fabric is running on this computer. Reads only. Turning this off pauses its watches.');
   assert.deepEqual(model.reset, {path: '/api/ui/apps/github/accounts/a-1/reset', body: {}});
   assert.equal(MODE_LABEL.deny, 'Never');
 });

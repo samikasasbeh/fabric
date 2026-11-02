@@ -1670,6 +1670,989 @@
     "text": "x"
    },
    "refuses": "input_invalid"
+  },
+  {
+   "name": "a row's fingerprint holds the id and plain text of each written property, in id order, and a file by its name",
+   "source": "Fabric, on Notion's page property values; the file links are as the live run of 2026-10-30 read them",
+   "transform": "notion.rowFingerprint@1",
+   "input": {
+    "page": {
+     "object": "page",
+     "created_time": "2026-10-01T09:00:00.000Z",
+     "last_edited_time": "2026-10-01T09:05:00.000Z",
+     "properties": {
+      "Name": {
+       "id": "title",
+       "type": "title",
+       "title": [
+        {
+         "type": "text",
+         "text": {
+          "content": "Taxi "
+         },
+         "plain_text": "Taxi "
+        },
+        {
+         "type": "text",
+         "text": {
+          "content": "home"
+         },
+         "plain_text": "home"
+        }
+       ]
+      },
+      "Notes": {
+       "id": "b",
+       "type": "rich_text",
+       "rich_text": [
+        {
+         "type": "text",
+         "text": {
+          "content": "Paid"
+         },
+         "plain_text": "Paid"
+        }
+       ]
+      },
+      "Cost": {
+       "id": "c",
+       "type": "number",
+       "number": 12
+      },
+      "Done": {
+       "id": "d",
+       "type": "checkbox",
+       "checkbox": true
+      },
+      "Stage": {
+       "id": "e",
+       "type": "select",
+       "select": {
+        "id": "o1",
+        "name": "Open",
+        "color": "red"
+       }
+      },
+      "State": {
+       "id": "f",
+       "type": "status",
+       "status": {
+        "id": "o2",
+        "name": "Done",
+        "color": "green"
+       }
+      },
+      "Tags": {
+       "id": "g",
+       "type": "multi_select",
+       "multi_select": [
+        {
+         "id": "o3",
+         "name": "red"
+        },
+        {
+         "id": "o4",
+         "name": "blue"
+        }
+       ]
+      },
+      "Due": {
+       "id": "h",
+       "type": "date",
+       "date": {
+        "start": "2026-11-01",
+        "end": null,
+        "time_zone": null
+       }
+      },
+      "Site": {
+       "id": "i",
+       "type": "url",
+       "url": "https://example.com/a"
+      },
+      "Mail": {
+       "id": "j",
+       "type": "email",
+       "email": "a@example.com"
+      },
+      "Phone": {
+       "id": "k",
+       "type": "phone_number",
+       "phone_number": "+1 555"
+      },
+      "Owner": {
+       "id": "l",
+       "type": "people",
+       "people": [
+        {
+         "object": "user",
+         "id": "a1b2c3d4-0000-4000-8000-000000000001"
+        }
+       ]
+      },
+      "Link": {
+       "id": "m",
+       "type": "relation",
+       "relation": [
+        {
+         "id": "a1b2c3d4-0000-4000-8000-000000000001"
+        }
+       ],
+       "has_more": false
+      },
+      "Receipt": {
+       "id": "n",
+       "type": "files",
+       "files": [
+        {
+         "name": "receipt.pdf",
+         "type": "file",
+         "file": {
+          "url": "https://prod-files-secure.s3.us-west-2.amazonaws.com/w/receipt.pdf?X-Amz-Signature=aaaa",
+          "expiry_time": "2026-10-01T10:00:00.000Z"
+         }
+        }
+       ]
+      },
+      "Total": {
+       "id": "o",
+       "type": "formula",
+       "formula": {
+        "type": "number",
+        "number": 99
+       }
+      },
+      "Sum": {
+       "id": "p",
+       "type": "rollup",
+       "rollup": {
+        "type": "number",
+        "number": 3,
+        "function": "sum"
+       }
+      },
+      "Created": {
+       "id": "q",
+       "type": "created_time",
+       "created_time": "2026-10-01T09:00:00.000Z"
+      },
+      "Author": {
+       "id": "r",
+       "type": "created_by",
+       "created_by": {
+        "object": "user",
+        "id": "a1b2c3d4-0000-4000-8000-000000000001"
+       }
+      },
+      "Edited": {
+       "id": "s",
+       "type": "last_edited_time",
+       "last_edited_time": "2026-10-01T09:05:00.000Z"
+      },
+      "Editor": {
+       "id": "t",
+       "type": "last_edited_by",
+       "last_edited_by": {
+        "object": "user",
+        "id": "a1b2c3d4-0000-4000-8000-000000000001"
+       }
+      },
+      "Ticket": {
+       "id": "u",
+       "type": "unique_id",
+       "unique_id": {
+        "prefix": "T",
+        "number": 7
+       }
+      },
+      "Go": {
+       "id": "v",
+       "type": "button",
+       "button": {}
+      },
+      "Checked": {
+       "id": "w",
+       "type": "verification",
+       "verification": {
+        "state": "verified"
+       }
+      },
+      "Where": {
+       "id": "x",
+       "type": "place",
+       "place": {
+        "lat": 1
+       }
+      }
+     }
+    }
+   },
+   "output": {
+    "values": [
+     {
+      "id": "b",
+      "text": "Paid"
+     },
+     {
+      "id": "c",
+      "text": "12"
+     },
+     {
+      "id": "d",
+      "text": "true"
+     },
+     {
+      "id": "e",
+      "text": "Open"
+     },
+     {
+      "id": "f",
+      "text": "Done"
+     },
+     {
+      "id": "g",
+      "text": "red, blue"
+     },
+     {
+      "id": "h",
+      "text": "2026-11-01"
+     },
+     {
+      "id": "i",
+      "text": "https://example.com/a"
+     },
+     {
+      "id": "j",
+      "text": "a@example.com"
+     },
+     {
+      "id": "k",
+      "text": "+1 555"
+     },
+     {
+      "id": "l",
+      "text": "a1b2c3d4-0000-4000-8000-000000000001"
+     },
+     {
+      "id": "m",
+      "text": "a1b2c3d4-0000-4000-8000-000000000001"
+     },
+     {
+      "id": "n",
+      "text": "receipt.pdf"
+     },
+     {
+      "id": "title",
+      "text": "Taxi home"
+     }
+    ],
+    "changeKind": "edited"
+   }
+  },
+  {
+   "name": "a new link to the same file, a formula, a rollup and a stamp moved give the same fingerprint",
+   "source": "Fabric, on Notion's page property values; the file links are as the live run of 2026-10-30 read them",
+   "transform": "notion.rowFingerprint@1",
+   "input": {
+    "page": {
+     "object": "page",
+     "created_time": "2026-10-01T09:00:00.000Z",
+     "last_edited_time": "2026-10-01T09:05:00.000Z",
+     "properties": {
+      "Name": {
+       "id": "title",
+       "type": "title",
+       "title": [
+        {
+         "type": "text",
+         "text": {
+          "content": "Taxi "
+         },
+         "plain_text": "Taxi "
+        },
+        {
+         "type": "text",
+         "text": {
+          "content": "home"
+         },
+         "plain_text": "home"
+        }
+       ]
+      },
+      "Notes": {
+       "id": "b",
+       "type": "rich_text",
+       "rich_text": [
+        {
+         "type": "text",
+         "text": {
+          "content": "Paid"
+         },
+         "plain_text": "Paid"
+        }
+       ]
+      },
+      "Cost": {
+       "id": "c",
+       "type": "number",
+       "number": 12
+      },
+      "Done": {
+       "id": "d",
+       "type": "checkbox",
+       "checkbox": true
+      },
+      "Stage": {
+       "id": "e",
+       "type": "select",
+       "select": {
+        "id": "o1",
+        "name": "Open",
+        "color": "red"
+       }
+      },
+      "State": {
+       "id": "f",
+       "type": "status",
+       "status": {
+        "id": "o2",
+        "name": "Done",
+        "color": "green"
+       }
+      },
+      "Tags": {
+       "id": "g",
+       "type": "multi_select",
+       "multi_select": [
+        {
+         "id": "o3",
+         "name": "red"
+        },
+        {
+         "id": "o4",
+         "name": "blue"
+        }
+       ]
+      },
+      "Due": {
+       "id": "h",
+       "type": "date",
+       "date": {
+        "start": "2026-11-01",
+        "end": null,
+        "time_zone": null
+       }
+      },
+      "Site": {
+       "id": "i",
+       "type": "url",
+       "url": "https://example.com/a"
+      },
+      "Mail": {
+       "id": "j",
+       "type": "email",
+       "email": "a@example.com"
+      },
+      "Phone": {
+       "id": "k",
+       "type": "phone_number",
+       "phone_number": "+1 555"
+      },
+      "Owner": {
+       "id": "l",
+       "type": "people",
+       "people": [
+        {
+         "object": "user",
+         "id": "a1b2c3d4-0000-4000-8000-000000000001"
+        }
+       ]
+      },
+      "Link": {
+       "id": "m",
+       "type": "relation",
+       "relation": [
+        {
+         "id": "a1b2c3d4-0000-4000-8000-000000000001"
+        }
+       ],
+       "has_more": false
+      },
+      "Receipt": {
+       "id": "n",
+       "type": "files",
+       "files": [
+        {
+         "name": "receipt.pdf",
+         "type": "file",
+         "file": {
+          "url": "https://prod-files-secure.s3.us-west-2.amazonaws.com/w/receipt.pdf?X-Amz-Signature=bbbb",
+          "expiry_time": "2026-10-01T10:00:00.000Z"
+         }
+        }
+       ]
+      },
+      "Total": {
+       "id": "o",
+       "type": "formula",
+       "formula": {
+        "type": "number",
+        "number": 100
+       }
+      },
+      "Sum": {
+       "id": "p",
+       "type": "rollup",
+       "rollup": {
+        "type": "number",
+        "number": 4,
+        "function": "sum"
+       }
+      },
+      "Created": {
+       "id": "q",
+       "type": "created_time",
+       "created_time": "2026-10-01T09:00:00.000Z"
+      },
+      "Author": {
+       "id": "r",
+       "type": "created_by",
+       "created_by": {
+        "object": "user",
+        "id": "a1b2c3d4-0000-4000-8000-000000000001"
+       }
+      },
+      "Edited": {
+       "id": "s",
+       "type": "last_edited_time",
+       "last_edited_time": "2026-10-01T09:06:00.000Z"
+      },
+      "Editor": {
+       "id": "t",
+       "type": "last_edited_by",
+       "last_edited_by": {
+        "object": "user",
+        "id": "a1b2c3d4-0000-4000-8000-000000000001"
+       }
+      },
+      "Ticket": {
+       "id": "u",
+       "type": "unique_id",
+       "unique_id": {
+        "prefix": "T",
+        "number": 7
+       }
+      },
+      "Go": {
+       "id": "v",
+       "type": "button",
+       "button": {}
+      },
+      "Checked": {
+       "id": "w",
+       "type": "verification",
+       "verification": {
+        "state": "verified"
+       }
+      },
+      "Where": {
+       "id": "x",
+       "type": "place",
+       "place": {
+        "lat": 1
+       }
+      }
+     }
+    }
+   },
+   "output": {
+    "values": [
+     {
+      "id": "b",
+      "text": "Paid"
+     },
+     {
+      "id": "c",
+      "text": "12"
+     },
+     {
+      "id": "d",
+      "text": "true"
+     },
+     {
+      "id": "e",
+      "text": "Open"
+     },
+     {
+      "id": "f",
+      "text": "Done"
+     },
+     {
+      "id": "g",
+      "text": "red, blue"
+     },
+     {
+      "id": "h",
+      "text": "2026-11-01"
+     },
+     {
+      "id": "i",
+      "text": "https://example.com/a"
+     },
+     {
+      "id": "j",
+      "text": "a@example.com"
+     },
+     {
+      "id": "k",
+      "text": "+1 555"
+     },
+     {
+      "id": "l",
+      "text": "a1b2c3d4-0000-4000-8000-000000000001"
+     },
+     {
+      "id": "m",
+      "text": "a1b2c3d4-0000-4000-8000-000000000001"
+     },
+     {
+      "id": "n",
+      "text": "receipt.pdf"
+     },
+     {
+      "id": "title",
+      "text": "Taxi home"
+     }
+    ],
+    "changeKind": "edited"
+   }
+  },
+  {
+   "name": "a column's new name gives the same fingerprint, since the values go by id",
+   "source": "Fabric, on Notion's page property values; the file links are as the live run of 2026-10-30 read them",
+   "transform": "notion.rowFingerprint@1",
+   "input": {
+    "page": {
+     "object": "page",
+     "created_time": "2026-10-01T09:00:00.000Z",
+     "last_edited_time": "2026-10-01T09:05:00.000Z",
+     "properties": {
+      "Title of it": {
+       "id": "title",
+       "type": "title",
+       "title": [
+        {
+         "type": "text",
+         "text": {
+          "content": "Taxi "
+         },
+         "plain_text": "Taxi "
+        },
+        {
+         "type": "text",
+         "text": {
+          "content": "home"
+         },
+         "plain_text": "home"
+        }
+       ]
+      },
+      "Notes": {
+       "id": "b",
+       "type": "rich_text",
+       "rich_text": [
+        {
+         "type": "text",
+         "text": {
+          "content": "Paid"
+         },
+         "plain_text": "Paid"
+        }
+       ]
+      },
+      "Cost": {
+       "id": "c",
+       "type": "number",
+       "number": 12
+      },
+      "Done": {
+       "id": "d",
+       "type": "checkbox",
+       "checkbox": true
+      },
+      "Stage": {
+       "id": "e",
+       "type": "select",
+       "select": {
+        "id": "o1",
+        "name": "Open",
+        "color": "red"
+       }
+      },
+      "State": {
+       "id": "f",
+       "type": "status",
+       "status": {
+        "id": "o2",
+        "name": "Done",
+        "color": "green"
+       }
+      },
+      "Tags": {
+       "id": "g",
+       "type": "multi_select",
+       "multi_select": [
+        {
+         "id": "o3",
+         "name": "red"
+        },
+        {
+         "id": "o4",
+         "name": "blue"
+        }
+       ]
+      },
+      "Due": {
+       "id": "h",
+       "type": "date",
+       "date": {
+        "start": "2026-11-01",
+        "end": null,
+        "time_zone": null
+       }
+      },
+      "Site": {
+       "id": "i",
+       "type": "url",
+       "url": "https://example.com/a"
+      },
+      "Mail": {
+       "id": "j",
+       "type": "email",
+       "email": "a@example.com"
+      },
+      "Phone": {
+       "id": "k",
+       "type": "phone_number",
+       "phone_number": "+1 555"
+      },
+      "Owner": {
+       "id": "l",
+       "type": "people",
+       "people": [
+        {
+         "object": "user",
+         "id": "a1b2c3d4-0000-4000-8000-000000000001"
+        }
+       ]
+      },
+      "Link": {
+       "id": "m",
+       "type": "relation",
+       "relation": [
+        {
+         "id": "a1b2c3d4-0000-4000-8000-000000000001"
+        }
+       ],
+       "has_more": false
+      },
+      "Receipt": {
+       "id": "n",
+       "type": "files",
+       "files": [
+        {
+         "name": "receipt.pdf",
+         "type": "file",
+         "file": {
+          "url": "https://prod-files-secure.s3.us-west-2.amazonaws.com/w/receipt.pdf?X-Amz-Signature=aaaa",
+          "expiry_time": "2026-10-01T10:00:00.000Z"
+         }
+        }
+       ]
+      },
+      "Total": {
+       "id": "o",
+       "type": "formula",
+       "formula": {
+        "type": "number",
+        "number": 99
+       }
+      },
+      "Sum": {
+       "id": "p",
+       "type": "rollup",
+       "rollup": {
+        "type": "number",
+        "number": 3,
+        "function": "sum"
+       }
+      },
+      "Created": {
+       "id": "q",
+       "type": "created_time",
+       "created_time": "2026-10-01T09:00:00.000Z"
+      },
+      "Author": {
+       "id": "r",
+       "type": "created_by",
+       "created_by": {
+        "object": "user",
+        "id": "a1b2c3d4-0000-4000-8000-000000000001"
+       }
+      },
+      "Edited": {
+       "id": "s",
+       "type": "last_edited_time",
+       "last_edited_time": "2026-10-01T09:05:00.000Z"
+      },
+      "Editor": {
+       "id": "t",
+       "type": "last_edited_by",
+       "last_edited_by": {
+        "object": "user",
+        "id": "a1b2c3d4-0000-4000-8000-000000000001"
+       }
+      },
+      "Ticket": {
+       "id": "u",
+       "type": "unique_id",
+       "unique_id": {
+        "prefix": "T",
+        "number": 7
+       }
+      },
+      "Go": {
+       "id": "v",
+       "type": "button",
+       "button": {}
+      },
+      "Checked": {
+       "id": "w",
+       "type": "verification",
+       "verification": {
+        "state": "verified"
+       }
+      },
+      "Where": {
+       "id": "x",
+       "type": "place",
+       "place": {
+        "lat": 1
+       }
+      }
+     }
+    }
+   },
+   "output": {
+    "values": [
+     {
+      "id": "b",
+      "text": "Paid"
+     },
+     {
+      "id": "c",
+      "text": "12"
+     },
+     {
+      "id": "d",
+      "text": "true"
+     },
+     {
+      "id": "e",
+      "text": "Open"
+     },
+     {
+      "id": "f",
+      "text": "Done"
+     },
+     {
+      "id": "g",
+      "text": "red, blue"
+     },
+     {
+      "id": "h",
+      "text": "2026-11-01"
+     },
+     {
+      "id": "i",
+      "text": "https://example.com/a"
+     },
+     {
+      "id": "j",
+      "text": "a@example.com"
+     },
+     {
+      "id": "k",
+      "text": "+1 555"
+     },
+     {
+      "id": "l",
+      "text": "a1b2c3d4-0000-4000-8000-000000000001"
+     },
+     {
+      "id": "m",
+      "text": "a1b2c3d4-0000-4000-8000-000000000001"
+     },
+     {
+      "id": "n",
+      "text": "receipt.pdf"
+     },
+     {
+      "id": "title",
+      "text": "Taxi home"
+     }
+    ],
+    "changeKind": "edited"
+   }
+  },
+  {
+   "name": "a row whose two stamps match reads created",
+   "transform": "notion.rowFingerprint@1",
+   "input": {
+    "page": {
+     "object": "page",
+     "created_time": "2026-10-01T09:00:00.000Z",
+     "last_edited_time": "2026-10-01T09:00:00.000Z",
+     "properties": {}
+    }
+   },
+   "output": {
+    "values": [],
+    "changeKind": "created"
+   }
+  },
+  {
+   "name": "a row with no stamps reads edited: only two matching stamps say created",
+   "transform": "notion.rowFingerprint@1",
+   "input": {
+    "page": {
+     "object": "page",
+     "properties": {
+      "Name": {
+       "id": "title",
+       "type": "title",
+       "title": [
+        {
+         "type": "text",
+         "text": {
+          "content": "x"
+         },
+         "plain_text": "x"
+        }
+       ]
+      }
+     }
+    }
+   },
+   "output": {
+    "values": [
+     {
+      "id": "title",
+      "text": "x"
+     }
+    ],
+    "changeKind": "edited"
+   }
+  },
+  {
+   "name": "a row that is no object refuses",
+   "transform": "notion.rowFingerprint@1",
+   "input": {
+    "page": "not a page"
+   },
+   "refuses": "input_invalid"
+  },
+  {
+   "name": "a signed link loses its query, and the file's path stays",
+   "source": "Fabric, on Notion's page property values; the file links are as the live run of 2026-10-30 read them",
+   "transform": "notion.markdownFingerprint@1",
+   "input": {
+    "markdown": "Before\n![](https://prod-files-secure.s3.us-west-2.amazonaws.com/workspace/a.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=1&X-Amz-Signature=abc&x-id=GetObject)\nAfter"
+   },
+   "output": {
+    "text": "Before\n![](https://prod-files-secure.s3.us-west-2.amazonaws.com/workspace/a.png)\nAfter"
+   }
+  },
+  {
+   "name": "two reads of one file, signed apart, give one text",
+   "source": "Fabric, on Notion's page property values; the file links are as the live run of 2026-10-30 read them",
+   "transform": "notion.markdownFingerprint@1",
+   "input": {
+    "markdown": "![](https://prod-files-secure.s3.us-west-2.amazonaws.com/workspace/a.png?X-Amz-Date=2&X-Amz-Signature=def&x-id=GetObject)"
+   },
+   "output": {
+    "text": "![](https://prod-files-secure.s3.us-west-2.amazonaws.com/workspace/a.png)"
+   }
+  },
+  {
+   "name": "a link to file.notion.so loses its query too",
+   "transform": "notion.markdownFingerprint@1",
+   "input": {
+    "markdown": "[a](https://file.notion.so/f/f/a/b.pdf?table=block&expirationTimestamp=1&signature=x)"
+   },
+   "output": {
+    "text": "[a](https://file.notion.so/f/f/a/b.pdf)"
+   }
+  },
+  {
+   "name": "S3 on a dashed regional name is still S3",
+   "transform": "notion.markdownFingerprint@1",
+   "input": {
+    "markdown": "![](https://s3-us-west-2.amazonaws.com/secure/b.png?X-Amz-Signature=x)"
+   },
+   "output": {
+    "text": "![](https://s3-us-west-2.amazonaws.com/secure/b.png)"
+   }
+  },
+  {
+   "name": "another site keeps its query, which is what the page says",
+   "transform": "notion.markdownFingerprint@1",
+   "input": {
+    "markdown": "[a](https://example.com/report?year=2026) and https://s3.example.com/a?b=1"
+   },
+   "output": {
+    "text": "[a](https://example.com/report?year=2026) and https://s3.example.com/a?b=1"
+   }
+  },
+  {
+   "name": "an Amazon address that is not S3 keeps its query",
+   "transform": "notion.markdownFingerprint@1",
+   "input": {
+    "markdown": "https://console.aws.amazonaws.com/a?b=1"
+   },
+   "output": {
+    "text": "https://console.aws.amazonaws.com/a?b=1"
+   }
+  },
+  {
+   "name": "a question mark in plain words stays",
+   "transform": "notion.markdownFingerprint@1",
+   "input": {
+    "markdown": "Is this https done? Maybe."
+   },
+   "output": {
+    "text": "Is this https done? Maybe."
+   }
+  },
+  {
+   "name": "text with no link stays byte for byte",
+   "transform": "notion.markdownFingerprint@1",
+   "input": {
+    "markdown": "# Plan\n\n- one\n- two"
+   },
+   "output": {
+    "text": "# Plan\n\n- one\n- two"
+   }
+  },
+  {
+   "name": "an empty page gives empty text",
+   "transform": "notion.markdownFingerprint@1",
+   "input": {
+    "markdown": ""
+   },
+   "output": {
+    "text": ""
+   }
   }
  ]
 }

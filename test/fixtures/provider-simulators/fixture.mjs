@@ -25,6 +25,22 @@
 //   GET    /files/{+path}                 {path, content (base64), sha}, or 404. PUT {message, content, sha?}: a sha that is not the
 //                                         current one, or none for an existing file, answers 409 and changes nothing; 201 creates, 200 updates
 //   POST   /messages                      {to, text}: a message to people, {id, to, text}
+//   GET    /feed                          the change feed Iteration 9's poll engine reads (docs/I07-BUILD-MAP.md step 2). It starts empty and holds
+//                                         only what seed() and write() made, each also an item of /items/{item_id}. Three forms:
+//                                         A list, {items, nextPageToken?, nextSyncToken?, historyId}: each item is {id, name, kind, status, labels,
+//                                         threadId, updated, ts}. ?order is asc, desc (when left out) or unordered, ?limit 1 to 100 (100 when left
+//                                         out), ?pageToken the answer's own. Filters: ?kind, ?updatedAfter (RFC 3339, strictly later), ?oldest (a ts,
+//                                         strictly later). Only a last page holds nextSyncToken.
+//                                         ?syncToken, the same shape: what changed after that token, each item once, oldest change first, as it is
+//                                         now. An item remove() took reads {id, status: 'removed', updated}. Malformed answers 400; older than
+//                                         expireCursors(), or above the current token, answers 410 {error: 'sync_token_gone'}, with a ?pageToken too.
+//                                         ?startHistoryId, {history?, nextPageToken?, historyId}: the records after that id, oldest first, each
+//                                         {id, messagesAdded: [{message: {id, threadId, labelIds}}]}, and no history when there is none, as Gmail
+//                                         answers. An id is a decimal string too large for a Number. Malformed answers 400; older than
+//                                         expireCursors(), or above the current id, answers 404 {error: 'history_gone'}.
+//                                         Every answer carries a weak etag of its bytes, Last-Modified (the newest item's time, with no item none)
+//                                         and x-poll-interval once pollInterval() set one. If-None-Match equal to the etag, or If-Modified-Since
+//                                         equal to Last-Modified by exact string, answers a body-less 304 with the same headers.
 //   GET    /keys, GET /keys/{key_id}      the key list carries ids and names only; one key's answer carries the CANARY secret
 //   PUT    /items/{item_id}/share, POST /hooks, DELETE /hooks/{hook_id}
 //                                         locked: they answer 200 only so a test can assert they were never called
@@ -46,6 +62,12 @@
 // that instead and changes nothing; drop(route) applies the call, then throws as a lost answer (sent true); swallow(route) answers as
 // if applied but changes nothing (a readback then sees the old value); oversize(route, bytes) pads the answer to at least `bytes`;
 // hold(route) returns {reached, release()}: calls to the route wait, recorded, until release().
+//
+// The feed's own state, changed directly and never by a provider call. seed(count, {kind, name, status, spacingMs, at, perRecord}) adds `count`
+// items, oldest first, spacingMs apart (1000 by default), the last at `at` (clock() by default), perRecord of them to one history record (1 by
+// default). write(fields) adds one at clock(). touch(id, fields) changes one at clock() and logs it, keeping its ts. remove(id) takes one out of
+// the lists and logs it. Each returns copies of what it made or changed. expireCursors() makes every sync token and history id given so far
+// stale. pollInterval(seconds) sets x-poll-interval, null clears it.
 import {createHash} from 'node:crypto';
 
 export const REST_ORIGIN = 'https://api.fixture.test';
@@ -56,6 +78,9 @@ const RPC_ORIGIN = new URL(RPC_BASE).origin;
 const DEFAULT_RESPONSE_HEADERS = ['content-type', 'etag', 'retry-after', 'x-ratelimit-remaining'];
 const UNSAFE_HEADER = /^(host|connection|transfer-encoding|content-length|upgrade|proxy-.*|forwarded|x-forwarded-.*)$/i;
 const PAGE = 2;
+const FEED_LIMIT = 100;
+/** History ids start here, so one compared as a Number rounds. */
+const HISTORY_BASE = 2n ** 53n;
 
 const notSent = message => Object.assign(new Error(message), {sent: false});
 const lost = message => Object.assign(new Error(message), {sent: true});
@@ -79,7 +104,7 @@ function initialState(clock) {
     drafts: {D1: {id: 'D1', raw: b64('To: friend@fixture.test\r\nSubject: Hello\r\n\r\nSee you soon.')}},
     events: {E1: {id: 'E1', summary: 'Review', start: '2026-10-28T10:00:00Z', end: '2026-10-28T10:30:00Z', version: 1, requestId: null}},
     files: {'docs/a.md': {path: 'docs/a.md', content: b64('old'), sha: sha('old')}},
-    messages: [], exports: [], shares: [], hooks: [],
+    messages: [], exports: [], shares: [], hooks: [], feed: {log: [], floor: 0, made: 0, interval: null},
     keys: {K1: {id: 'K1', name: 'Deploy key', secret: CANARY}},
     rpc: {users: {U1: {id: 'U1', name: 'Ada'}, U2: {id: 'U2', name: 'Grace'}},
       channels: {C1: {id: 'C1', name: 'general', messages: [{ts: '1761210000.000100', user: 'U1', text: 'Welcome'}]}},
@@ -91,6 +116,57 @@ function initialState(clock) {
 const etagOf = event => `"${event.version}"`;
 const byNewest = (a, b) => a.updated < b.updated ? 1 : a.updated > b.updated ? -1 : 0;
 const page = (list, start) => ({slice: list.slice(start, start + PAGE), next: start + PAGE < list.length ? start + PAGE : null});
+
+// ---- GET /feed ------------------------------------------------------------------------------------------------------------------------
+const fed = state => state.items.filter(item => item.feedSerial !== undefined);
+const historyId = seq => String(HISTORY_BASE + BigInt(seq));
+const feedShown = ({id, name, kind, status, labels, updated, ts}) => ({id, name, kind, status, labels: [...labels], threadId: id, updated, ts});
+const oldestFirst = (a, b) => a.updated < b.updated ? -1 : a.updated > b.updated ? 1 : a.feedSerial - b.feedSerial;
+/** A stable order that is neither time nor id order. */
+const scattered = item => item.feedSerial * 2_654_435_761 % 4_294_967_296;
+const FEED_ORDER = {asc: oldestFirst, desc: (a, b) => oldestFirst(b, a), unordered: (a, b) => scattered(a) - scattered(b)};
+/** One page of a list as {slice, next}, or null when ?limit or ?pageToken is not one. */
+function feedPage(list, query) {
+  const limit = query.has('limit') ? Number(query.get('limit')) : FEED_LIMIT, start = query.has('pageToken') ? Number(/^p([0-9]{1,9})$/.exec(query.get('pageToken'))?.[1] ?? NaN) : 0;
+  if (!Number.isSafeInteger(limit) || limit < 1 || limit > FEED_LIMIT || !Number.isSafeInteger(start)) return null;
+  return {slice: list.slice(start, start + limit), next: start + limit < list.length ? `p${start + limit}` : null};
+}
+/** What a sync token reads: each item changed after `from`, in the order it first changed. */
+function changedSince(state, from) {
+  const byId = new Map(state.items.map(item => [item.id, item]));
+  return [...new Set(state.feed.log.slice(from).flatMap(record => record.ids))].map(id => byId.get(id)).map(item => item.in_trash ? {id: item.id, status: 'removed', updated: item.updated} : feedShown(item));
+}
+/** The answer of GET /feed before its headers, or a whole refusal as {refused}. */
+function feedAnswer(state, query) {
+  const {feed} = state, seq = feed.log.length, refused = (status, error) => ({refused: {status, data: {error}}}), head = {historyId: historyId(seq)};
+  if (query.has('startHistoryId')) {
+    const text = query.get('startHistoryId');
+    if (!/^[0-9]{1,20}$/.test(text)) return refused(400, 'bad_history_id');
+    const from = BigInt(text) - HISTORY_BASE;
+    if (from < BigInt(feed.floor) || from > BigInt(seq)) return refused(404, 'history_gone');
+    const part = feedPage(feed.log.slice(Number(from)), query);
+    if (!part) return refused(400, 'bad_page');
+    return {body: {...(part.slice.length ? {history: part.slice.map(record => ({id: historyId(record.seq), messagesAdded: record.ids.map(id => ({message: {id, threadId: id, labelIds: []}}))}))} : {}), ...(part.next ? {nextPageToken: part.next} : {}), ...head}};
+  }
+  let list;
+  if (query.has('syncToken')) {
+    const token = /^s([0-9]{1,12})$/.exec(query.get('syncToken'));
+    if (!token) return refused(400, 'bad_sync_token');
+    if (Number(token[1]) < feed.floor || Number(token[1]) > seq) return refused(410, 'sync_token_gone');
+    list = changedSince(state, Number(token[1]));
+  } else {
+    const order = query.get('order') ?? 'desc';
+    if (!Object.hasOwn(FEED_ORDER, order)) return refused(400, 'bad_order');
+    list = fed(state).filter(item => !item.in_trash).sort(FEED_ORDER[order]);
+    if (query.has('kind')) list = list.filter(item => item.kind === query.get('kind'));
+    if (query.has('updatedAfter')) list = list.filter(item => item.updated > query.get('updatedAfter'));
+    if (query.has('oldest')) list = list.filter(item => item.ts > query.get('oldest'));
+    list = list.map(feedShown);
+  }
+  const part = feedPage(list, query);
+  if (!part) return refused(400, 'bad_page');
+  return {body: {items: part.slice, ...(part.next ? {nextPageToken: part.next} : {nextSyncToken: `s${seq}`}), ...head}};
+}
 
 /** The routes, each {method, template, write, locked, handle(ctx)}; ctx is {params, query, body, headers, state, now, origin}. */
 const REST = [
@@ -208,6 +284,13 @@ const REST = [
     state.messages.push(message);
     return ok({...message});
   }},
+  {method: 'GET', template: '/feed', handle({state, query, headers}) {
+    const {body, refused} = feedAnswer(state, query);
+    if (refused) return refused;
+    const newest = fed(state).reduce((latest, item) => item.updated > latest ? item.updated : latest, ''), modified = newest ? new Date(newest).toUTCString() : null;
+    const etag = `W/"${sha(JSON.stringify(body))}"`, shown = {etag, ...(modified ? {'last-modified': modified} : {}), ...(state.feed.interval === null ? {} : {'x-poll-interval': state.feed.interval})};
+    return headers['if-none-match'] === etag || (modified && headers['if-modified-since'] === modified) ? {status: 304, headers: shown, data: null} : ok(body, shown);
+  }},
   {method: 'GET', template: '/keys', handle: ({state}) => ok({keys: Object.values(state.keys).map(({id, name}) => ({id, name}))})},
   {method: 'GET', template: '/keys/{key_id}', handle: ({state, params}) => state.keys[params.key_id] ? ok({...state.keys[params.key_id]}) : missing()},
   {method: 'PUT', template: '/items/{item_id}/share', write: true, locked: true, handle: ({state, params, body}) => { state.shares.push({item: params.item_id, to: body?.to ?? null}); return ok({shared: true}); }},
@@ -294,6 +377,49 @@ export class FixtureSimulator {
     const gate = {reached, released, reach, release: () => { this.holds.delete(route); release(); }};
     this.holds.set(route, gate);
     return {reached, release: gate.release};
+  }
+  #logged(ids) {
+    const {log} = this.data.feed;
+    log.push({seq: log.length + 1, ids});
+  }
+  /** Adds `count` items to the feed, as the header says. */
+  seed(count, {kind = 'note', name = 'Item', status = 'published', spacingMs = 1000, at = this.clock(), perRecord = 1} = {}) {
+    const {feed} = this.data, made = [];
+    for (let index = 0; index < count; index++) {
+      const time = at - (count - 1 - index) * spacingMs, feedSerial = ++feed.made;
+      made.push({id: `F${feedSerial}`, name: `${name} ${feedSerial}`, kind, status, labels: [], in_trash: false, updated: new Date(time).toISOString(), ts: `${Math.floor(time / 1000)}.${String(feedSerial).padStart(6, '0')}`, feedSerial});
+    }
+    this.data.items.push(...made);
+    for (let index = 0; index < made.length; index += perRecord) this.#logged(made.slice(index, index + perRecord).map(item => item.id));
+    return structuredClone(made);
+  }
+  write(fields = {}) {
+    const [item] = this.seed(1, {kind: fields.kind, status: fields.status});
+    return fields.name === undefined ? item : this.touch(item.id, {name: fields.name}, {log: false});
+  }
+  #feedItem(id) {
+    const item = this.data.items.find(entry => entry.id === id && entry.feedSerial !== undefined);
+    if (!item) throw new Error(`The feed holds no item ${id}.`);
+    return item;
+  }
+  touch(id, fields = {}, {log = true} = {}) {
+    const item = Object.assign(this.#feedItem(id), fields, {updated: new Date(this.clock()).toISOString()});
+    if (log) this.#logged([id]);
+    return structuredClone(item);
+  }
+  remove(id) {
+    const item = Object.assign(this.#feedItem(id), {in_trash: true, updated: new Date(this.clock()).toISOString()});
+    this.#logged([id]);
+    return structuredClone(item);
+  }
+  expireCursors() {
+    this.#logged([]);
+    this.data.feed.floor = this.data.feed.log.length;
+    return this;
+  }
+  pollInterval(seconds) {
+    this.data.feed.interval = seconds;
+    return this;
   }
   /** The switch for one call to `route`, used up as it is taken. */
   #take(route) {

@@ -416,3 +416,231 @@ test('the simulator imports only node built-ins: never lib/, catalog/, an action
   assert.ok(specifiers.length > 0);
   assert.deepEqual(specifiers.filter(specifier => !specifier.startsWith('node:')), []);
 });
+
+// Iteration 9 step 4 (docs/I07-BUILD-MAP.md step 4): what Slack's triggers read beyond the actions. Each fact is copied from Slack's pages, so a trigger bug and a simulator bug cannot cancel out.
+test('messages: history lists a notice, a bot, a file and a block message as Slack does, with subtype, bot_id, files and upload, and leaves out what is hidden', async () => {
+  const simulator = sim(), channel = IDS.fabricTest, FILES = [{id: 'F0SYNTH001', name: 'fabric-synthetic.txt', mimetype: 'text/plain'}], BLOCKS = [{type: 'section', text: {type: 'mrkdwn', text: 'Only blocks'}}];
+  const joined = simulator.seed(channel, {subtype: 'channel_join', user: IDS.grace, text: '<@U0GRACE01> has joined the channel'});
+  const topic = simulator.seed(channel, {subtype: 'channel_topic', user: IDS.ada, text: 'set the topic'});
+  const bot = simulator.post(channel, {subtype: 'bot_message', botId: 'B0FABRIC01', text: 'From a bot'});
+  const shared = simulator.post(channel, {subtype: 'file_share', user: IDS.ada, upload: true, files: FILES, text: 'A file'});
+  const attached = simulator.post(channel, {user: IDS.ada, files: FILES, text: 'A file with no subtype'});
+  const blocks = simulator.post(channel, {user: IDS.ada, blocks: BLOCKS, text: ''});
+  const hidden = simulator.seed(channel, {subtype: 'message_changed', hidden: true, user: IDS.ada, text: 'Never listed'});
+  const {messages} = (await call(simulator, 'conversations.history', {channel, limit: 6})).data, byTs = Object.fromEntries(messages.map(item => [item.ts, item]));
+  assert.deepEqual(messages.map(item => item.ts), [blocks, attached, shared, bot, topic, joined], 'newest first, and the hidden message is not listed');
+  assert.ok(!Object.hasOwn(byTs, hidden));
+  assert.deepEqual([byTs[joined].subtype, byTs[topic].subtype, byTs[joined].user], ['channel_join', 'channel_topic', IDS.grace]);
+  assert.deepEqual([byTs[bot].subtype, byTs[bot].bot_id, Object.hasOwn(byTs[bot], 'user')], ['bot_message', 'B0FABRIC01', false], 'a bot message has no user');
+  assert.deepEqual([byTs[shared].subtype, byTs[shared].upload, byTs[shared].files], ['file_share', true, FILES]);
+  assert.deepEqual([Object.hasOwn(byTs[attached], 'subtype'), byTs[attached].files], [false, FILES]);
+  assert.deepEqual([byTs[blocks].text, byTs[blocks].blocks], ['', BLOCKS]);
+  assert.equal(Object.hasOwn(byTs[blocks], 'files'), false, 'a message with no files lists none');
+  const chosen = simulator.seed(channel, {ts: '1761490000.000100', user: IDS.ada, text: 'Late, at a chosen ts'});
+  assert.equal(chosen, '1761490000.000100');
+});
+
+test('messages: a thread_broadcast reply sits in history and in its thread, and a plain reply only in its thread', async () => {
+  const simulator = sim(), channel = IDS.fabricTest, parent = simulator.post(channel, {user: IDS.ada, text: 'Parent'});
+  const plain = simulator.post(channel, {user: IDS.grace, text: 'Plain reply', threadTs: parent});
+  const broadcast = simulator.post(channel, {user: IDS.grace, text: 'Also to the channel', threadTs: parent, subtype: 'thread_broadcast'});
+  const listed = (await call(simulator, 'conversations.history', {channel, limit: 2})).data.messages;
+  assert.deepEqual(listed.map(item => [item.ts, item.subtype, item.thread_ts]), [[broadcast, 'thread_broadcast', parent], [parent, undefined, parent]]);
+  const thread = (await call(simulator, 'conversations.replies', {channel, ts: parent})).data.messages;
+  assert.deepEqual(thread.map(item => [item.ts, item.subtype, item.parent_user_id]), [[parent, undefined, undefined], [plain, undefined, IDS.ada], [broadcast, 'thread_broadcast', undefined]], 'Slack\'s page lists ts and thread_ts for a broadcast, and no parent_user_id');
+  const sent = (await post(simulator, 'chat.postMessage', {channel, thread_ts: parent, text: 'Sent to the channel too', reply_broadcast: true})).data.ts;
+  assert.deepEqual((await call(simulator, 'conversations.history', {channel, limit: 1})).data.messages.map(item => [item.ts, item.subtype]), [[sent, 'thread_broadcast']], 'chat.postMessage makes the same thing');
+});
+
+test('messages: delete hides a message from history and search; a parent with no replies then answers thread_not_found, and one with replies stays in its thread as a tombstone', async () => {
+  const simulator = sim(), channel = IDS.fabricTest, lone = simulator.post(channel, {user: IDS.ada, text: 'Findme lone'}), parent = simulator.post(channel, {user: IDS.ada, text: 'Findme parent'});
+  const reply = simulator.post(channel, {user: IDS.grace, text: 'Reply', threadTs: parent});
+  simulator.delete(channel, lone).delete(channel, parent);
+  const listed = (await call(simulator, 'conversations.history', {channel, limit: 3})).data.messages.map(item => item.ts);
+  assert.ok(!listed.includes(lone) && !listed.includes(parent));
+  assert.deepEqual((await call(simulator, 'conversations.replies', {channel, ts: lone})).data, {ok: false, error: 'thread_not_found'});
+  const thread = (await call(simulator, 'conversations.replies', {channel, ts: parent})).data.messages;
+  assert.deepEqual(thread.map(item => [item.ts, item.subtype, item.hidden]), [[parent, 'tombstone', true], [reply, undefined, undefined]]);
+  assert.equal((await call(simulator, 'search.messages', {query: 'findme'})).data.messages.total, 0);
+  assert.throws(() => simulator.delete(channel, '1.000001'), /No such message/);
+});
+
+test('lists: a last page holds next_cursor empty, or null, or no response_metadata at all, by switch, and a page in the middle always holds it', async () => {
+  const simulator = sim(), channel = IDS.fabricTest, read = args => call(simulator, 'conversations.history', {channel, ...args}), last = {limit: 50};
+  assert.deepEqual((await read(last)).data.response_metadata, {next_cursor: ''});
+  simulator.lastPageMeta = 'null';
+  assert.deepEqual((await read(last)).data.response_metadata, {next_cursor: null});
+  simulator.lastPageMeta = 'missing';
+  assert.equal(Object.hasOwn((await read(last)).data, 'response_metadata'), false);
+  const first = (await read({limit: 1})).data;
+  assert.equal(first.has_more, true);
+  assert.ok(first.response_metadata.next_cursor);
+  assert.equal(Object.hasOwn((await read({limit: 1, cursor: first.response_metadata.next_cursor})).data, 'response_metadata'), false, 'the same switch on a last page reached by a cursor');
+  const people = (await call(simulator, 'users.conversations', {types: 'public_channel'})).data;
+  assert.equal(Object.hasOwn(people, 'response_metadata'), false, 'every list reads the switch');
+});
+
+test('lists: expireCursors turns every page cursor handed out so far into invalid_cursor, on every list; a new walk reads on', async () => {
+  const simulator = sim(), channel = IDS.fabricTest;
+  const history = (await call(simulator, 'conversations.history', {channel, limit: 1})).data.response_metadata.next_cursor;
+  const conversations = (await call(simulator, 'users.conversations', {types: 'public_channel', limit: 1})).data.response_metadata.next_cursor;
+  assert.equal((await call(simulator, 'conversations.history', {channel, limit: 1, cursor: history})).data.ok, true, 'still good before it expires');
+  simulator.expireCursors();
+  assert.deepEqual((await call(simulator, 'conversations.history', {channel, limit: 1, cursor: history})).data, {ok: false, error: 'invalid_cursor'});
+  assert.deepEqual((await call(simulator, 'users.conversations', {types: 'public_channel', limit: 1, cursor: conversations})).data, {ok: false, error: 'invalid_cursor'});
+  const fresh = (await call(simulator, 'conversations.history', {channel, limit: 1})).data.response_metadata.next_cursor;
+  assert.equal((await call(simulator, 'conversations.history', {channel, limit: 1, cursor: fresh})).data.ok, true);
+});
+
+test('lists: oldestFirst and parentSurvivesOldest are the two open questions, one switch each: by default a window is newest first and oldest cuts the parent', async () => {
+  const simulator = sim(), channel = IDS.fabricTest, {one, two} = simulator.synthetic, before = `${BigInt(one.split('.')[0]) - 1n}.${one.split('.')[1]}`;
+  const third = simulator.post(channel, {user: IDS.ada, text: 'Third'});
+  const window = async () => (await call(simulator, 'conversations.history', {channel, oldest: before, limit: 2})).data.messages.map(item => item.ts);
+  assert.deepEqual(await window(), [third, two], 'newest first: the unread part is the oldest');
+  simulator.oldestFirst = true;
+  assert.deepEqual(await window(), [one, two], 'the switch reads from the oldest end of the window');
+  assert.deepEqual((await call(simulator, 'conversations.history', {channel, limit: 1})).data.messages.map(item => item.ts), [third], 'with no oldest there is no window to turn');
+  const parent = simulator.post(channel, {user: IDS.ada, text: 'Parent'}), reply = simulator.post(channel, {user: IDS.grace, text: 'Reply', threadTs: parent});
+  const after = async () => (await call(simulator, 'conversations.replies', {channel, ts: parent, oldest: reply})).data.messages.map(item => item.ts);
+  assert.deepEqual(await after(), [], 'oldest past every message cuts the parent too');
+  simulator.parentSurvivesOldest = true;
+  assert.deepEqual(await after(), [parent]);
+});
+
+test('reactions: a history answer caps users below count, and count stays true', async () => {
+  const simulator = sim(), channel = IDS.fabricTest, ts = simulator.synthetic.two;
+  for (const user of [IDS.ada, IDS.grace, 'U0EXTRA001', 'U0EXTRA002', 'U0EXTRA003']) simulator.react(channel, ts, 'tada', user);
+  const {messages} = (await call(simulator, 'conversations.history', {channel, limit: 1})).data, [reaction] = messages[0].reactions;
+  assert.deepEqual([reaction.name, reaction.count], ['tada', 5]);
+  assert.ok(reaction.users.length < reaction.count, `users holds ${reaction.users.length} of ${reaction.count}`);
+  simulator.unreact(channel, ts, 'tada', IDS.ada);
+  assert.equal((await call(simulator, 'conversations.history', {channel, limit: 1})).data.messages[0].reactions[0].count, 4);
+  assert.throws(() => simulator.unreact(channel, ts, 'eyes', IDS.ada), /No such reaction/);
+});
+
+test('search: a message shows after searchLagMs, close matches join into one, a filter hides a channel, a reply is found, and method_deprecated answers by switch', async () => {
+  const simulator = sim(), channel = IDS.fabricTest, query = `<@${IDS.owner}> in:<#${channel}>`, found = async () => (await call(simulator, 'search.messages', {query, sort: 'timestamp', sort_dir: 'desc'})).data.messages.matches.map(item => item.ts);
+  simulator.searchLagMs = 60_000;
+  const lagging = simulator.post(channel, {user: IDS.ada, text: `Hello <@${IDS.owner}>`});
+  assert.deepEqual(await found(), [], 'still being indexed');
+  simulator.advance(59_999);
+  assert.deepEqual(await found(), []);
+  simulator.advance(1);
+  assert.deepEqual(await found(), [lagging]);
+  simulator.searchLagMs = 0;
+  simulator.advance(600_000);
+  simulator.searchJoinMs = 30_000;
+  const older = simulator.post(channel, {user: IDS.ada, text: `One <@${IDS.owner}>`});
+  simulator.advance(10_000);
+  const newer = simulator.post(channel, {user: IDS.ada, text: `Two <@${IDS.owner}>`});
+  assert.deepEqual(await found(), [newer, lagging], 'of two close together one is shown');
+  assert.ok(!(await found()).includes(older));
+  simulator.searchJoinMs = 0;
+  const parent = simulator.post(channel, {user: IDS.ada, text: 'A thread'}), reply = simulator.post(channel, {user: IDS.ada, text: `In a reply <@${IDS.owner}>`, threadTs: parent});
+  const [match] = (await call(simulator, 'search.messages', {query, sort: 'timestamp', sort_dir: 'desc'})).data.messages.matches;
+  assert.deepEqual([match.ts, match.permalink.includes(`thread_ts=${parent}`)], [reply, true]);
+  simulator.searchHidden.add(channel);
+  assert.deepEqual(await found(), [], 'a filter set in Slack narrows a user token\'s results and says nothing');
+  simulator.searchHidden.clear();
+  simulator.searchDeprecated = true;
+  assert.deepEqual((await call(simulator, 'search.messages', {query})).data, {ok: false, error: 'method_deprecated'});
+});
+
+test('conversations: users.conversations holds created and creator; addChannel makes private, mpim and foreign conversations; join, leave and archive change what the owner holds', async () => {
+  const simulator = sim(), mine = async types => (await call(simulator, 'users.conversations', {types})).data.channels;
+  const [general] = await mine('public_channel');
+  assert.deepEqual([general.id, Number.isSafeInteger(general.created), general.creator], [IDS.general, true, IDS.owner]);
+  const [dm] = await mine('im');
+  assert.deepEqual([dm.id, dm.user, Number.isSafeInteger(dm.created), Object.hasOwn(dm, 'creator'), Object.hasOwn(dm, 'name')], [IDS.selfDm, IDS.owner, true, false, false], 'a direct message has no creator and no name');
+  simulator.addChannel({id: 'C0PRIVATE1', name: 'private-c', private: true, creator: IDS.ada, created: 1_761_000_000});
+  simulator.addChannel({id: 'G0MPIM0001', name: 'mpdm-owner--ada-1', private: true, mpim: true, members: [IDS.owner, IDS.ada]});
+  const [privateC] = (await mine('private_channel')).filter(item => item.id === 'C0PRIVATE1');
+  assert.deepEqual([privateC.is_private, privateC.is_channel, privateC.is_group, privateC.creator, privateC.created], [true, false, true, IDS.ada, 1_761_000_000]);
+  const mpims = await mine('mpim');
+  assert.deepEqual(mpims.map(item => [item.id, item.is_mpim, item.is_private, item.is_group]), [['G0MPIM0001', true, true, false]]);
+  assert.equal((await mine('private_channel')).some(item => item.id === 'G0MPIM0001'), false, 'a group DM is not a private channel');
+  simulator.addChannel({id: 'C0ELSEWHR1', name: 'elsewhere', members: [IDS.ada]});
+  assert.equal((await mine('public_channel')).some(item => item.id === 'C0ELSEWHR1'), false, 'a channel the owner is not in');
+  simulator.join('C0ELSEWHR1');
+  assert.equal((await mine('public_channel')).some(item => item.id === 'C0ELSEWHR1'), true);
+  assert.deepEqual((await call(simulator, 'conversations.history', {channel: 'C0ELSEWHR1', limit: 1})).data.messages.map(item => [item.subtype, item.user]), [['channel_join', IDS.owner]]);
+  simulator.leave('C0ELSEWHR1');
+  assert.equal((await mine('public_channel')).some(item => item.id === 'C0ELSEWHR1'), false);
+  simulator.archive(IDS.fabricTest);
+  const archived = (await mine('public_channel')).find(item => item.id === IDS.fabricTest);
+  assert.equal(archived.is_archived, true);
+  assert.deepEqual((await call(simulator, 'users.conversations', {types: 'public_channel', exclude_archived: true})).data.channels.filter(item => item.id === IDS.fabricTest), []);
+  assert.throws(() => simulator.join('C0NOWHERE1'), /No channel/);
+});
+
+test('conversations: privacy is read from is_private and never from the first letter of the id, so a private channel with a C id needs the groups scopes', async () => {
+  const simulator = sim(), channel = 'C0PRIVATE1';
+  simulator.addChannel({id: channel, name: 'private-c', private: true});
+  simulator.revokeScope('channels:history');
+  assert.equal((await call(simulator, 'conversations.history', {channel})).data.ok, true, 'it needs groups:history, which the token holds');
+  simulator.revokeScope('groups:history');
+  assert.deepEqual((await call(simulator, 'conversations.history', {channel})).data.needed, 'groups:history');
+  assert.deepEqual((await call(simulator, 'conversations.replies', {channel, ts: '1.000001'})).data.needed, 'groups:history');
+  simulator.revokeScope('groups:read');
+  assert.deepEqual((await call(simulator, 'conversations.info', {channel})).data.needed, 'groups:read');
+  const fresh = sim(), group = 'G0MPIM0001';
+  fresh.addChannel({id: group, name: 'mpdm-owner--ada-1', private: true, mpim: true, members: [IDS.owner, IDS.ada]});
+  fresh.revokeScope('groups:history');
+  assert.equal((await call(fresh, 'conversations.history', {channel: group})).data.ok, true, 'a group DM reads under mpim:history');
+  fresh.revokeScope('mpim:history');
+  assert.equal((await call(fresh, 'conversations.history', {channel: group})).data.needed, 'mpim:history');
+  // A private channel the owner is not in answers as if it were not there, whatever its id looks like.
+  const other = sim();
+  other.addChannel({id: 'C0HIDDEN01', name: 'hidden', private: true, members: [IDS.ada]});
+  assert.deepEqual((await call(other, 'conversations.history', {channel: 'C0HIDDEN01'})).data, {ok: false, error: 'channel_not_found'});
+});
+
+test('conversations: renameId moves a conversation to a new id, and the old one answers channel_not_found', async () => {
+  const simulator = sim(), ts = simulator.seed(IDS.private, {user: IDS.owner, text: 'Moved with it'});
+  simulator.renameId(IDS.private, 'C0MOVED001');
+  assert.deepEqual((await call(simulator, 'conversations.history', {channel: IDS.private})).data, {ok: false, error: 'channel_not_found'});
+  assert.deepEqual((await call(simulator, 'conversations.history', {channel: 'C0MOVED001'})).data.messages.map(item => item.ts), [ts]);
+  assert.equal((await call(simulator, 'conversations.info', {channel: 'C0MOVED001'})).data.channel.id, 'C0MOVED001');
+  assert.throws(() => simulator.renameId('C0NOWHERE1', 'C0NEWNAME1'), /No channel/);
+  assert.throws(() => simulator.renameId('C0MOVED001', IDS.general), /taken/);
+});
+
+test('tierLimit: per method and per minute, Tier 2 at 20 and Tier 3 at 50, a 429 with Retry-After for what is left of the minute, each method apart', async () => {
+  const simulator = sim({tierLimit: true}), channel = IDS.fabricTest, search = () => call(simulator, 'search.messages', {query: 'hello'}), history = () => call(simulator, 'conversations.history', {channel, limit: 1});
+  for (let count = 0; count < 20; count++) assert.equal((await search()).status, 200, `search ${count + 1}`);
+  simulator.advance(15_000);
+  const limited = await search();
+  assert.deepEqual([limited.status, limited.headers['retry-after'], limited.data], [429, '45', {ok: false, error: 'ratelimited'}]);
+  for (let count = 0; count < 50; count++) assert.equal((await history()).status, 200, `history ${count + 1}`);
+  assert.equal((await history()).status, 429);
+  assert.equal((await call(simulator, 'users.conversations', {types: 'im'})).status, 200, 'each method apart');
+  assert.equal((await call(simulator, 'conversations.replies', {channel, ts: simulator.synthetic.one})).status, 200);
+  simulator.advance(45_000);
+  assert.equal((await search()).status, 200, 'a new minute');
+  assert.equal(sim().tierLimit, false, 'off unless asked');
+});
+
+test('the methods no trigger may read are not here: a mistaken block is told unknown_method', async () => {
+  const simulator = sim();
+  for (const name of ['reactions.list', 'files.list']) assert.deepEqual((await call(simulator, name)).data, {ok: false, error: 'unknown_method'}, name);
+});
+
+// ---- what the method pages allow and the trigger reviews asked for -----------------------------------------------------------------------------
+test('shortPages: a page may hold fewer than limit with more to come, or none, as users.conversations and conversations.history say, and it keeps its place', async () => {
+  const simulator = sim(), list = cursor => call(simulator, 'users.conversations', {types: 'public_channel,private_channel', limit: 100, ...(cursor ? {cursor} : {})});
+  const whole = (await list()).data.channels.map(item => item.id);
+  simulator.shortPages(0, 1);
+  const empty = (await list()).data, one = (await list(empty.response_metadata.next_cursor)).data, rest = (await list(one.response_metadata.next_cursor)).data;
+  assert.deepEqual([empty.channels.length, one.channels.length, rest.response_metadata.next_cursor], [0, 1, '']);
+  assert.deepEqual([...one.channels, ...rest.channels].map(item => item.id), whole, 'nothing lost and nothing repeated');
+});
+
+test('the last person to take a reaction back takes the entry with them, as reactions.remove does: Slack never sends a count of zero', async () => {
+  const simulator = sim(), target = {channel: IDS.fabricTest, timestamp: simulator.synthetic.two};
+  const listed = async () => (await call(simulator, 'reactions.get', target)).data.message.reactions;
+  simulator.react(IDS.fabricTest, target.timestamp, 'tada', IDS.ada).react(IDS.fabricTest, target.timestamp, 'tada', IDS.grace);
+  simulator.unreact(IDS.fabricTest, target.timestamp, 'tada', IDS.ada);
+  assert.deepEqual((await listed()).map(item => [item.name, item.count]), [['tada', 1]]);
+  simulator.unreact(IDS.fabricTest, target.timestamp, 'tada', IDS.grace);
+  assert.equal(await listed(), undefined);
+});

@@ -1,0 +1,553 @@
+{
+ "schemaVersion": 1,
+ "appId": "github",
+ "probes": true,
+ "note": "Read probes 1, 2 and 3 of docs/I07-BUILD-MAP.md section 6, on the sandbox repository, run before the GitHub simulator grows in step 6. Each test is one question: yes means its checks hold. X-Poll-Interval does not come back through the proxy, so probe 1 cannot read it here, and step 9 does. How long /activity takes to list a push needs a write, so step 9 does that too. Answers go in section 12 by hand.",
+ "recorded": {},
+ "readRows": [
+  "github.repos.read",
+  "github.issues.read",
+  "github.profile.read"
+ ],
+ "tests": [
+  {
+   "id": "N1",
+   "name": "Does GET /notifications answer the OAuth App token with 200 and Last-Modified? No or a 401 or 403 means notification does not ship.",
+   "steps": [
+    {
+     "read": {
+      "path": "/notifications",
+      "query": {
+       "all": "true",
+       "per_page": "1"
+      },
+      "headers": {
+       "Accept": "application/vnd.github+json"
+      },
+      "checks": [
+       {
+        "status": 200
+       },
+       {
+        "header": "last-modified",
+        "present": true
+       }
+      ],
+      "saveHeaders": {
+       "modified": "/last-modified"
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "N2",
+   "name": "Is the next read with If-Modified-Since a 304?",
+   "steps": [
+    {
+     "read": {
+      "path": "/notifications",
+      "query": {
+       "all": "true",
+       "per_page": "1"
+      },
+      "headers": {
+       "Accept": "application/vnd.github+json",
+       "If-Modified-Since": {
+        "$saved": "modified"
+       }
+      },
+      "checks": [
+       {
+        "status": 304
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "N3",
+   "name": "With since set as well, is it still a 304?",
+   "steps": [
+    {
+     "read": {
+      "path": "/notifications",
+      "query": {
+       "all": "true",
+       "per_page": "1",
+       "since": "2026-01-01T00:00:00Z"
+      },
+      "headers": {
+       "Accept": "application/vnd.github+json",
+       "If-Modified-Since": {
+        "$saved": "modified"
+       }
+      },
+      "checks": [
+       {
+        "status": 304
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "I1",
+   "name": "Does the issues list answer 200 with an etag?",
+   "steps": [
+    {
+     "read": {
+      "path": "/repos/samikasasbeh/fabric-sandbox-test/issues",
+      "query": {
+       "state": "all",
+       "sort": "updated",
+       "direction": "asc",
+       "per_page": "30"
+      },
+      "headers": {
+       "Accept": "application/vnd.github+json"
+      },
+      "checks": [
+       {
+        "status": 200
+       },
+       {
+        "header": "etag",
+        "present": true
+       }
+      ],
+      "saveHeaders": {
+       "issuesTag": "/etag",
+       "issuesLeft": "/x-ratelimit-remaining"
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "I2",
+   "name": "Is a second read of issues a 304 that spends no request?",
+   "steps": [
+    {
+     "read": {
+      "path": "/repos/samikasasbeh/fabric-sandbox-test/issues",
+      "query": {
+       "state": "all",
+       "sort": "updated",
+       "direction": "asc",
+       "per_page": "30"
+      },
+      "headers": {
+       "Accept": "application/vnd.github+json",
+       "If-None-Match": {
+        "$saved": "issuesTag"
+       }
+      },
+      "checks": [
+       {
+        "status": 304
+       },
+       {
+        "header": "x-ratelimit-remaining",
+        "equals": {
+         "$saved": "issuesLeft"
+        }
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "I3",
+   "name": "At per_page=1, does the next link of issues name /repositories/? It needs two items on the list.",
+   "steps": [
+    {
+     "read": {
+      "path": "/repos/samikasasbeh/fabric-sandbox-test/issues",
+      "query": {
+       "state": "all",
+       "sort": "updated",
+       "direction": "asc",
+       "per_page": "1"
+      },
+      "headers": {
+       "Accept": "application/vnd.github+json"
+      },
+      "checks": [
+       {
+        "status": 200
+       },
+       {
+        "header": "link",
+        "includes": "/repositories/"
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "C1",
+   "name": "Does the comments list answer 200 with an etag?",
+   "steps": [
+    {
+     "read": {
+      "path": "/repos/samikasasbeh/fabric-sandbox-test/issues/comments",
+      "query": {
+       "sort": "updated",
+       "direction": "asc",
+       "per_page": "30"
+      },
+      "headers": {
+       "Accept": "application/vnd.github+json"
+      },
+      "checks": [
+       {
+        "status": 200
+       },
+       {
+        "header": "etag",
+        "present": true
+       }
+      ],
+      "saveHeaders": {
+       "commentsTag": "/etag",
+       "commentsLeft": "/x-ratelimit-remaining"
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "C2",
+   "name": "Is a second read of comments a 304 that spends no request?",
+   "steps": [
+    {
+     "read": {
+      "path": "/repos/samikasasbeh/fabric-sandbox-test/issues/comments",
+      "query": {
+       "sort": "updated",
+       "direction": "asc",
+       "per_page": "30"
+      },
+      "headers": {
+       "Accept": "application/vnd.github+json",
+       "If-None-Match": {
+        "$saved": "commentsTag"
+       }
+      },
+      "checks": [
+       {
+        "status": 304
+       },
+       {
+        "header": "x-ratelimit-remaining",
+        "equals": {
+         "$saved": "commentsLeft"
+        }
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "C3",
+   "name": "At per_page=1, does the next link of comments name /repositories/? It needs two items on the list.",
+   "steps": [
+    {
+     "read": {
+      "path": "/repos/samikasasbeh/fabric-sandbox-test/issues/comments",
+      "query": {
+       "sort": "updated",
+       "direction": "asc",
+       "per_page": "1"
+      },
+      "headers": {
+       "Accept": "application/vnd.github+json"
+      },
+      "checks": [
+       {
+        "status": 200
+       },
+       {
+        "header": "link",
+        "includes": "/repositories/"
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "A1",
+   "name": "Does the activity list answer 200 with an etag?",
+   "steps": [
+    {
+     "read": {
+      "path": "/repos/samikasasbeh/fabric-sandbox-test/activity",
+      "query": {
+       "per_page": "100"
+      },
+      "headers": {
+       "Accept": "application/vnd.github+json"
+      },
+      "checks": [
+       {
+        "status": 200
+       },
+       {
+        "header": "etag",
+        "present": true
+       }
+      ],
+      "saveHeaders": {
+       "activityTag": "/etag",
+       "activityLeft": "/x-ratelimit-remaining"
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "A2",
+   "name": "Is a second read of activity a 304 that spends no request?",
+   "steps": [
+    {
+     "read": {
+      "path": "/repos/samikasasbeh/fabric-sandbox-test/activity",
+      "query": {
+       "per_page": "100"
+      },
+      "headers": {
+       "Accept": "application/vnd.github+json",
+       "If-None-Match": {
+        "$saved": "activityTag"
+       }
+      },
+      "checks": [
+       {
+        "status": 304
+       },
+       {
+        "header": "x-ratelimit-remaining",
+        "equals": {
+         "$saved": "activityLeft"
+        }
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "A3",
+   "name": "At per_page=1, does the next link of activity name /repositories/? It needs two items on the list.",
+   "steps": [
+    {
+     "read": {
+      "path": "/repos/samikasasbeh/fabric-sandbox-test/activity",
+      "query": {
+       "per_page": "1"
+      },
+      "headers": {
+       "Accept": "application/vnd.github+json"
+      },
+      "checks": [
+       {
+        "status": 200
+       },
+       {
+        "header": "link",
+        "includes": "/repositories/"
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "R1",
+   "name": "Does the runs list answer 200 with an etag?",
+   "steps": [
+    {
+     "read": {
+      "path": "/repos/samikasasbeh/fabric-sandbox-test/actions/runs",
+      "query": {
+       "status": "completed",
+       "exclude_pull_requests": "true",
+       "per_page": "50"
+      },
+      "headers": {
+       "Accept": "application/vnd.github+json"
+      },
+      "checks": [
+       {
+        "status": 200
+       },
+       {
+        "header": "etag",
+        "present": true
+       }
+      ],
+      "saveHeaders": {
+       "runsTag": "/etag",
+       "runsLeft": "/x-ratelimit-remaining"
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "R2",
+   "name": "Is a second read of runs a 304 that spends no request?",
+   "steps": [
+    {
+     "read": {
+      "path": "/repos/samikasasbeh/fabric-sandbox-test/actions/runs",
+      "query": {
+       "status": "completed",
+       "exclude_pull_requests": "true",
+       "per_page": "50"
+      },
+      "headers": {
+       "Accept": "application/vnd.github+json",
+       "If-None-Match": {
+        "$saved": "runsTag"
+       }
+      },
+      "checks": [
+       {
+        "status": 304
+       },
+       {
+        "header": "x-ratelimit-remaining",
+        "equals": {
+         "$saved": "runsLeft"
+        }
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "R3",
+   "name": "At per_page=1, does the next link of runs name /repositories/? It needs two items on the list.",
+   "steps": [
+    {
+     "read": {
+      "path": "/repos/samikasasbeh/fabric-sandbox-test/actions/runs",
+      "query": {
+       "status": "completed",
+       "exclude_pull_requests": "true",
+       "per_page": "1"
+      },
+      "headers": {
+       "Accept": "application/vnd.github+json"
+      },
+      "checks": [
+       {
+        "status": 200
+       },
+       {
+        "header": "link",
+        "includes": "/repositories/"
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "L1",
+   "name": "Does the releases list answer 200 with an etag?",
+   "steps": [
+    {
+     "read": {
+      "path": "/repos/samikasasbeh/fabric-sandbox-test/releases",
+      "query": {
+       "per_page": "30"
+      },
+      "headers": {
+       "Accept": "application/vnd.github+json"
+      },
+      "checks": [
+       {
+        "status": 200
+       },
+       {
+        "header": "etag",
+        "present": true
+       }
+      ],
+      "saveHeaders": {
+       "releasesTag": "/etag",
+       "releasesLeft": "/x-ratelimit-remaining"
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "L2",
+   "name": "Is a second read of releases a 304 that spends no request?",
+   "steps": [
+    {
+     "read": {
+      "path": "/repos/samikasasbeh/fabric-sandbox-test/releases",
+      "query": {
+       "per_page": "30"
+      },
+      "headers": {
+       "Accept": "application/vnd.github+json",
+       "If-None-Match": {
+        "$saved": "releasesTag"
+       }
+      },
+      "checks": [
+       {
+        "status": 304
+       },
+       {
+        "header": "x-ratelimit-remaining",
+        "equals": {
+         "$saved": "releasesLeft"
+        }
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "L3",
+   "name": "At per_page=1, does the next link of releases name /repositories/? It needs two items on the list.",
+   "steps": [
+    {
+     "read": {
+      "path": "/repos/samikasasbeh/fabric-sandbox-test/releases",
+      "query": {
+       "per_page": "1"
+      },
+      "headers": {
+       "Accept": "application/vnd.github+json"
+      },
+      "checks": [
+       {
+        "status": 200
+       },
+       {
+        "header": "link",
+        "includes": "/repositories/"
+       }
+      ]
+     }
+    }
+   ]
+  }
+ ]
+}

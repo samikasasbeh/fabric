@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {createHash} from 'node:crypto';
-import {CATEGORIES, appCard, catalogPage, connectionState, primaryAction, permissionRow, approvalItem} from '../lib/ui-contracts.mjs';
+import {CATEGORIES, appCard, catalogPage, connectionState, primaryAction, permissionRow, approvalItem, watchApprovalItem, watchRow} from '../lib/ui-contracts.mjs';
 import {describeApproval} from '../public/hosted-approval.js';
 
 // UI-1: catalog view models (docs/UI-0-SCREEN-CONTRACTS.md sections 2-3). Pure projections only.
@@ -151,6 +151,16 @@ test('F10.3: approval warnings keep reaches_people and body_routed, still drop u
   const shown = describeApproval(item).warnings;
   assert.deepEqual(shown.slice(0, 2), ['Reaches other people.', 'Fabric placed this request in a stricter permission because of what its body does.']);
   assert.equal(shown.length, 5);
+});
+
+test('Iteration 9: a watch\'s card and row are pure projections, in the shape of an approval and a fixed list of fields', () => {
+  const subscription = {id: 'w1', appId: 'gmail', connectionId: 'a', clientId: 'c', status: 'awaiting_approval', args: {}, approvalExpiresAt: '2026-10-17T00:10:00.000Z', authority: {bindingHash: 'never shown'}};
+  assert.deepEqual(Object.keys(watchApprovalItem(subscription)), Object.keys(approvalItem({id: 'j1', status: 'awaiting_approval', approvalDigest: 'd', approvalExpiresAt: 'then', preview: {}})));
+  assert.deepEqual(watchApprovalItem(subscription).exact, {complete: false, blocks: []}, 'with no facts there is nothing to show, so nothing to approve');
+  assert.equal(watchApprovalItem(subscription).approve, null);
+  assert.deepEqual(describeApproval(watchApprovalItem(subscription)).warnings, ['Fabric reads this in the background and tells the agent what it finds, until you pause or remove it.']);
+  assert.deepEqual(Object.keys(watchRow({...subscription, status: 'active'})), ['ref', 'status', 'state', 'line', 'name', 'appId', 'appName', 'account', 'agent', 'details', 'pause', 'remove']);
+  assert.equal(watchRow({...subscription, status: 'active'}).line, 'Fabric cannot describe this watch right now.');
 });
 
 // F10.6 (docs/F10.6-BUILD-MAP.md part g): a row's proxy setting, its notes and its "N of M work" count appear only when there is something to

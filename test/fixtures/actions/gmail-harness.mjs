@@ -9,6 +9,8 @@ import {mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync} from 'node:
 import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {Store} from '../../../lib/store.mjs';
+import {LocalRepository} from '../../../lib/repositories/local.mts';
+import {OWNER as DESIGNATED_OWNER} from './slack-rig.mjs';
 import {PermissionManager} from '../../../lib/permissions.mjs';
 import {ProxyPolicy} from '../../../lib/proxy-policy.mjs';
 import {Runtime} from '../../../lib/runtime.mjs';
@@ -54,12 +56,12 @@ export function certified(file, deps) {
 /**
  * Builds the harness. Options: `file` (Gmail's action file as written; the shipped one by default), `scopes` (the account's granted scopes;
  * both by default), `rows` (edits Gmail's rows file before it is validated), `evidence` (false: a reviewed file with no evidence, so every
- * action stays a candidate), `start` (the clock), `email` (the account's address) and `wrap` (a function given the simulator's request,
- * whose result the runtime sends through: the live guard's wrap()).
+ * action stays a candidate), `start` (the clock), `email` (the account's address), `wrap` (a function given the simulator's request,
+ * whose result the runtime sends through: the live guard's wrap()) and `historyId` (where the simulator's history starts).
  * run(key, input) runs an action on the account; approve(job) approves it with its shown digest; card(job) is its approval item, and
  * fields(job) the card's field lines as {label: value}; setRow(groupId, mode) sets a row; allow(key) sets an action's own record to Allow.
  */
-export function gmailHarness(t, {file = gmailFile(), scopes = BOTH, rows = change => change, evidence = true, start = '2026-10-26T13:00:00.000Z', email = OWNER_EMAIL, wrap = null} = {}) {
+export function gmailHarness(t, {file = gmailFile(), scopes = BOTH, rows = change => change, evidence = true, start = '2026-10-26T13:00:00.000Z', email = OWNER_EMAIL, wrap = null, historyId, designated = false} = {}) {
   const root = mkdtempSync(path.join(tmpdir(), 'fabric-gmail-harness-'));
   let now = Date.parse(start);
   const clock = () => now;
@@ -75,8 +77,9 @@ export function gmailHarness(t, {file = gmailFile(), scopes = BOTH, rows = chang
     writeFileSync(path.join(root, EVIDENCE), JSON.stringify(Object.fromEntries(entries.map(entry => [entry.id,
       {passed: true, transforms: Object.fromEntries(entry.transforms.map(id => [id, PINS.transforms[id]])), definitionHash: entry.definitionHash}]))));
   }
-  const simulator = new GmailSimulator({clock, token: TOKEN, owner: {email}, scopes: [...scopes]});
-  const store = new Store({dataDir: path.join(root, 'data'), clock});
+  const simulator = new GmailSimulator({clock, token: TOKEN, owner: {email}, scopes: [...scopes], historyId});
+  // A certification Fabric is designated, and only a designated store takes the proxy entry a live run's grant holds.
+  const plain = new Store({dataDir: path.join(root, 'data'), clock, ...(designated ? {localAuthority: 'new'} : {})}), store = designated ? new LocalRepository({store: plain, scope: DESIGNATED_OWNER.scope}) : plain;
   t.after(() => { store.close(); rmSync(root, {recursive: true, force: true}); });
   store.put('applicationMaps', {id: 'gmail', ...structuredClone(map)});
   const at = new Date(now).toISOString();
@@ -87,7 +90,7 @@ export function gmailHarness(t, {file = gmailFile(), scopes = BOTH, rows = chang
   const catalog = loadActionCatalog({directory: actions, evidenceRoot: root, maps: deps.maps, deps: {groups, configs: PROXY_CONFIGS, identities: deps.identities},
     codeHashes: ids => Object.fromEntries(ids.map(id => [id, PINS.transforms[id]]))});
   const connections = {credentials: async () => ({headers: {Authorization: `Bearer ${TOKEN}`}, allowedOrigins: [ORIGIN]})};
-  const runtime = new Runtime({store, permissions, proxyPolicy, connections, request: wrap ? wrap(simulator.request) : simulator.request, clock, actions: catalog});
+  const runtime = new Runtime({store, permissions, proxyPolicy, connections, request: wrap ? wrap(simulator.request) : simulator.request, clock, actions: catalog, ...(designated ? {ownerPrincipal: DESIGNATED_OWNER} : {})});
   seedActions(store, catalog);
   const idOf = key => [...catalog.entries.values()].find(item => `${item.entry.key} v${item.entry.version}` === key)?.entry.id;
   const card = job => approvalItem(job, {prepared: id => store.get(PREPARED, id)});

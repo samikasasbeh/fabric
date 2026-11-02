@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "urn:fabric:trigger:1",
   "title": "Fabric trigger file 1",
-  "description": "The trigger format of docs/F10.9-BUILD-MAP.md section 8, design only: one app's triggers as reviewed data. It documents the file shape for editors and reviewers. validateTriggerFile() in lib/triggers.mjs is the authority: it adds the expression grammar, step placement on reviewed read rows and registration members, the cursor rules, the registration id and destination rules, the event bounds and the id hash. No engine runs a trigger before I07.",
+  "description": "The trigger format of docs/F10.9-BUILD-MAP.md section 8: one app's triggers as reviewed data. It documents the file shape for editors and reviewers. validateTriggerFile() in lib/triggers.mjs is the authority: it adds the expression grammar, step placement on reviewed read rows and registration members, the cursor rules, the registration id and destination rules, the event bounds and the id hash. lib/action-catalog.mjs loads these files from catalog/triggers, and a trigger stays a candidate until the status rule there passes.",
   "type": "object",
   "additionalProperties": false,
   "required": ["schemaVersion", "appId", "specVersion", "reviewStatus", "pinnedParameters", "triggers"],
@@ -297,7 +297,11 @@
         "filter": { "type": "array", "minItems": 1, "maxItems": 8, "items": { "$ref": "#/$defs/test" } },
         "dedupe": {
           "type": "object", "additionalProperties": false, "required": ["kind"],
-          "properties": { "kind": { "enum": ["id", "id+version", "content-hash"] }, "fields": { "type": "array", "minItems": 1, "maxItems": 8, "items": { "$ref": "#/$defs/expr" } } }
+          "properties": {
+            "kind": { "enum": ["id", "id+version", "content-hash"] },
+            "fields": { "type": "array", "minItems": 1, "maxItems": 8, "items": { "$ref": "#/$defs/expr" } },
+            "knownBy": { "type": "array", "minItems": 1, "maxItems": 2, "items": { "$ref": "#/$defs/expr" } }
+          }
         },
         "event": {
           "type": "object", "additionalProperties": false, "required": ["schema", "id", "occurredAt", "fields", "summary"],

@@ -17,6 +17,8 @@
 //   POST   .../pulls/{pull_number}/reviews; GET .../pulls/{pull_number}/reviews/{review_id}
 //   GET    .../commits/{ref}/check-runs; GET .../actions/workflows/{workflow_id}; POST .../actions/workflows/{workflow_id}/dispatches;
 //   GET    .../actions/workflows/{workflow_id}/runs; GET .../actions/runs/{run_id}
+//   Iteration 9 step 6 adds what a poll reads (docs/I07-BUILD-MAP.md step 6): GET .../issues; GET .../issues/comments; GET .../activity; GET .../actions/runs; GET and POST
+//   .../releases; GET /notifications and GET .../notifications
 //
 // Errors use GitHub's shape {message, documentation_url}, a 422 adding errors. Without "Authorization: Bearer <token>" (or "token
 // <token>") every route answers 401 Bad credentials. Every authenticated answer carries X-OAuth-Scopes, the token's scopes as "a, b, c",
@@ -65,21 +67,35 @@
 //   workflow_dispatch run on the ref's head, which the runs list (event, branch, per_page, page; newest first) shows only once runLag(n)
 //   reads of it have passed. With return_run_details true (a boolean, else 422) it answers 200 {workflow_run_id, run_url, html_url}
 //   instead, and GET .../actions/runs/{run_id} reads that run at once, whatever the list's lag, as GitHub does.
+// - What a poll reads, from GitHub's REST reference and pagination page; where they are silent the reading is the simulator's own, until a live probe moves it. The issues list
+//   takes state (default open), sort (created or updated, default created), direction (default desc) and since (inclusive, on updated_at), and holds pull requests, each with
+//   pull_request. The comments list is ascending id by default, takes sort, since and direction, and ignores direction without sort. The activity list holds one row per ref
+//   change, newest first, with a nullable actor, one activity_type, and opaque after and before. The runs list is newest created first, a run keeping its place when it finishes or
+//   runs again; status takes statuses and conclusions, exclude_pull_requests empties pull_requests, and total_count counts the whole list. A release's created_at is its commit's
+//   date, published_at is null on a draft, and a draft is listed only with push access. Notifications are unread only unless all is true, take participating and since, cap at 50
+//   (a repository's at 100, 30 by default), have string ids, and carry Last-Modified, the newest thread's second, and X-Poll-Interval. A submitted review and a head push each
+//   move a pull request's updated_at (probes 4 and 5).
+// - Every list, a GET answering a list or an object with total_count, carries a weak etag of its bytes. A matching If-None-Match answers a body-less 304, and If-Modified-Since
+//   does when it equals Last-Modified as a string. A per_page past a list's cap is cut in silence. A repository's list links its pages by /repositories/<id>, as GitHub's page shows.
+// - The rate count: all five x-ratelimit headers on every authenticated answer. A request spends one, a 304 spends none, and the count fills at its reset. A spent count answers
+//   403, or 429 with exhaust({status}), until then. A renamed repository answers 301 with a location on /repositories/<id>. A retired X-GitHub-Api-Version answers 410.
 //
 // The network contract is lib/network.mjs's seam: `request` takes its options and answers {status, headers, data}. Refused before sending,
 // with sent false: a URL that is not https on 443 or carries credentials, an origin outside allowedOrigins or not GitHub's API, an
 // unsupported method or response handling, an unsafe header, a body that is not a string or Buffer, a body over 1 MiB. After sending, with
 // sent true: an answer over maxBytes, and drop(). Only the response headers asked for come back (the seam's default list when none are
-// named).
+// named). A 3xx comes back as the seam gives it: under redirect 'report' a body-less answer marked notModified for a 304 and redirected otherwise, with a location only on the
+// request's own origin, and under any other handling a failure with sent true.
 //
 // Every request that reaches the simulator is recorded in `calls`, without its Authorization header: {method, origin, path, route, query,
 // headers, body, write, status, at}, `at` being the clock time it arrived. writes() and reads() are the calls to write and read routes;
 // state() is a copy of the state. Switches, each for the next call to one route unless {times} says how many: fail(route, {status,
 // headers?, data?}) answers that instead and changes nothing; drop(route) applies the call, then throws as a lost answer; swallow(route)
 // answers as if applied but changes nothing; oversize(route, bytes) pads the answer; hold(route) returns {reached, release()}. Changes from
-// elsewhere: push(repo, branch, {path, text}) is someone else committing (the head and the file's sha move); grant(scopes) sets what the
-// token holds, and so what X-OAuth-Scopes lists; restrict(org); runLag(n). Test data: seedFile(), author(), deleteIssue(), addWorkflow(),
-// addCheckRun(), head().
+// elsewhere: push(repo, branch, {path, text, force, actor}) is someone else committing (the head and the file's sha move); grant(scopes) sets what the
+// token holds, and so what X-OAuth-Scopes lists; restrict(org); runLag(n); listLag(route, reads); setPollInterval(n); rename(old, new); retire(version); rateLeft(n);
+// exhaust({status}); secondaryLimit({status, retryAfter, times}); editComment(), startRun(), finishRun(), rerun(), publishRelease(), deleteRelease(), notify(), markRead().
+// Test data: seedFile(), seedIssues(), author(), deleteIssue(), addWorkflow(), addCheckRun(), addRun(), addRelease(), head().
 import {createHash} from 'node:crypto';
 
 export const ORIGIN = 'https://api.github.com';
@@ -100,6 +116,8 @@ const MAX_FILE = 1024 * 1024;
 const BASE64 = /^[A-Za-z0-9+/]*={0,2}$/;
 const NUMBER = /^[1-9][0-9]{0,9}$/;
 const SHA = /^[0-9a-f]{40}$/;
+const NO_SHA = '0'.repeat(40);
+const RATE_LIMIT = 5000, HOUR_SECONDS = 3600;
 
 const notSent = message => Object.assign(new Error(message), {sent: false});
 const lost = message => Object.assign(new Error(message), {sent: true});
@@ -130,10 +148,16 @@ export class GitHubSimulator {
     this.holds = new Map();
     this.restricted = new Set();
     this.lag = 0;
+    this.lags = new Map();
+    this.retired = new Set();
+    this.pollInterval = 60;
+    this.secondary = null;
+    this.started = this.clock();
+    this.rate = {used: 0, reset: Math.floor(this.started / 1000) + HOUR_SECONDS, status: 403};
     const user = {login: owner.login, id: owner.id, type: 'User'};
-    this.data = {owner: user, orgs: [{login: 'octo-org', id: 9001, description: 'A synthetic organization'}], repos: {}, blobs: {},
+    this.data = {owner: user, orgs: [{login: 'octo-org', id: 9001, description: 'A synthetic organization'}], repos: {}, blobs: {}, threads: [], renamed: {},
       gists: [{id: 'a1b2c3d4e5f60718293a', public: true, description: 'Public notes'}, {id: 'b2c3d4e5f60718293a4b', public: false, description: 'Secret notes'}],
-      next: {repo: 1, issue: 1, comment: 1, review: 1, run: 1, check: 1, workflow: 1, commit: 1}};
+      next: {repo: 1, issue: 1, comment: 1, review: 1, run: 1, check: 1, workflow: 1, commit: 1, release: 1, activity: 1, thread: 1}};
     const at = this.clock();
     this.#repo({owner: user, name: 'fabric-sandbox', private: true, pushedAt: at,
       files: {'README.md': '# Fabric sandbox\n', [`${WORKFLOWS}fabric-synthetic.yml`]: 'name: Fabric synthetic\non:\n  workflow_dispatch:\n    inputs:\n      greeting:\n        required: false\njobs:\n  echo:\n    runs-on: ubuntu-latest\n    steps:\n      - run: echo synthetic\n'},
@@ -174,13 +198,85 @@ export class GitHubSimulator {
   restrict(org) { this.restricted.add(org); return this; }
   /** A dispatched run shows in the runs list only after `reads` reads of it. */
   runLag(reads) { if (!Number.isSafeInteger(reads) || reads < 0) throw new Error('runLag takes a whole number of reads.'); this.lag = reads; return this; }
+  /** A list shows its state as of now for the next `reads` reads of it. */
+  listLag(route, reads) { if (!Number.isSafeInteger(reads) || reads < 1) throw new Error('listLag takes a positive number of reads.'); this.lags.set(route, {left: reads, state: structuredClone(this.data)}); return this; }
+  /** The seconds X-Poll-Interval names. */
+  setPollInterval(seconds) { this.pollInterval = seconds; return this; }
+  /** How many requests the rate count has left. */
+  rateLeft(count) { this.rate.used = RATE_LIMIT - count; return this; }
+  /** The primary limit is spent: every request answers `status` until the reset. */
+  exhaust({status = 403} = {}) { Object.assign(this.rate, {used: RATE_LIMIT, status}); return this; }
+  /** The next `times` requests hit a secondary limit, with a retry-after only when one is given. */
+  secondaryLimit({status = 403, retryAfter, times = 1} = {}) { this.secondary = {status, retryAfter, left: times}; return this; }
+  /** The repository takes a new name, and its old path answers 301. */
+  rename(oldName, newName) {
+    const repo = this.#own(oldName);
+    delete this.data.repos[oldName];
+    Object.assign(repo, {name: newName.split('/')[1], fullName: newName});
+    this.data.repos[newName] = repo;
+    this.data.renamed[oldName] = repo.id;
+    return this;
+  }
+  /** GitHub retires an API version: a request that names it answers 410. */
+  retire(version) { this.retired.add(version); return this; }
   /** The head commit of a branch. */
   head(fullName, branch) { return this.#own(fullName).branches[branch] ?? null; }
-  /** Someone else commits on the branch: the file at `path` changes, so the head and that file's sha move. Returns the new head. */
-  push(fullName, branch, {path = 'pushed.txt', text} = {}) {
+  /** Someone else commits on the branch: the file at `path` changes, so the head and that file's sha move. Returns the new head. `actor` null lists no actor on the activity row. */
+  push(fullName, branch, {path = 'pushed.txt', text, force = false, actor} = {}) {
     const repo = this.#own(fullName), count = this.data.next.commit;
-    return this.#commitFiles(this.data, repo, branch, {[path]: Buffer.from(text ?? `Pushed by someone else (${count})\n`)}, 'Someone else\'s commit');
+    return this.#commitFiles(this.data, repo, branch, {[path]: Buffer.from(text ?? `Pushed by someone else (${count})\n`)}, 'Someone else\'s commit', {type: force ? 'force_push' : 'push', actor});
   }
+  /** `count` issues at one call, each `spacingMs` after the last. */
+  seedIssues(fullName, count, {at = this.clock(), spacingMs = 1000} = {}) {
+    const repo = this.#own(fullName), first = repo.issues.length;
+    for (let index = 0; index < count; index++) this.#newIssue(this.data, repo, {title: `Seeded issue ${first + index + 1}`, user: this.data.owner, at: at + index * spacingMs});
+    return this;
+  }
+  /** Someone edits a comment: its body and updated_at move. */
+  editComment(fullName, id, body) {
+    const comment = this.#own(fullName).comments.find(item => item.id === id);
+    if (!comment) throw new Error(`No comment ${id}.`);
+    Object.assign(comment, {body, updated_at: iso(this.clock())});
+    return this;
+  }
+  /** A run that started outside a dispatch, finished when a conclusion is given. Returns its id. */
+  addRun(fullName, {branch = 'main', event = 'push', conclusion = null, at = this.clock(), pullRequests = []} = {}) {
+    const repo = this.#own(fullName), [workflow] = repo.workflows, id = 5_000_000 + this.data.next.run++, title = workflow?.name ?? 'A run';
+    repo.runs.push({id, name: title, display_title: title, workflow_id: workflow?.id ?? 70000, event, head_branch: branch, head_sha: repo.branches[branch], status: conclusion === null ? 'queued' : 'completed', conclusion, run_attempt: 1,
+      created_at: iso(at), updated_at: iso(at), html_url: `https://github.com/${fullName}/actions/runs/${id}`, pull_requests: structuredClone(pullRequests), inputs: {}, hiddenReads: 0});
+    return id;
+  }
+  #run(id) {
+    const run = Object.values(this.data.repos).flatMap(repo => repo.runs).find(item => item.id === id);
+    if (!run) throw new Error(`No run ${id}.`);
+    return run;
+  }
+  startRun(id) { Object.assign(this.#run(id), {status: 'in_progress', updated_at: iso(this.clock())}); return this; }
+  finishRun(id, conclusion = 'success') { Object.assign(this.#run(id), {status: 'completed', conclusion, updated_at: iso(this.clock())}); return this; }
+  /** Someone runs it again: the same id, the next attempt, and the same place in the list. */
+  rerun(id) { const run = this.#run(id); Object.assign(run, {status: 'queued', conclusion: null, run_attempt: run.run_attempt + 1, updated_at: iso(this.clock())}); return this; }
+  /** A release, as a run elsewhere would make it. `commitAt` is the date of its commit, and so its created_at. Returns its id. */
+  addRelease(fullName, {tag, draft = false, at = this.clock(), commitAt = at, body = null} = {}) {
+    const repo = this.#own(fullName);
+    return this.#newRelease(this.data, repo, {tag_name: tag, target_commitish: repo.defaultBranch, name: null, body, draft, prerelease: false, created_at: iso(commitAt), published_at: draft ? null : iso(at)}).id;
+  }
+  #releaseOf(fullName, id) {
+    const release = this.#own(fullName).releases.find(item => item.id === id);
+    if (!release) throw new Error(`No release ${id}.`);
+    return release;
+  }
+  publishRelease(fullName, id) { Object.assign(this.#releaseOf(fullName, id), {draft: false, published_at: iso(this.clock())}); return this; }
+  deleteRelease(fullName, id) { const repo = this.#own(fullName); this.#releaseOf(fullName, id); repo.releases = repo.releases.filter(item => item.id !== id); return this; }
+  /** News on a thread: a new one unless `thread` names one. Returns its id, a string as GitHub's is. */
+  notify(fullName, {thread, reason, type, title, participating} = {}) {
+    const state = this.data, repo = this.#own(fullName), at = iso(this.clock()), held = state.threads.find(item => item.id === thread);
+    if (thread !== undefined && !held) throw new Error(`No thread ${thread}.`);
+    if (held) { Object.assign(held, {...(reason ? {reason} : {}), ...(title ? {title} : {}), unread: true, updated_at: at}); return held.id; }
+    const id = String(9_000_000 + state.next.thread++);
+    state.threads.push({id, repo: repo.id, reason: reason ?? 'subscribed', type: type ?? 'Issue', title: title ?? 'A synthetic thread', participating: participating === true, unread: true, updated_at: at});
+    return id;
+  }
+  markRead(thread) { Object.assign(this.data.threads.find(item => item.id === thread), {unread: false}); return this; }
   /** Commits a file (text or bytes) on a branch, unrecorded. Returns the new head. */
   seedFile(fullName, branch, path, content) {
     return this.#commitFiles(this.data, this.#own(fullName), branch, {[path]: Buffer.isBuffer(content) ? content : Buffer.from(String(content))}, `Add ${path}`);
@@ -207,7 +303,7 @@ export class GitHubSimulator {
   #repo({owner, name, private: hidden, pushedAt, files, labels = [], issues = [], workflows = []}) {
     const state = this.data, fullName = `${owner.login}/${name}`, id = 500_000 + state.next.repo++;
     const repo = {id, name, fullName, owner, private: hidden, defaultBranch: 'main', archived: false, pushedAt, createdAt: pushedAt, description: `${name} (synthetic)`,
-      tempCloneToken: `TEMPCLONE${sha1(`clone:${fullName}`).slice(0, 24).toUpperCase()}`, commits: {}, branches: {}, labels: [], issues: [], comments: [], reviews: [], checks: [], workflows: [], runs: []};
+      tempCloneToken: `TEMPCLONE${sha1(`clone:${fullName}`).slice(0, 24).toUpperCase()}`, commits: {}, branches: {}, labels: [], issues: [], comments: [], reviews: [], checks: [], workflows: [], runs: [], activity: [], releases: []};
     state.repos[fullName] = repo;
     const tree = {};
     for (const [path, text] of Object.entries(files)) tree[path] = this.#blob(state, Buffer.from(text));
@@ -223,13 +319,19 @@ export class GitHubSimulator {
     repo.commits[sha] = {sha, tree, parents, message, at: this.clock()};
     return sha;
   }
-  #commitFiles(state, repo, branch, files, message) {
+  /** One row of the activity list: a ref change. */
+  #activity(state, repo, {type, branch, before, after, actor = state.owner}) {
+    repo.activity.push({id: 8_000_000 + state.next.activity++, node_id: `A_${state.next.activity}`, before, after, ref: `refs/heads/${branch}`, timestamp: iso(this.clock()), activity_type: type, actor: actor === null ? null : {...actor}});
+  }
+  #commitFiles(state, repo, branch, files, message, {type = 'push', actor} = {}) {
     const parent = repo.branches[branch];
     if (!parent) throw new Error(`No branch ${branch}.`);
     const tree = {...repo.commits[parent].tree};
     for (const [path, bytes] of Object.entries(files)) tree[path] = this.#blob(state, bytes);
     repo.branches[branch] = this.#commit(state, repo, {tree, parents: [parent], message});
     repo.pushedAt = this.clock();
+    this.#activity(state, repo, {type, branch, before: parent, after: repo.branches[branch], actor});
+    for (const issue of repo.issues.filter(item => item.pull?.head === branch && item.state === 'open')) this.#touch(issue);
     return repo.branches[branch];
   }
   #label(state, repo, name) {
@@ -242,6 +344,11 @@ export class GitHubSimulator {
       created_at: iso(at), updated_at: iso(at), closed_at: null, ...(pull ? {pull} : {})};
     repo.issues.push(issue);
     return issue;
+  }
+  #newRelease(state, repo, fields) {
+    const release = {id: 6_000_000 + state.next.release++, ...fields, author: {...state.owner}};
+    repo.releases.push(release);
+    return release;
   }
   /** Every commit reachable from a commit, itself included. */
   #ancestors(repo, sha) {
@@ -299,7 +406,7 @@ export class GitHubSimulator {
     return {url, html_url: html, id: issue.id, node_id: `I_${issue.id}`, number: issue.number, title: issue.title, user: {...issue.user}, labels: issue.labels.map(name => this.#labelView(repo, name)),
       state: issue.state, state_reason: issue.state_reason, locked: false, assignees: [], comments: repo.comments.filter(item => item.issue === issue.number).length,
       created_at: issue.created_at, updated_at: issue.updated_at, closed_at: issue.closed_at, author_association: issue.user.id === this.data.owner.id ? 'OWNER' : 'CONTRIBUTOR', body: issue.body,
-      ...(issue.pull ? {pull_request: {url: `${ORIGIN}/repos/${repo.fullName}/pulls/${issue.number}`, html_url: html, merged_at: issue.pull.merged_at}} : {})};
+      ...(issue.pull ? {draft: issue.pull.draft, pull_request: {url: `${ORIGIN}/repos/${repo.fullName}/pulls/${issue.number}`, html_url: html, merged_at: issue.pull.merged_at}} : {})};
   }
   /** A pull request; only a read (`read`) computes mergeable, so the answer that made the pull leaves the first read its null. */
   #pullView(repo, issue, {read = false} = {}) {
@@ -322,6 +429,15 @@ export class GitHubSimulator {
     return {id: review.id, node_id: `PRR_${review.id}`, user: {...review.user}, body: review.body, state: review.state, commit_id: review.commit_id,
       html_url: `https://github.com/${repo.fullName}/pull/${review.pull}#pullrequestreview-${review.id}`, pull_request_url: `${ORIGIN}/repos/${repo.fullName}/pulls/${review.pull}`,
       ...(review.submitted_at ? {submitted_at: review.submitted_at} : {})};
+  }
+  #releaseView(repo, release) {
+    const {id, tag_name, ...rest} = release;
+    return {url: `${ORIGIN}/repos/${repo.fullName}/releases/${id}`, html_url: `https://github.com/${repo.fullName}/releases/tag/${tag_name}`, id, node_id: `RE_${id}`, tag_name, ...structuredClone(rest)};
+  }
+  #threadView(repo, thread) {
+    const url = `${ORIGIN}/notifications/threads/${thread.id}`;
+    return {id: thread.id, unread: thread.unread, reason: thread.reason, updated_at: thread.updated_at, last_read_at: null, subject: {title: thread.title, url: null, latest_comment_url: null, type: thread.type},
+      repository: {id: repo.id, name: repo.name, full_name: repo.fullName, private: repo.private, owner: {...repo.owner}, html_url: `https://github.com/${repo.fullName}`}, url, subscription_url: `${url}/subscription`};
   }
   #workflowView(repo, workflow) {
     return {id: workflow.id, node_id: `W_${workflow.id}`, name: workflow.name, path: workflow.path, state: workflow.state, created_at: iso(repo.createdAt), updated_at: iso(repo.createdAt),
@@ -359,13 +475,38 @@ export class GitHubSimulator {
     if (SHA.test(ref) && repo.commits[ref]) return ref;
     return null;
   }
-  /** per_page and page of a list, 30 a page by default and 100 at most, with GitHub's Link header built on the request's own query. */
-  #page(items, query, path) {
-    const per = query.get('per_page') === null ? 30 : Number(query.get('per_page')), page = query.get('page') === null ? 1 : Number(query.get('page'));
-    if (!Number.isSafeInteger(per) || per < 1 || per > 100 || !Number.isSafeInteger(page) || page < 1) refuse(422, 'Validation Failed', {errors: [{resource: 'Search', field: 'per_page', code: 'invalid'}]});
-    const last = Math.max(1, Math.ceil(items.length / per)), link = (rel, number) => { const next = new URLSearchParams(query); next.set('page', String(number)); return `<${ORIGIN}${path}?${next}>; rel="${rel}"`; };
+  /** A list's page size: its default, and past its cap the cap, in silence. */
+  #perPage(query, most = 100, fallback = 30) {
+    const asked = query.get('per_page') === null ? fallback : Number(query.get('per_page'));
+    if (!Number.isSafeInteger(asked) || asked < 1) refuse(422, 'Validation Failed', {errors: [{resource: 'Search', field: 'per_page', code: 'invalid'}]});
+    return Math.min(asked, most);
+  }
+  /** The path a list's links name: a repository's by its id, as GitHub writes them, so they outlast a rename. */
+  #linkPath(path) {
+    const match = /^\/repos\/([^/]+\/[^/]+)(.*)$/.exec(path);
+    return match ? `/repositories/${this.data.repos[match[1]].id}${match[2]}` : path;
+  }
+  /** per_page and page of a list, 30 a page by default and 100 at most unless the list says otherwise, with GitHub's Link header built on the request's own query. */
+  #page(items, query, path, {most, fallback} = {}) {
+    const per = this.#perPage(query, most, fallback), page = query.get('page') === null ? 1 : Number(query.get('page'));
+    if (!Number.isSafeInteger(page) || page < 1) refuse(422, 'Validation Failed', {errors: [{resource: 'Search', field: 'per_page', code: 'invalid'}]});
+    const last = Math.max(1, Math.ceil(items.length / per)), link = (rel, number) => { const next = new URLSearchParams(query); next.set('page', String(number)); return `<${ORIGIN}${this.#linkPath(path)}?${next}>; rel="${rel}"`; };
     const links = [...(page < last ? [link('next', page + 1), link('last', last)] : []), ...(page > 1 ? [link('prev', page - 1), link('first', 1)] : [])];
     return {items: items.slice((page - 1) * per, page * per), headers: links.length ? {link: links.join(', ')} : {}};
+  }
+  /** A list paged by opaque cursors. `rows` are newest first, with ids that fall: after reads what is older than its row, and before what is newer. */
+  #cursorPage(rows, query, path) {
+    const per = this.#perPage(query), token = row => Buffer.from(`row:${row.id}`).toString('base64url'), rowOf = name => { const text = query.get(name); return text === null ? null : Number(Buffer.from(text, 'base64url').toString().slice(4)); };
+    const after = rowOf('after'), before = rowOf('before'), items = after !== null ? rows.filter(row => row.id < after).slice(0, per) : before !== null ? rows.filter(row => row.id > before).slice(-per) : rows.slice(0, per);
+    const link = (rel, name, row) => { const next = new URLSearchParams(query); next.delete('after'); next.delete('before'); next.set(name, token(row)); return `<${ORIGIN}${this.#linkPath(path)}?${next}>; rel="${rel}"`; };
+    const links = [...(items.length && rows.at(-1).id < items.at(-1).id ? [link('next', 'after', items.at(-1))] : []), ...(items.length && rows[0].id > items[0].id ? [link('prev', 'before', items[0])] : [])];
+    return {items, headers: links.length ? {link: links.join(', ')} : {}};
+  }
+  /** A list's since, in milliseconds, or null. */
+  #since(query) {
+    const text = query.get('since'), time = text === null ? null : Date.parse(text);
+    if (time !== null && !Number.isFinite(time)) refuse(422, 'Validation Failed', {errors: [{resource: 'Search', field: 'since', code: 'invalid'}]});
+    return time;
   }
   #touch(issue) { issue.updated_at = iso(this.clock()); }
 
@@ -406,6 +547,7 @@ export class GitHubSimulator {
         const name = body.ref.slice('refs/heads/'.length);
         if (found.branches[name]) refuse(422, 'Reference already exists');
         found.branches[name] = body.sha;
+        this.#activity(state, found, {type: 'branch_creation', branch: name, before: NO_SHA, after: body.sha});
         return {status: 201, headers: {}, data: {ref: body.ref, node_id: `REF_${sha1(name).slice(0, 12)}`, url: `${ORIGIN}/repos/${found.fullName}/git/${body.ref}`,
           object: {sha: body.sha, type: 'commit', url: `${ORIGIN}/repos/${found.fullName}/git/commits/${body.sha}`}}};
       }, {write: true}),
@@ -413,9 +555,31 @@ export class GitHubSimulator {
         const found = this.#reach(state, params, {write: true}), name = params.ref.startsWith('heads/') ? params.ref.slice('heads/'.length) : null;
         if (!name || !found.branches[name]) refuse(422, 'Reference does not exist');
         for (const issue of found.issues.filter(item => item.pull?.head === name && item.state === 'open')) { issue.pull.headSha = found.branches[name]; issue.state = 'closed'; issue.closed_at = iso(this.clock()); this.#touch(issue); }
+        this.#activity(state, found, {type: 'branch_deletion', branch: name, before: found.branches[name], after: NO_SHA});
         delete found.branches[name];
         return empty();
       }, {write: true}),
+      R('GET', '/notifications', ctx => this.#threads(ctx, {path: '/notifications', most: 50, fallback: 50})),
+      R('GET', repo('/notifications'), ctx => { const found = this.#reach(ctx.state, ctx.params); return this.#threads(ctx, {only: found, path: `/repos/${found.fullName}/notifications`, most: 100, fallback: 30}); }),
+      R('GET', repo('/activity'), ({state, params, query}) => {
+        const found = this.#reach(state, params), kind = query.get('activity_type'), rows = found.activity.filter(row => kind === null || row.activity_type === kind).reverse();
+        const {items, headers} = this.#cursorPage(rows, query, `/repos/${found.fullName}/activity`);
+        return ok(structuredClone(items), headers);
+      }),
+      R('GET', repo('/issues'), ctx => this.#issues(ctx)),
+      R('GET', repo('/issues/comments'), ctx => this.#comments(ctx)),
+      R('GET', repo('/actions/runs'), ({state, params, query}) => {
+        const found = this.#reach(state, params), status = query.get('status'), plain = query.get('exclude_pull_requests') === 'true';
+        const runs = found.runs.filter(run => --run.hiddenReads < 0).filter(run => status === null || run.status === status || run.conclusion === status).sort((a, b) => byName(b.created_at, a.created_at) || b.id - a.id);
+        const {items, headers} = this.#page(runs, query, `/repos/${found.fullName}/actions/runs`);
+        return ok({total_count: runs.length, workflow_runs: items.map(({hiddenReads, inputs, ...run}) => (void hiddenReads, void inputs, {...run, pull_requests: plain ? [] : run.pull_requests}))}, headers);
+      }),
+      R('GET', repo('/releases'), ({state, params, query}) => {
+        const found = this.#reach(state, params), pushes = this.#has(found.private ? 'repo' : 'public_repo');
+        const list = found.releases.filter(item => !item.draft || pushes).sort((a, b) => byName(b.created_at, a.created_at) || b.id - a.id), {items, headers} = this.#page(list, query, `/repos/${found.fullName}/releases`);
+        return ok(items.map(item => this.#releaseView(found, item)), headers);
+      }),
+      R('POST', repo('/releases'), ctx => this.#release(ctx), {write: true}),
       R('POST', repo('/issues'), ({state, params, body}) => {
         const found = this.#reach(state, params, {write: true});
         if (!record(body) || typeof body.title !== 'string' || !body.title) invalid('title wasn\'t supplied.', 'title');
@@ -501,6 +665,38 @@ export class GitHubSimulator {
     ];
   }
 
+  #issues({state, params, query}) {
+    const found = this.#reach(state, params), wanted = query.get('state') ?? 'open', sort = query.get('sort') ?? 'created', direction = query.get('direction') ?? 'desc', since = this.#since(query), field = {created: 'created_at', updated: 'updated_at'}[sort];
+    if (!['open', 'closed', 'all'].includes(wanted) || !field || !['asc', 'desc'].includes(direction)) refuse(422, 'Validation Failed', {errors: [{resource: 'Search', code: 'invalid'}]});
+    const list = found.issues.filter(item => !item.deleted && (wanted === 'all' || item.state === wanted) && (since === null || Date.parse(item.updated_at) >= since)).sort((a, b) => (direction === 'asc' ? 1 : -1) * (byName(a[field], b[field]) || a.number - b.number));
+    const {items, headers} = this.#page(list, query, `/repos/${found.fullName}/issues`);
+    return ok(items.map(item => this.#issueView(found, item)), headers);
+  }
+  #comments({state, params, query}) {
+    const found = this.#reach(state, params), sort = query.get('sort'), direction = query.get('direction') ?? 'asc', since = this.#since(query), field = {created: 'created_at', updated: 'updated_at'}[sort ?? 'created'];
+    if (!field || !['asc', 'desc'].includes(direction)) refuse(422, 'Validation Failed', {errors: [{resource: 'Search', code: 'invalid'}]});
+    const list = found.comments.filter(item => since === null || Date.parse(item.updated_at) >= since), rank = (a, b) => (sort === null || direction === 'asc' ? 1 : -1) * (sort === null ? a.id - b.id : byName(a[field], b[field]) || a.id - b.id);
+    const {items, headers} = this.#page(list.sort(rank), query, `/repos/${found.fullName}/issues/comments`);
+    return ok(items.map(item => this.#commentView(found, item)), headers);
+  }
+  #release({state, params, body}) {
+    const found = this.#reach(state, params, {write: true}), given = record(body) ? body : {}, target = given.target_commitish ?? found.defaultBranch, sha = typeof target === 'string' ? this.#resolve(found, target) : null;
+    const invalidRelease = (field, code) => refuse(422, 'Validation Failed', {errors: [{resource: 'Release', field, code}]});
+    if (typeof given.tag_name !== 'string' || !given.tag_name) invalidRelease('tag_name', 'missing_field');
+    if (found.releases.some(item => item.tag_name === given.tag_name)) invalidRelease('tag_name', 'already_exists');
+    if (!sha) invalidRelease('target_commitish', 'invalid');
+    return created(this.#releaseView(found, this.#newRelease(state, found, {tag_name: given.tag_name, target_commitish: target, name: given.name ?? null, body: given.body ?? null, draft: given.draft === true, prerelease: given.prerelease === true,
+      created_at: iso(found.commits[sha].at), published_at: given.draft === true ? null : iso(this.clock())})));
+  }
+  /** The notifications an account or one repository (`only`) lists. Last-Modified is the newest thread's second, whatever this query shows. */
+  #threads({state, query}, {only = null, path, most, fallback}) {
+    if (!this.#has('notifications') && !this.#has('repo')) refuse(403, 'Resource not accessible by integration');
+    const since = this.#since(query), all = query.get('all') === 'true', mine = query.get('participating') === 'true', repos = new Map(Object.values(state.repos).map(repo => [repo.id, repo]));
+    const threads = state.threads.filter(item => !this.restricted.has(repos.get(item.repo).owner.login) && (only === null || item.repo === only.id));
+    const shown = threads.filter(item => (all || item.unread) && (!mine || item.participating) && (since === null || Date.parse(item.updated_at) >= since)).sort((a, b) => byName(b.updated_at, a.updated_at) || Number(b.id) - Number(a.id));
+    const {items, headers} = this.#page(shown, query, path, {most, fallback}), newest = threads.reduce((high, item) => Math.max(high, Date.parse(item.updated_at)), this.started);
+    return ok(items.map(item => this.#threadView(repos.get(item.repo), item)), {...headers, 'last-modified': new Date(newest).toUTCString(), 'x-poll-interval': this.pollInterval});
+  }
   #contents({state, params, query}, path) {
     const found = this.#reach(state, params), ref = query.get('ref') ?? found.defaultBranch, sha = this.#resolve(found, ref);
     if (!sha) refuse(404, `No commit found for the ref ${ref}`);
@@ -576,6 +772,7 @@ export class GitHubSimulator {
     const sha = this.#commit(state, found, {tree, parents: method === 'merge' ? [baseSha, head] : [baseSha], message: typeof given.commit_message === 'string' ? `${title}\n\n${given.commit_message}` : title});
     found.branches[pull.base] = sha;
     found.pushedAt = this.clock();
+    this.#activity(state, found, {type: 'pr_merge', branch: pull.base, before: baseSha, after: sha});
     Object.assign(pull, {merged: true, merged_at: iso(this.clock()), merge_commit_sha: sha, headSha: head});
     Object.assign(issue, {state: 'closed', state_reason: 'completed', closed_at: iso(this.clock())});
     this.#touch(issue);
@@ -593,6 +790,7 @@ export class GitHubSimulator {
     const review = {id: 3_000_000 + state.next.review++, pull: issue.number, user: {...state.owner}, body: text, commit_id: commit,
       state: event === undefined ? 'PENDING' : stateOf[event], ...(event === undefined ? {} : {submitted_at: iso(this.clock())})};
     found.reviews.push(review);
+    if (event !== undefined) this.#touch(issue);
     return ok(this.#reviewView(found, review));
   }
   #workflow(repo, id) {
@@ -613,8 +811,8 @@ export class GitHubSimulator {
     if (required.length) refuse(422, `Required input '${required[0]}' not provided`);
     if (given.return_run_details !== undefined && typeof given.return_run_details !== 'boolean') refuse(422, 'return_run_details is not a boolean');
     const id = 5_000_000 + state.next.run++, htmlUrl = `https://github.com/${found.fullName}/actions/runs/${id}`;
-    found.runs.push({id, name: workflow.name, workflow_id: workflow.id, event: 'workflow_dispatch', head_branch: ref, head_sha: found.branches[ref], status: 'queued',
-      conclusion: null, created_at: iso(this.clock()), html_url: htmlUrl, inputs: {...inputs}, hiddenReads: this.lag});
+    found.runs.push({id, name: workflow.name, display_title: workflow.name, workflow_id: workflow.id, event: 'workflow_dispatch', head_branch: ref, head_sha: found.branches[ref], status: 'queued',
+      conclusion: null, run_attempt: 1, created_at: iso(this.clock()), updated_at: iso(this.clock()), html_url: htmlUrl, pull_requests: [], inputs: {...inputs}, hiddenReads: this.lag});
     if (given.return_run_details !== true) return empty();
     return ok({workflow_run_id: id, run_url: `https://api.github.com/repos/${found.fullName}/actions/runs/${id}`, html_url: htmlUrl});
   }
@@ -671,6 +869,42 @@ export class GitHubSimulator {
     return best;
   }
 
+  /** The rate count as of now: a new hour fills it. */
+  #rateNow() {
+    if (this.clock() >= this.rate.reset * 1000) Object.assign(this.rate, {used: 0, reset: Math.floor(this.clock() / 1000) + HOUR_SECONDS});
+    return this.rate;
+  }
+  /** What a limit answers, or null: a spent primary count until its reset, and a secondary limit for as many answers as the switch says. */
+  #limited() {
+    const {used, status} = this.#rateNow(), {secondary} = this;
+    if (used >= RATE_LIMIT) return githubError(status, `API rate limit exceeded for user ID ${this.data.owner.id}.`);
+    if (!secondary) return null;
+    if (--secondary.left <= 0) this.secondary = null;
+    return githubError(secondary.status, 'You have exceeded a secondary rate limit. Please wait a few minutes before you try again.', {headers: secondary.retryAfter === undefined ? {} : {'retry-after': secondary.retryAfter}});
+  }
+  /** The 301 of a repository's old path, or null. */
+  #moved(target) {
+    const [, root, owner, name, ...rest] = target.pathname.split('/'), id = root === 'repos' ? this.data.renamed[`${owner}/${name}`] : undefined;
+    if (id === undefined) return null;
+    const location = `${[`${ORIGIN}/repositories/${id}`, ...rest].join('/')}${target.search}`;
+    return {status: 301, headers: {location}, data: {message: 'Moved Permanently', url: location, documentation_url: DOCS}};
+  }
+  /** The etag of a list's bytes, and the 304 a matching condition gives. If-Modified-Since matches by its exact string. A 304 costs nothing, and a next link has no page to name. */
+  #conditional(answer, method, headers) {
+    const list = method === 'GET' && answer.status === 200 && (Array.isArray(answer.data) || Number.isSafeInteger(answer.data?.total_count));
+    if (!list) return answer;
+    const etag = `W/"${sha1(JSON.stringify(answer.data))}"`, {link: _link, ...bare} = {...answer.headers, etag}, modified = answer.headers['last-modified'];
+    return headers['if-none-match'] === etag || (modified !== undefined && headers['if-modified-since'] === modified) ? {status: 304, headers: bare, data: null} : {...answer, headers: {...answer.headers, etag}};
+  }
+  /** A 3xx as the seam gives it (lib/network.mjs): body-less, with the headers asked for and a location only on the request's own origin. A 304 is an answer, not a redirect. */
+  #reported(status, headers, target, {redirect, responseHeaders}) {
+    if (redirect !== 'report') throw lost('Provider redirects are not followed.');
+    const kept = {};
+    for (const key of responseHeaders) if (key !== 'location' && headers[key] !== undefined) kept[key] = headers[key];
+    if (status !== 304 && headers.location) { const next = new URL(headers.location, target); if (next.origin === target.origin) kept.location = next.href; }
+    return {status, headers: kept, data: null, ...(status === 304 ? {notModified: true} : {redirected: true})};
+  }
+
   async request({url, method = 'GET', headers = {}, body, allowedOrigins, maxBytes = 2 * 1024 * 1024, responseType = 'json', redirect = 'error', responseHeaders = DEFAULT_RESPONSE_HEADERS, timeoutMs = 15000}) {
     let target;
     try { target = new URL(url); } catch { throw notSent('Invalid request URL.'); }
@@ -699,27 +933,39 @@ export class GitHubSimulator {
     this.calls.push(call);
     const gate = found ? this.holds.get(found.route.key) : null;
     if (gate) { gate.reach(); await gate.released; }
-    const chosen = found ? this.#take(found.route.key) : null;
+    const chosen = found ? this.#take(found.route.key) : null, lag = found ? this.lags.get(found.route.key) : null;
     const authorized = authorization === `Bearer ${this.token}` || authorization === `token ${this.token}`;
+    const limited = authorized ? this.#limited() : null, retired = this.retired.has(lower['x-github-api-version']), moved = this.#moved(target);
     let answer;
     if (!authorized) answer = githubError(401, 'Bad credentials');
+    else if (limited) answer = limited;
+    else if (retired) answer = githubError(410, `API version ${lower['x-github-api-version']} is no longer supported.`);
+    else if (moved) answer = moved;
     else if (!found) answer = githubError(404, 'Not Found');
     else if (chosen?.kind === 'fail') answer = structuredClone(chosen.answer);
     else {
-      const state = chosen?.kind === 'swallow' ? structuredClone(this.data) : this.data;
+      const state = lag?.state ?? (chosen?.kind === 'swallow' ? structuredClone(this.data) : this.data);
       try {
         if (raw !== undefined && typeof parsed === 'string') refuse(400, 'Problems parsing JSON');
-        answer = found.route.handle({params: found.params, query: target.searchParams, body: parsed, headers: lower, state});
+        answer = this.#conditional(found.route.handle({params: found.params, query: target.searchParams, body: parsed, headers: lower, state}), method, lower);
       } catch (error) {
         if (!(error instanceof Refusal)) throw error;
         answer = error.answer;
       }
+      if (lag && --lag.left <= 0) this.lags.delete(found.route.key);
       if (chosen?.kind === 'drop') { call.status = answer.status; throw lost('Provider connection failed.'); }
       if (chosen?.kind === 'oversize') answer = {...answer, data: {...answer.data, padding: 'x'.repeat(Math.max(0, chosen.bytes))}};
     }
     call.status = answer.status;
     const headersOut = Object.fromEntries(Object.entries(answer.headers ?? {}).map(([name, value]) => [name.toLowerCase(), String(value)]));
-    if (authorized) headersOut['x-oauth-scopes'] = this.scopes.join(', ');
+    if (authorized) {
+      headersOut['x-oauth-scopes'] = this.scopes.join(', ');
+      const rate = this.rate;
+      if (answer.status !== 304 && rate.used < RATE_LIMIT) rate.used++;
+      const count = {'x-ratelimit-limit': RATE_LIMIT, 'x-ratelimit-remaining': RATE_LIMIT - rate.used, 'x-ratelimit-reset': rate.reset, 'x-ratelimit-used': rate.used, 'x-ratelimit-resource': 'core'};
+      for (const [name, value] of Object.entries(count)) headersOut[name] ??= String(value);
+    }
+    if (answer.status >= 300 && answer.status < 400) return this.#reported(answer.status, headersOut, target, {redirect, responseHeaders});
     const bytes = answer.data === null || answer.data === undefined ? Buffer.alloc(0) : Buffer.from(JSON.stringify(answer.data), 'utf8');
     if (bytes.length > maxBytes) throw lost('Provider response exceeded the size limit.');
     if (bytes.length) headersOut['content-type'] ??= 'application/json; charset=utf-8';

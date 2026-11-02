@@ -1,0 +1,2088 @@
+{
+ "schemaVersion": 1,
+ "appId": "slack",
+ "specVersion": "fabric/0.2",
+ "reviewStatus": "candidate",
+ "pinnedParameters": {},
+ "triggers": [
+  {
+   "id": "slack.trigger.new-message.v1.1dfb9c6d5f20231dcdd884f9",
+   "key": "new-message",
+   "version": 1,
+   "name": "New message in chosen channels",
+   "description": "Tells you about each new top-level message in the channels you choose, up to 20. Thread replies, edits and channel notices are left out. It polls every 2 minutes.",
+   "delivery": {
+    "method": "polling",
+    "intervalSeconds": {
+     "default": 120,
+     "min": 60
+    }
+   },
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "channels": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 20,
+      "items": {
+       "type": "string",
+       "minLength": 9,
+       "maxLength": 21
+      }
+     }
+    },
+    "required": [
+     "channels"
+    ],
+    "additionalProperties": false
+   },
+   "resource": {
+    "each": "/channels",
+    "as": "channel"
+   },
+   "poll": {
+    "source": {
+     "steps": [
+      {
+       "id": "history",
+       "method": "GET",
+       "path": "/conversations.history",
+       "query": {
+        "channel": {
+         "var": "channel"
+        },
+        "oldest": {
+         "cursor": "ts"
+        },
+        "limit": {
+         "const": 100
+        }
+       },
+       "page": {
+        "next": {
+         "pointer": "/response_metadata/next_cursor"
+        },
+        "into": {
+         "query": "cursor"
+        },
+        "items": "/messages",
+        "max": 5
+       },
+       "maxResponseBytes": 2097152,
+       "expect": {
+        "status": [
+         200
+        ],
+        "require": [
+         {
+          "equals": {
+           "pointer": "/ok",
+           "value": {
+            "const": true
+           }
+          }
+         }
+        ]
+       }
+      }
+     ]
+    },
+    "seed": {
+     "step": {
+      "id": "latest",
+      "method": "GET",
+      "path": "/conversations.history",
+      "query": {
+       "channel": {
+        "var": "channel"
+       },
+       "limit": {
+        "const": 1
+       }
+      },
+      "maxResponseBytes": 262144,
+      "expect": {
+       "status": [
+        200
+       ],
+       "require": [
+        {
+         "equals": {
+          "pointer": "/ok",
+          "value": {
+           "const": true
+          }
+         }
+        }
+       ]
+      }
+     },
+     "cursor": {
+      "name": "ts",
+      "pointer": "/messages/0/ts"
+     }
+    },
+    "items": {
+     "step": "history",
+     "pointer": ""
+    },
+    "itemId": {
+     "concat": [
+      {
+       "var": "channel"
+      },
+      {
+       "const": ":"
+      },
+      {
+       "item": "/ts"
+      }
+     ],
+     "max": 64
+    },
+    "itemVersion": null,
+    "itemTime": {
+     "pointer": "/ts",
+     "format": "slack-ts"
+    },
+    "order": "desc",
+    "cursors": [
+     {
+      "name": "ts",
+      "kind": "high-water-ts@1",
+      "next": {
+       "max": "itemTime"
+      },
+      "compare": "time.slackTs@1",
+      "overlapSeconds": 30
+     }
+    ],
+    "resync": {
+     "statusIn": []
+    },
+    "minIntervalSeconds": 60
+   },
+   "filter": [
+    {
+     "anyOf": [
+      {
+       "absent": {
+        "item": "/subtype"
+       }
+      },
+      {
+       "equals": [
+        {
+         "item": "/subtype"
+        },
+        {
+         "const": "bot_message"
+        }
+       ]
+      },
+      {
+       "equals": [
+        {
+         "item": "/subtype"
+        },
+        {
+         "const": "me_message"
+        }
+       ]
+      },
+      {
+       "equals": [
+        {
+         "item": "/subtype"
+        },
+        {
+         "const": "file_share"
+        }
+       ]
+      },
+      {
+       "equals": [
+        {
+         "item": "/subtype"
+        },
+        {
+         "const": "thread_broadcast"
+        }
+       ]
+      }
+     ]
+    }
+   ],
+   "dedupe": {
+    "kind": "id"
+   },
+   "event": {
+    "schema": {
+     "type": "object",
+     "properties": {
+      "channel": {
+       "type": "string",
+       "minLength": 1,
+       "maxLength": 21
+      },
+      "ts": {
+       "type": "string",
+       "minLength": 1,
+       "maxLength": 17
+      },
+      "user": {
+       "type": "string",
+       "maxLength": 64
+      },
+      "botId": {
+       "type": "string",
+       "maxLength": 64
+      },
+      "subtype": {
+       "type": "string",
+       "maxLength": 64
+      },
+      "threadTs": {
+       "type": "string",
+       "maxLength": 17
+      },
+      "self": {
+       "type": "string",
+       "minLength": 1,
+       "maxLength": 64
+      }
+     },
+     "required": [
+      "channel",
+      "ts",
+      "self"
+     ],
+     "additionalProperties": false
+    },
+    "id": {
+     "concat": [
+      {
+       "var": "channel"
+      },
+      {
+       "const": ":"
+      },
+      {
+       "item": "/ts"
+      }
+     ],
+     "max": 64
+    },
+    "occurredAt": {
+     "pick": {
+      "transform": "time.slackTs@1",
+      "args": {
+       "ts": {
+        "item": "/ts"
+       }
+      }
+     },
+     "pointer": "/time"
+    },
+    "fields": {
+     "channel": {
+      "var": "channel"
+     },
+     "ts": {
+      "item": "/ts"
+     },
+     "user": {
+      "when": {
+       "nonEmpty": {
+        "item": "/user"
+       }
+      },
+      "then": {
+       "item": "/user"
+      }
+     },
+     "botId": {
+      "when": {
+       "nonEmpty": {
+        "item": "/bot_id"
+       }
+      },
+      "then": {
+       "item": "/bot_id"
+      }
+     },
+     "subtype": {
+      "when": {
+       "nonEmpty": {
+        "item": "/subtype"
+       }
+      },
+      "then": {
+       "item": "/subtype"
+      }
+     },
+     "threadTs": {
+      "when": {
+       "nonEmpty": {
+        "item": "/thread_ts"
+       }
+      },
+      "then": {
+       "item": "/thread_ts"
+      }
+     },
+     "self": {
+      "account": "userId"
+     }
+    },
+    "summary": [
+     {
+      "label": "Message",
+      "expr": {
+       "item": "/text"
+      },
+      "truncate": 120
+     }
+    ]
+   },
+   "backfill": {
+    "default": 0,
+    "max": 25
+   },
+   "retention": {
+    "hours": 24
+   },
+   "bounds": {
+    "pages": 5,
+    "items": 500,
+    "pollSeconds": 10
+   },
+   "rows": [
+    "slack.messages.read"
+   ]
+  },
+  {
+   "id": "slack.trigger.new-dm.v1.6a78c2504a6da229b7742cf4",
+   "key": "new-dm",
+   "version": 1,
+   "name": "New direct message in chosen conversations",
+   "description": "Tells you about each new message in the direct messages you name, up to 20. A direct message with someone new has no id to name yet: the conversation watch reports it first.",
+   "delivery": {
+    "method": "polling",
+    "intervalSeconds": {
+     "default": 120,
+     "min": 60
+    }
+   },
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "conversations": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 20,
+      "items": {
+       "type": "string",
+       "minLength": 9,
+       "maxLength": 21
+      }
+     }
+    },
+    "required": [
+     "conversations"
+    ],
+    "additionalProperties": false
+   },
+   "resource": {
+    "each": "/conversations",
+    "as": "conversation"
+   },
+   "poll": {
+    "source": {
+     "steps": [
+      {
+       "id": "history",
+       "method": "GET",
+       "path": "/conversations.history",
+       "query": {
+        "channel": {
+         "var": "conversation"
+        },
+        "oldest": {
+         "cursor": "ts"
+        },
+        "limit": {
+         "const": 100
+        }
+       },
+       "page": {
+        "next": {
+         "pointer": "/response_metadata/next_cursor"
+        },
+        "into": {
+         "query": "cursor"
+        },
+        "items": "/messages",
+        "max": 5
+       },
+       "maxResponseBytes": 2097152,
+       "expect": {
+        "status": [
+         200
+        ],
+        "require": [
+         {
+          "equals": {
+           "pointer": "/ok",
+           "value": {
+            "const": true
+           }
+          }
+         }
+        ]
+       }
+      }
+     ]
+    },
+    "seed": {
+     "step": {
+      "id": "latest",
+      "method": "GET",
+      "path": "/conversations.history",
+      "query": {
+       "channel": {
+        "var": "conversation"
+       },
+       "limit": {
+        "const": 1
+       }
+      },
+      "maxResponseBytes": 262144,
+      "expect": {
+       "status": [
+        200
+       ],
+       "require": [
+        {
+         "equals": {
+          "pointer": "/ok",
+          "value": {
+           "const": true
+          }
+         }
+        }
+       ]
+      }
+     },
+     "cursor": {
+      "name": "ts",
+      "pointer": "/messages/0/ts"
+     }
+    },
+    "items": {
+     "step": "history",
+     "pointer": ""
+    },
+    "itemId": {
+     "concat": [
+      {
+       "var": "conversation"
+      },
+      {
+       "const": ":"
+      },
+      {
+       "item": "/ts"
+      }
+     ],
+     "max": 64
+    },
+    "itemVersion": null,
+    "itemTime": {
+     "pointer": "/ts",
+     "format": "slack-ts"
+    },
+    "order": "desc",
+    "cursors": [
+     {
+      "name": "ts",
+      "kind": "high-water-ts@1",
+      "next": {
+       "max": "itemTime"
+      },
+      "compare": "time.slackTs@1",
+      "overlapSeconds": 30
+     }
+    ],
+    "resync": {
+     "statusIn": []
+    },
+    "minIntervalSeconds": 60
+   },
+   "filter": [
+    {
+     "anyOf": [
+      {
+       "absent": {
+        "item": "/subtype"
+       }
+      },
+      {
+       "equals": [
+        {
+         "item": "/subtype"
+        },
+        {
+         "const": "bot_message"
+        }
+       ]
+      },
+      {
+       "equals": [
+        {
+         "item": "/subtype"
+        },
+        {
+         "const": "me_message"
+        }
+       ]
+      },
+      {
+       "equals": [
+        {
+         "item": "/subtype"
+        },
+        {
+         "const": "file_share"
+        }
+       ]
+      },
+      {
+       "equals": [
+        {
+         "item": "/subtype"
+        },
+        {
+         "const": "thread_broadcast"
+        }
+       ]
+      }
+     ]
+    }
+   ],
+   "dedupe": {
+    "kind": "id"
+   },
+   "event": {
+    "schema": {
+     "type": "object",
+     "properties": {
+      "channel": {
+       "type": "string",
+       "minLength": 1,
+       "maxLength": 21
+      },
+      "ts": {
+       "type": "string",
+       "minLength": 1,
+       "maxLength": 17
+      },
+      "user": {
+       "type": "string",
+       "maxLength": 64
+      },
+      "botId": {
+       "type": "string",
+       "maxLength": 64
+      },
+      "subtype": {
+       "type": "string",
+       "maxLength": 64
+      },
+      "threadTs": {
+       "type": "string",
+       "maxLength": 17
+      },
+      "self": {
+       "type": "string",
+       "minLength": 1,
+       "maxLength": 64
+      }
+     },
+     "required": [
+      "channel",
+      "ts",
+      "self"
+     ],
+     "additionalProperties": false
+    },
+    "id": {
+     "concat": [
+      {
+       "var": "conversation"
+      },
+      {
+       "const": ":"
+      },
+      {
+       "item": "/ts"
+      }
+     ],
+     "max": 64
+    },
+    "occurredAt": {
+     "pick": {
+      "transform": "time.slackTs@1",
+      "args": {
+       "ts": {
+        "item": "/ts"
+       }
+      }
+     },
+     "pointer": "/time"
+    },
+    "fields": {
+     "channel": {
+      "var": "conversation"
+     },
+     "ts": {
+      "item": "/ts"
+     },
+     "user": {
+      "when": {
+       "nonEmpty": {
+        "item": "/user"
+       }
+      },
+      "then": {
+       "item": "/user"
+      }
+     },
+     "botId": {
+      "when": {
+       "nonEmpty": {
+        "item": "/bot_id"
+       }
+      },
+      "then": {
+       "item": "/bot_id"
+      }
+     },
+     "subtype": {
+      "when": {
+       "nonEmpty": {
+        "item": "/subtype"
+       }
+      },
+      "then": {
+       "item": "/subtype"
+      }
+     },
+     "threadTs": {
+      "when": {
+       "nonEmpty": {
+        "item": "/thread_ts"
+       }
+      },
+      "then": {
+       "item": "/thread_ts"
+      }
+     },
+     "self": {
+      "account": "userId"
+     }
+    },
+    "summary": [
+     {
+      "label": "Message",
+      "expr": {
+       "item": "/text"
+      },
+      "truncate": 120
+     }
+    ]
+   },
+   "backfill": {
+    "default": 0,
+    "max": 25
+   },
+   "retention": {
+    "hours": 24
+   },
+   "bounds": {
+    "pages": 5,
+    "items": 500,
+    "pollSeconds": 10
+   },
+   "rows": [
+    "slack.messages.read"
+   ]
+  },
+  {
+   "id": "slack.trigger.mention-search.v1.1e2bac159afd2135aaaa58a2",
+   "key": "mention-search",
+   "version": 1,
+   "name": "You were mentioned, found by search",
+   "description": "Tells you when Slack search first shows a message that mentions you in the channels you choose. Search can lag, and it joins matches that sit close together.",
+   "delivery": {
+    "method": "polling",
+    "intervalSeconds": {
+     "default": 300,
+     "min": 120
+    }
+   },
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "channels": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 20,
+      "items": {
+       "type": "string",
+       "minLength": 9,
+       "maxLength": 21
+      }
+     }
+    },
+    "required": [
+     "channels"
+    ],
+    "additionalProperties": false
+   },
+   "resource": {
+    "each": "/channels",
+    "as": "channel"
+   },
+   "poll": {
+    "source": {
+     "steps": [
+      {
+       "id": "search",
+       "method": "GET",
+       "path": "/search.messages",
+       "query": {
+        "query": {
+         "concat": [
+          {
+           "const": "<@"
+          },
+          {
+           "account": "userId"
+          },
+          {
+           "const": "> in:<#"
+          },
+          {
+           "var": "channel"
+          },
+          {
+           "const": ">"
+          }
+         ],
+         "max": 1100
+        },
+        "count": {
+         "const": 100
+        },
+        "sort": {
+         "const": "timestamp"
+        },
+        "sort_dir": {
+         "const": "desc"
+        },
+        "highlight": {
+         "const": false
+        }
+       },
+       "maxResponseBytes": 2097152,
+       "expect": {
+        "status": [
+         200
+        ],
+        "require": [
+         {
+          "equals": {
+           "pointer": "/ok",
+           "value": {
+            "const": true
+           }
+          }
+         }
+        ]
+       }
+      }
+     ]
+    },
+    "items": {
+     "step": "search",
+     "pointer": "/messages/matches"
+    },
+    "itemId": {
+     "concat": [
+      {
+       "item": "/channel/id"
+      },
+      {
+       "const": ":"
+      },
+      {
+       "item": "/ts"
+      }
+     ],
+     "max": 64
+    },
+    "itemVersion": null,
+    "itemTime": {
+     "pointer": "/ts",
+     "format": "slack-ts"
+    },
+    "order": "desc",
+    "cursors": [
+     {
+      "name": "seen",
+      "kind": "snapshot@1",
+      "compare": "collections.diff@1"
+     }
+    ],
+    "resync": {
+     "statusIn": []
+    },
+    "minIntervalSeconds": 120
+   },
+   "dedupe": {
+    "kind": "id"
+   },
+   "event": {
+    "schema": {
+     "type": "object",
+     "properties": {
+      "channel": {
+       "type": "string",
+       "minLength": 1,
+       "maxLength": 21
+      },
+      "ts": {
+       "type": "string",
+       "minLength": 1,
+       "maxLength": 17
+      },
+      "user": {
+       "type": "string",
+       "maxLength": 64
+      },
+      "permalink": {
+       "type": "string",
+       "maxLength": 512
+      }
+     },
+     "required": [
+      "channel",
+      "ts"
+     ],
+     "additionalProperties": false
+    },
+    "id": {
+     "concat": [
+      {
+       "item": "/channel/id"
+      },
+      {
+       "const": ":"
+      },
+      {
+       "item": "/ts"
+      }
+     ],
+     "max": 64
+    },
+    "occurredAt": {
+     "pick": {
+      "transform": "time.slackTs@1",
+      "args": {
+       "ts": {
+        "item": "/ts"
+       }
+      }
+     },
+     "pointer": "/time"
+    },
+    "fields": {
+     "channel": {
+      "item": "/channel/id"
+     },
+     "ts": {
+      "item": "/ts"
+     },
+     "user": {
+      "when": {
+       "nonEmpty": {
+        "item": "/user"
+       }
+      },
+      "then": {
+       "item": "/user"
+      }
+     },
+     "permalink": {
+      "when": {
+       "nonEmpty": {
+        "item": "/permalink"
+       }
+      },
+      "then": {
+       "item": "/permalink"
+      }
+     }
+    },
+    "summary": [
+     {
+      "label": "Message",
+      "expr": {
+       "item": "/text"
+      },
+      "truncate": 120
+     }
+    ]
+   },
+   "backfill": {
+    "default": 0,
+    "max": 0
+   },
+   "retention": {
+    "hours": 24
+   },
+   "bounds": {
+    "pages": 1,
+    "items": 100,
+    "pollSeconds": 10
+   },
+   "rows": [
+    "slack.messages.search"
+   ]
+  },
+  {
+   "id": "slack.trigger.thread-reply.v1.c80238ffdb4e81252397cc84",
+   "key": "thread-reply",
+   "version": 1,
+   "name": "New reply in chosen threads",
+   "description": "Tells you about each new reply in the threads you name, up to 20: a channel and the ts of the thread's first message.",
+   "delivery": {
+    "method": "polling",
+    "intervalSeconds": {
+     "default": 120,
+     "min": 60
+    }
+   },
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "threads": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 20,
+      "items": {
+       "type": "object",
+       "properties": {
+        "channel": {
+         "type": "string",
+         "minLength": 9,
+         "maxLength": 21
+        },
+        "ts": {
+         "type": "string",
+         "minLength": 8,
+         "maxLength": 17
+        }
+       },
+       "required": [
+        "channel",
+        "ts"
+       ],
+       "additionalProperties": false
+      }
+     }
+    },
+    "required": [
+     "threads"
+    ],
+    "additionalProperties": false
+   },
+   "resource": {
+    "each": "/threads",
+    "as": "thread"
+   },
+   "poll": {
+    "source": {
+     "steps": [
+      {
+       "id": "replies",
+       "method": "GET",
+       "path": "/conversations.replies",
+       "query": {
+        "channel": {
+         "pick": {
+          "var": "thread"
+         },
+         "pointer": "/channel"
+        },
+        "ts": {
+         "pick": {
+          "var": "thread"
+         },
+         "pointer": "/ts"
+        },
+        "oldest": {
+         "cursor": "ts"
+        },
+        "limit": {
+         "const": 200
+        }
+       },
+       "page": {
+        "next": {
+         "pointer": "/response_metadata/next_cursor"
+        },
+        "into": {
+         "query": "cursor"
+        },
+        "items": "/messages",
+        "max": 3
+       },
+       "maxResponseBytes": 2097152,
+       "expect": {
+        "status": [
+         200
+        ],
+        "require": [
+         {
+          "equals": {
+           "pointer": "/ok",
+           "value": {
+            "const": true
+           }
+          }
+         }
+        ]
+       }
+      }
+     ]
+    },
+    "seed": {
+     "step": {
+      "id": "parent",
+      "method": "GET",
+      "path": "/conversations.replies",
+      "query": {
+       "channel": {
+        "pick": {
+         "var": "thread"
+        },
+        "pointer": "/channel"
+       },
+       "ts": {
+        "pick": {
+         "var": "thread"
+        },
+        "pointer": "/ts"
+       },
+       "limit": {
+        "const": 1
+       }
+      },
+      "maxResponseBytes": 262144,
+      "expect": {
+       "status": [
+        200
+       ],
+       "require": [
+        {
+         "equals": {
+          "pointer": "/ok",
+          "value": {
+           "const": true
+          }
+         }
+        }
+       ]
+      }
+     },
+     "cursor": {
+      "name": "ts",
+      "pointer": "/messages/0/latest_reply"
+     }
+    },
+    "items": {
+     "step": "replies",
+     "pointer": ""
+    },
+    "itemId": {
+     "concat": [
+      {
+       "pick": {
+        "var": "thread"
+       },
+       "pointer": "/channel"
+      },
+      {
+       "const": ":"
+      },
+      {
+       "item": "/ts"
+      }
+     ],
+     "max": 64
+    },
+    "itemVersion": null,
+    "itemTime": {
+     "pointer": "/ts",
+     "format": "slack-ts"
+    },
+    "order": "asc",
+    "cursors": [
+     {
+      "name": "ts",
+      "kind": "high-water-ts@1",
+      "next": {
+       "max": "itemTime"
+      },
+      "compare": "time.slackTs@1",
+      "overlapSeconds": 30
+     }
+    ],
+    "resync": {
+     "statusIn": []
+    },
+    "minIntervalSeconds": 60
+   },
+   "filter": [
+    {
+     "present": {
+      "item": "/thread_ts"
+     }
+    },
+    {
+     "equals": [
+      {
+       "pick": {
+        "transform": "time.slackTs@1",
+        "args": {
+         "ts": {
+          "item": "/ts"
+         },
+         "than": {
+          "item": "/thread_ts"
+         }
+        }
+       },
+       "pointer": "/order"
+      },
+      {
+       "const": 1
+      }
+     ]
+    }
+   ],
+   "dedupe": {
+    "kind": "id"
+   },
+   "event": {
+    "schema": {
+     "type": "object",
+     "properties": {
+      "channel": {
+       "type": "string",
+       "minLength": 1,
+       "maxLength": 21
+      },
+      "threadTs": {
+       "type": "string",
+       "minLength": 1,
+       "maxLength": 17
+      },
+      "ts": {
+       "type": "string",
+       "minLength": 1,
+       "maxLength": 17
+      },
+      "user": {
+       "type": "string",
+       "maxLength": 64
+      },
+      "self": {
+       "type": "string",
+       "minLength": 1,
+       "maxLength": 64
+      }
+     },
+     "required": [
+      "channel",
+      "threadTs",
+      "ts",
+      "self"
+     ],
+     "additionalProperties": false
+    },
+    "id": {
+     "concat": [
+      {
+       "pick": {
+        "var": "thread"
+       },
+       "pointer": "/channel"
+      },
+      {
+       "const": ":"
+      },
+      {
+       "item": "/ts"
+      }
+     ],
+     "max": 64
+    },
+    "occurredAt": {
+     "pick": {
+      "transform": "time.slackTs@1",
+      "args": {
+       "ts": {
+        "item": "/ts"
+       }
+      }
+     },
+     "pointer": "/time"
+    },
+    "fields": {
+     "channel": {
+      "pick": {
+       "var": "thread"
+      },
+      "pointer": "/channel"
+     },
+     "threadTs": {
+      "pick": {
+       "var": "thread"
+      },
+      "pointer": "/ts"
+     },
+     "ts": {
+      "item": "/ts"
+     },
+     "user": {
+      "when": {
+       "nonEmpty": {
+        "item": "/user"
+       }
+      },
+      "then": {
+       "item": "/user"
+      }
+     },
+     "self": {
+      "account": "userId"
+     }
+    },
+    "summary": [
+     {
+      "label": "Reply",
+      "expr": {
+       "item": "/text"
+      },
+      "truncate": 120
+     }
+    ]
+   },
+   "backfill": {
+    "default": 0,
+    "max": 25
+   },
+   "retention": {
+    "hours": 24
+   },
+   "bounds": {
+    "pages": 3,
+    "items": 500,
+    "pollSeconds": 10
+   },
+   "rows": [
+    "slack.messages.read"
+   ]
+  },
+  {
+   "id": "slack.trigger.reaction-recent.v1.4b0c2d00ad046e5b1e2c900a",
+   "key": "reaction-recent",
+   "version": 1,
+   "name": "New reaction on a recent message in chosen channels",
+   "description": "Tells you when an emoji appears, or its count changes, on one of the 100 newest top-level messages of the channels you choose. An emoji taken off and added back at the same count reads as no change. Older messages and thread replies are not watched, and Slack gives no time for a reaction.",
+   "delivery": {
+    "method": "polling",
+    "intervalSeconds": {
+     "default": 300,
+     "min": 120
+    }
+   },
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "channels": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 20,
+      "items": {
+       "type": "string",
+       "minLength": 9,
+       "maxLength": 21
+      }
+     }
+    },
+    "required": [
+     "channels"
+    ],
+    "additionalProperties": false
+   },
+   "resource": {
+    "each": "/channels",
+    "as": "channel"
+   },
+   "poll": {
+    "source": {
+     "steps": [
+      {
+       "id": "window",
+       "method": "GET",
+       "path": "/conversations.history",
+       "query": {
+        "channel": {
+         "var": "channel"
+        },
+        "limit": {
+         "const": 100
+        }
+       },
+       "maxResponseBytes": 2097152,
+       "expect": {
+        "status": [
+         200
+        ],
+        "require": [
+         {
+          "equals": {
+           "pointer": "/ok",
+           "value": {
+            "const": true
+           }
+          }
+         }
+        ]
+       }
+      }
+     ]
+    },
+    "items": {
+     "pick": {
+      "transform": "collections.slackReactions@1",
+      "args": {
+       "list": {
+        "step": "window",
+        "pointer": "/messages"
+       }
+      }
+     },
+     "pointer": "/items"
+    },
+    "itemId": {
+     "concat": [
+      {
+       "var": "channel"
+      },
+      {
+       "const": ":"
+      },
+      {
+       "item": "/parent/ts"
+      },
+      {
+       "const": ":"
+      },
+      {
+       "item": "/name"
+      }
+     ],
+     "max": 200
+    },
+    "itemVersion": "/count",
+    "order": "unordered",
+    "cursors": [
+     {
+      "name": "seen",
+      "kind": "snapshot@1",
+      "compare": "collections.diff@1"
+     }
+    ],
+    "resync": {
+     "statusIn": []
+    },
+    "minIntervalSeconds": 120
+   },
+   "dedupe": {
+    "kind": "id+version"
+   },
+   "event": {
+    "schema": {
+     "type": "object",
+     "properties": {
+      "channel": {
+       "type": "string",
+       "minLength": 1,
+       "maxLength": 21
+      },
+      "ts": {
+       "type": "string",
+       "minLength": 1,
+       "maxLength": 17
+      },
+      "emoji": {
+       "type": "string",
+       "minLength": 1,
+       "maxLength": 116
+      },
+      "count": {
+       "type": "integer",
+       "minimum": 0,
+       "maximum": 1000000
+      },
+      "messageUser": {
+       "type": "string",
+       "maxLength": 64
+      }
+     },
+     "required": [
+      "channel",
+      "ts",
+      "emoji",
+      "count"
+     ],
+     "additionalProperties": false
+    },
+    "id": {
+     "concat": [
+      {
+       "var": "channel"
+      },
+      {
+       "const": ":"
+      },
+      {
+       "item": "/parent/ts"
+      },
+      {
+       "const": ":"
+      },
+      {
+       "item": "/name"
+      }
+     ],
+     "max": 200
+    },
+    "occurredAt": {
+     "item": "/parent/ts"
+    },
+    "fields": {
+     "channel": {
+      "var": "channel"
+     },
+     "ts": {
+      "item": "/parent/ts"
+     },
+     "emoji": {
+      "item": "/name"
+     },
+     "count": {
+      "item": "/count"
+     },
+     "messageUser": {
+      "when": {
+       "nonEmpty": {
+        "item": "/parent/user"
+       }
+      },
+      "then": {
+       "item": "/parent/user"
+      }
+     }
+    },
+    "summary": [
+     {
+      "label": "Emoji",
+      "expr": {
+       "item": "/name"
+      }
+     }
+    ]
+   },
+   "backfill": {
+    "default": 0,
+    "max": 0
+   },
+   "retention": {
+    "hours": 24
+   },
+   "bounds": {
+    "pages": 1,
+    "items": 500,
+    "pollSeconds": 10
+   },
+   "rows": [
+    "slack.messages.read"
+   ]
+  },
+  {
+   "id": "slack.trigger.file-shared.v1.4f7eaebd1de9af6d632680fd",
+   "key": "file-shared",
+   "version": 1,
+   "name": "File shared in chosen channels",
+   "description": "Tells you when a message with a file lands in a channel you choose: the share itself, by its message. A file shared only inside a thread is not seen.",
+   "delivery": {
+    "method": "polling",
+    "intervalSeconds": {
+     "default": 120,
+     "min": 60
+    }
+   },
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "channels": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 20,
+      "items": {
+       "type": "string",
+       "minLength": 9,
+       "maxLength": 21
+      }
+     }
+    },
+    "required": [
+     "channels"
+    ],
+    "additionalProperties": false
+   },
+   "resource": {
+    "each": "/channels",
+    "as": "channel"
+   },
+   "poll": {
+    "source": {
+     "steps": [
+      {
+       "id": "history",
+       "method": "GET",
+       "path": "/conversations.history",
+       "query": {
+        "channel": {
+         "var": "channel"
+        },
+        "oldest": {
+         "cursor": "ts"
+        },
+        "limit": {
+         "const": 100
+        }
+       },
+       "page": {
+        "next": {
+         "pointer": "/response_metadata/next_cursor"
+        },
+        "into": {
+         "query": "cursor"
+        },
+        "items": "/messages",
+        "max": 5
+       },
+       "maxResponseBytes": 2097152,
+       "expect": {
+        "status": [
+         200
+        ],
+        "require": [
+         {
+          "equals": {
+           "pointer": "/ok",
+           "value": {
+            "const": true
+           }
+          }
+         }
+        ]
+       }
+      }
+     ]
+    },
+    "seed": {
+     "step": {
+      "id": "latest",
+      "method": "GET",
+      "path": "/conversations.history",
+      "query": {
+       "channel": {
+        "var": "channel"
+       },
+       "limit": {
+        "const": 1
+       }
+      },
+      "maxResponseBytes": 262144,
+      "expect": {
+       "status": [
+        200
+       ],
+       "require": [
+        {
+         "equals": {
+          "pointer": "/ok",
+          "value": {
+           "const": true
+          }
+         }
+        }
+       ]
+      }
+     },
+     "cursor": {
+      "name": "ts",
+      "pointer": "/messages/0/ts"
+     }
+    },
+    "items": {
+     "step": "history",
+     "pointer": ""
+    },
+    "itemId": {
+     "concat": [
+      {
+       "var": "channel"
+      },
+      {
+       "const": ":"
+      },
+      {
+       "item": "/ts"
+      }
+     ],
+     "max": 64
+    },
+    "itemVersion": null,
+    "itemTime": {
+     "pointer": "/ts",
+     "format": "slack-ts"
+    },
+    "order": "desc",
+    "cursors": [
+     {
+      "name": "ts",
+      "kind": "high-water-ts@1",
+      "next": {
+       "max": "itemTime"
+      },
+      "compare": "time.slackTs@1",
+      "overlapSeconds": 30
+     }
+    ],
+    "resync": {
+     "statusIn": []
+    },
+    "minIntervalSeconds": 60
+   },
+   "filter": [
+    {
+     "nonEmpty": {
+      "item": "/files"
+     }
+    }
+   ],
+   "dedupe": {
+    "kind": "id"
+   },
+   "event": {
+    "schema": {
+     "type": "object",
+     "properties": {
+      "channel": {
+       "type": "string",
+       "minLength": 1,
+       "maxLength": 21
+      },
+      "ts": {
+       "type": "string",
+       "minLength": 1,
+       "maxLength": 17
+      },
+      "user": {
+       "type": "string",
+       "maxLength": 64
+      },
+      "fileId": {
+       "type": "string",
+       "maxLength": 64
+      },
+      "fileName": {
+       "type": "string",
+       "maxLength": 512
+      },
+      "mimetype": {
+       "type": "string",
+       "maxLength": 256
+      },
+      "self": {
+       "type": "string",
+       "minLength": 1,
+       "maxLength": 64
+      }
+     },
+     "required": [
+      "channel",
+      "ts",
+      "self"
+     ],
+     "additionalProperties": false
+    },
+    "id": {
+     "concat": [
+      {
+       "var": "channel"
+      },
+      {
+       "const": ":"
+      },
+      {
+       "item": "/ts"
+      }
+     ],
+     "max": 64
+    },
+    "occurredAt": {
+     "pick": {
+      "transform": "time.slackTs@1",
+      "args": {
+       "ts": {
+        "item": "/ts"
+       }
+      }
+     },
+     "pointer": "/time"
+    },
+    "fields": {
+     "channel": {
+      "var": "channel"
+     },
+     "ts": {
+      "item": "/ts"
+     },
+     "user": {
+      "when": {
+       "nonEmpty": {
+        "item": "/user"
+       }
+      },
+      "then": {
+       "item": "/user"
+      }
+     },
+     "fileId": {
+      "when": {
+       "nonEmpty": {
+        "item": "/files/0/id"
+       }
+      },
+      "then": {
+       "item": "/files/0/id"
+      }
+     },
+     "fileName": {
+      "when": {
+       "nonEmpty": {
+        "item": "/files/0/name"
+       }
+      },
+      "then": {
+       "item": "/files/0/name"
+      }
+     },
+     "mimetype": {
+      "when": {
+       "nonEmpty": {
+        "item": "/files/0/mimetype"
+       }
+      },
+      "then": {
+       "item": "/files/0/mimetype"
+      }
+     },
+     "self": {
+      "account": "userId"
+     }
+    },
+    "summary": [
+     {
+      "label": "File",
+      "expr": {
+       "item": "/files/0/name"
+      },
+      "truncate": 120
+     }
+    ]
+   },
+   "backfill": {
+    "default": 0,
+    "max": 25
+   },
+   "retention": {
+    "hours": 24
+   },
+   "bounds": {
+    "pages": 5,
+    "items": 500,
+    "pollSeconds": 10
+   },
+   "rows": [
+    "slack.messages.read"
+   ]
+  },
+  {
+   "id": "slack.trigger.conversation-joined.v1.3cdc9a39232c9f58912247aa",
+   "key": "conversation-joined",
+   "version": 1,
+   "name": "New channel or conversation you are in",
+   "description": "Tells you when a channel, group DM or DM you belong to first appears: one you created, joined or were added to. Channels you are not in are not seen, and Slack gives no time for the join.",
+   "delivery": {
+    "method": "polling",
+    "intervalSeconds": {
+     "default": 600,
+     "min": 300
+    }
+   },
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "kinds": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 4,
+      "items": {
+       "type": "string",
+       "enum": [
+        "public_channel",
+        "private_channel",
+        "mpim",
+        "im"
+       ]
+      }
+     }
+    },
+    "required": [
+     "kinds"
+    ],
+    "additionalProperties": false
+   },
+   "resource": {
+    "each": "/kinds",
+    "as": "kind"
+   },
+   "poll": {
+    "source": {
+     "steps": [
+      {
+       "id": "mine",
+       "method": "GET",
+       "path": "/users.conversations",
+       "query": {
+        "types": {
+         "var": "kind"
+        },
+        "limit": {
+         "const": 100
+        }
+       },
+       "page": {
+        "next": {
+         "pointer": "/response_metadata/next_cursor"
+        },
+        "into": {
+         "query": "cursor"
+        },
+        "items": "/channels",
+        "max": 5
+       },
+       "maxResponseBytes": 2097152,
+       "expect": {
+        "status": [
+         200
+        ],
+        "require": [
+         {
+          "equals": {
+           "pointer": "/ok",
+           "value": {
+            "const": true
+           }
+          }
+         }
+        ]
+       }
+      }
+     ]
+    },
+    "items": {
+     "step": "mine",
+     "pointer": ""
+    },
+    "itemId": {
+     "item": "/id"
+    },
+    "itemVersion": null,
+    "order": "unordered",
+    "cursors": [
+     {
+      "name": "seen",
+      "kind": "snapshot@1",
+      "compare": "collections.diff@1"
+     }
+    ],
+    "resync": {
+     "statusIn": []
+    },
+    "minIntervalSeconds": 300
+   },
+   "dedupe": {
+    "kind": "id"
+   },
+   "event": {
+    "schema": {
+     "type": "object",
+     "properties": {
+      "channel": {
+       "type": "string",
+       "minLength": 1,
+       "maxLength": 21
+      },
+      "kind": {
+       "type": "string",
+       "minLength": 1,
+       "maxLength": 32
+      },
+      "name": {
+       "type": "string",
+       "maxLength": 256
+      },
+      "creator": {
+       "type": "string",
+       "maxLength": 64
+      },
+      "created": {
+       "type": "integer",
+       "minimum": 0,
+       "maximum": 99999999999
+      },
+      "otherUser": {
+       "type": "string",
+       "maxLength": 64
+      },
+      "self": {
+       "type": "string",
+       "minLength": 1,
+       "maxLength": 64
+      }
+     },
+     "required": [
+      "channel",
+      "kind",
+      "self"
+     ],
+     "additionalProperties": false
+    },
+    "id": {
+     "item": "/id"
+    },
+    "occurredAt": {
+     "item": "/created"
+    },
+    "fields": {
+     "channel": {
+      "item": "/id"
+     },
+     "kind": {
+      "var": "kind"
+     },
+     "name": {
+      "when": {
+       "nonEmpty": {
+        "item": "/name"
+       }
+      },
+      "then": {
+       "item": "/name"
+      }
+     },
+     "creator": {
+      "when": {
+       "nonEmpty": {
+        "item": "/creator"
+       }
+      },
+      "then": {
+       "item": "/creator"
+      }
+     },
+     "created": {
+      "when": {
+       "nonEmpty": {
+        "item": "/created"
+       }
+      },
+      "then": {
+       "item": "/created"
+      }
+     },
+     "otherUser": {
+      "when": {
+       "nonEmpty": {
+        "item": "/user"
+       }
+      },
+      "then": {
+       "item": "/user"
+      }
+     },
+     "self": {
+      "account": "userId"
+     }
+    },
+    "summary": [
+     {
+      "label": "Name",
+      "expr": {
+       "item": "/name"
+      },
+      "truncate": 120
+     }
+    ]
+   },
+   "backfill": {
+    "default": 0,
+    "max": 0
+   },
+   "retention": {
+    "hours": 24
+   },
+   "bounds": {
+    "pages": 5,
+    "items": 500,
+    "pollSeconds": 10
+   },
+   "rows": [
+    "slack.channels.read"
+   ]
+  }
+ ]
+}

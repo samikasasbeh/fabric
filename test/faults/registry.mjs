@@ -37,6 +37,12 @@ import {FAULTS as F10_17} from './f10-17.mjs';
 import {FAULTS as F10_19} from './f10-19.mjs';
 import {FAULTS as F10_21} from './f10-21.mjs';
 import {FAULTS as HAND_PASS} from './hand-pass.mjs';
+import {FAULTS as I07} from './i07.mjs';
+import {FAULTS as I07_SLACK} from './i07-slack.mjs';
+import {FAULTS as I07_NOTION} from './i07-notion.mjs';
+import {FAULTS as I07_GITHUB} from './i07-github.mjs';
+import {FAULTS as I07_GMAIL} from './i07-gmail.mjs';
+import {FAULTS as I07_CALENDAR} from './i07-calendar.mjs';
 
 const R = String.raw;
 
@@ -45,6 +51,7 @@ export const NEW_TEST_FILES = Object.freeze([
   'test/tenant-isolation-routes.test.mjs', 'test/tenant-isolation-page.test.mjs', 'test/tenant-credentials-scan.test.mjs',
   'test/tenant-owner-flow.test.mjs',
   'test/tenant-f10-invariants.test.mjs', 'test/local-mode-goldens.test.mjs', 'test/tenant-consent-sheet.test.mjs',
+  'test/trigger-store.test.mjs', 'test/trigger-catalog.test.mjs', 'test/trigger-engine.test.mjs', 'test/triggers-protocol.test.mjs',
 ]);
 
 export const FAULTS = Object.freeze([
@@ -526,4 +533,11 @@ export const FAULTS = Object.freeze([
   ...F10_19,
   // ---- F10.21 Slack actions (docs/F10.21-BUILD-MAP.md section 4) -----------------------------------------------------------------------
   ...F10_21, ...HAND_PASS,
+  // ---- Iteration 9 triggers (docs/I07-BUILD-MAP.md section 3) --------------------------------------------------------------------------
+  ...I07,
+  ...I07_SLACK,
+  ...I07_NOTION,
+  ...I07_GITHUB,
+  ...I07_GMAIL,
+  ...I07_CALENDAR,
 ]);

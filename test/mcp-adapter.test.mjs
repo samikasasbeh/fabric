@@ -22,7 +22,7 @@ const ROOT=path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const ENTRY=path.join(ROOT,'mcp.mts');
 const TOKEN=`fab_client.${randomUUID()}.${'a'.repeat(43)}`;
 const ENV={FABRIC_ENDPOINT:'http://127.0.0.1:4188/fabric/v1',FABRIC_CLIENT_TOKEN:TOKEN};
-const NAMES=['fabric_get_call','fabric_invoke','fabric_list_capabilities','fabric_proxy_request'];
+const NAMES=['fabric_get_call','fabric_invoke','fabric_list_capabilities','fabric_list_events','fabric_proxy_request','fabric_watch'];
 const args={requestId:'explicit-request-1',connectionId:'connection',capabilityId:'operation',definitionHash:'a'.repeat(64),args:{}};
 const result={id:'job',status:'succeeded',connectionId:'connection',capabilityId:'operation',createdAt:'2026-01-01T00:00:00.000Z',updatedAt:'2026-01-01T00:00:00.000Z',result:{data:{ok:true},verification:{status:'observed'}},error:null,approvalRequired:false};
 const response=(input,value={capabilities:[]})=>new Response(JSON.stringify({protocol:'fabric/0.1',id:JSON.parse(input.body).id,result:value}),{headers:{'content-type':'application/json'}});
@@ -64,7 +64,7 @@ test('MCP environment accepts only canonical loopback Fabric endpoint and a boun
   for(const token of ['',undefined,'fab_client.invalid',TOKEN+'\n'])assert.throws(()=>readMcpEnvironment({...ENV,FABRIC_CLIENT_TOKEN:token}),/Invalid MCP environment/);
 });
 
-test('MCP lists only four fixed tools without touching the runtime',async t=>{
+test('MCP lists only six fixed tools without touching the runtime',async t=>{
   const client=await memory(t,{fetch:async()=>{assert.fail('tool metadata must not access accounts');}});
   const listed=await client.listTools();assert.deepEqual(listed.tools.map(tool=>tool.name).sort(),NAMES);
   assert.equal(listed.tools.find(tool=>tool.name==='fabric_invoke').inputSchema.additionalProperties,false);

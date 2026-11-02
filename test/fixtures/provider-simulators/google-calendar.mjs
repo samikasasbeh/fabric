@@ -15,6 +15,7 @@
 //   POST   /calendars/{calendarId}/events/{eventId}/move?destination
 //   POST   /freeBusy                                  a read: it changes nothing and is recorded as one
 //   POST   /calendars, GET /calendars/{calendarId}, DELETE /calendars/{calendarId}
+//   GET    /calendars/{calendarId}/acl                list rules, 100 a page (maxResults 1 to 250, pageToken), a writer or an owner only
 //   GET    /calendars/{calendarId}/acl/{ruleId}, DELETE /calendars/{calendarId}/acl/{ruleId}
 // Scopes whose grant depends on the object (calendar.app.created, calendar.events.owned and their read twins, calendar.events.freebusy,
 // calendar.events.public.readonly) are left out of the table: a token holding only those is refused, stricter than Google, never looser.
@@ -45,7 +46,9 @@
 //   bounds an event's end and timeMax its start, both exclusive (an all-day event spans its days in the calendar's zone). q matches every
 //   word, in any case, in the summary, description, location or an attendee's email. maxResults (1 to 2,500, default 250) and pageToken
 //   page. maxAttendees on a get or list keeps only the caller's own entry when there are more, with attendeesOmitted. Cancelled events
-//   are left out.
+//   are left out unless showDeleted=true: then a cancelled event is listed, and with singleEvents=true a cancelled series is its
+//   occurrences, never the series itself. An invitation hidden from the calendar is left out unless showHiddenInvitations=true. All event
+//   types are listed.
 // - Get: a deleted event answers 200 with status cancelled, or 404 or 410 under deletedAs(status).
 // - Patch and update (PUT): an If-Match that is not the current etag answers 412 conditionNotMet and changes nothing; with none the
 //   change applies (Google does not require it). Patch replaces each top-level field it names (null clears one); update replaces the whole
@@ -58,8 +61,9 @@
 // - Move: the destination must be a calendar the owner can write (403 requiredAccessLevel, or 404); only a default event moves (else 400
 //   eventTypeRestriction and it stays); a moved event keeps its id and gets the destination as organizer. Only the organizer moves it.
 //   The move answers with one etag and the event then reads back with a newer one, as Google does (live run TOQJPGEU, C8).
-// - Delete: 204; a second delete answers 410 deleted. A write on one instance of a series answers 400 notSimulated: the simulator does not
-//   model exceptions of a series.
+// - Delete: 204; a second delete answers 410 deleted, and a deleted series cancels the occurrences written apart from it.
+// - One occurrence: a write on an instance id makes an exception, an item with that id, recurringEventId and originalStartTime, which takes
+//   that occurrence's place in every list. A move of an instance answers 400 cannotChangeOrganizerOfInstance.
 // - POST /freeBusy {timeMin, timeMax, timeZone?, items}: {kind, timeMin, timeMax, calendars: {<id as asked>: {busy}}} from opaque,
 //   confirmed events, instances expanded, clipped to the window and merged; times in UTC, or in timeZone. A calendar the owner does not
 //   have gets {errors: [{domain: 'global', reason: 'notFound'}], busy: []}.
@@ -67,6 +71,20 @@
 //   and the owner's own ACL rule), get, and delete (the primary answers 400 cannotDeletePrimaryCalendar; only an owner deletes, else 403
 //   forbidden; its events and rules go with it). ACL: get and delete of user:<email> rules; a deleted rule answers 404; only the
 //   calendar's owner deletes one (else 403 forbidden).
+//
+// Change feeds (the Calendar sync guide): events.list with none of the eight parameters refused beside a sync token, calendarList.list and
+// acl.list each read one log, per calendar for events and rules, and one for the list. The log holds an item's newest change, so a delta shows
+// each item once in its current state, in the order it last moved. A list with no token is a full read and leaves out what has gone. Its last
+// page carries nextSyncToken and any other page nextPageToken, never both, and an empty delta still answers a token. A token is opaque and
+// binds its feed and the whole query but syncToken and pageToken. An old token stays good until expireToken(), so a poll can be replayed.
+//   400 a refused parameter beside a token, showDeleted=false or showHidden=false beside one, a query that differs from the token's, a damaged token
+//   410 a token expireToken() ended, with Google's body: domain calendar, reason fullSyncRequired, location syncToken. It is unconnected to age
+// A cancelled item stays in the log. The organizer's copy keeps its details. Any other copy, and the entry a move leaves on its source
+// calendar, holds its id and status alone, and a cancelled occurrence holds those with recurringEventId and originalStartTime. A move also
+// writes the event on its destination, with the same id. A removed rule reads role none, and a removed list entry deleted: true.
+//
+// The fields parameter is a partial response on any route, applied to a 2xx answer: a,b(c,d),e/f and *. A mask that does not parse, or that
+// names no field of an events list, answers 400 invalidParameter and changes nothing.
 //
 // The network contract is lib/network.mjs's seam: `request` takes its options and answers {status, headers, data}. Refused before
 // sending, with sent false: a URL that is not https on 443 or carries credentials, an origin outside allowedOrigins or not Google's, an
@@ -82,7 +100,12 @@
 // {reached, release()}. Test data: touch(calendarId, eventId) is someone else changing the event (its etag moves); invite(event) adds an
 // event another account organizes on the primary calendar, with the owner as a guest; seed(calendarId, event, {eventType}) inserts one
 // unrecorded; addCalendar(entry) gives the owner another account's calendar at an access role; share(calendarId, email, role) adds a rule;
-// deletedAs(200 | 404 | 410) sets how a deleted event reads back.
+// deletedAs(200 | 404 | 410) sets how a deleted event reads back. For the feeds: invite({calendarId, hidden}) puts an invitation on any calendar;
+// guestResponds(calendarId, eventId, email, status) is a guest answering, and moves the etag and updated; setReminders(calendarId, eventId,
+// reminders) moves the etag and not updated; share() and sharePublic() add rules and unshare() removes one; hideCalendar(), recolor() and
+// leaveCalendar() change the owner's list, and changeRole() moves the owner's access with no entry in the list's sync feed; expireToken(calendarId, {feed}) ends a feed's tokens; shortPage(n) makes the next page of a feed hold
+// n items and a next page, n = 0 for an empty one; redeliver(n) repeats the last n items in the next delta; rateLimit(route, {status, times})
+// answers Google's usageLimits refusal, at 403 or 429, with no Retry-After.
 import {createHash} from 'node:crypto';
 
 export const ORIGIN = 'https://www.googleapis.com';
@@ -102,6 +125,13 @@ const DAY_MS = 86_400_000, HOUR_MS = 3_600_000;
 /** How many instances one series yields at most, and how many days its expansion walks. */
 const MAX_INSTANCES = 730, MAX_DAYS = 7320;
 const EMAIL = /^[^\s@]+@[^\s@]+$/;
+/** The parameters Google refuses beside a sync token, on events.list and on calendarList.list. */
+const NOT_BESIDE_TOKEN = Object.freeze(['iCalUID', 'orderBy', 'privateExtendedProperty', 'q', 'sharedExtendedProperty', 'timeMin', 'timeMax', 'updatedMin']);
+const LIST_NOT_BESIDE_TOKEN = Object.freeze(['minAccessRole', 'showOwnOrganizationOnly']);
+const namesOf = text => Object.fromEntries(text.split(' ').map(name => [name, true]));
+/** The fields a mask on an events list may name. Below these, a mask reads what is there. */
+const EVENT_LIST_FIELDS = Object.freeze({...namesOf('kind etag summary description updated timeZone accessRole defaultReminders nextPageToken nextSyncToken'),
+  items: namesOf('kind etag id status htmlLink created updated summary description location creator organizer start end recurrence recurringEventId originalStartTime transparency iCalUID attendees attendeesOmitted hangoutLink conferenceData eventType reminders')});
 
 const notSent = message => Object.assign(new Error(message), {sent: false});
 const lost = message => Object.assign(new Error(message), {sent: true});
@@ -116,6 +146,57 @@ class Refusal extends Error { constructor(answer) { super(answer.data.error.mess
 const refuse = (code, reason, message, extra) => { throw new Refusal(googleError(code, reason, message, extra)); };
 const notFound = () => refuse(404, 'notFound', 'Not Found');
 const ok = (data, headers = {}) => ({status: 200, headers, data});
+const newLog = () => ({at: 0, epoch: 0, items: {}, gone: {}});
+/** What a query says apart from where it stands: the part a sync token binds. */
+const bindingOf = query => hex(canonical([...query].filter(([name]) => !['syncToken', 'pageToken'].includes(name)).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)))).slice(0, 16);
+
+// ---- partial responses -----------------------------------------------------------------------------------------------------------------
+/** A fields mask as a tree: each name maps to true or the tree below it. A mask that does not parse answers 400. */
+function maskOf(text) {
+  let at = 0;
+  const bad = () => refuse(400, 'invalidParameter', `Invalid field selection ${text.slice(0, 64)}`, {locationType: 'parameter', location: 'fields'});
+  const name = () => {
+    const match = /^(?:\*|[A-Za-z][A-Za-z0-9_]*)/.exec(text.slice(at));
+    if (!match) bad();
+    at += match[0].length;
+    return match[0];
+  };
+  const selection = () => {
+    const tree = {};
+    for (;;) {
+      let node = tree, part = name();
+      while (text[at] === '/') {
+        at++;
+        node = node[part] = record(node[part]) ? node[part] : {};
+        part = name();
+      }
+      if (text[at] === '(') {
+        at++;
+        node[part] = selection();
+        if (text[at++] !== ')') bad();
+      } else node[part] = true;
+      if (text[at] !== ',') return tree;
+      at++;
+    }
+  };
+  const tree = selection();
+  if (at !== text.length) bad();
+  return tree;
+}
+/** Refuses a name a mask reads that the answer's fields do not hold, as far down as `known` says. */
+function checkMask(tree, known, text) {
+  for (const [name, below] of Object.entries(tree)) {
+    if (name === '*') continue;
+    if (!Object.hasOwn(known, name)) refuse(400, 'invalidParameter', `Invalid field selection ${name}`, {locationType: 'parameter', location: 'fields'});
+    if (record(known[name]) && record(below)) checkMask(below, known[name], text);
+  }
+}
+/** An answer with only what a mask names. */
+function masked(value, tree) {
+  if (tree === true || tree['*'] || value === null || typeof value !== 'object') return value;
+  if (Array.isArray(value)) return value.map(item => masked(item, tree));
+  return Object.fromEntries(Object.entries(value).filter(([name]) => Object.hasOwn(tree, name)).map(([name, item]) => [name, masked(item, tree[name])]));
+}
 
 // ---- time ------------------------------------------------------------------------------------------------------------------------------
 const FORMATS = new Map();
@@ -295,6 +376,16 @@ function attendeesAfter(current, list, omitted) {
 const organizes = event => same(event.organizer.email, event.calendarId);
 /** Sorted-key JSON, so two versions compare by value. */
 const canonical = value => JSON.stringify(value, (key, item) => record(item) ? Object.fromEntries(Object.keys(item).sort().map(name => [name, item[name]])) : item);
+/** A start or end as a list shows it, in a zone. */
+const shownTime = (value, zone) => value.kind === 'date' ? {date: value.date, ...(value.timeZone ? {timeZone: value.timeZone} : {})} : {dateTime: formatInstant(value.ms, zone), ...(value.timeZone ? {timeZone: value.timeZone} : {})};
+/** A feed's token or page token: opaque, naming its feed, its place in the log, the log's epoch and the query. */
+const tokenOf = (kind, feed, at, epoch, binding) => Buffer.from(JSON.stringify({kind, feed, at, epoch, binding})).toString('base64url');
+function tokenRead(text) {
+  try {
+    const token = JSON.parse(Buffer.from(text, 'base64url').toString('utf8'));
+    return record(token) && tokenOf(token.kind, token.feed, token.at, token.epoch, token.binding) === text ? token : null;
+  } catch { return null; }
+}
 
 export class CalendarSimulator {
   /**
@@ -311,9 +402,13 @@ export class CalendarSimulator {
     this.switches = new Map();
     this.holds = new Map();
     this.deleted = 200;
-    this.data = {owner: {email: owner.email, zone: owner.zone}, calendars: {}, events: {}, acl: {}, conferences: {}, notifications: [], next: {event: 1, etag: 1, calendar: 1, seq: 1, conference: 1}};
+    this.short = null;
+    this.repeats = 0;
+    this.data = {owner: {email: owner.email, zone: owner.zone}, calendars: {}, events: {}, acl: {}, conferences: {}, notifications: [], feeds: {}, next: {event: 1, etag: 1, calendar: 1, seq: 1, conference: 1}};
     this.data.calendars[owner.email] = {id: owner.email, summary: owner.email, timeZone: owner.zone, accessRole: 'owner', primary: true, etag: this.#etag(this.data)};
     this.data.acl[owner.email] = {[`user:${owner.email}`]: {role: 'owner', etag: this.#etag(this.data)}};
+    this.#mark(this.data, 'list', owner.email);
+    this.#mark(this.data, `acl:${owner.email}`, `user:${owner.email}`);
     this.request = this.request.bind(this);
   }
   state() { return structuredClone(this.data); }
@@ -347,6 +442,20 @@ export class CalendarSimulator {
     this.deleted = status;
     return this;
   }
+  /** Ends the tokens of one feed, whatever their age: a calendar's events, its rules with {feed: 'acl'}, or the list with {feed: 'list'}. */
+  expireToken(calendarId, {feed = 'events'} = {}) {
+    const key = feed === 'list' ? 'list' : `${feed}:${this.#calendar(this.data, calendarId)?.id ?? calendarId}`;
+    (this.data.feeds[key] ??= newLog()).epoch++;
+    return this;
+  }
+  /** The next page of any feed holds n items and a next page, whatever is left: n = 0 is an empty page. */
+  shortPage(n = 0) { this.short = n; return this; }
+  /** The next delta of any feed also holds the last n items a read has already held. */
+  redeliver(n = 1) { this.repeats = n; return this; }
+  /** The next call to a route answers Google's rate limit, as a 403 or a 429 of domain usageLimits, with no Retry-After. */
+  rateLimit(route, {status = 403, times} = {}) {
+    return this.fail(route, googleError(status, 'rateLimitExceeded', 'Rate Limit Exceeded', {domain: 'usageLimits'}), times === undefined ? undefined : {times});
+  }
 
   // ---- test data ---------------------------------------------------------------------------------------------------------------------
   #etag(state) { return `"${3_400_000_000_000_000 + state.next.etag++ * 1000}"`; }
@@ -356,23 +465,42 @@ export class CalendarSimulator {
     if (!event || event.calendarId !== calendar.id) throw new Error(`No event ${eventId} on ${calendarId}.`);
     event.etag = this.#etag(this.data);
     event.updated = this.clock();
+    this.#mark(this.data, `events:${event.calendarId}`, event.id);
     return this.#render(this.data, event);
   }
-  /** An event another account organizes, on the owner's primary calendar, with the owner as a guest who has not answered. */
-  invite({summary = 'Invitation', description, start, end, organizer = 'organizer@other.example', attendees = [], recurrence} = {}) {
-    const state = this.data, owner = state.owner.email;
+  /** One of an event's guests answers: its etag and updated move, and a delta holds it. */
+  guestResponds(calendarId, eventId, email, status) {
+    const calendar = this.#calendar(this.data, calendarId), event = calendar ? this.data.events[eventId] : null, guest = event?.calendarId === calendar?.id ? event?.attendees.find(item => same(item.email, email)) : null;
+    if (!guest || !RESPONSES.has(status)) throw new Error('guestResponds takes a calendar, one of its events, a guest of it and an answer.');
+    guest.responseStatus = status;
+    this.#commit(this.data, event);
+    return this.#render(this.data, event);
+  }
+  /** Reminders change: the etag moves, and updated does not, as Google documents it. */
+  setReminders(calendarId, eventId, reminders) {
+    const calendar = this.#calendar(this.data, calendarId), event = calendar ? this.data.events[eventId] : null;
+    if (!event || event.calendarId !== calendar.id) throw new Error(`No event ${eventId} on ${calendarId}.`);
+    event.reminders = reminders;
+    event.etag = this.#etag(this.data);
+    this.#mark(this.data, `events:${event.calendarId}`, event.id);
+    return this.#render(this.data, event);
+  }
+  /** An event another account organizes, with the calendar as a guest who has not answered: on the owner's primary calendar unless `calendarId` says otherwise, and with `hidden` left off the calendar. */
+  invite({calendarId = this.data.owner.email, summary = 'Invitation', description, start, end, organizer = 'organizer@other.example', attendees = [], recurrence, hidden = false} = {}) {
+    const state = this.data, calendar = this.#calendar(state, calendarId);
+    if (!calendar) throw new Error(`No calendar ${calendarId}.`);
     const guests = attendees.map(item => attendeeOf(typeof item === 'string' ? {email: item} : item)).map(item => mergeAttendee(null, item));
-    const event = {...this.#fresh(state.calendars[owner], {summary, description, start, end, recurrence}), organizer: {email: organizer}, creator: {email: organizer},
-      attendees: [{email: organizer, responseStatus: 'accepted'}, ...guests, {email: owner, responseStatus: 'needsAction'}]};
+    const event = {...this.#fresh(calendar, {summary, description, start, end, recurrence}), organizer: {email: organizer}, creator: {email: organizer},
+      attendees: [{email: organizer, responseStatus: 'accepted'}, ...guests, {email: calendar.id, responseStatus: 'needsAction'}], ...(hidden ? {hidden: true} : {})};
     checkTimes(event);
     this.#commit(state, event);
     return this.#render(state, event);
   }
-  /** Inserts an event as the owner, unrecorded, with an event type Google sets itself (focusTime, outOfOffice, ...) when given. */
-  seed(calendarId, resource, {eventType = 'default'} = {}) {
+  /** Inserts an event as the owner, unrecorded, with an event type Google sets itself (focusTime, outOfOffice, ...) and a client's own id when given. */
+  seed(calendarId, resource, {eventType = 'default', id} = {}) {
     const state = this.data, calendar = this.#calendar(state, calendarId);
     if (!calendar) throw new Error(`No calendar ${calendarId}.`);
-    const event = {...this.#build(state, calendar, resource, {now: this.clock(), conference: 0}).event, eventType};
+    const event = {...this.#build(state, calendar, resource, {now: this.clock(), conference: 0}).event, eventType, ...(id ? {id, seq: state.next.seq++} : {})};
     this.#commit(state, event);
     return this.#render(state, event);
   }
@@ -381,17 +509,78 @@ export class CalendarSimulator {
     if (typeof id !== 'string' || !id || this.data.calendars[id] || !validZone(timeZone) || !['freeBusyReader', 'reader', 'writer', 'owner'].includes(accessRole)) throw new Error('addCalendar takes a new id, a zone and an access role.');
     this.data.calendars[id] = {id, summary, timeZone, accessRole, etag: this.#etag(this.data)};
     this.data.acl[id] = {};
+    this.#mark(this.data, 'list', id);
     return this.#entry(this.data.calendars[id]);
+  }
+  /** A change to the owner's own entry for a calendar. */
+  #entryChanged(calendarId, change) {
+    const calendar = this.#calendar(this.data, calendarId);
+    if (!calendar) throw new Error(`No calendar ${calendarId}.`);
+    Object.assign(calendar, change, {etag: this.#etag(this.data)});
+    this.#mark(this.data, 'list', calendar.id);
+    return this.#entry(calendar);
+  }
+  /** The owner hides a calendar from the list, or shows it again. */
+  hideCalendar(calendarId, hidden = true) { return this.#entryChanged(calendarId, {hidden}); }
+  /** A cosmetic change, which only the owner sees: the entry's etag moves. */
+  recolor(calendarId, colorId) { return this.#entryChanged(calendarId, {colorId}); }
+  /**
+   * Someone changes the owner's access to a calendar. Google's calendarList.list page: "If only read-only fields such as calendar properties or ACLs have changed, the entry won't be returned." So the role
+   * moves with no log entry, and only a full read or the entry's next change shows it.
+   */
+  changeRole(calendarId, accessRole) {
+    const calendar = this.#calendar(this.data, calendarId);
+    if (!calendar) throw new Error(`No calendar ${calendarId}.`);
+    calendar.accessRole = accessRole;
+    return this;
+  }
+  /** The owner takes a calendar off the list. */
+  leaveCalendar(calendarId) {
+    const calendar = this.#calendar(this.data, calendarId);
+    if (!calendar) throw new Error(`No calendar ${calendarId}.`);
+    this.#unlisted(this.data, calendar.id);
   }
   /** A user rule on a calendar, as someone sharing it in Google Calendar adds one. */
   share(calendarId, email, role = 'reader') {
     const calendar = this.#calendar(this.data, calendarId);
     if (!calendar || !EMAIL.test(email) || !['freeBusyReader', 'reader', 'writer', 'owner'].includes(role)) throw new Error('share takes a calendar, an email and a role.');
     this.data.acl[calendar.id][`user:${email}`] = {role, etag: this.#etag(this.data)};
+    this.#mark(this.data, `acl:${calendar.id}`, `user:${email}`);
     return this.#rule(calendar.id, `user:${email}`, this.data.acl[calendar.id][`user:${email}`]);
+  }
+  /** A public calendar: the one rule of scope default, which holds no value. */
+  sharePublic(calendarId, role = 'reader') {
+    const calendar = this.#calendar(this.data, calendarId);
+    if (!calendar) throw new Error(`No calendar ${calendarId}.`);
+    this.data.acl[calendar.id].default = {role, etag: this.#etag(this.data)};
+    this.#mark(this.data, `acl:${calendar.id}`, 'default');
+    return this.#rule(calendar.id, 'default', this.data.acl[calendar.id].default);
+  }
+  /** Someone stops sharing a calendar with a person, or with everyone when `email` is null. */
+  unshare(calendarId, email = null) {
+    const calendar = this.#calendar(this.data, calendarId);
+    if (!calendar) throw new Error(`No calendar ${calendarId}.`);
+    this.#ruleGone(this.data, calendar.id, email === null ? 'default' : `user:${email}`);
   }
 
   // ---- shared pieces -----------------------------------------------------------------------------------------------------------------
+  /** Writes one change to a feed's log: an item's newest place, and what stands in for it when it has left that feed. */
+  #mark(state, feed, id, gone = null) {
+    const log = state.feeds[feed] ??= newLog();
+    log.items[id] = ++log.at;
+    if (gone) log.gone[id] = gone;
+    else delete log.gone[id];
+  }
+  /** A calendar leaves the owner's list: the entry reads deleted in a delta. */
+  #unlisted(state, id) {
+    this.#mark(state, 'list', id, {etag: this.#etag(state)});
+    delete state.calendars[id];
+  }
+  /** A rule goes: it reads role none in a delta. */
+  #ruleGone(state, calendarId, ruleId) {
+    this.#mark(state, `acl:${calendarId}`, ruleId, {etag: this.#etag(state)});
+    delete state.acl[calendarId][ruleId];
+  }
   #calendar(state, id) { return typeof id === 'string' ? state.calendars[id === 'primary' ? state.owner.email : id] ?? null : null; }
   #readable(state, id) { return this.#calendar(state, id) ?? notFound(); }
   #writable(state, id) {
@@ -405,11 +594,14 @@ export class CalendarSimulator {
     if (event && event.calendarId === calendar.id) return {event, instance: null};
     const match = /^(.+)_(\d{8}(?:T\d{6}Z)?)$/.exec(eventId), master = match ? state.events[match[1]] : null;
     if (master && master.calendarId === calendar.id && master.rule) {
-      if (!instances) refuse(400, 'notSimulated', 'The simulator does not change one instance of a series.');
       const found = startsOf(master).map(start => occurrence(master, start)).find(item => item.stamp === match[2]);
-      if (found) return {event: master, instance: found};
+      if (found) return instances ? {event: master, instance: found} : {event: this.#exception(master, found), instance: null};
     }
     return notFound();
+  }
+  /** The item a write on one occurrence makes, with the series' fields and that occurrence's own id and times. Nothing stands until the write commits it. */
+  #exception(master, {stamp, start, end}) {
+    return {...structuredClone(master), id: `${master.id}_${stamp}`, start, end, originalStart: start, recurringEventId: master.id, recurrence: null, rule: null};
   }
   /** A new event's own fields, before the calendar's organizer is set. */
   #fresh(calendar, body) {
@@ -456,6 +648,7 @@ export class CalendarSimulator {
       event.conference = conference.requestId;
     }
     state.events[event.id] = event;
+    this.#mark(state, `events:${event.calendarId}`, event.id);
     return event;
   }
   /** One notification per guest Google would email, under sendUpdates; none emails nobody. */
@@ -468,8 +661,7 @@ export class CalendarSimulator {
   }
   #render(state, event, {zone = null, maxAttendees = null, instance = null} = {}) {
     const calendar = state.calendars[event.calendarId], shown = zone ?? calendar?.timeZone ?? state.owner.zone, id = instance ? `${event.id}_${instance.stamp}` : event.id;
-    const time = value => value.kind === 'date' ? {date: value.date, ...(value.timeZone ? {timeZone: value.timeZone} : {})}
-      : {dateTime: formatInstant(value.ms, shown), ...(value.timeZone ? {timeZone: value.timeZone} : {})};
+    const time = value => shownTime(value, shown);
     const person = (entry, self) => ({email: entry.email, ...(entry.displayName ? {displayName: entry.displayName} : {}), ...(self ? {self: true} : {})});
     const out = {kind: 'calendar#event', etag: event.etag, id, status: event.status, htmlLink: `https://www.google.com/calendar/event?eid=${Buffer.from(`${id} ${event.calendarId}`).toString('base64url')}`,
       created: iso(event.created), updated: iso(event.updated)};
@@ -480,9 +672,11 @@ export class CalendarSimulator {
     out.end = time(instance ? instance.end : event.end);
     if (!instance && event.recurrence) out.recurrence = [...event.recurrence];
     if (instance) { out.recurringEventId = event.id; out.originalStartTime = time(instance.start); }
+    if (event.recurringEventId) { out.recurringEventId = event.recurringEventId; out.originalStartTime = time(event.originalStart); }
+    if (event.reminders) out.reminders = event.reminders;
     if (event.transparency) out.transparency = event.transparency;
     out.iCalUID = `${event.id}@google.com`;
-    let attendees = event.attendees.map(item => ({...item, ...(same(item.email, event.organizer.email) ? {organizer: true} : {}), ...(same(item.email, state.owner.email) ? {self: true} : {})}));
+    let attendees = event.attendees.map(item => ({...item, ...(same(item.email, event.organizer.email) ? {organizer: true} : {}), ...(same(item.email, event.calendarId) ? {self: true} : {})}));
     if (maxAttendees !== null && attendees.length > maxAttendees) { attendees = attendees.filter(item => item.self); out.attendeesOmitted = true; }
     if (attendees.length) out.attendees = attendees;
     const conference = event.conference ? state.conferences[event.conference] : null;
@@ -495,9 +689,15 @@ export class CalendarSimulator {
     out.eventType = event.eventType;
     return out;
   }
+  /** A cancelled event as a list shows it: the organizer's copy with its details, a cancelled occurrence with the three fields Google documents, and any other copy its id alone. */
+  #cancelled(state, event, options = {}) {
+    if (!event.recurringEventId && organizes(event)) return this.#render(state, event, options);
+    const shown = {kind: 'calendar#event', etag: event.etag, id: event.id, status: 'cancelled'}, zone = options.zone ?? state.calendars[event.calendarId]?.timeZone ?? state.owner.zone;
+    return event.recurringEventId ? {...shown, recurringEventId: event.recurringEventId, originalStartTime: shownTime(event.originalStart, zone)} : shown;
+  }
   #entry(calendar) {
     return {kind: 'calendar#calendarListEntry', etag: calendar.etag, id: calendar.id, summary: calendar.summary, ...(calendar.description ? {description: calendar.description} : {}),
-      timeZone: calendar.timeZone, accessRole: calendar.accessRole, ...(calendar.primary ? {primary: true} : {})};
+      timeZone: calendar.timeZone, accessRole: calendar.accessRole, ...(calendar.primary ? {primary: true} : {}), ...(calendar.hidden ? {hidden: true} : {}), ...(calendar.colorId ? {colorId: calendar.colorId} : {})};
   }
   #resource(calendar) {
     return {kind: 'calendar#calendar', etag: calendar.etag, id: calendar.id, summary: calendar.summary, ...(calendar.description ? {description: calendar.description} : {}),
@@ -506,6 +706,39 @@ export class CalendarSimulator {
   #rule(calendarId, ruleId, rule) {
     const [type, ...value] = ruleId.split(':');
     return {kind: 'calendar#aclRule', etag: rule.etag, id: ruleId, scope: {type, ...(value.length ? {value: value.join(':')} : {})}, role: rule.role};
+  }
+  /** Where a token stands in a feed's log: it must name this feed and this query, and its epoch must still stand. */
+  #place(log, feed, text, kind, binding) {
+    const token = tokenRead(text), bad = kind === 'sync' ? 'Invalid sync token value.' : 'Invalid page token value.';
+    if (!token || token.kind !== kind || token.feed !== feed || token.binding !== binding || !Number.isSafeInteger(token.at) || token.at < 0 || token.at > log.at) refuse(400, 'invalid', bad);
+    if (token.epoch !== log.epoch) refuse(410, 'fullSyncRequired', 'Sync token is no longer valid, a full sync is required.', {domain: 'calendar', locationType: 'parameter', location: 'syncToken'});
+    return token.at;
+  }
+  /**
+   * One page of a change feed. With no token it is a full read, and with one it is what moved since, in the order each item last moved. `show(id, delta)` is what one log entry shows
+   * this read. A page token holds a place in the log, so what changes during a walk comes round again, and the token on the last page leaves nothing behind. A series under singleEvents stays
+   * whole on its page.
+   */
+  #walk(state, feed, query, {max, refused, show}) {
+    const log = state.feeds[feed] ??= newLog(), binding = bindingOf(query), sync = query.get('syncToken'), pageToken = query.get('pageToken'), delta = sync !== null;
+    if (delta) {
+      for (const name of refused) if (query.has(name)) refuse(400, 'invalid', `${name} cannot be sent beside a sync token.`);
+      for (const name of ['showDeleted', 'showHidden']) if (query.get(name) === 'false') refuse(400, 'invalid', `${name} cannot be false beside a sync token.`);
+    }
+    const since = delta ? this.#place(log, feed, sync, 'sync', binding) : 0, after = pageToken === null ? since : this.#place(log, feed, pageToken, 'page', binding);
+    const inOrder = Object.entries(log.items).sort((a, b) => a[1] - b[1]), repeats = delta && pageToken === null ? this.repeats : 0, short = this.short;
+    const entries = [...(repeats ? inOrder.filter(([, at]) => at <= since).slice(-repeats) : []), ...inOrder.filter(([, at]) => at > after)];
+    if (repeats) this.repeats = 0;
+    this.short = null;
+    const size = short ?? max, items = [];
+    let place = after, cut = short !== null;
+    for (const [id, at] of entries) {
+      const shown = show(id, delta);
+      if (items.length + shown.length > size && (items.length || short !== null)) { cut = true; break; }
+      items.push(...shown);
+      place = Math.max(place, at);
+    }
+    return {items, ...(cut ? {nextPageToken: tokenOf('page', feed, place, log.epoch, binding)} : {nextSyncToken: tokenOf('sync', feed, log.at, log.epoch, binding)})};
   }
   /** sendUpdates as given (one of three values), or none when absent; the deprecated sendNotifications reads as all or none. */
   #sendUpdates(query) {
@@ -544,13 +777,29 @@ export class CalendarSimulator {
     if (zone !== null && !validZone(zone)) refuse(400, 'invalid', 'Invalid time zone definition.');
     return zone;
   }
+  #span(calendar, time) { return time.kind === 'dateTime' ? time.ms : instantOf(dateParts(time.date), calendar.timeZone); }
+  /** The occurrences a series still holds: one written apart stands as its own item, and a cancelled one is gone. */
+  #occurrences(state, event, before = Infinity) { return startsOf(event, before).map(start => occurrence(event, start)).filter(instance => !state.events[`${event.id}_${instance.stamp}`]); }
+  /** The items showDeleted adds to a bounded list: a cancelled series is its occurrences under singleEvents, and never the series itself. */
+  #deletedItems(state, calendar, single) {
+    const span = time => this.#span(calendar, time);
+    return Object.values(state.events).filter(event => event.calendarId === calendar.id && event.status === 'cancelled').sort((a, b) => a.seq - b.seq).flatMap(event => {
+      if (!event.rule) return [{event, instance: null, start: span(event.start), end: span(event.end)}];
+      const items = this.#occurrences(state, event).map(instance => ({event, instance, start: span(instance.start), end: span(instance.end)}));
+      return single ? items : items.length ? [{event, instance: null, start: items[0].start, end: items.at(-1).end, any: items}] : [];
+    });
+  }
+  /** A cancelled occurrence of a cancelled series, as a list under singleEvents shows it. */
+  #cancelledOccurrence(state, event, instance, options) {
+    return this.#cancelled(state, {...event, id: `${event.id}_${instance.stamp}`, recurringEventId: event.id, originalStart: instance.start}, options);
+  }
   /** Each item of a calendar as an interval [start, end) in milliseconds, all-day ones in the calendar's zone, series expanded up to `before`. */
   #intervals(state, calendar, {expand, before = Infinity}) {
-    const span = (time) => time.kind === 'dateTime' ? time.ms : instantOf(dateParts(time.date), calendar.timeZone);
+    const span = time => this.#span(calendar, time);
     const out = [];
     for (const event of Object.values(state.events).filter(item => item.calendarId === calendar.id && item.status !== 'cancelled').sort((a, b) => a.seq - b.seq)) {
       if (!event.rule) { out.push({event, instance: null, start: span(event.start), end: span(event.end)}); continue; }
-      const items = startsOf(event, before).map(start => occurrence(event, start)).map(instance => ({event, instance, start: span(instance.start), end: span(instance.end)}));
+      const items = this.#occurrences(state, event, before).map(instance => ({event, instance, start: span(instance.start), end: span(instance.end)}));
       if (expand) out.push(...items);
       else if (items.length) out.push({event, instance: null, start: items[0].start, end: items.at(-1).end, any: items});
     }
@@ -569,7 +818,7 @@ export class CalendarSimulator {
         const etag = `"${hex(`timezone:${state.owner.zone}`).slice(0, 16)}"`;
         return ok({kind: 'calendar#setting', etag, id: 'timezone', value: state.owner.zone}, {etag});
       }},
-      {method: 'GET', template: '/calendars/{calendarId}/events', scopes: EVENTS_READ, handle: ctx => this.#list(ctx)},
+      {method: 'GET', template: '/calendars/{calendarId}/events', scopes: EVENTS_READ, fields: EVENT_LIST_FIELDS, handle: ctx => this.#list(ctx)},
       {method: 'POST', template: '/calendars/{calendarId}/events', write: true, scopes: EVENTS_WRITE, handle: ctx => this.#insert(ctx)},
       {method: 'POST', template: '/calendars/{calendarId}/events/quickAdd', write: true, scopes: EVENTS_WRITE, handle: ctx => this.#quickAdd(ctx)},
       {method: 'GET', template: '/calendars/{calendarId}/events/{eventId}', scopes: EVENTS_READ, handle: ctx => this.#get(ctx)},
@@ -586,10 +835,11 @@ export class CalendarSimulator {
         if (calendar.primary) refuse(400, 'cannotDeletePrimaryCalendar', 'Cannot delete the primary calendar. Clear it instead.');
         if (calendar.accessRole !== 'owner') refuse(403, 'forbidden', 'Forbidden');
         for (const [id, event] of Object.entries(state.events)) if (event.calendarId === calendar.id) delete state.events[id];
-        delete state.calendars[calendar.id];
+        this.#unlisted(state, calendar.id);
         delete state.acl[calendar.id];
         return {status: 204, data: null};
       }},
+      {method: 'GET', template: '/calendars/{calendarId}/acl', scopes: scopes('calendar', 'calendar.acls', 'calendar.acls.readonly', 'calendar.readonly'), handle: ctx => this.#aclList(ctx)},
       {method: 'GET', template: '/calendars/{calendarId}/acl/{ruleId}', scopes: scopes('calendar', 'calendar.acls', 'calendar.acls.readonly', 'calendar.readonly'), handle: ({state, params}) => {
         const calendar = this.#readable(state, params.calendarId), rule = state.acl[calendar.id]?.[params.ruleId];
         return rule ? ok(this.#rule(calendar.id, params.ruleId, rule), {etag: rule.etag}) : notFound();
@@ -598,20 +848,36 @@ export class CalendarSimulator {
         const calendar = this.#readable(state, params.calendarId);
         if (calendar.accessRole !== 'owner') refuse(403, 'forbidden', 'Forbidden');
         if (!state.acl[calendar.id]?.[params.ruleId]) return notFound();
-        delete state.acl[calendar.id][params.ruleId];
+        this.#ruleGone(state, calendar.id, params.ruleId);
         return {status: 204, data: null};
       }},
     ].map(route => ({...route, key: `${route.method} ${route.template}`, parts: route.template.slice(1).split('/').map(part => /^\{\w+\}$/.test(part) ? {param: part.slice(1, -1)} : {literal: part})}));
   }
 
   #calendarList({state, query}) {
-    const max = this.#count(query, 'maxResults', {fallback: 100, max: 250});
-    const {items, next} = this.#page(Object.values(state.calendars), query.get('pageToken'), max, 'calendarList');
-    return ok({kind: 'calendar#calendarList', etag: `"${hex(canonical(items.map(item => item.etag))).slice(0, 16)}"`, ...(next ? {nextPageToken: next} : {}), items: items.map(item => this.#entry(item))});
+    const max = this.#count(query, 'maxResults', {fallback: 100, max: 250}), log = state.feeds.list, showHidden = query.get('showHidden') === 'true', showDeleted = query.get('showDeleted') === 'true';
+    const page = this.#walk(state, 'list', query, {max, refused: LIST_NOT_BESIDE_TOKEN, show: (id, delta) => {
+      const calendar = state.calendars[id];
+      if (!calendar) return delta || showDeleted ? [{kind: 'calendar#calendarListEntry', etag: log.gone[id].etag, id, deleted: true}] : [];
+      return calendar.hidden && !delta && !showHidden ? [] : [this.#entry(calendar)];
+    }});
+    return ok({kind: 'calendar#calendarList', etag: `"${hex(canonical(page.items.map(item => item.etag))).slice(0, 16)}"`, ...page});
+  }
+  #aclList({state, params, query}) {
+    const calendar = this.#readable(state, params.calendarId), feed = `acl:${calendar.id}`, showDeleted = query.get('showDeleted') === 'true';
+    if (!WRITERS.has(calendar.accessRole)) refuse(403, 'forbidden', 'Forbidden');
+    const max = this.#count(query, 'maxResults', {fallback: 100, max: 250}), log = state.feeds[feed] ??= newLog();
+    const page = this.#walk(state, feed, query, {max, refused: [], show: (id, delta) => {
+      const rule = state.acl[calendar.id]?.[id];
+      if (rule) return [this.#rule(calendar.id, id, rule)];
+      return delta || showDeleted ? [this.#rule(calendar.id, id, {role: 'none', etag: log.gone[id].etag})] : [];
+    }});
+    return ok({kind: 'calendar#acl', etag: `"${hex(canonical(page.items.map(item => item.etag))).slice(0, 16)}"`, ...page});
   }
   #list({state, params, query}) {
     const calendar = this.#readable(state, params.calendarId);
-    const orderBy = query.get('orderBy'), single = query.get('singleEvents') === 'true';
+    if (query.has('syncToken') || !NOT_BESIDE_TOKEN.some(name => query.has(name))) return this.#feed(state, calendar, query);
+    const orderBy = query.get('orderBy'), single = query.get('singleEvents') === 'true', showHidden = query.get('showHiddenInvitations') === 'true';
     if (orderBy !== null && !['startTime', 'updated'].includes(orderBy)) refuse(400, 'invalidParameter', `Invalid value '${orderBy}' for orderBy.`);
     if (orderBy === 'startTime' && !single) refuse(400, 'badRequest', 'The requested ordering is not available for the particular query.');
     const bound = name => {
@@ -626,13 +892,33 @@ export class CalendarSimulator {
     const words = (query.get('q') ?? '').toLowerCase().split(/\s+/).filter(Boolean);
     const overlaps = item => (timeMin === null || item.end > timeMin) && (timeMax === null || item.start < timeMax);
     const matches = ({event}) => words.every(word => [event.summary, event.description, event.location, ...event.attendees.map(item => item.email)].some(field => typeof field === 'string' && field.toLowerCase().includes(word)));
-    let items = this.#intervals(state, calendar, {expand: single, before: timeMax ?? Infinity}).filter(item => (item.any ? item.any.some(overlaps) : overlaps(item)) && matches(item));
+    const deleted = query.get('showDeleted') === 'true' ? this.#deletedItems(state, calendar, single) : [];
+    let items = [...this.#intervals(state, calendar, {expand: single, before: timeMax ?? Infinity}), ...deleted].filter(item => (item.any ? item.any.some(overlaps) : overlaps(item)) && matches(item) && (showHidden || !item.event.hidden));
     if (orderBy === 'startTime') items.sort((a, b) => a.start - b.start || (a.event.seq - b.event.seq));
     if (orderBy === 'updated') items.sort((a, b) => a.event.updated - b.event.updated || (a.event.seq - b.event.seq));
-    const page = this.#page(items, query.get('pageToken'), max, 'events');
+    const page = this.#page(items, query.get('pageToken'), max, 'events'), options = {zone, maxAttendees};
+    const shown = ({event, instance}) => event.status !== 'cancelled' ? this.#render(state, event, {...options, instance}) : instance ? this.#cancelledOccurrence(state, event, instance, options) : this.#cancelled(state, event, options);
     return ok({kind: 'calendar#events', etag: `"${hex(canonical(page.items.map(item => item.event.etag))).slice(0, 16)}"`, summary: calendar.summary, updated: iso(this.clock()),
-      timeZone: calendar.timeZone, accessRole: calendar.accessRole, defaultReminders: [], ...(page.next ? {nextPageToken: page.next} : {}),
-      items: page.items.map(item => this.#render(state, item.event, {zone, maxAttendees, instance: item.instance}))});
+      timeZone: calendar.timeZone, accessRole: calendar.accessRole, defaultReminders: [], ...(page.next ? {nextPageToken: page.next} : {}), items: page.items.map(shown)});
+  }
+  /** events.list as a change feed: a full read with no token, a delta with one, both from the calendar's log. */
+  #feed(state, calendar, query) {
+    const feed = `events:${calendar.id}`, single = query.get('singleEvents') === 'true', showDeleted = query.get('showDeleted') === 'true', showHidden = query.get('showHiddenInvitations') === 'true';
+    const max = this.#count(query, 'maxResults', {fallback: 250, max: 2500}), zone = this.#zone(query);
+    const options = {zone, maxAttendees: query.get('maxAttendees') === null ? null : this.#count(query, 'maxAttendees', {fallback: null, max: 1_000_000})}, log = state.feeds[feed] ??= newLog();
+    const page = this.#walk(state, feed, query, {max, refused: NOT_BESIDE_TOKEN, show: (id, delta) => {
+      const event = state.events[id];
+      // The entry a move leaves on its source calendar.
+      if (event?.calendarId !== calendar.id) return delta || showDeleted ? [{kind: 'calendar#event', etag: log.gone[id].etag, id, status: 'cancelled'}] : [];
+      if (event.hidden && !showHidden) return [];
+      if (event.status === 'cancelled') {
+        if (!delta && !showDeleted) return [];
+        return single && event.rule ? this.#occurrences(state, event).map(instance => this.#cancelledOccurrence(state, event, instance, options)) : [this.#cancelled(state, event, options)];
+      }
+      return single && event.rule ? this.#occurrences(state, event).map(instance => this.#render(state, event, {...options, instance})) : [this.#render(state, event, options)];
+    }});
+    return ok({kind: 'calendar#events', etag: `"${hex(canonical(page.items.map(item => item.etag))).slice(0, 16)}"`, summary: calendar.summary, updated: iso(this.clock()),
+      timeZone: calendar.timeZone, accessRole: calendar.accessRole, defaultReminders: [], ...page});
   }
   #get({state, params, query}) {
     const calendar = this.#readable(state, params.calendarId), {event, instance} = this.#event(state, calendar, params.eventId, {instances: true});
@@ -718,6 +1004,15 @@ export class CalendarSimulator {
     event.status = 'cancelled';
     event.updated = this.clock();
     event.etag = this.#etag(state);
+    state.events[event.id] = event;
+    this.#mark(state, `events:${calendar.id}`, event.id);
+    for (const item of event.rule ? Object.values(state.events) : []) {
+      if (item.recurringEventId !== event.id || item.status === 'cancelled') continue;
+      item.status = 'cancelled';
+      item.updated = this.clock();
+      item.etag = this.#etag(state);
+      this.#mark(state, `events:${calendar.id}`, item.id);
+    }
     if (organizes(event)) this.#notify(state, event, 'cancellation', mode);
     return {status: 204, data: null};
   }
@@ -728,9 +1023,11 @@ export class CalendarSimulator {
     if (!destinationId) refuse(400, 'required', 'Required parameter: destination');
     const destination = this.#writable(state, destinationId);
     if (!organizes(event)) refuse(403, 'forbiddenForNonOrganizer', 'Only the organizer can move an event.', {domain: 'calendar'});
+    if (event.recurringEventId) refuse(400, 'cannotChangeOrganizerOfInstance', 'Cannot change the organizer of an instance.', {domain: 'calendar'});
     if (event.eventType !== 'default') refuse(400, 'eventTypeRestriction', 'Only default events can be moved.', {domain: 'calendar'});
     const next = {...structuredClone(event), calendarId: destination.id, organizer: destination.primary ? {email: state.owner.email} : {email: destination.id, displayName: destination.summary}};
     this.#commit(state, next);
+    this.#mark(state, `events:${calendar.id}`, event.id, {etag: this.#etag(state)});
     this.#notify(state, next, 'update', mode);
     const answer = this.#render(state, next);
     // Live run TOQJPGEU (C8): Google answers the move with one etag, and the moved event then reads back with a newer one.
@@ -765,6 +1062,8 @@ export class CalendarSimulator {
     const calendar = {id, summary: body.summary, ...(body.description ? {description: body.description} : {}), timeZone: body.timeZone ?? state.owner.zone, accessRole: 'owner', etag: this.#etag(state)};
     state.calendars[id] = calendar;
     state.acl[id] = {[`user:${state.owner.email}`]: {role: 'owner', etag: this.#etag(state)}};
+    this.#mark(state, 'list', id);
+    this.#mark(state, `acl:${id}`, `user:${state.owner.email}`);
     return ok(this.#resource(calendar), {etag: calendar.etag});
   }
 
@@ -826,7 +1125,10 @@ export class CalendarSimulator {
       const state = chosen?.kind === 'swallow' ? structuredClone(this.data) : this.data;
       try {
         if (raw !== undefined && typeof parsed === 'string') refuse(400, 'parseError', 'Parse Error');
+        const fields = target.searchParams.get('fields'), mask = fields === null ? null : maskOf(fields);
+        if (mask && found.route.fields) checkMask(mask, found.route.fields, fields);
         answer = found.route.handle({params: found.params, query: target.searchParams, body: parsed, headers: lower, state, now: this.clock()});
+        if (mask && answer.status < 300 && answer.data) answer = {...answer, data: masked(answer.data, mask)};
       } catch (error) {
         if (!(error instanceof Refusal)) throw error;
         answer = error.answer;

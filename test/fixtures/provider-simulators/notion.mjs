@@ -17,6 +17,8 @@
 //   DELETE /blocks/{block_id}                                        update_content
 //   GET    /databases/{database_id}, /data_sources/{data_source_id}  read_content
 //   POST   /data_sources/{data_source_id}/query                      read_content
+//   PATCH  /data_sources/{data_source_id}                            update_content
+//   GET    /blocks/{block_id}, /blocks/{block_id}/children           read_content
 //   GET    /comments (block_id), /comments/{comment_id}              read_comments
 //   POST   /comments, DELETE /comments/{comment_id}                  insert_comments
 // Errors use Notion's shape {object: 'error', status, code, message, request_id}. A request without "Notion-Version: 2026-03-11" exactly answers
@@ -54,16 +56,33 @@
 //   400, a second delete included (the simulator's own choice). Trashed rows leave queries and trashed objects leave search.
 // - Move: POST /pages/{id}/move {parent: {type: 'page_id', page_id}}; a page cannot move under itself or a descendant (400). A
 //   data_source_id parent answers 400 not_simulated: no action sends one.
-// - Databases and data sources: get; query with filter (and, or, and one condition per property named by name or id: contains or
-//   equals on title, rich_text, url, email and phone_number; equals on number, checkbox, select, status and a date's day; contains on
-//   multi_select, people and relation), page_size 1 to 100 (default 100), start_cursor, has_more and next_cursor. Rows in the order they
-//   were made (the simulator's own choice).
+// - Databases and data sources: get; query with filter (and, or, one condition per property named by name or id: contains or equals on
+//   title, rich_text, url, email and phone_number; equals on number, checkbox, select, status and a date's day; contains on multi_select,
+//   people and relation; or a timestamp, {timestamp, created_time or last_edited_time: {on_or_after, after, on_or_before, before or
+//   equals}}, compared in milliseconds), sorts (a timestamp or a property, ascending or descending, with ties in an order a seed sets, so
+//   nothing can lean on it), page_size 1 to 100 (default 100), start_cursor, has_more and next_cursor. Rows in the order they were made when
+//   nothing sorts them (the simulator's own choice). filter_properties is a repeated query parameter, and in the body it is refused:
+//   an answer then holds only those properties. result_type is page or data_source. is_archived picks a partition before any filter, so
+//   an archived row (archive(id)) leaves the default query. A body in_trash answers 400. A query stops at 10,000 rows: has_more turns false
+//   and request_status reads incomplete, or complete below that.
+//   PATCH adds a property, renames one or sets its options, and removes one by null. A relation to a data source not shared with the
+//   integration is left out of the schema while that holds, which reads as a removal.
+// - Blocks: get one, or list the first level under a page or a block, never below it: a paragraph per line of a page's text, its child
+//   pages (child_page) and databases (child_database), then what seedBlock() put there: paragraphs, a toggle with has_children, and
+//   `unsupported`. A page under a toggle is listed under the toggle alone. A trashed child leaves the list.
 // - Search: query matches titles in any case; filter {property: 'object', value: 'page' | 'data_source'}; most recently edited first (the
 //   simulator's own order); paged as queries are.
-// - Comments: list by block_id gives the open comments only (resolve(id) closes one), oldest first, paged; create with parent.page_id (a
-//   new discussion) or discussion_id (a reply), exactly one; get and delete one.
+// - Comments: list by block_id gives the open comments only (resolve(id) closes one and reopen(id) brings it back), oldest first, paged;
+//   create with parent.page_id (a new discussion) or discussion_id (a reply), exactly one; get and delete one. A comment on a block has
+//   parent.block_id and is absent from its page's list. A comment on a row's property carries property_id. A partial comment reads
+//   {object, id} alone.
 // - Users: list paged; me is the integration's bot.
-// - A cursor is the next item's id; any other start_cursor answers 400.
+// - A cursor is opaque, and any start_cursor the simulator did not give answers 400. Only has_more ends a list, and shortPages(n) makes a
+//   page hold at most n items while has_more stays true.
+// - Times: created_time and last_edited_time are stored to the stampGrain, a minute by default, as Notion documents for created_time.
+//   Until a live pass settles last_edited_time, it holds the same grain. lag(ms) makes a write reach queries late, and tieSeed sets ties.
+// - Limits: a 429's body holds additional_data {retry_after, rate_limit_reason}, and its Retry-After can pass a minute. overload(route)
+//   answers 529 service_overload. block(route) answers public_api_request_blocked. markdown_version takes v1 or v2 and refuses anything else.
 //
 // The network contract is lib/network.mjs's seam: `request` takes its options and answers {status, headers, data}. Refused before sending,
 // with sent false: a URL that is not https on 443 or carries credentials, an origin outside allowedOrigins or not Notion's, an unsupported
@@ -76,8 +95,9 @@
 // Switches, each for the next call to one route unless {times} says how many: fail(route, {status, headers?, data?}) answers that instead and
 // changes nothing; drop(route) applies the call, then throws as a lost answer; swallow(route) answers as if applied but changes nothing;
 // oversize(route, bytes) pads the answer; hold(route) returns {reached, release()}; limit(route, retryAfter) answers 429 rate_limited with
-// that Retry-After. Test data, never recorded: seedPage(), seedDatabase(), seedRow(), seedUser(), seedComment(), unknown(), share(),
-// unshare(), capabilities(list), touch(id) (someone else edits the page) and resolve(commentId).
+// that Retry-After. Test data, never recorded: seedPage(), seedDatabase(), seedRow(), seedUser(), seedComment(), seedBlock(), unknown(), share(),
+// unshare(), capabilities(list), touch(id) (someone else edits the page), resolve(commentId), reopen(commentId), archive(id), partial(id),
+// attachFile(), setFormula(), shortPages(n) and lag(ms).
 import {createHash} from 'node:crypto';
 
 export const ORIGIN = 'https://api.notion.com';
@@ -87,7 +107,10 @@ const BASE_PATH = '/v1';
 const DEFAULT_RESPONSE_HEADERS = ['content-type', 'etag', 'retry-after', 'x-ratelimit-remaining'];
 const UNSAFE_HEADER = /^(host|connection|transfer-encoding|content-length|upgrade|proxy-.*|forwarded|x-forwarded-.*)$/i;
 export const CAPABILITIES = Object.freeze(['read_content', 'update_content', 'insert_content', 'read_comments', 'insert_comments', 'user_email']);
-const PIECES = 100, UNITS = 2000, PAGE_SIZE = 100;
+const PIECES = 100, UNITS = 2000, PAGE_SIZE = 100, QUERY_CAP = 10_000;
+const STAMPS = ['created_time', 'last_edited_time'];
+const STAMP_TESTS = {on_or_after: (time, wanted) => time >= wanted, after: (time, wanted) => time > wanted, on_or_before: (time, wanted) => time <= wanted, before: (time, wanted) => time < wanted,
+  equals: (time, wanted) => time === wanted};
 const WRITABLE = ['title', 'rich_text', 'number', 'checkbox', 'select', 'status', 'multi_select', 'date', 'url', 'email', 'phone_number', 'people', 'relation'];
 const READ_ONLY = ['formula', 'rollup', 'created_time', 'created_by', 'last_edited_time', 'last_edited_by', 'unique_id', 'button', 'verification', 'files'];
 const UUID = /^[0-9a-f]{8}-?[0-9a-f]{4}-?[0-9a-f]{4}-?[0-9a-f]{4}-?[0-9a-f]{12}$/i;
@@ -99,13 +122,17 @@ const hex = text => createHash('sha256').update(text).digest('hex');
 /** A Notion id as the API writes it: hyphenated, lower case. Undashed or upper-case ids are read the same. */
 const canonicalId = value => typeof value === 'string' && UUID.test(value) ? value.replace(/-/g, '').toLowerCase().replace(/^(.{8})(.{4})(.{4})(.{4})(.{12})$/, '$1-$2-$3-$4-$5') : null;
 const linkOf = id => `https://www.notion.so/${id.replace(/-/g, '')}`;
+/** A list cursor as Notion's are: nothing a caller can read. It says where the next page starts. */
+const cursorOf = id => Buffer.from(`at:${id}`).toString('base64url');
+const cursorTo = cursor => typeof cursor === 'string' ? Buffer.from(cursor, 'base64url').toString().replace(/^at:/, '') : null;
 /**
  * A page's text as Notion reads it back, from its enhanced markdown reference and the live runs of 2026-10-30, which wrote these forms: blank
  * lines gone; a heading 5 or 6 reads 4, a * bullet -, _italic_ *italic*; an ordered list counts up; a fence names its language in full; a pipe
  * table reads as <table> tags with its divider gone; a backslash before each mark below outside a code fence and a link. * and ` stay, the
  * simulator's own choice: most of them are marks, not text.
  */
-const signedLink = (name, read) => `![](https://prod-files-secure.s3.us-west-2.amazonaws.com/workspace/${name}?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=${read}&X-Amz-Signature=${hex(String(read))}&x-id=GetObject)`;
+const signedUrl = (name, read) => `https://prod-files-secure.s3.us-west-2.amazonaws.com/workspace/${name}?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=${read}&X-Amz-Signature=${hex(String(read))}&x-id=GetObject`;
+const signedLink = (name, read) => `![](${signedUrl(name, read)})`;
 const readBack = text => {
   const lines = text.split('\n').filter(line => line.trim() !== ''), out = [], tableRow = /^\|.*\|$/;
   let fenced = false, number = 0;
@@ -150,9 +177,11 @@ const emptyOf = type => ({title: [], rich_text: [], number: null, checkbox: fals
 export class NotionApiSimulator {
   /**
    * clock() gives the time changes carry; token is the bearer token the integration's connection sends; owner is the person who installed
-   * it, {id?, name, email}; capabilities are the integration's (all six by default).
+   * it, {id?, name, email}; capabilities are the integration's (all six by default); stampGrain is how finely stamps are stored, in
+   * milliseconds; tieSeed sets the order of rows a sort leaves tied.
    */
-  constructor({clock = () => Date.parse('2026-10-26T12:00:00.000Z'), token = 'ntn_notion-simulator-token', owner = {name: 'Avery Owner', email: 'avery@example.com'}, capabilities = CAPABILITIES} = {}) {
+  constructor({clock = () => Date.parse('2026-10-26T12:00:00.000Z'), token = 'ntn_notion-simulator-token', owner = {name: 'Avery Owner', email: 'avery@example.com'}, capabilities = CAPABILITIES,
+    stampGrain = 60_000, tieSeed = 'ties'} = {}) {
     if (!record(owner) || typeof owner.name !== 'string' || typeof owner.email !== 'string') throw new Error('owner is {name, email}.');
     this.clock = clock;
     this.token = token;
@@ -160,7 +189,12 @@ export class NotionApiSimulator {
     this.switches = new Map();
     this.holds = new Map();
     this.held = new Set(capabilities);
-    this.data = {next: 1, request: 1, users: {}, pages: {}, databases: {}, sources: {}, comments: {}, shared: [], unknown: {}, order: []};
+    this.stampGrain = stampGrain;
+    this.tieSeed = tieSeed;
+    this.queryCap = QUERY_CAP;
+    this.queryLag = 0;
+    this.pageLimit = null;
+    this.data = {next: 1, request: 1, users: {}, pages: {}, databases: {}, sources: {}, comments: {}, shared: [], unknown: {}, order: [], blocks: {}};
     this.bot = this.seedUser({name: 'Fabric', type: 'bot'});
     this.owner = this.seedUser({id: owner.id, name: owner.name, email: owner.email});
     this.request = this.request.bind(this);
@@ -170,14 +204,17 @@ export class NotionApiSimulator {
       ['GET', '/users/{user_id}', 'none', false, ({params}) => { const user = this.data.users[canonicalId(params.user_id)]; return user ? ok(this.#user(user)) : notFound(params.user_id); }],
       ['POST', '/search', 'read_content', false, context => this.#search(context)],
       ['GET', '/pages/{page_id}', 'read_content', false, ({params}) => ok(this.#page(this.#visiblePage(params.page_id)))],
-      ['GET', '/pages/{page_id}/markdown', 'read_content', false, ({params}) => ok(this.#markdownOf(params.page_id))],
+      ['GET', '/pages/{page_id}/markdown', 'read_content', false, ({params, query}) => { this.#markdownVersion(query); return ok(this.#markdownOf(params.page_id)); }],
       ['POST', '/pages', 'insert_content', true, context => this.#create(context)],
       ['PATCH', '/pages/{page_id}', 'update_content', true, context => this.#update(context)],
       ['PATCH', '/pages/{page_id}/markdown', 'update_content', true, context => this.#editMarkdown(context)],
       ['POST', '/pages/{page_id}/move', 'update_content', true, context => this.#move(context)],
       ['DELETE', '/blocks/{block_id}', 'update_content', true, context => this.#trash(context)],
+      ['GET', '/blocks/{block_id}', 'read_content', false, ({state, params}) => ok(this.#block(state, params.block_id))],
+      ['GET', '/blocks/{block_id}/children', 'read_content', false, ({state, params, query}) => ok(this.#paged(this.#under(state, this.#block(state, params.block_id).id), query.get('start_cursor'), query.get('page_size'), 'block'))],
       ['GET', '/databases/{database_id}', 'read_content', false, ({params}) => ok(this.#database(this.#visible('databases', params.database_id)))],
       ['GET', '/data_sources/{data_source_id}', 'read_content', false, ({params}) => ok(this.#source(this.#visible('sources', params.data_source_id)))],
+      ['PATCH', '/data_sources/{data_source_id}', 'update_content', true, context => this.#editSource(context)],
       ['POST', '/data_sources/{data_source_id}/query', 'read_content', false, context => this.#query(context)],
       ['GET', '/comments', 'read_comments', false, context => this.#comments(context)],
       ['GET', '/comments/{comment_id}', 'read_comments', false, ({params}) => ok(this.#comment(this.#visibleComment(params.comment_id)))],
@@ -198,8 +235,19 @@ export class NotionApiSimulator {
   drop(route, options) { return this.#switch('drop', route, {}, options); }
   swallow(route, options) { return this.#switch('swallow', route, {}, options); }
   oversize(route, bytes, options) { return this.#switch('oversize', route, {bytes}, options); }
-  /** The next call to the route answers 429 rate_limited with this Retry-After, in seconds. */
-  limit(route, retryAfter = 30, options) { return this.#switch('limit', route, {retryAfter}, options); }
+  /** The next call to the route answers 429 rate_limited with this Retry-After, in seconds, and the body names which limit it was. */
+  limit(route, retryAfter = 30, options) { return this.#switch('limit', route, {retryAfter, reason: options?.reason ?? 'integration_rate_limit'}, options); }
+  /** The next call to the route answers 529 service_overload, which Notion asks a caller to treat as a 429. */
+  overload(route, options) { return this.fail(route, {status: 529, data: {object: 'error', status: 529, code: 'service_overload', message: 'Notion is overloaded.'}}, options); }
+  /**
+   * The next call to the route answers public_api_request_blocked: API access is restricted and a retry will not help. Notion's page names the code and no status, so `status`
+   * is the simulator's own choice until a live pass meets one.
+   */
+  block(route, {status = 403, ...options} = {}) { return this.fail(route, {status, data: {object: 'error', status, code: 'public_api_request_blocked', message: 'API access is restricted.'}}, options); }
+  /** Every list page from now on holds at most `count` items, while has_more stays true. Null lifts it. */
+  shortPages(count) { this.pageLimit = count; return this; }
+  /** Writes from now on reach queries `ms` late, as Notion's index can. */
+  lag(ms) { this.queryLag = ms; return this; }
   hold(route) {
     let reach, release;
     const reached = new Promise(resolve => { reach = resolve; }), released = new Promise(resolve => { release = resolve; });
@@ -221,17 +269,17 @@ export class NotionApiSimulator {
 
   // ---- test data ---------------------------------------------------------------------------------------------------------------------
   #id(kind) { const digest = hex(`${kind}:${this.data.next++}`); return `${digest.slice(0, 8)}-${digest.slice(8, 12)}-4${digest.slice(13, 16)}-8${digest.slice(17, 20)}-${digest.slice(20, 32)}`; }
-  #now() { return new Date(this.clock()).toISOString(); }
+  #now() { const now = this.clock(); return new Date(now - now % this.stampGrain).toISOString(); }
   /** A user of the workspace: a person (with an email) or a bot. */
   seedUser({id, name, email, type = 'person'} = {}) {
     const user = {id: canonicalId(id) ?? this.#id('user'), name, type, ...(type === 'person' ? {email: email ?? null} : {})};
     this.data.users[user.id] = user;
     return {...user};
   }
-  /** A page under another page ({page_id}), or at the workspace's top (parent 'workspace'), with a title and markdown text; `shared` shares it. */
+  /** A page under another page ({page_id}), under a block ({block_id}), or at the workspace's top (parent 'workspace'), with a title and markdown text; `shared` shares it. */
   seedPage({id, title = 'Untitled', parent = 'workspace', markdown = '', shared = false} = {}) {
-    const page = this.#newPage({id, parent: parent === 'workspace' ? {type: 'workspace', workspace: true} : {type: 'page_id', page_id: this.#known('pages', parent.page_id).id},
-      properties: {title: {id: 'title', type: 'title', title: richText([{text: {content: title}}], 'title')}}, markdown});
+    const above = parent === 'workspace' ? {type: 'workspace', workspace: true} : parent.block_id ? {type: 'block_id', block_id: this.#known('blocks', parent.block_id).id} : {type: 'page_id', page_id: this.#known('pages', parent.page_id).id};
+    const page = this.#newPage({id, parent: above, properties: {title: {id: 'title', type: 'title', title: richText([{text: {content: title}}], 'title')}}, markdown});
     if (shared) this.share(page.id);
     return this.#page(page);
   }
@@ -255,7 +303,7 @@ export class NotionApiSimulator {
         properties[name] = {id: propertyId, name, description: '', type: spec.type, [spec.type]: config};
       }
       if (Object.values(properties).filter(property => property.type === 'title').length !== 1) throw new Error('A data source has exactly one title property.');
-      this.data.sources[sourceId] = {id: sourceId, name: source.name ?? title, database_id: database.id, properties, unique: 0, created_time: this.#now(), last_edited_time: this.#now()};
+      this.data.sources[sourceId] = {id: sourceId, name: source.name ?? title, database_id: database.id, properties, unique: 0, created_time: this.#now(), last_edited_time: this.#now(), created_by: this.bot.id, last_edited_by: this.bot.id};
       database.sources.push(sourceId);
     }
     if (shared) this.share(database.id);
@@ -266,11 +314,21 @@ export class NotionApiSimulator {
     const source = this.#known('sources', dataSource);
     return this.#page(this.#newPage({id, parent: {type: 'data_source_id', data_source_id: source.id, database_id: source.database_id}, properties: this.#rowValues(source, properties, null), markdown}));
   }
-  /** A comment on a page by `user` (the owner by default): a new discussion, or a reply in `discussion`. */
-  seedComment({page, text, discussion, user = this.owner.id, resolved = false} = {}) {
+  /** A block on a page, or inside a block (`block`, for a toggle's children): a paragraph, a toggle or an unsupported block. */
+  seedBlock({page, block, type = 'paragraph', text = ''} = {}) {
+    const parent = block ? {type: 'block_id', block_id: this.#known('blocks', block).id} : {type: 'page_id', page_id: this.#known('pages', page).id}, now = this.#now();
+    const item = {id: this.#id('block'), parent, type, text, in_trash: false, created_time: now, last_edited_time: now, created_by: this.owner.id, last_edited_by: this.owner.id};
+    this.data.blocks[item.id] = item;
+    return this.#asBlock(this.data, 'blocks', item);
+  }
+  /**
+   * A comment on a page by `user` (the owner by default): a new discussion, or a reply in `discussion`. `block` puts it on a block of that page, `propertyId` on a row's
+   * property, and `partial` makes it read {object, id} alone.
+   */
+  seedComment({page, block, text, discussion, user = this.owner.id, resolved = false, propertyId, partial = false} = {}) {
     const target = this.#known('pages', page);
     const comment = {id: this.#id('comment'), page_id: target.id, discussion_id: discussion ?? this.#id('discussion'), rich_text: richText([{text: {content: text}}], 'rich_text'),
-      created_time: this.#now(), last_edited_time: this.#now(), created_by: user, resolved};
+      created_time: this.#now(), last_edited_time: this.#now(), created_by: user, resolved, ...(block ? {block_id: this.#known('blocks', block).id} : {}), ...(propertyId ? {property_id: propertyId} : {}), ...(partial ? {partial} : {})};
     this.data.comments[comment.id] = comment;
     return this.#comment(comment);
   }
@@ -293,23 +351,33 @@ export class NotionApiSimulator {
   touch(id) { const page = this.#known('pages', id); page.last_edited_time = this.#now(); page.last_edited_by = this.owner.id; return this.#page(page); }
   /** Someone resolves a comment's discussion: it leaves the comment list. */
   resolve(commentId) { const comment = this.data.comments[canonicalId(commentId)]; if (!comment) throw new Error(`No comment ${commentId}.`); comment.resolved = true; return this; }
+  /** Someone reopens a resolved comment: it comes back to the list. */
+  reopen(commentId) { this.#known('comments', commentId).resolved = false; return this; }
+  /** Someone archives a row: it moves to the archived partition, which a default query never reads. */
+  archive(id) { this.#known('pages', id).is_archived = true; return this; }
+  /** A row a query answers as a partial object, with no time fields, as Notion's reference allows, until `held` is false. */
+  partial(id, held = true) { this.#known('pages', id).partial = held; return this; }
+  /** An uploaded file on a row's files property: its link is signed anew on every read of the row. */
+  attachFile(rowId, property, name) { this.#known('pages', rowId).properties[property].files.push({name, type: 'file'}); return this; }
+  /** A formula's computed value moves with no edit: its stamps stay as they are, as a formula on the time does. */
+  setFormula(rowId, property, value) { this.#known('pages', rowId).properties[property].formula = {type: 'number', number: value}; return this; }
 
   // ---- shared pieces -----------------------------------------------------------------------------------------------------------------
   #known(kind, id, state = this.data) { const item = state[kind][canonicalId(id)]; if (!item) throw new Error(`No ${kind} ${id}.`); return item; }
   #newPage({id, parent, properties, markdown}, state = this.data) {
     const now = this.#now(), page = {id: canonicalId(id) ?? this.#id('page'), parent, properties, text: markdown, in_trash: false, created_time: now, last_edited_time: now,
-      created_by: this.bot.id, last_edited_by: this.bot.id};
+      created_by: this.bot.id, last_edited_by: this.bot.id, visible_at: this.clock() + this.queryLag};
     state.pages[page.id] = page;
     state.order.push(page.id);
     return page;
   }
   /** The object an id names, as a parent chain sees it: a page, a database or a data source. */
-  #node(state, id) { return state.pages[id] ? ['pages', state.pages[id]] : state.databases[id] ? ['databases', state.databases[id]] : state.sources[id] ? ['sources', state.sources[id]] : null; }
+  #node(state, id) { return state.pages[id] ? ['pages', state.pages[id]] : state.databases[id] ? ['databases', state.databases[id]] : state.sources[id] ? ['sources', state.sources[id]] : state.blocks[id] ? ['blocks', state.blocks[id]] : null; }
   /** The ids above an object, nearest first. */
   #ancestors(state, kind, item) {
     const chain = [];
     for (let current = [kind, item]; current;) {
-      const [type, node] = current, parent = type === 'sources' ? node.database_id : node.parent?.page_id ?? node.parent?.data_source_id ?? null;
+      const [type, node] = current, parent = type === 'sources' ? node.database_id : node.parent?.page_id ?? node.parent?.data_source_id ?? node.parent?.block_id ?? null;
       if (!parent || chain.includes(parent)) break;
       chain.push(parent);
       current = this.#node(state, parent);
@@ -338,13 +406,14 @@ export class NotionApiSimulator {
   #titleOf(item, kind) { if (kind === 'pages') return plain(Object.values(item.properties).find(property => property.type === 'title')?.title); return plain(item.title); }
   #page(page) {
     return {object: 'page', id: page.id, created_time: page.created_time, last_edited_time: page.last_edited_time, created_by: {object: 'user', id: page.created_by},
-      last_edited_by: {object: 'user', id: page.last_edited_by}, cover: null, icon: null, parent: structuredClone(page.parent), in_trash: page.in_trash, is_archived: false, is_locked: false,
+      last_edited_by: {object: 'user', id: page.last_edited_by}, cover: null, icon: null, parent: structuredClone(page.parent), in_trash: page.in_trash, is_archived: page.is_archived === true, is_locked: false,
       url: linkOf(page.id), public_url: null, properties: this.#rendered(page)};
   }
   /** A page's properties as Notion answers them: a row's computed ones filled from the page. */
   #rendered(page) {
     const out = structuredClone(page.properties);
     for (const property of Object.values(out)) {
+      if (property.type === 'files') property.files = property.files.map(file => ({...file, file: {url: signedUrl(file.name, this.fileReads = (this.fileReads ?? 0) + 1), expiry_time: new Date(this.clock() + 3_600_000).toISOString()}}));
       if (property.type === 'created_time') property.created_time = page.created_time;
       if (property.type === 'last_edited_time') property.last_edited_time = page.last_edited_time;
       if (property.type === 'created_by') property.created_by = {object: 'user', id: page.created_by};
@@ -357,28 +426,57 @@ export class NotionApiSimulator {
       created_time: database.created_time, last_edited_time: database.last_edited_time, url: linkOf(database.id),
       data_sources: database.sources.map(id => ({id, name: this.data.sources[id]?.name ?? ''}))};
   }
+  /** A relation stays in a schema only while its target data source is shared, or names none the workspace holds. */
+  #relationShown(state, property) {
+    const target = property.type === 'relation' ? state.sources[property.relation.data_source_id] : null;
+    return !target || this.#shared(state, 'sources', target);
+  }
   #source(source, state = this.data) {
-    const database = state.databases[source.database_id];
+    const database = state.databases[source.database_id], properties = Object.fromEntries(Object.entries(source.properties).filter(([, property]) => this.#relationShown(state, property)));
     return {object: 'data_source', id: source.id, title: richText([{text: {content: source.name}}], 'title'), parent: {type: 'database_id', database_id: source.database_id},
       database_parent: structuredClone(database?.parent ?? null), in_trash: Boolean(database?.in_trash), created_time: source.created_time, last_edited_time: source.last_edited_time,
-      properties: structuredClone(source.properties), url: linkOf(source.id)};
+      created_by: {object: 'user', id: source.created_by}, last_edited_by: {object: 'user', id: source.last_edited_by},
+      properties: structuredClone(properties), url: linkOf(source.id)};
   }
   #comment(comment) {
-    return {object: 'comment', id: comment.id, parent: {type: 'page_id', page_id: comment.page_id}, discussion_id: comment.discussion_id, created_time: comment.created_time,
+    if (comment.partial) return {object: 'comment', id: comment.id};
+    return {object: 'comment', id: comment.id, parent: comment.block_id ? {type: 'block_id', block_id: comment.block_id} : {type: 'page_id', page_id: comment.page_id}, discussion_id: comment.discussion_id, created_time: comment.created_time,
       last_edited_time: comment.last_edited_time, created_by: {object: 'user', id: comment.created_by}, rich_text: structuredClone(comment.rich_text),
-      display_name: {type: 'integration', resolved_name: 'Fabric'}};
+      display_name: {type: 'integration', resolved_name: 'Fabric'}, ...(comment.property_id ? {property_id: comment.property_id} : {})};
   }
-  /** One page of a list: start_cursor is the id of the first item to give, page_size 1 to 100. */
+  /** One block as Notion answers it: a page reads as a child_page, a database as a child_database. */
+  #asBlock(state, kind, item) {
+    const base = {object: 'block', id: item.id, parent: structuredClone(item.parent), created_time: item.created_time, last_edited_time: item.last_edited_time, created_by: {object: 'user', id: item.created_by ?? this.bot.id},
+      last_edited_by: {object: 'user', id: item.last_edited_by ?? this.bot.id}, has_children: this.#under(state, item.id).length > 0, in_trash: item.in_trash};
+    if (kind === 'pages') return {...base, type: 'child_page', child_page: {title: this.#titleOf(item, 'pages')}};
+    if (kind === 'databases') return {...base, type: 'child_database', child_database: {title: plain(item.title)}};
+    if (item.type === 'unsupported') return {...base, type: 'unsupported', unsupported: {}};
+    return {...base, type: item.type, [item.type]: {rich_text: [{type: 'text', text: {content: item.text, link: null}, plain_text: item.text, href: null}]}};
+  }
+  /** The block an id names, read through what the integration can see: a page, a database or a block. */
+  #block(state, id) {
+    const key = canonicalId(id), kind = ['pages', 'databases'].find(name => state[name][key]) ?? 'blocks';
+    return this.#asBlock(state, kind, this.#visible(kind, id, state));
+  }
+  /** The first level under a page or a block: a paragraph per line of a page's text, its child pages and databases, then its seeded blocks. Nothing deeper and nothing trashed. */
+  #under(state, id) {
+    const page = state.pages[id], parentOf = item => item.parent?.page_id ?? item.parent?.block_id;
+    const lines = (page?.text ?? '').split('\n').filter(line => line !== '').map((line, index) => this.#asBlock(state, 'blocks', {id: canonicalId(hex(`${id}:${index}`).slice(0, 32)), parent: {type: 'page_id', page_id: id}, type: 'paragraph', text: line, in_trash: false,
+      created_time: page.created_time, last_edited_time: page.last_edited_time}));
+    const nodes = [...state.order.map(key => this.#node(state, key)).filter(node => node && node[0] !== 'sources'), ...Object.values(state.blocks).map(block => ['blocks', block])];
+    return [...lines, ...nodes.filter(([, item]) => parentOf(item) === id && !item.in_trash).map(([kind, item]) => this.#asBlock(state, kind, item))];
+  }
+  /** One page of a list: start_cursor is a cursor this simulator gave, page_size 1 to 100, and a page can hold fewer while has_more stays true. */
   #paged(items, cursor, size, type) {
     const pageSize = size === null || size === undefined ? PAGE_SIZE : Number(size);
     if (!Number.isSafeInteger(pageSize) || pageSize < 1 || pageSize > PAGE_SIZE) invalid(`page_size should be a number between 1 and ${PAGE_SIZE}.`);
     let start = 0;
     if (cursor !== null && cursor !== undefined) {
-      start = items.findIndex(item => item.id === cursor);
+      start = items.findIndex(item => item.id === cursorTo(cursor));
       if (start < 0) invalid('start_cursor provided is invalid.');
     }
-    const results = items.slice(start, start + pageSize), more = start + pageSize < items.length;
-    return {object: 'list', results, next_cursor: more ? items.at(start + pageSize).id : null, has_more: more, type, [type]: {}};
+    const end = Math.min(start + Math.min(pageSize, this.pageLimit ?? pageSize), items.length), more = end < items.length;
+    return {object: 'list', results: items.slice(start, end), next_cursor: more ? cursorOf(items[end].id) : null, has_more: more, type, [type]: {}};
   }
   #body(body) { if (body === undefined) return {}; if (!record(body)) invalid('body should be an object.'); return body; }
   #only(body, allowed) { for (const key of Object.keys(body)) if (!allowed.includes(key)) invalid(`body.${key} should be not present.`); }
@@ -477,6 +575,7 @@ export class NotionApiSimulator {
     if (given.in_trash !== undefined) page.in_trash = given.in_trash;
     page.last_edited_time = this.#now();
     page.last_edited_by = this.bot.id;
+    page.visible_at = this.clock() + this.queryLag;
     return ok(this.#page(page));
   }
   /** The children of a page that its markdown names, in the order they were made: pages and databases, out of the trash. */
@@ -488,6 +587,8 @@ export class NotionApiSimulator {
     const unknown = Object.values(state.unknown).filter(block => block.page_id === page.id);
     return [page.text, ...this.#children(state, page).map(child => child.tag), ...unknown.map(block => `<unknown url="${linkOf(block.id)}" alt="block"/>`)].filter(part => part !== '').join('\n');
   }
+  /** markdown_version, when a read names one, is v1 or v2. */
+  #markdownVersion(query) { if (!['v1', 'v2', null].includes(query.get('markdown_version'))) invalid('markdown_version should be "v1" or "v2".'); }
   #markdownOf(id, state = this.data) {
     const block = state.unknown[canonicalId(id)];
     if (block) {
@@ -586,17 +687,95 @@ export class NotionApiSimulator {
       .map(({kind, item}) => kind === 'pages' ? this.#page(item) : this.#source(item, state));
     return ok(this.#paged(found, given.start_cursor, given.page_size, 'page_or_data_source'));
   }
-  #query({state, params, body}) {
+  #query({state, params, body, query}) {
     const given = this.#body(body), source = this.#visible('sources', params.data_source_id, state);
-    this.#only(given, ['filter', 'sorts', 'start_cursor', 'page_size', 'filter_properties']);
-    if (given.sorts !== undefined || given.filter_properties !== undefined) refuse(400, 'not_simulated', 'The simulator gives rows in the order they were made.');
-    const test = given.filter === undefined ? () => true : this.#condition(source, given.filter, 0);
-    const rows = state.order.map(id => state.pages[id]).filter(page => page && page.parent.data_source_id === source.id && !page.in_trash && test(page)).map(page => this.#page(page));
-    return ok(this.#paged(rows, given.start_cursor, given.page_size, 'page_or_data_source'));
+    this.#only(given, ['filter', 'sorts', 'start_cursor', 'page_size', 'filter_properties', 'result_type', 'is_archived']);
+    if (given.filter_properties !== undefined) refuse(400, 'not_simulated', 'filter_properties is a query parameter.');
+    if (given.result_type !== undefined && !['page', 'data_source'].includes(given.result_type)) invalid('body.result_type should be "page" or "data_source".');
+    if (given.is_archived !== undefined && typeof given.is_archived !== 'boolean') invalid('body.is_archived should be a boolean.');
+    const test = given.filter === undefined ? () => true : this.#condition(source, given.filter, 0), now = this.clock(), archived = given.is_archived === true;
+    const found = state.order.map(id => state.pages[id]).filter(page => page && page.parent.data_source_id === source.id && !page.in_trash && (page.is_archived === true) === archived && page.visible_at <= now && test(page));
+    if (given.sorts !== undefined) found.sort(this.#sorter(source, given.sorts));
+    const rows = found.slice(0, this.queryCap).map(page => this.#row(page, query.getAll('filter_properties'))), list = this.#paged(rows, given.start_cursor, given.page_size, 'page_or_data_source');
+    return ok({...list, request_status: found.length > rows.length && !list.has_more ? {type: 'incomplete', incomplete_reason: 'query_result_limit_reached'} : {type: 'complete'}});
+  }
+  /** One row of a query's answer: a partial object, or the page holding only the properties `names` asks for. */
+  #row(page, names) {
+    if (page.partial) return {object: 'page', id: page.id};
+    const row = this.#page(page);
+    return names.length ? {...row, properties: Object.fromEntries(Object.entries(row.properties).filter(([name, property]) => names.includes(name) || names.includes(property.id)))} : row;
+  }
+  /** `sorts` as a compare of two stored rows. Ties fall to a seed, so nothing can lean on the order of rows that share a minute. */
+  #sorter(source, sorts) {
+    if (!Array.isArray(sorts) || sorts.length > 100) invalid('body.sorts should be a list of sorts.');
+    const keys = sorts.map((sort, index) => {
+      if (!record(sort) || Object.keys(sort).length !== 2 || !['ascending', 'descending'].includes(sort.direction)) invalid(`body.sorts[${index}] should be {timestamp or property, direction}.`);
+      const sign = sort.direction === 'ascending' ? 1 : -1;
+      if (STAMPS.includes(sort.timestamp)) return (a, b) => sign * (Date.parse(a[sort.timestamp]) - Date.parse(b[sort.timestamp]));
+      const property = typeof sort.property === 'string' ? this.#propertyOf(source, sort.property) : null;
+      if (!property) invalid(`Could not find sort property with name or id: ${sort.property}.`);
+      const value = page => { const held = page.properties[property.name]?.[property.type]; return ['title', 'rich_text'].includes(property.type) ? plain(held) : held?.name ?? held ?? ''; };
+      return (a, b) => { const [x, y] = [value(a), value(b)]; return sign * (x < y ? -1 : x > y ? 1 : 0); };
+    }), tied = page => hex(`${this.tieSeed}:${page.id}`);
+    return (a, b) => {
+      for (const compare of keys) { const order = compare(a, b); if (order) return order; }
+      return tied(a) < tied(b) ? -1 : 1;
+    };
+  }
+  /** A timestamp condition as a test of one row, compared in milliseconds. A condition with nothing in it is refused. */
+  #stampCondition(filter) {
+    const stamp = filter.timestamp, rule = filter[stamp];
+    if (!STAMPS.includes(stamp) || Object.keys(filter).length !== 2 || !record(rule) || Object.keys(rule).length !== 1) invalid('body.filter should be {timestamp, created_time or last_edited_time: {condition}}.');
+    const [operator, wanted] = Object.entries(rule)[0], time = typeof wanted === 'string' ? Date.parse(wanted) : NaN;
+    if (!Object.hasOwn(STAMP_TESTS, operator) || !Number.isFinite(time)) invalid(`body.filter.${stamp}.${operator} is not a filter the simulator takes for a timestamp.`);
+    return page => STAMP_TESTS[operator](Date.parse(page[stamp]), time);
+  }
+  /** A schema edit: a new property, a new name or new options for one, and null removes one. Each row takes the change, so its values stay keyed by name. */
+  #editSource({state, params, body}) {
+    const given = this.#body(body), source = this.#visible('sources', params.data_source_id, state);
+    this.#only(given, ['properties']);
+    if (!record(given.properties)) invalid('body.properties should be an object.');
+    const rows = Object.values(state.pages).filter(page => page.parent.data_source_id === source.id);
+    for (const [key, change] of Object.entries(given.properties)) {
+      const property = this.#propertyOf(source, key);
+      if (!property && change === null) invalid(`${key} is not a property that exists.`);
+      if (property?.type === 'title' && change === null) invalid('A data source keeps its title property.');
+      if (change !== null && !record(change)) invalid(`body.properties.${key} should be an object or null.`);
+      if (!property) this.#addProperty(source, key, change, rows);
+      else if (change === null) this.#dropProperty(source, property, rows);
+      else this.#changeProperty(source, property, change, rows);
+    }
+    source.last_edited_time = this.#now();
+    source.last_edited_by = this.bot.id;
+    return ok(this.#source(source, state));
+  }
+  #addProperty(source, name, change, rows) {
+    const type = Object.keys(change).find(key => key !== 'name');
+    if (![...WRITABLE, ...READ_ONLY].includes(type)) invalid(`body.properties.${name} should name a property type.`);
+    const options = (change[type]?.options ?? []).map((option, index) => ({id: `${name}-o${index}`, name: option.name, color: option.color ?? 'default', description: null}));
+    const added = {id: `new%3B${Object.keys(source.properties).length}`, name, description: '', type, [type]: ['select', 'multi_select', 'status'].includes(type) ? {options} : {}};
+    source.properties[name] = added;
+    for (const row of rows) row.properties[name] = this.#emptyValue(source, added);
+  }
+  #dropProperty(source, property, rows) {
+    delete source.properties[property.name];
+    for (const row of rows) delete row.properties[property.name];
+  }
+  #changeProperty(source, property, change, rows) {
+    const held = property[property.type]?.options;
+    if (Array.isArray(held) && Array.isArray(change[property.type]?.options)) {
+      property[property.type].options = change[property.type].options.map(option => ({...(held.find(item => item.name === option.name) ?? {id: `${property.id}-o${held.length}`, description: null, color: 'default'}), ...option}));
+    }
+    if (typeof change.name !== 'string' || change.name === property.name) return;
+    const old = property.name;
+    delete source.properties[old];
+    source.properties[change.name] = Object.assign(property, {name: change.name});
+    for (const row of rows) { row.properties[change.name] = row.properties[old]; delete row.properties[old]; }
   }
   /** A query filter as a test of one row: and, or, or one condition on a property by name or id. */
   #condition(source, filter, depth) {
     if (!record(filter) || depth > 2) invalid('body.filter should be a filter object.');
+    if (Object.hasOwn(filter, 'timestamp')) return this.#stampCondition(filter);
     for (const join of ['and', 'or']) {
       if (Object.hasOwn(filter, join)) {
         if (Object.keys(filter).length !== 1 || !Array.isArray(filter[join]) || filter[join].length > 100) invalid(`body.filter.${join} should be a list of filters.`);
@@ -626,8 +805,13 @@ export class NotionApiSimulator {
   #comments({state, query}) {
     const blockId = query.get('block_id');
     if (!blockId) invalid('block_id should be defined.');
+    if (state.blocks[canonicalId(blockId)]) {
+      const block = this.#visible('blocks', blockId, state), held = Object.values(state.comments).filter(comment => comment.block_id === block.id && !comment.resolved);
+      return ok(this.#paged(held.map(comment => this.#comment(comment)), query.get('start_cursor'), query.get('page_size'), 'comment'));
+    }
     const page = this.#visiblePage(blockId, state);
     const open = Object.values(state.comments).filter(comment => comment.page_id === page.id && !comment.resolved)
+      .filter(comment => !comment.block_id)
       .sort((a, b) => a.created_time < b.created_time ? -1 : a.created_time > b.created_time ? 1 : 0).map(comment => this.#comment(comment));
     return ok(this.#paged(open, query.get('start_cursor'), query.get('page_size'), 'comment'));
   }
@@ -672,8 +856,8 @@ export class NotionApiSimulator {
     }
     return best;
   }
-  #error(status, code, message, headers = {}) {
-    return {status, headers, data: {object: 'error', status, code, message, request_id: `00000000-0000-4000-8000-${String(this.data.request++).padStart(12, '0')}`}};
+  #error(status, code, message, headers = {}, more = {}) {
+    return {status, headers, data: {object: 'error', status, code, message, request_id: `00000000-0000-4000-8000-${String(this.data.request++).padStart(12, '0')}`, ...more}};
   }
 
   async request({url, method = 'GET', headers = {}, body, allowedOrigins, maxBytes = 2 * 1024 * 1024, responseType = 'json', redirect = 'error', responseHeaders = DEFAULT_RESPONSE_HEADERS, timeoutMs = 15000}) {
@@ -711,7 +895,8 @@ export class NotionApiSimulator {
     else if (lower['notion-version'] !== VERSION) answer = this.#error(400, 'validation_error', `Notion-Version header failed validation: the only allowed value is "${VERSION}".`);
     else if (authorization !== `Bearer ${this.token}`) answer = this.#error(401, 'unauthorized', 'API token is invalid.');
     else if (!found) answer = this.#error(400, 'invalid_request_url', 'Invalid request URL.');
-    else if (chosen?.kind === 'limit') answer = this.#error(429, 'rate_limited', 'You have been rate limited. Please try again in a few minutes.', {'retry-after': String(chosen.retryAfter)});
+    else if (chosen?.kind === 'limit') answer = this.#error(429, 'rate_limited', 'You have been rate limited. Please try again in a few minutes.', {'retry-after': String(chosen.retryAfter)},
+      {additional_data: {retry_after: String(chosen.retryAfter), rate_limit_reason: chosen.reason}});
     else if (found.route.capability !== 'none' && !this.held.has(found.route.capability)) answer = this.#error(403, 'restricted_resource', 'Insufficient permissions for this endpoint.');
     else if (chosen?.kind === 'fail') answer = structuredClone(chosen.answer);
     else if (parseFailed) answer = this.#error(400, 'invalid_json', 'Error parsing JSON body.');

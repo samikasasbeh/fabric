@@ -43,7 +43,8 @@ const UNCHANGED = Object.freeze({
   // files hash and Slack's two file hashes, and its ratchet reduction takes out their checks and puts back Notion's and Slack's actions checks.
   // F10.14 listed churn: its ratchet reduction also puts every app's live-evidence and sign-in-evidence checks back to false.
   // F10.20 listed churn: step 20's digest of test/local-mode-goldens.test.mjs.
-  'test/f10-11-churn.test.mjs': '8b7e6cb48628b64c6844b1001810522790b64e8f250fa5a1ab58f53ec146a432',
+  // Iteration 9 listed churn (docs/I07-BUILD-MAP.md part 1c): its import wall names lib/trigger-runtime.mjs.
+  'test/f10-11-churn.test.mjs': 'a6d1873b7399b7784ca3ed82e322f3ad7618ea061c66d53839aff9c4b2b5ce4d',
 });
 // F10.13 listed churn (docs/F10.13-BUILD-MAP.md part 1): step 13 changes some of these on purpose. Calendar's rows gain one bindContent
 // block, and the file with that block taken out is byte for byte the recorded one. The golden's Calendar entry moves with it (and again
@@ -107,6 +108,11 @@ const STEP_17 = Object.freeze({'catalog/permissions/github.json': text => GITHUB
   'catalog/auth/github.json': text => once(text, GRANT_HEADER, 'the grant header line, once'),
   'catalog/actions/README.md': text => once(text, ACTIONS_README_GITHUB, 'the step 17 paragraph, once')});
 const STEP_17_FILES = Object.freeze(['catalog/actions/github.json', 'catalog/live-tests/github.json']);
+// Iteration 9 listed churn (docs/I07-BUILD-MAP.md part 1c): the trigger folder's README. Part 3g adds the read probes and their README, and each later step adds its trigger file and plan here.
+const STEP_I07_FILES = Object.freeze(['catalog/triggers/README.md', 'catalog/live-tests/triggers/README.md', 'catalog/live-tests/triggers/github.probes.json', 'catalog/live-tests/triggers/gmail.probes.json',
+  'catalog/triggers/slack.json', 'catalog/triggers/notion.json', 'catalog/triggers/github.json', 'catalog/triggers/gmail.json', 'catalog/triggers/google-calendar.json',
+  'catalog/live-tests/triggers/google-calendar.probes.json', 'catalog/live-tests/triggers/slack.probes.json',
+  'catalog/live-tests/triggers/slack.json', 'catalog/live-tests/triggers/notion.json', 'catalog/live-tests/triggers/github.json', 'catalog/live-tests/triggers/gmail.json', 'catalog/live-tests/triggers/google-calendar.json']);
 /** A file's listed churn taken out, step 21's first, then step 19's, 17's, 15's and 13's. */
 const undone = file => text => [STEP_21[file], STEP_19[file], STEP_17[file], STEP_15[file], STEP_13[file]].filter(Boolean).reduce((value, undo) => undo(value), text);
 const SLACK_FILES_BEFORE = Object.freeze({filesHash: '7b789bbb0b07a82ccb6d6bfed615d3c1b1c11422fdd4b6448f5a420593ba6ce2', auth: '791934a1f77347c6c14db55acc2b079a3f2048f8c0eecef70d1a2f00fccf5fe4'});
@@ -122,10 +128,10 @@ const goldenWithoutMoved = () => {
 /** Every file under a folder, as repository paths. */
 const filesUnder = folder => readdirSync(path.join(ROOT, folder), {withFileTypes: true}).flatMap(entry => entry.isDirectory() ? filesUnder(`${folder}/${entry.name}`) : [`${folder}/${entry.name}`]);
 
-test('nothing under catalog/ changes except the new catalog/live-tests/README.md, step 13\'s binding, action file, plan and README paragraph, step 15\'s Gmail row data, step 17\'s GitHub bindings and grant header, and the action files, plans and README paragraphs of steps 15 to 21, and the signed defaults golden is unchanged but for Calendar\'s, Gmail\'s and GitHub\'s entries, every other sign-off binding', () => {
+test('nothing under catalog/ changes except the new catalog/live-tests/README.md, step 13\'s binding, action file, plan and README paragraph, step 15\'s Gmail row data, step 17\'s GitHub bindings and grant header, the action files, plans and README paragraphs of steps 15 to 21, and the trigger files of Iteration 9, and the signed defaults golden is unchanged but for Calendar\'s, Gmail\'s and GitHub\'s entries, every other sign-off binding', () => {
   const files = filesUnder('catalog').filter(file => !file.endsWith('/.DS_Store')).sort();
-  assert.deepEqual(files, [...Object.keys(CATALOG), 'catalog/live-tests/README.md', ...STEP_13_FILES, ...STEP_15_FILES, ...STEP_17_FILES, ...STEP_19_FILES, ...STEP_21_FILES].sort(),
-    'no catalog file appears or goes, but the plan format\'s README and the two files of steps 13, 15, 17, 19 and 21');
+  assert.deepEqual(files, [...Object.keys(CATALOG), 'catalog/live-tests/README.md', ...STEP_13_FILES, ...STEP_15_FILES, ...STEP_17_FILES, ...STEP_19_FILES, ...STEP_21_FILES, ...STEP_I07_FILES].sort(),
+    'no catalog file appears or goes, but the plan format\'s README, the two files of steps 13, 15, 17, 19 and 21 and the files of Iteration 9');
   for (const [file, digest] of Object.entries(CATALOG)) assert.equal(digestOf(file, undone(file)), digest, `${file} is as it was before step 12`);
   for (const [file, digest] of Object.entries(UNCHANGED)) assert.equal(digestOf(file), digest, `${file} is as it was after its listed churn`);
   assert.equal(goldenWithoutMoved(), GOLDEN_WITHOUT_MOVED, 'the golden, but Calendar\'s, Gmail\'s and GitHub\'s entries and Notion\'s and Slack\'s files hashes, is as it was before step 12');
@@ -167,9 +173,9 @@ test('lib/live-certify.mjs imports none of the owner-side modules: server.mjs, l
 // The command holds the owner principal only to bind each test's grant (section 8, question 3): it may reach Fabric through these members
 // alone, and never through an approve, a row setter, a reset, the owner's job routes, a POST to the approve page or the owner's CSRF header.
 const ALLOWED = Object.freeze(['app.actions', 'app.close', 'app.connections.providers.resolve', 'app.origin', 'app.protocol.createClient', 'app.protocol.handle', 'app.protocol.revokeClient',
-  'app.runtime.proxyPolicy.view', 'app.start', 'app.store.get', 'app.store.list']);
+  'app.runtime.proxyPolicy.view', 'app.start', 'app.store.get', 'app.store.list', 'app.triggers.pollNow', 'app.triggers.ageCursor']);
 // The action catalog's two maps, read only: their own reading members and nothing else of the catalog (no reload, seed or runner).
-const MAP_READS = Object.freeze(['app.actions.entries', 'app.actions.superseded']);
+const MAP_READS = Object.freeze(['app.actions.entries', 'app.actions.superseded', 'app.actions.triggers']);
 const allowed = member => ALLOWED.includes(member) || MAP_READS.some(map => member === map || /^\.(values|keys|get|has|size)$/.test(member.slice(map.length)) && member.startsWith(map));
 test('scripts/live-certify.mjs uses only the members part 2 names: no approve, setRow, reset, /api/jobs, POST /approve or x-fabric-csrf', () => {
   const text = readFileSync(path.join(ROOT, 'scripts/live-certify.mjs'), 'utf8');

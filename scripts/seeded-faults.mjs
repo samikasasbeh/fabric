@@ -60,7 +60,7 @@ function validate(faults, newTests) {
     if (typeof entry?.id !== 'string' || !/^[a-z0-9-]+$/.test(entry.id)) problems.push({id: where, problem: 'id must be lowercase letters, digits and hyphens'});
     else if (ids.has(entry.id)) problems.push({id: where, problem: 'duplicate id'});
     ids.add(entry?.id);
-    if (typeof entry?.step !== 'string' || !/^F(03\.(\d|1[01])|10\.\d{1,2})$/.test(entry.step)) problems.push({id: where, problem: 'step must be F03.0 to F03.11, or F10.<n>'});
+    if (typeof entry?.step !== 'string' || !/^(F(03\.(\d|1[01])|10\.\d{1,2})|I07)$/.test(entry.step)) problems.push({id: where, problem: 'step must be F03.0 to F03.11, F10.<n> or I07'});
     if (typeof entry?.name !== 'string' || !entry.name.trim()) problems.push({id: where, problem: 'name is required'});
     if (entry?.owed !== undefined) {
       if (typeof entry.owed !== 'string' || entry.owed.length < 20) problems.push({id: where, problem: 'owed must say where and when the fault becomes testable'});

@@ -3,8 +3,9 @@ import assert from 'node:assert/strict';
 import {existsSync, mkdtempSync, rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
+import {DatabaseSync} from 'node:sqlite';
 import {canonicalHash} from '../lib/compiler.mjs';
-import {RETENTION, retentionOf, bodyTtl} from '../lib/retention.mjs';
+import {RETENTION, retentionOf, bodyTtl, sweepEvents} from '../lib/retention.mjs';
 import {RESPONSE_TTL} from '../lib/proxy-runtime.mjs';
 import {Runtime, sweepRetention} from '../lib/runtime.mjs';
 import {Store} from '../lib/store.mjs';
@@ -126,4 +127,36 @@ test('the server sweeps every minute on an unref\'d timer, cleared when the app 
   t.mock.timers.tick(5 * 60_000);
   assert.equal(sweeps, 1, 'no sweep after close');
   assert.ok(existsSync(path.join(directory, 'data')));
+});
+
+// Iteration 9, part 1b (docs/I07-BUILD-MAP.md): trigger events carry their own expires_at, from the trigger's retention, so RETENTION stays as it
+// is. listEvents() already hides what has expired, so only the file itself shows that a sweep deleted a row.
+const fileOf = rig => new DatabaseSync(path.join(rig.root, 'data', 'fabric.sqlite'), {readOnly: true});
+function reading(rig, read) { const db = fileOf(rig); try { return read(db); } finally { db.close(); } }
+const rowsIn = (rig, table) => reading(rig, db => db.prepare(`SELECT count(*) AS count FROM ${table}`).get().count);
+
+test('a trigger event goes when its own expires_at comes: Slack\'s at 24 hours, another app\'s at 7 days; the seen row and the sequence stay', t => {
+  const rig = slackRig(t), event = (key, keep) => ({clientId: 'client', subscriptionId: `sub-${key}`, dedupeKey: key, connectionId: rig.account, kind: 'trigger.event', createdAt: rig.now, expiresAt: rig.now + keep, payload: {key}});
+  rig.store.appendPoll({feedId: 'feed', seen: [{lens: 'lens', itemKey: 'hashed', valueHash: 'value', generation: 1, connectionId: rig.account}], events: [event('slack', DAY), event('gmail', 7 * DAY)]});
+  rig.advance(DAY - 1);
+  rig.runtime.sweepRetention();
+  assert.equal(rowsIn(rig, 'trigger_events'), 2, 'kept until then');
+  rig.advance(1);
+  rig.runtime.sweepRetention();
+  assert.equal(rowsIn(rig, 'trigger_events'), 1, 'deleted at 24 hours, not merely hidden');
+  assert.deepEqual(rig.store.listEvents('client', 0, 10).map(row => row.dedupeKey), ['gmail']);
+  rig.advance(6 * DAY);
+  rig.runtime.sweepRetention();
+  assert.equal(rowsIn(rig, 'trigger_events'), 0);
+  assert.equal(rowsIn(rig, 'trigger_seen'), 1, 'a key must last as long as the cursor, or the item fires again');
+  assert.equal(rig.store.latestSequence('client'), 2);
+});
+
+test('a sweep on a store nobody subscribes on makes no table, and a store with no trigger tables at all passes through', t => {
+  const rig = slackRig(t);
+  rig.advance(DAY);
+  rig.runtime.sweepRetention();
+  rig.runtime.recover();
+  assert.deepEqual(reading(rig, db => db.prepare("SELECT name FROM sqlite_master WHERE name LIKE 'trigger%'").all()), []);
+  assert.doesNotThrow(() => sweepEvents({}, rig.now));
 });

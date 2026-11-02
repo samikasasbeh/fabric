@@ -1,0 +1,1888 @@
+{
+ "schemaVersion": 1,
+ "appId": "notion",
+ "specVersion": "fabric/0.2",
+ "reviewStatus": "candidate",
+ "pinnedParameters": {},
+ "triggers": [
+  {
+   "id": "notion.trigger.new-row.v1.51bb11fefd11bf46a420dd16",
+   "key": "new-row",
+   "version": 1,
+   "name": "New row in a database",
+   "description": "Tells you once when a row is created in one data source you shared. It reads rows by created time, so editing an old row never counts as new.",
+   "delivery": {
+    "method": "webhook",
+    "registration": "operator",
+    "fallback": "polling",
+    "admission": {
+     "scheme": "notion-signature",
+     "header": "x-notion-signature",
+     "prefix": "sha256=",
+     "secret": "operator:notion-verification-token",
+     "handshake": "notion-verification-token",
+     "route": {
+      "pointer": "/workspace_id",
+      "to": "identity"
+     },
+     "wake": {
+      "pointer": "/data/parent/data_source_id",
+      "equals": {
+       "input": "/dataSourceId"
+      }
+     },
+     "events": [
+      "page.created"
+     ],
+     "trust": "doorbell"
+    }
+   },
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "dataSourceId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2048
+     }
+    },
+    "required": [
+     "dataSourceId"
+    ],
+    "additionalProperties": false
+   },
+   "resource": [
+    "dataSourceId"
+   ],
+   "poll": {
+    "seed": {
+     "step": {
+      "id": "newest",
+      "method": "POST",
+      "path": "/v1/data_sources/{data_source_id}/query",
+      "params": {
+       "data_source_id": {
+        "input": "/dataSourceId"
+       }
+      },
+      "body": {
+       "object": {
+        "sorts": {
+         "const": [
+          {
+           "timestamp": "created_time",
+           "direction": "descending"
+          }
+         ]
+        },
+        "result_type": {
+         "const": "page"
+        },
+        "page_size": {
+         "const": 1
+        }
+       }
+      },
+      "expect": {
+       "status": [
+        200
+       ],
+       "require": []
+      }
+     },
+     "cursor": {
+      "name": "created",
+      "pointer": "/results/0/created_time"
+     }
+    },
+    "source": {
+     "steps": [
+      {
+       "id": "rows",
+       "method": "POST",
+       "path": "/v1/data_sources/{data_source_id}/query",
+       "params": {
+        "data_source_id": {
+         "input": "/dataSourceId"
+        }
+       },
+       "query": {
+        "filter_properties": {
+         "const": [
+          "title"
+         ]
+        }
+       },
+       "page": {
+        "next": {
+         "pointer": "/next_cursor"
+        },
+        "into": {
+         "body": "/start_cursor"
+        },
+        "items": "/results",
+        "while": "/has_more",
+        "max": 5
+       },
+       "body": {
+        "object": {
+         "filter": {
+          "object": {
+           "timestamp": {
+            "const": "created_time"
+           },
+           "created_time": {
+            "object": {
+             "on_or_after": {
+              "cursor": "created"
+             }
+            }
+           }
+          }
+         },
+         "sorts": {
+          "const": [
+           {
+            "timestamp": "created_time",
+            "direction": "ascending"
+           }
+          ]
+         },
+         "result_type": {
+          "const": "page"
+         },
+         "page_size": {
+          "const": 100
+         }
+        }
+       },
+       "expect": {
+        "status": [
+         200
+        ],
+        "require": []
+       }
+      }
+     ]
+    },
+    "items": {
+     "step": "rows",
+     "pointer": ""
+    },
+    "itemTime": {
+     "pointer": "/created_time",
+     "format": "rfc3339"
+    },
+    "order": "asc",
+    "cursors": [
+     {
+      "name": "created",
+      "kind": "high-water-time@1",
+      "next": {
+       "max": "itemTime"
+      },
+      "compare": "time.rfc3339ToEpochSeconds@1",
+      "overlapSeconds": 120
+     }
+    ],
+    "resync": {
+     "statusIn": []
+    },
+    "minIntervalSeconds": 120,
+    "itemId": {
+     "item": "/id"
+    },
+    "itemVersion": null
+   },
+   "dedupe": {
+    "kind": "id"
+   },
+   "event": {
+    "schema": {
+     "type": "object",
+     "properties": {
+      "dataSourceId": {
+       "type": "string",
+       "maxLength": 36
+      },
+      "pageId": {
+       "type": "string",
+       "maxLength": 36
+      },
+      "title": {
+       "type": "string",
+       "maxLength": 200
+      },
+      "url": {
+       "type": "string",
+       "maxLength": 512
+      },
+      "createdTime": {
+       "type": "string",
+       "maxLength": 64
+      },
+      "createdBy": {
+       "type": "string",
+       "maxLength": 64
+      }
+     },
+     "required": [
+      "dataSourceId",
+      "pageId",
+      "createdTime"
+     ],
+     "additionalProperties": false
+    },
+    "id": {
+     "item": "/id"
+    },
+    "occurredAt": {
+     "item": "/created_time"
+    },
+    "fields": {
+     "dataSourceId": {
+      "input": "/dataSourceId"
+     },
+     "pageId": {
+      "item": "/id"
+     },
+     "title": {
+      "pick": {
+       "transform": "text.truncate@1",
+       "args": {
+        "text": {
+         "pick": {
+          "transform": "notion.title@1",
+          "args": {
+           "object": {
+            "item": ""
+           }
+          }
+         },
+         "pointer": "/title"
+        },
+        "max": {
+         "const": 200
+        }
+       }
+      },
+      "pointer": "/text"
+     },
+     "url": {
+      "item": "/url"
+     },
+     "createdTime": {
+      "item": "/created_time"
+     },
+     "createdBy": {
+      "item": "/created_by/id"
+     }
+    },
+    "summary": [
+     {
+      "label": "Row",
+      "expr": {
+       "pick": {
+        "transform": "notion.title@1",
+        "args": {
+         "object": {
+          "item": ""
+         }
+        }
+       },
+       "pointer": "/title"
+      },
+      "truncate": 120
+     },
+     {
+      "label": "Created",
+      "expr": {
+       "item": "/created_time"
+      }
+     }
+    ]
+   },
+   "backfill": {
+    "default": 0,
+    "max": 25
+   },
+   "retention": {
+    "days": 7
+   },
+   "bounds": {
+    "pages": 5,
+    "items": 500,
+    "pollSeconds": 10
+   },
+   "rows": [
+    "notion.content.read"
+   ]
+  },
+  {
+   "id": "notion.trigger.row-changed.v1.1546d5ff9bc70d39f4102526",
+   "key": "row-changed",
+   "version": 1,
+   "name": "A row changed in a database",
+   "description": "Tells you when a row of one data source you shared is created or edited. Trashed rows leave Notion's query, so a trashed row never shows here.",
+   "delivery": {
+    "method": "webhook",
+    "registration": "operator",
+    "fallback": "polling",
+    "admission": {
+     "scheme": "notion-signature",
+     "header": "x-notion-signature",
+     "prefix": "sha256=",
+     "secret": "operator:notion-verification-token",
+     "handshake": "notion-verification-token",
+     "route": {
+      "pointer": "/workspace_id",
+      "to": "identity"
+     },
+     "wake": {
+      "pointer": "/data/parent/data_source_id",
+      "equals": {
+       "input": "/dataSourceId"
+      }
+     },
+     "events": [
+      "page.properties_updated",
+      "page.content_updated",
+      "page.created",
+      "page.undeleted",
+      "page.moved"
+     ],
+     "trust": "doorbell"
+    }
+   },
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "dataSourceId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2048
+     }
+    },
+    "required": [
+     "dataSourceId"
+    ],
+    "additionalProperties": false
+   },
+   "resource": [
+    "dataSourceId"
+   ],
+   "poll": {
+    "seed": {
+     "step": {
+      "id": "newest",
+      "method": "POST",
+      "path": "/v1/data_sources/{data_source_id}/query",
+      "params": {
+       "data_source_id": {
+        "input": "/dataSourceId"
+       }
+      },
+      "body": {
+       "object": {
+        "sorts": {
+         "const": [
+          {
+           "timestamp": "last_edited_time",
+           "direction": "descending"
+          }
+         ]
+        },
+        "result_type": {
+         "const": "page"
+        },
+        "page_size": {
+         "const": 1
+        }
+       }
+      },
+      "expect": {
+       "status": [
+        200
+       ],
+       "require": []
+      }
+     },
+     "cursor": {
+      "name": "edited",
+      "pointer": "/results/0/last_edited_time"
+     }
+    },
+    "source": {
+     "steps": [
+      {
+       "id": "rows",
+       "method": "POST",
+       "path": "/v1/data_sources/{data_source_id}/query",
+       "params": {
+        "data_source_id": {
+         "input": "/dataSourceId"
+        }
+       },
+       "page": {
+        "next": {
+         "pointer": "/next_cursor"
+        },
+        "into": {
+         "body": "/start_cursor"
+        },
+        "items": "/results",
+        "while": "/has_more",
+        "max": 10
+       },
+       "maxResponseBytes": 2097152,
+       "body": {
+        "object": {
+         "filter": {
+          "object": {
+           "timestamp": {
+            "const": "last_edited_time"
+           },
+           "last_edited_time": {
+            "object": {
+             "on_or_after": {
+              "cursor": "edited"
+             }
+            }
+           }
+          }
+         },
+         "sorts": {
+          "const": [
+           {
+            "timestamp": "last_edited_time",
+            "direction": "ascending"
+           }
+          ]
+         },
+         "result_type": {
+          "const": "page"
+         },
+         "page_size": {
+          "const": 50
+         }
+        }
+       },
+       "expect": {
+        "status": [
+         200
+        ],
+        "require": []
+       }
+      }
+     ]
+    },
+    "items": {
+     "step": "rows",
+     "pointer": ""
+    },
+    "itemTime": {
+     "pointer": "/last_edited_time",
+     "format": "rfc3339"
+    },
+    "order": "asc",
+    "cursors": [
+     {
+      "name": "edited",
+      "kind": "high-water-time@1",
+      "next": {
+       "max": "itemTime"
+      },
+      "compare": "time.rfc3339ToEpochSeconds@1",
+      "overlapSeconds": 120
+     }
+    ],
+    "resync": {
+     "statusIn": []
+    },
+    "minIntervalSeconds": 120,
+    "itemId": {
+     "item": "/id"
+    },
+    "itemVersion": "/last_edited_time"
+   },
+   "dedupe": {
+    "kind": "content-hash",
+    "fields": [
+     {
+      "item": "/id"
+     },
+     {
+      "item": "/last_edited_time"
+     },
+     {
+      "pick": {
+       "transform": "notion.rowFingerprint@1",
+       "args": {
+        "page": {
+         "item": ""
+        }
+       }
+      },
+      "pointer": "/values"
+     }
+    ]
+   },
+   "event": {
+    "schema": {
+     "type": "object",
+     "properties": {
+      "dataSourceId": {
+       "type": "string",
+       "maxLength": 36
+      },
+      "pageId": {
+       "type": "string",
+       "maxLength": 36
+      },
+      "changeKind": {
+       "type": "string",
+       "enum": [
+        "created",
+        "edited"
+       ]
+      },
+      "title": {
+       "type": "string",
+       "maxLength": 200
+      },
+      "url": {
+       "type": "string",
+       "maxLength": 512
+      },
+      "lastEditedTime": {
+       "type": "string",
+       "maxLength": 64
+      },
+      "createdTime": {
+       "type": "string",
+       "maxLength": 64
+      },
+      "editedBy": {
+       "type": "string",
+       "maxLength": 64
+      }
+     },
+     "required": [
+      "dataSourceId",
+      "pageId",
+      "lastEditedTime"
+     ],
+     "additionalProperties": false
+    },
+    "id": {
+     "concat": [
+      {
+       "item": "/id"
+      },
+      {
+       "const": ":"
+      },
+      {
+       "item": "/last_edited_time"
+      }
+     ],
+     "max": 120
+    },
+    "occurredAt": {
+     "item": "/last_edited_time"
+    },
+    "fields": {
+     "dataSourceId": {
+      "input": "/dataSourceId"
+     },
+     "pageId": {
+      "item": "/id"
+     },
+     "changeKind": {
+      "pick": {
+       "transform": "notion.rowFingerprint@1",
+       "args": {
+        "page": {
+         "item": ""
+        }
+       }
+      },
+      "pointer": "/changeKind"
+     },
+     "title": {
+      "pick": {
+       "transform": "text.truncate@1",
+       "args": {
+        "text": {
+         "pick": {
+          "transform": "notion.title@1",
+          "args": {
+           "object": {
+            "item": ""
+           }
+          }
+         },
+         "pointer": "/title"
+        },
+        "max": {
+         "const": 200
+        }
+       }
+      },
+      "pointer": "/text"
+     },
+     "url": {
+      "item": "/url"
+     },
+     "lastEditedTime": {
+      "item": "/last_edited_time"
+     },
+     "createdTime": {
+      "item": "/created_time"
+     },
+     "editedBy": {
+      "item": "/last_edited_by/id"
+     }
+    },
+    "summary": [
+     {
+      "label": "Row",
+      "expr": {
+       "pick": {
+        "transform": "notion.title@1",
+        "args": {
+         "object": {
+          "item": ""
+         }
+        }
+       },
+       "pointer": "/title"
+      },
+      "truncate": 120
+     },
+     {
+      "label": "Edited",
+      "expr": {
+       "item": "/last_edited_time"
+      }
+     }
+    ]
+   },
+   "backfill": {
+    "default": 0,
+    "max": 25
+   },
+   "retention": {
+    "days": 7
+   },
+   "bounds": {
+    "pages": 10,
+    "items": 500,
+    "pollSeconds": 10
+   },
+   "rows": [
+    "notion.content.read"
+   ]
+  },
+  {
+   "id": "notion.trigger.page-content-changed.v1.d71019b03b95b5ae037d5a5b",
+   "key": "page-content-changed",
+   "version": 1,
+   "name": "A page's content changed",
+   "description": "Tells you when the text of a page you chose changes, by comparing a fingerprint of its markdown on each poll. A change undone between two polls shows nothing.",
+   "delivery": {
+    "method": "webhook",
+    "registration": "operator",
+    "fallback": "polling",
+    "admission": {
+     "scheme": "notion-signature",
+     "header": "x-notion-signature",
+     "prefix": "sha256=",
+     "secret": "operator:notion-verification-token",
+     "handshake": "notion-verification-token",
+     "route": {
+      "pointer": "/workspace_id",
+      "to": "identity"
+     },
+     "wake": {
+      "pointer": "/entity/id",
+      "in": {
+       "input": "/pages"
+      }
+     },
+     "events": [
+      "page.content_updated"
+     ],
+     "trust": "doorbell"
+    }
+   },
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "pages": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 10,
+      "items": {
+       "type": "string",
+       "minLength": 1,
+       "maxLength": 2048
+      }
+     }
+    },
+    "required": [
+     "pages"
+    ],
+    "additionalProperties": false
+   },
+   "resource": {
+    "each": "/pages",
+    "as": "page"
+   },
+   "poll": {
+    "source": {
+     "steps": [
+      {
+       "id": "page",
+       "method": "GET",
+       "path": "/v1/pages/{page_id}",
+       "params": {
+        "page_id": {
+         "pick": {
+          "transform": "ids.notionId@1",
+          "args": {
+           "value": {
+            "var": "page"
+           }
+          }
+         },
+         "pointer": "/id"
+        }
+       },
+       "expect": {
+        "status": [
+         200
+        ],
+        "require": []
+       }
+      },
+      {
+       "id": "markdown",
+       "method": "GET",
+       "path": "/v1/pages/{page_id}/markdown",
+       "params": {
+        "page_id": {
+         "pick": {
+          "transform": "ids.notionId@1",
+          "args": {
+           "value": {
+            "var": "page"
+           }
+          }
+         },
+         "pointer": "/id"
+        }
+       },
+       "query": {
+        "markdown_version": {
+         "const": "v2"
+        }
+       },
+       "maxResponseBytes": 2097152,
+       "expect": {
+        "status": [
+         200
+        ],
+        "require": []
+       }
+      }
+     ]
+    },
+    "items": {
+     "array": [
+      {
+       "object": {
+        "id": {
+         "step": "page",
+         "pointer": "/id"
+        },
+        "url": {
+         "step": "page",
+         "pointer": "/url"
+        },
+        "last_edited_time": {
+         "step": "page",
+         "pointer": "/last_edited_time"
+        },
+        "last_edited_by": {
+         "step": "page",
+         "pointer": "/last_edited_by/id"
+        },
+        "markdown": {
+         "step": "markdown",
+         "pointer": "/markdown"
+        },
+        "truncated": {
+         "step": "markdown",
+         "pointer": "/truncated"
+        }
+       }
+      }
+     ]
+    },
+    "itemId": {
+     "item": "/id"
+    },
+    "itemVersion": null,
+    "itemTime": {
+     "pointer": "/last_edited_time",
+     "format": "rfc3339"
+    },
+    "order": "unordered",
+    "cursors": [
+     {
+      "name": "seen",
+      "kind": "snapshot@1",
+      "compare": "collections.diff@1"
+     }
+    ],
+    "resync": {
+     "statusIn": []
+    },
+    "minIntervalSeconds": 240
+   },
+   "dedupe": {
+    "kind": "content-hash",
+    "fields": [
+     {
+      "pick": {
+       "transform": "notion.markdownFingerprint@1",
+       "args": {
+        "markdown": {
+         "item": "/markdown"
+        }
+       }
+      },
+      "pointer": "/text"
+     }
+    ]
+   },
+   "event": {
+    "schema": {
+     "type": "object",
+     "properties": {
+      "pageId": {
+       "type": "string",
+       "maxLength": 36
+      },
+      "url": {
+       "type": "string",
+       "maxLength": 512
+      },
+      "lastEditedTime": {
+       "type": "string",
+       "maxLength": 64
+      },
+      "editedBy": {
+       "type": "string",
+       "maxLength": 64
+      },
+      "truncated": {
+       "type": "boolean"
+      }
+     },
+     "required": [
+      "pageId"
+     ],
+     "additionalProperties": false
+    },
+    "id": {
+     "concat": [
+      {
+       "item": "/id"
+      },
+      {
+       "const": ":"
+      },
+      {
+       "item": "/last_edited_time"
+      }
+     ],
+     "max": 120
+    },
+    "occurredAt": {
+     "item": "/last_edited_time"
+    },
+    "fields": {
+     "pageId": {
+      "item": "/id"
+     },
+     "url": {
+      "item": "/url"
+     },
+     "lastEditedTime": {
+      "item": "/last_edited_time"
+     },
+     "editedBy": {
+      "item": "/last_edited_by"
+     },
+     "truncated": {
+      "item": "/truncated"
+     }
+    },
+    "summary": [
+     {
+      "label": "Page",
+      "expr": {
+       "item": "/url"
+      }
+     },
+     {
+      "label": "Edited",
+      "expr": {
+       "item": "/last_edited_time"
+      }
+     }
+    ]
+   },
+   "backfill": {
+    "default": 0,
+    "max": 0
+   },
+   "retention": {
+    "days": 7
+   },
+   "bounds": {
+    "pages": 1,
+    "items": 1,
+    "pollSeconds": 10
+   },
+   "rows": [
+    "notion.content.read"
+   ]
+  },
+  {
+   "id": "notion.trigger.new-comment.v1.de7ce5671f18f320ad895a56",
+   "key": "new-comment",
+   "version": 1,
+   "name": "New comment on a page",
+   "description": "Tells you once about each new open comment at the top of a page you chose. Notion lists comments per block, so a comment on a block inside the page is not seen, and a resolved comment never shows.",
+   "delivery": {
+    "method": "webhook",
+    "registration": "operator",
+    "fallback": "polling",
+    "admission": {
+     "scheme": "notion-signature",
+     "header": "x-notion-signature",
+     "prefix": "sha256=",
+     "secret": "operator:notion-verification-token",
+     "handshake": "notion-verification-token",
+     "route": {
+      "pointer": "/workspace_id",
+      "to": "identity"
+     },
+     "wake": {
+      "pointer": "/data/page_id",
+      "in": {
+       "input": "/pages"
+      }
+     },
+     "events": [
+      "comment.created"
+     ],
+     "trust": "doorbell"
+    }
+   },
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "pages": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 10,
+      "items": {
+       "type": "string",
+       "minLength": 1,
+       "maxLength": 2048
+      }
+     }
+    },
+    "required": [
+     "pages"
+    ],
+    "additionalProperties": false
+   },
+   "resource": {
+    "each": "/pages",
+    "as": "page"
+   },
+   "poll": {
+    "source": {
+     "steps": [
+      {
+       "id": "list",
+       "method": "GET",
+       "path": "/v1/comments",
+       "query": {
+        "block_id": {
+         "pick": {
+          "transform": "ids.notionId@1",
+          "args": {
+           "value": {
+            "var": "page"
+           }
+          }
+         },
+         "pointer": "/id"
+        },
+        "page_size": {
+         "const": 100
+        }
+       },
+       "page": {
+        "next": {
+         "pointer": "/next_cursor"
+        },
+        "into": {
+         "query": "start_cursor"
+        },
+        "items": "/results",
+        "while": "/has_more",
+        "max": 10
+       },
+       "expect": {
+        "status": [
+         200
+        ],
+        "require": []
+       }
+      }
+     ]
+    },
+    "items": {
+     "step": "list",
+     "pointer": ""
+    },
+    "itemId": {
+     "item": "/id"
+    },
+    "itemVersion": null,
+    "itemTime": {
+     "pointer": "/created_time",
+     "format": "rfc3339"
+    },
+    "order": "unordered",
+    "cursors": [
+     {
+      "name": "seen",
+      "kind": "snapshot@1",
+      "compare": "collections.diff@1"
+     }
+    ],
+    "resync": {
+     "statusIn": []
+    },
+    "minIntervalSeconds": 120
+   },
+   "dedupe": {
+    "kind": "id"
+   },
+   "event": {
+    "schema": {
+     "type": "object",
+     "properties": {
+      "commentId": {
+       "type": "string",
+       "maxLength": 36
+      },
+      "discussionId": {
+       "type": "string",
+       "maxLength": 36
+      },
+      "pageId": {
+       "type": "string",
+       "maxLength": 36
+      },
+      "createdTime": {
+       "type": "string",
+       "maxLength": 64
+      },
+      "createdBy": {
+       "type": "string",
+       "maxLength": 64
+      }
+     },
+     "required": [
+      "commentId",
+      "createdTime"
+     ],
+     "additionalProperties": false
+    },
+    "id": {
+     "item": "/id"
+    },
+    "occurredAt": {
+     "item": "/created_time"
+    },
+    "fields": {
+     "commentId": {
+      "item": "/id"
+     },
+     "discussionId": {
+      "item": "/discussion_id"
+     },
+     "pageId": {
+      "item": "/parent/page_id"
+     },
+     "createdTime": {
+      "item": "/created_time"
+     },
+     "createdBy": {
+      "item": "/created_by/id"
+     }
+    },
+    "summary": [
+     {
+      "label": "Comment",
+      "expr": {
+       "item": "/rich_text/0/plain_text"
+      },
+      "truncate": 120
+     },
+     {
+      "label": "Created",
+      "expr": {
+       "item": "/created_time"
+      }
+     }
+    ]
+   },
+   "backfill": {
+    "default": 0,
+    "max": 25
+   },
+   "retention": {
+    "days": 7
+   },
+   "bounds": {
+    "pages": 10,
+    "items": 500,
+    "pollSeconds": 10
+   },
+   "rows": [
+    "notion.comments.read"
+   ]
+  },
+  {
+   "id": "notion.trigger.trashed-or-restored.v1.f782f884ce2a3b2322d64a74",
+   "key": "trashed-or-restored",
+   "version": 1,
+   "name": "A page was trashed or restored",
+   "description": "Tells you when a page or row you chose moves to Notion's trash or comes back. It reads each chosen page by id, so it covers those pages only, not a whole database. Trashed and restored between two polls shows nothing.",
+   "delivery": {
+    "method": "webhook",
+    "registration": "operator",
+    "fallback": "polling",
+    "admission": {
+     "scheme": "notion-signature",
+     "header": "x-notion-signature",
+     "prefix": "sha256=",
+     "secret": "operator:notion-verification-token",
+     "handshake": "notion-verification-token",
+     "route": {
+      "pointer": "/workspace_id",
+      "to": "identity"
+     },
+     "wake": {
+      "pointer": "/entity/id",
+      "in": {
+       "input": "/pages"
+      }
+     },
+     "events": [
+      "page.deleted",
+      "page.undeleted"
+     ],
+     "trust": "doorbell"
+    }
+   },
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "pages": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 10,
+      "items": {
+       "type": "string",
+       "minLength": 1,
+       "maxLength": 2048
+      }
+     }
+    },
+    "required": [
+     "pages"
+    ],
+    "additionalProperties": false
+   },
+   "resource": {
+    "each": "/pages",
+    "as": "page"
+   },
+   "poll": {
+    "source": {
+     "steps": [
+      {
+       "id": "page",
+       "method": "GET",
+       "path": "/v1/pages/{page_id}",
+       "params": {
+        "page_id": {
+         "pick": {
+          "transform": "ids.notionId@1",
+          "args": {
+           "value": {
+            "var": "page"
+           }
+          }
+         },
+         "pointer": "/id"
+        }
+       },
+       "expect": {
+        "status": [
+         200
+        ],
+        "require": []
+       }
+      }
+     ]
+    },
+    "items": {
+     "step": "page",
+     "pointer": ""
+    },
+    "itemId": {
+     "item": "/id"
+    },
+    "itemVersion": null,
+    "itemTime": {
+     "pointer": "/last_edited_time",
+     "format": "rfc3339"
+    },
+    "order": "unordered",
+    "cursors": [
+     {
+      "name": "seen",
+      "kind": "snapshot@1",
+      "compare": "collections.diff@1"
+     }
+    ],
+    "resync": {
+     "statusIn": []
+    },
+    "minIntervalSeconds": 240
+   },
+   "dedupe": {
+    "kind": "content-hash",
+    "fields": [
+     {
+      "item": "/in_trash"
+     }
+    ]
+   },
+   "event": {
+    "schema": {
+     "type": "object",
+     "properties": {
+      "pageId": {
+       "type": "string",
+       "maxLength": 36
+      },
+      "inTrash": {
+       "type": "boolean"
+      },
+      "title": {
+       "type": "string",
+       "maxLength": 200
+      },
+      "url": {
+       "type": "string",
+       "maxLength": 512
+      },
+      "lastEditedTime": {
+       "type": "string",
+       "maxLength": 64
+      },
+      "editedBy": {
+       "type": "string",
+       "maxLength": 64
+      }
+     },
+     "required": [
+      "pageId",
+      "inTrash"
+     ],
+     "additionalProperties": false
+    },
+    "id": {
+     "concat": [
+      {
+       "item": "/id"
+      },
+      {
+       "const": ":"
+      },
+      {
+       "item": "/last_edited_time"
+      }
+     ],
+     "max": 120
+    },
+    "occurredAt": {
+     "item": "/last_edited_time"
+    },
+    "fields": {
+     "pageId": {
+      "item": "/id"
+     },
+     "inTrash": {
+      "item": "/in_trash"
+     },
+     "title": {
+      "pick": {
+       "transform": "text.truncate@1",
+       "args": {
+        "text": {
+         "pick": {
+          "transform": "notion.title@1",
+          "args": {
+           "object": {
+            "item": ""
+           }
+          }
+         },
+         "pointer": "/title"
+        },
+        "max": {
+         "const": 200
+        }
+       }
+      },
+      "pointer": "/text"
+     },
+     "url": {
+      "item": "/url"
+     },
+     "lastEditedTime": {
+      "item": "/last_edited_time"
+     },
+     "editedBy": {
+      "item": "/last_edited_by/id"
+     }
+    },
+    "summary": [
+     {
+      "label": "Page",
+      "expr": {
+       "pick": {
+        "transform": "notion.title@1",
+        "args": {
+         "object": {
+          "item": ""
+         }
+        }
+       },
+       "pointer": "/title"
+      },
+      "truncate": 120
+     },
+     {
+      "label": "Edited",
+      "expr": {
+       "item": "/last_edited_time"
+      }
+     }
+    ]
+   },
+   "backfill": {
+    "default": 0,
+    "max": 0
+   },
+   "retention": {
+    "days": 7
+   },
+   "bounds": {
+    "pages": 1,
+    "items": 1,
+    "pollSeconds": 10
+   },
+   "rows": [
+    "notion.content.read"
+   ]
+  },
+  {
+   "id": "notion.trigger.schema-changed.v1.82f663ee6325883fdebc5749",
+   "key": "schema-changed",
+   "version": 1,
+   "name": "A database's columns changed",
+   "description": "Tells you when a column of one data source is added, removed, renamed or retyped, or its options change, as your connection can see it. A relation column to a database not shared with Fabric is invisible, so unsharing that database reads as a removal.",
+   "delivery": {
+    "method": "webhook",
+    "registration": "operator",
+    "fallback": "polling",
+    "admission": {
+     "scheme": "notion-signature",
+     "header": "x-notion-signature",
+     "prefix": "sha256=",
+     "secret": "operator:notion-verification-token",
+     "handshake": "notion-verification-token",
+     "route": {
+      "pointer": "/workspace_id",
+      "to": "identity"
+     },
+     "wake": {
+      "pointer": "/entity/id",
+      "equals": {
+       "input": "/dataSourceId"
+      }
+     },
+     "events": [
+      "data_source.schema_updated"
+     ],
+     "trust": "doorbell"
+    }
+   },
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "dataSourceId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2048
+     }
+    },
+    "required": [
+     "dataSourceId"
+    ],
+    "additionalProperties": false
+   },
+   "resource": [
+    "dataSourceId"
+   ],
+   "poll": {
+    "source": {
+     "steps": [
+      {
+       "id": "source",
+       "method": "GET",
+       "path": "/v1/data_sources/{data_source_id}",
+       "params": {
+        "data_source_id": {
+         "input": "/dataSourceId"
+        }
+       },
+       "maxResponseBytes": 1048576,
+       "expect": {
+        "status": [
+         200
+        ],
+        "require": []
+       }
+      }
+     ]
+    },
+    "items": {
+     "step": "source",
+     "pointer": ""
+    },
+    "itemId": {
+     "item": "/id"
+    },
+    "itemVersion": null,
+    "itemTime": {
+     "pointer": "/last_edited_time",
+     "format": "rfc3339"
+    },
+    "order": "unordered",
+    "cursors": [
+     {
+      "name": "seen",
+      "kind": "snapshot@1",
+      "compare": "collections.diff@1"
+     }
+    ],
+    "resync": {
+     "statusIn": []
+    },
+    "minIntervalSeconds": 600
+   },
+   "dedupe": {
+    "kind": "content-hash",
+    "fields": [
+     {
+      "pick": {
+       "transform": "notion.describe@1",
+       "args": {
+        "dataSource": {
+         "item": ""
+        }
+       }
+      },
+      "pointer": "/properties"
+     }
+    ]
+   },
+   "event": {
+    "schema": {
+     "type": "object",
+     "properties": {
+      "dataSourceId": {
+       "type": "string",
+       "maxLength": 36
+      },
+      "title": {
+       "type": "string",
+       "maxLength": 200
+      },
+      "lastEditedTime": {
+       "type": "string",
+       "maxLength": 64
+      },
+      "editedBy": {
+       "type": "string",
+       "maxLength": 64
+      }
+     },
+     "required": [
+      "dataSourceId"
+     ],
+     "additionalProperties": false
+    },
+    "id": {
+     "concat": [
+      {
+       "item": "/id"
+      },
+      {
+       "const": ":"
+      },
+      {
+       "item": "/last_edited_time"
+      }
+     ],
+     "max": 120
+    },
+    "occurredAt": {
+     "item": "/last_edited_time"
+    },
+    "fields": {
+     "dataSourceId": {
+      "item": "/id"
+     },
+     "title": {
+      "pick": {
+       "transform": "text.truncate@1",
+       "args": {
+        "text": {
+         "pick": {
+          "transform": "notion.title@1",
+          "args": {
+           "object": {
+            "item": ""
+           }
+          }
+         },
+         "pointer": "/title"
+        },
+        "max": {
+         "const": 200
+        }
+       }
+      },
+      "pointer": "/text"
+     },
+     "lastEditedTime": {
+      "item": "/last_edited_time"
+     },
+     "editedBy": {
+      "item": "/last_edited_by/id"
+     }
+    },
+    "summary": [
+     {
+      "label": "Database",
+      "expr": {
+       "pick": {
+        "transform": "notion.title@1",
+        "args": {
+         "object": {
+          "item": ""
+         }
+        }
+       },
+       "pointer": "/title"
+      },
+      "truncate": 120
+     },
+     {
+      "label": "Edited",
+      "expr": {
+       "item": "/last_edited_time"
+      }
+     }
+    ]
+   },
+   "backfill": {
+    "default": 0,
+    "max": 0
+   },
+   "retention": {
+    "days": 7
+   },
+   "bounds": {
+    "pages": 1,
+    "items": 1,
+    "pollSeconds": 10
+   },
+   "rows": [
+    "notion.content.read"
+   ]
+  },
+  {
+   "id": "notion.trigger.new-child-page.v1.9e22a83df49c8881eb98ece8",
+   "key": "new-child-page",
+   "version": 1,
+   "name": "New page directly under a page",
+   "description": "Tells you once about each page that appears directly under a page you chose, made there or moved there. A page nested inside a toggle or column block is not seen.",
+   "delivery": {
+    "method": "webhook",
+    "registration": "operator",
+    "fallback": "polling",
+    "admission": {
+     "scheme": "notion-signature",
+     "header": "x-notion-signature",
+     "prefix": "sha256=",
+     "secret": "operator:notion-verification-token",
+     "handshake": "notion-verification-token",
+     "route": {
+      "pointer": "/workspace_id",
+      "to": "identity"
+     },
+     "wake": {
+      "pointer": "/data/parent/id",
+      "in": {
+       "input": "/pages"
+      }
+     },
+     "events": [
+      "page.created",
+      "page.moved",
+      "page.undeleted"
+     ],
+     "trust": "doorbell"
+    }
+   },
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "pages": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 10,
+      "items": {
+       "type": "string",
+       "minLength": 1,
+       "maxLength": 2048
+      }
+     }
+    },
+    "required": [
+     "pages"
+    ],
+    "additionalProperties": false
+   },
+   "resource": {
+    "each": "/pages",
+    "as": "page"
+   },
+   "poll": {
+    "source": {
+     "steps": [
+      {
+       "id": "children",
+       "method": "GET",
+       "path": "/v1/blocks/{block_id}/children",
+       "params": {
+        "block_id": {
+         "pick": {
+          "transform": "ids.notionId@1",
+          "args": {
+           "value": {
+            "var": "page"
+           }
+          }
+         },
+         "pointer": "/id"
+        }
+       },
+       "query": {
+        "page_size": {
+         "const": 100
+        }
+       },
+       "page": {
+        "next": {
+         "pointer": "/next_cursor"
+        },
+        "into": {
+         "query": "start_cursor"
+        },
+        "items": "/results",
+        "while": "/has_more",
+        "max": 10
+       },
+       "expect": {
+        "status": [
+         200
+        ],
+        "require": []
+       }
+      }
+     ]
+    },
+    "items": {
+     "step": "children",
+     "pointer": ""
+    },
+    "itemId": {
+     "item": "/id"
+    },
+    "itemVersion": null,
+    "order": "unordered",
+    "cursors": [
+     {
+      "name": "seen",
+      "kind": "snapshot@1",
+      "compare": "collections.diff@1"
+     }
+    ],
+    "resync": {
+     "statusIn": []
+    },
+    "minIntervalSeconds": 240
+   },
+   "filter": [
+    {
+     "equals": [
+      {
+       "item": "/type"
+      },
+      {
+       "const": "child_page"
+      }
+     ]
+    }
+   ],
+   "dedupe": {
+    "kind": "id"
+   },
+   "event": {
+    "schema": {
+     "type": "object",
+     "properties": {
+      "parentPageId": {
+       "type": "string",
+       "maxLength": 36
+      },
+      "pageId": {
+       "type": "string",
+       "maxLength": 36
+      },
+      "title": {
+       "type": "string",
+       "maxLength": 200
+      },
+      "createdTime": {
+       "type": "string",
+       "maxLength": 64
+      },
+      "createdBy": {
+       "type": "string",
+       "maxLength": 64
+      }
+     },
+     "required": [
+      "pageId",
+      "createdTime"
+     ],
+     "additionalProperties": false
+    },
+    "id": {
+     "item": "/id"
+    },
+    "occurredAt": {
+     "item": "/created_time"
+    },
+    "fields": {
+     "parentPageId": {
+      "item": "/parent/page_id"
+     },
+     "pageId": {
+      "item": "/id"
+     },
+     "title": {
+      "pick": {
+       "transform": "text.truncate@1",
+       "args": {
+        "text": {
+         "item": "/child_page/title"
+        },
+        "max": {
+         "const": 200
+        }
+       }
+      },
+      "pointer": "/text"
+     },
+     "createdTime": {
+      "item": "/created_time"
+     },
+     "createdBy": {
+      "item": "/created_by/id"
+     }
+    },
+    "summary": [
+     {
+      "label": "Page",
+      "expr": {
+       "item": "/child_page/title"
+      },
+      "truncate": 120
+     },
+     {
+      "label": "Created",
+      "expr": {
+       "item": "/created_time"
+      }
+     }
+    ]
+   },
+   "backfill": {
+    "default": 0,
+    "max": 25
+   },
+   "retention": {
+    "days": 7
+   },
+   "bounds": {
+    "pages": 10,
+    "items": 500,
+    "pollSeconds": 10
+   },
+   "rows": [
+    "notion.content.read"
+   ]
+  }
+ ]
+}

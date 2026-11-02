@@ -1,7 +1,7 @@
 {
  "$schema": "https://json-schema.org/draft/2020-12/schema",
  "title": "Fabric protocol request envelope",
- "description": "Experimental Fabric 0.1 envelope. Method-specific fields, grants, immutable operation bindings and runtime permissions are additionally enforced by lib/fabric-protocol.mjs.",
+ "description": "Experimental Fabric 0.1 envelope. Method-specific fields, grants, immutable operation bindings and runtime permissions are additionally enforced by lib/fabric-protocol.mjs. $defs/event describes one entry of an events.list answer.",
  "type": "object",
  "additionalProperties": false,
  "required": [
@@ -25,11 +25,162 @@
     "capabilities.list",
     "calls.create",
     "calls.get",
-    "calls.cancel"
+    "calls.cancel",
+    "proxy.request",
+    "triggers.list",
+    "triggers.subscribe",
+    "events.list",
+    "triggers.unsubscribe"
    ]
   },
   "params": {
    "type": "object"
+  }
+ },
+ "$defs": {
+  "event": {
+   "title": "One entry of an events.list answer",
+   "description": "A withheld event failed the gate at read: its id, time, fields and summary are gone, so the client's place still moves and nothing shows after a Never. triggerId is null only on a withheld event whose subscription record has gone.",
+   "type": "object",
+   "additionalProperties": false,
+   "required": [
+    "sequence",
+    "subscriptionId",
+    "triggerId",
+    "connectionId",
+    "type",
+    "id",
+    "occurredAt",
+    "detectedAt",
+    "fields",
+    "summary"
+   ],
+   "properties": {
+    "sequence": {
+     "type": "integer",
+     "minimum": 1
+    },
+    "subscriptionId": {
+     "type": "string",
+     "minLength": 1
+    },
+    "triggerId": {
+     "type": [
+      "string",
+      "null"
+     ]
+    },
+    "connectionId": {
+     "type": "string",
+     "minLength": 1
+    },
+    "type": {
+     "enum": [
+      "trigger.event",
+      "trigger.gap"
+     ]
+    },
+    "id": {
+     "type": [
+      "string",
+      "integer",
+      "null"
+     ]
+    },
+    "occurredAt": {
+     "type": [
+      "string",
+      "integer",
+      "null"
+     ]
+    },
+    "detectedAt": {
+     "type": "string",
+     "format": "date-time"
+    },
+    "fields": {
+     "type": [
+      "object",
+      "null"
+     ]
+    },
+    "summary": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+       "label",
+       "value"
+      ],
+      "properties": {
+       "label": {
+        "type": "string",
+        "minLength": 1
+       },
+       "value": {
+        "type": [
+         "string",
+         "number"
+        ]
+       }
+      }
+     }
+    },
+    "withheld": {
+     "const": true
+    }
+   },
+   "if": {
+    "type": "object",
+    "required": [
+     "withheld"
+    ],
+    "properties": {
+     "withheld": {
+      "const": true
+     }
+    }
+   },
+   "then": {
+    "properties": {
+     "id": {
+      "type": "null"
+     },
+     "occurredAt": {
+      "type": "null"
+     },
+     "fields": {
+      "type": "null"
+     },
+     "summary": {
+      "type": "array",
+      "maxItems": 0
+     }
+    }
+   },
+   "else": {
+    "properties": {
+     "triggerId": {
+      "type": "string"
+     },
+     "id": {
+      "type": [
+       "string",
+       "integer"
+      ]
+     },
+     "occurredAt": {
+      "type": [
+       "string",
+       "integer"
+      ]
+     },
+     "fields": {
+      "type": "object"
+     }
+    }
+   }
   }
  }
 }

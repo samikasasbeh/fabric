@@ -1,0 +1,3223 @@
+{
+ "schemaVersion": 1,
+ "appId": "google-calendar",
+ "specVersion": "fabric/0.2",
+ "reviewStatus": "candidate",
+ "pinnedParameters": {},
+ "triggers": [
+  {
+   "id": "google-calendar.trigger.new-event.v1.f224d4ad112aa0634915fe84",
+   "key": "new-event",
+   "version": 1,
+   "name": "New event on a calendar",
+   "description": "Tells you once when an event appears on a calendar: created there, an invitation, or moved in. A repeating event counts once. Polls every 2 minutes; background reads stay on while it runs.",
+   "delivery": {
+    "method": "watch",
+    "fallback": "polling",
+    "register": {
+     "step": {
+      "id": "watch",
+      "method": "POST",
+      "path": "/calendars/{calendarId}/events/watch",
+      "params": {
+       "calendarId": {
+        "input": "/calendarId"
+       }
+      },
+      "body": {
+       "object": {
+        "id": {
+         "subscriptionKey": "channel"
+        },
+        "type": {
+         "const": "web_hook"
+        },
+        "address": {
+         "receiver": "google-calendar"
+        },
+        "token": {
+         "secret": "channel"
+        }
+       }
+      },
+      "expect": {
+       "status": [
+        200
+       ],
+       "require": []
+      }
+     },
+     "keep": {
+      "channelId": "/id",
+      "resourceId": "/resourceId",
+      "expiration": "/expiration"
+     }
+    },
+    "renew": {
+     "lifetime": {
+      "kept": "expiration",
+      "format": "epoch-ms-string"
+     },
+     "at": 0.5,
+     "order": "new-then-stop-old",
+     "onMiss": "resync"
+    },
+    "teardown": {
+     "step": {
+      "id": "stop",
+      "method": "POST",
+      "path": "/channels/stop",
+      "body": {
+       "object": {
+        "id": {
+         "kept": "channelId"
+        },
+        "resourceId": {
+         "kept": "resourceId"
+        }
+       }
+      },
+      "expect": {
+       "status": [
+        204
+       ],
+       "require": []
+      }
+     },
+     "onFailure": "record-leftover"
+    },
+    "admission": {
+     "scheme": "channel-token",
+     "header": "x-goog-channel-token",
+     "secret": "channel",
+     "route": [
+      {
+       "header": "x-goog-channel-id",
+       "equals": {
+        "kept": "channelId"
+       }
+      },
+      {
+       "header": "x-goog-resource-id",
+       "equals": {
+        "kept": "resourceId"
+       }
+      }
+     ],
+     "handshake": "google-sync",
+     "trust": "doorbell"
+    }
+   },
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "calendarId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024,
+      "description": "The calendar: an id from List my calendars."
+     }
+    },
+    "required": [
+     "calendarId"
+    ],
+    "additionalProperties": false
+   },
+   "choices": [
+    {
+     "input": "calendarId",
+     "source": "calendars"
+    }
+   ],
+   "resource": [
+    "calendarId"
+   ],
+   "poll": {
+    "source": {
+     "steps": [
+      {
+       "id": "changes",
+       "method": "GET",
+       "path": "/calendars/{calendarId}/events",
+       "params": {
+        "calendarId": {
+         "input": "/calendarId"
+        }
+       },
+       "query": {
+        "syncToken": {
+         "cursor": "sync"
+        },
+        "maxResults": {
+         "const": "250"
+        },
+        "showHiddenInvitations": {
+         "const": "true"
+        },
+        "fields": {
+         "const": "nextPageToken,nextSyncToken,items(id,etag,status,updated,summary,description,location,start,end,recurrence,recurringEventId,originalStartTime,eventType,organizer(email,self),attendees(email,self,organizer,responseStatus),attendeesOmitted,htmlLink)"
+        }
+       },
+       "page": {
+        "next": {
+         "pointer": "/nextPageToken"
+        },
+        "into": {
+         "query": "pageToken"
+        },
+        "items": "/items",
+        "max": 10
+       },
+       "expect": {
+        "status": [
+         200
+        ],
+        "require": []
+       }
+      }
+     ]
+    },
+    "items": {
+     "step": "changes",
+     "pointer": ""
+    },
+    "itemId": {
+     "item": "/id"
+    },
+    "itemVersion": "/updated",
+    "order": "unordered",
+    "cursors": [
+     {
+      "name": "sync",
+      "kind": "sync-token@1",
+      "next": {
+       "step": "changes",
+       "pointer": "/nextSyncToken"
+      },
+      "lastPageOnly": true,
+      "excludes": [
+       "orderBy",
+       "q",
+       "timeMin",
+       "timeMax",
+       "updatedMin",
+       "iCalUID",
+       "privateExtendedProperty",
+       "sharedExtendedProperty"
+      ]
+     }
+    ],
+    "resync": {
+     "statusIn": [
+      410
+     ]
+    },
+    "minIntervalSeconds": 120
+   },
+   "filter": [
+    {
+     "anyOf": [
+      {
+       "equals": [
+        {
+         "item": "/status"
+        },
+        {
+         "const": "confirmed"
+        }
+       ]
+      },
+      {
+       "equals": [
+        {
+         "item": "/status"
+        },
+        {
+         "const": "tentative"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "absent": {
+      "item": "/recurringEventId"
+     }
+    },
+    {
+     "anyOf": [
+      {
+       "equals": [
+        {
+         "item": "/eventType"
+        },
+        {
+         "const": "default"
+        }
+       ]
+      },
+      {
+       "equals": [
+        {
+         "item": "/eventType"
+        },
+        {
+         "const": "focusTime"
+        }
+       ]
+      },
+      {
+       "equals": [
+        {
+         "item": "/eventType"
+        },
+        {
+         "const": "outOfOffice"
+        }
+       ]
+      },
+      {
+       "equals": [
+        {
+         "item": "/eventType"
+        },
+        {
+         "const": "fromGmail"
+        }
+       ]
+      }
+     ]
+    }
+   ],
+   "dedupe": {
+    "kind": "id"
+   },
+   "event": {
+    "schema": {
+     "type": "object",
+     "properties": {
+      "calendarId": {
+       "type": "string",
+       "maxLength": 200
+      },
+      "eventId": {
+       "type": "string",
+       "maxLength": 300
+      },
+      "status": {
+       "type": "string",
+       "maxLength": 16
+      },
+      "title": {
+       "type": "string",
+       "maxLength": 200
+      },
+      "start": {
+       "type": "string",
+       "maxLength": 40
+      },
+      "startDate": {
+       "type": "string",
+       "maxLength": 10
+      },
+      "end": {
+       "type": "string",
+       "maxLength": 40
+      },
+      "endDate": {
+       "type": "string",
+       "maxLength": 10
+      },
+      "updated": {
+       "type": "string",
+       "maxLength": 40
+      },
+      "organizer": {
+       "type": "string",
+       "maxLength": 254
+      }
+     },
+     "required": [
+      "calendarId",
+      "eventId"
+     ],
+     "additionalProperties": false
+    },
+    "id": {
+     "item": "/id"
+    },
+    "occurredAt": {
+     "item": "/updated"
+    },
+    "fields": {
+     "calendarId": {
+      "input": "/calendarId"
+     },
+     "eventId": {
+      "item": "/id"
+     },
+     "status": {
+      "when": {
+       "present": {
+        "item": "/status"
+       }
+      },
+      "then": {
+       "item": "/status"
+      }
+     },
+     "title": {
+      "when": {
+       "present": {
+        "item": "/summary"
+       }
+      },
+      "then": {
+       "pick": {
+        "transform": "text.truncate@1",
+        "args": {
+         "text": {
+          "item": "/summary"
+         },
+         "max": {
+          "const": 200
+         }
+        }
+       },
+       "pointer": "/text"
+      }
+     },
+     "start": {
+      "when": {
+       "present": {
+        "item": "/start/dateTime"
+       }
+      },
+      "then": {
+       "item": "/start/dateTime"
+      }
+     },
+     "startDate": {
+      "when": {
+       "present": {
+        "item": "/start/date"
+       }
+      },
+      "then": {
+       "item": "/start/date"
+      }
+     },
+     "end": {
+      "when": {
+       "present": {
+        "item": "/end/dateTime"
+       }
+      },
+      "then": {
+       "item": "/end/dateTime"
+      }
+     },
+     "endDate": {
+      "when": {
+       "present": {
+        "item": "/end/date"
+       }
+      },
+      "then": {
+       "item": "/end/date"
+      }
+     },
+     "updated": {
+      "when": {
+       "present": {
+        "item": "/updated"
+       }
+      },
+      "then": {
+       "item": "/updated"
+      }
+     },
+     "organizer": {
+      "when": {
+       "present": {
+        "item": "/organizer/email"
+       }
+      },
+      "then": {
+       "item": "/organizer/email"
+      }
+     }
+    },
+    "summary": [
+     {
+      "label": "Event",
+      "expr": {
+       "item": "/summary"
+      },
+      "truncate": 120
+     },
+     {
+      "label": "Starts",
+      "expr": {
+       "item": "/start/dateTime"
+      }
+     },
+     {
+      "label": "All day from",
+      "expr": {
+       "item": "/start/date"
+      }
+     }
+    ]
+   },
+   "backfill": {
+    "default": 0,
+    "max": 0
+   },
+   "retention": {
+    "days": 7
+   },
+   "bounds": {
+    "pages": 10,
+    "items": 500,
+    "pollSeconds": 10
+   },
+   "rows": [
+    "google-calendar.events.read"
+   ]
+  },
+  {
+   "id": "google-calendar.trigger.event-changed.v1.12b7e5d49274773cfa6ef4a5",
+   "key": "event-changed",
+   "version": 1,
+   "name": "An event changed",
+   "description": "Tells you when the title, time, place, description, repeat rule or status of an event you already had changed. One changed occurrence counts once. Guest answers and reminders do not count.",
+   "delivery": {
+    "method": "watch",
+    "fallback": "polling",
+    "register": {
+     "step": {
+      "id": "watch",
+      "method": "POST",
+      "path": "/calendars/{calendarId}/events/watch",
+      "params": {
+       "calendarId": {
+        "input": "/calendarId"
+       }
+      },
+      "body": {
+       "object": {
+        "id": {
+         "subscriptionKey": "channel"
+        },
+        "type": {
+         "const": "web_hook"
+        },
+        "address": {
+         "receiver": "google-calendar"
+        },
+        "token": {
+         "secret": "channel"
+        }
+       }
+      },
+      "expect": {
+       "status": [
+        200
+       ],
+       "require": []
+      }
+     },
+     "keep": {
+      "channelId": "/id",
+      "resourceId": "/resourceId",
+      "expiration": "/expiration"
+     }
+    },
+    "renew": {
+     "lifetime": {
+      "kept": "expiration",
+      "format": "epoch-ms-string"
+     },
+     "at": 0.5,
+     "order": "new-then-stop-old",
+     "onMiss": "resync"
+    },
+    "teardown": {
+     "step": {
+      "id": "stop",
+      "method": "POST",
+      "path": "/channels/stop",
+      "body": {
+       "object": {
+        "id": {
+         "kept": "channelId"
+        },
+        "resourceId": {
+         "kept": "resourceId"
+        }
+       }
+      },
+      "expect": {
+       "status": [
+        204
+       ],
+       "require": []
+      }
+     },
+     "onFailure": "record-leftover"
+    },
+    "admission": {
+     "scheme": "channel-token",
+     "header": "x-goog-channel-token",
+     "secret": "channel",
+     "route": [
+      {
+       "header": "x-goog-channel-id",
+       "equals": {
+        "kept": "channelId"
+       }
+      },
+      {
+       "header": "x-goog-resource-id",
+       "equals": {
+        "kept": "resourceId"
+       }
+      }
+     ],
+     "handshake": "google-sync",
+     "trust": "doorbell"
+    }
+   },
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "calendarId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024,
+      "description": "The calendar: an id from List my calendars."
+     }
+    },
+    "required": [
+     "calendarId"
+    ],
+    "additionalProperties": false
+   },
+   "choices": [
+    {
+     "input": "calendarId",
+     "source": "calendars"
+    }
+   ],
+   "resource": [
+    "calendarId"
+   ],
+   "poll": {
+    "source": {
+     "steps": [
+      {
+       "id": "changes",
+       "method": "GET",
+       "path": "/calendars/{calendarId}/events",
+       "params": {
+        "calendarId": {
+         "input": "/calendarId"
+        }
+       },
+       "query": {
+        "syncToken": {
+         "cursor": "sync"
+        },
+        "maxResults": {
+         "const": "250"
+        },
+        "showHiddenInvitations": {
+         "const": "true"
+        },
+        "fields": {
+         "const": "nextPageToken,nextSyncToken,items(id,etag,status,updated,summary,description,location,start,end,recurrence,recurringEventId,originalStartTime,eventType,organizer(email,self),attendees(email,self,organizer,responseStatus),attendeesOmitted,htmlLink)"
+        }
+       },
+       "page": {
+        "next": {
+         "pointer": "/nextPageToken"
+        },
+        "into": {
+         "query": "pageToken"
+        },
+        "items": "/items",
+        "max": 10
+       },
+       "expect": {
+        "status": [
+         200
+        ],
+        "require": []
+       }
+      }
+     ]
+    },
+    "items": {
+     "step": "changes",
+     "pointer": ""
+    },
+    "itemId": {
+     "item": "/id"
+    },
+    "itemVersion": "/updated",
+    "order": "unordered",
+    "cursors": [
+     {
+      "name": "sync",
+      "kind": "sync-token@1",
+      "next": {
+       "step": "changes",
+       "pointer": "/nextSyncToken"
+      },
+      "lastPageOnly": true,
+      "excludes": [
+       "orderBy",
+       "q",
+       "timeMin",
+       "timeMax",
+       "updatedMin",
+       "iCalUID",
+       "privateExtendedProperty",
+       "sharedExtendedProperty"
+      ]
+     }
+    ],
+    "resync": {
+     "statusIn": [
+      410
+     ]
+    },
+    "minIntervalSeconds": 120
+   },
+   "filter": [
+    {
+     "anyOf": [
+      {
+       "equals": [
+        {
+         "item": "/status"
+        },
+        {
+         "const": "confirmed"
+        }
+       ]
+      },
+      {
+       "equals": [
+        {
+         "item": "/status"
+        },
+        {
+         "const": "tentative"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "anyOf": [
+      {
+       "equals": [
+        {
+         "item": "/eventType"
+        },
+        {
+         "const": "default"
+        }
+       ]
+      },
+      {
+       "equals": [
+        {
+         "item": "/eventType"
+        },
+        {
+         "const": "focusTime"
+        }
+       ]
+      },
+      {
+       "equals": [
+        {
+         "item": "/eventType"
+        },
+        {
+         "const": "outOfOffice"
+        }
+       ]
+      },
+      {
+       "equals": [
+        {
+         "item": "/eventType"
+        },
+        {
+         "const": "fromGmail"
+        }
+       ]
+      }
+     ]
+    }
+   ],
+   "dedupe": {
+    "kind": "content-hash",
+    "fields": [
+     {
+      "item": "/id"
+     },
+     {
+      "item": "/summary"
+     },
+     {
+      "item": "/start"
+     },
+     {
+      "item": "/end"
+     },
+     {
+      "item": "/location"
+     },
+     {
+      "item": "/description"
+     },
+     {
+      "item": "/recurrence"
+     },
+     {
+      "item": "/status"
+     }
+    ],
+    "knownBy": [
+     {
+      "item": "/recurringEventId"
+     },
+     {
+      "item": "/id"
+     }
+    ]
+   },
+   "event": {
+    "schema": {
+     "type": "object",
+     "properties": {
+      "calendarId": {
+       "type": "string",
+       "maxLength": 200
+      },
+      "eventId": {
+       "type": "string",
+       "maxLength": 300
+      },
+      "status": {
+       "type": "string",
+       "maxLength": 16
+      },
+      "title": {
+       "type": "string",
+       "maxLength": 200
+      },
+      "start": {
+       "type": "string",
+       "maxLength": 40
+      },
+      "startDate": {
+       "type": "string",
+       "maxLength": 10
+      },
+      "end": {
+       "type": "string",
+       "maxLength": 40
+      },
+      "endDate": {
+       "type": "string",
+       "maxLength": 10
+      },
+      "updated": {
+       "type": "string",
+       "maxLength": 40
+      },
+      "recurringEventId": {
+       "type": "string",
+       "maxLength": 300
+      }
+     },
+     "required": [
+      "calendarId",
+      "eventId"
+     ],
+     "additionalProperties": false
+    },
+    "id": {
+     "concat": [
+      {
+       "item": "/id"
+      },
+      {
+       "const": ":"
+      },
+      {
+       "item": "/updated"
+      }
+     ],
+     "max": 1200
+    },
+    "occurredAt": {
+     "item": "/updated"
+    },
+    "fields": {
+     "calendarId": {
+      "input": "/calendarId"
+     },
+     "eventId": {
+      "item": "/id"
+     },
+     "status": {
+      "when": {
+       "present": {
+        "item": "/status"
+       }
+      },
+      "then": {
+       "item": "/status"
+      }
+     },
+     "title": {
+      "when": {
+       "present": {
+        "item": "/summary"
+       }
+      },
+      "then": {
+       "pick": {
+        "transform": "text.truncate@1",
+        "args": {
+         "text": {
+          "item": "/summary"
+         },
+         "max": {
+          "const": 200
+         }
+        }
+       },
+       "pointer": "/text"
+      }
+     },
+     "start": {
+      "when": {
+       "present": {
+        "item": "/start/dateTime"
+       }
+      },
+      "then": {
+       "item": "/start/dateTime"
+      }
+     },
+     "startDate": {
+      "when": {
+       "present": {
+        "item": "/start/date"
+       }
+      },
+      "then": {
+       "item": "/start/date"
+      }
+     },
+     "end": {
+      "when": {
+       "present": {
+        "item": "/end/dateTime"
+       }
+      },
+      "then": {
+       "item": "/end/dateTime"
+      }
+     },
+     "endDate": {
+      "when": {
+       "present": {
+        "item": "/end/date"
+       }
+      },
+      "then": {
+       "item": "/end/date"
+      }
+     },
+     "updated": {
+      "when": {
+       "present": {
+        "item": "/updated"
+       }
+      },
+      "then": {
+       "item": "/updated"
+      }
+     },
+     "recurringEventId": {
+      "when": {
+       "present": {
+        "item": "/recurringEventId"
+       }
+      },
+      "then": {
+       "item": "/recurringEventId"
+      }
+     }
+    },
+    "summary": [
+     {
+      "label": "Event",
+      "expr": {
+       "item": "/summary"
+      },
+      "truncate": 120
+     },
+     {
+      "label": "Starts",
+      "expr": {
+       "item": "/start/dateTime"
+      }
+     },
+     {
+      "label": "All day from",
+      "expr": {
+       "item": "/start/date"
+      }
+     }
+    ]
+   },
+   "backfill": {
+    "default": 0,
+    "max": 0
+   },
+   "retention": {
+    "days": 7
+   },
+   "bounds": {
+    "pages": 10,
+    "items": 500,
+    "pollSeconds": 10
+   },
+   "rows": [
+    "google-calendar.events.read"
+   ]
+  },
+  {
+   "id": "google-calendar.trigger.event-cancelled.v1.a5fcfda152e1bb5b8a5fe9be",
+   "key": "event-cancelled",
+   "version": 1,
+   "name": "An event was cancelled",
+   "description": "Tells you once when an event or one occurrence is cancelled, deleted or moved to another calendar. Google may send only its id, so the title can be missing.",
+   "delivery": {
+    "method": "watch",
+    "fallback": "polling",
+    "register": {
+     "step": {
+      "id": "watch",
+      "method": "POST",
+      "path": "/calendars/{calendarId}/events/watch",
+      "params": {
+       "calendarId": {
+        "input": "/calendarId"
+       }
+      },
+      "body": {
+       "object": {
+        "id": {
+         "subscriptionKey": "channel"
+        },
+        "type": {
+         "const": "web_hook"
+        },
+        "address": {
+         "receiver": "google-calendar"
+        },
+        "token": {
+         "secret": "channel"
+        }
+       }
+      },
+      "expect": {
+       "status": [
+        200
+       ],
+       "require": []
+      }
+     },
+     "keep": {
+      "channelId": "/id",
+      "resourceId": "/resourceId",
+      "expiration": "/expiration"
+     }
+    },
+    "renew": {
+     "lifetime": {
+      "kept": "expiration",
+      "format": "epoch-ms-string"
+     },
+     "at": 0.5,
+     "order": "new-then-stop-old",
+     "onMiss": "resync"
+    },
+    "teardown": {
+     "step": {
+      "id": "stop",
+      "method": "POST",
+      "path": "/channels/stop",
+      "body": {
+       "object": {
+        "id": {
+         "kept": "channelId"
+        },
+        "resourceId": {
+         "kept": "resourceId"
+        }
+       }
+      },
+      "expect": {
+       "status": [
+        204
+       ],
+       "require": []
+      }
+     },
+     "onFailure": "record-leftover"
+    },
+    "admission": {
+     "scheme": "channel-token",
+     "header": "x-goog-channel-token",
+     "secret": "channel",
+     "route": [
+      {
+       "header": "x-goog-channel-id",
+       "equals": {
+        "kept": "channelId"
+       }
+      },
+      {
+       "header": "x-goog-resource-id",
+       "equals": {
+        "kept": "resourceId"
+       }
+      }
+     ],
+     "handshake": "google-sync",
+     "trust": "doorbell"
+    }
+   },
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "calendarId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024,
+      "description": "The calendar: an id from List my calendars."
+     }
+    },
+    "required": [
+     "calendarId"
+    ],
+    "additionalProperties": false
+   },
+   "choices": [
+    {
+     "input": "calendarId",
+     "source": "calendars"
+    }
+   ],
+   "resource": [
+    "calendarId"
+   ],
+   "poll": {
+    "source": {
+     "steps": [
+      {
+       "id": "changes",
+       "method": "GET",
+       "path": "/calendars/{calendarId}/events",
+       "params": {
+        "calendarId": {
+         "input": "/calendarId"
+        }
+       },
+       "query": {
+        "syncToken": {
+         "cursor": "sync"
+        },
+        "maxResults": {
+         "const": "250"
+        },
+        "showHiddenInvitations": {
+         "const": "true"
+        },
+        "fields": {
+         "const": "nextPageToken,nextSyncToken,items(id,etag,status,updated,summary,description,location,start,end,recurrence,recurringEventId,originalStartTime,eventType,organizer(email,self),attendees(email,self,organizer,responseStatus),attendeesOmitted,htmlLink)"
+        }
+       },
+       "page": {
+        "next": {
+         "pointer": "/nextPageToken"
+        },
+        "into": {
+         "query": "pageToken"
+        },
+        "items": "/items",
+        "max": 10
+       },
+       "expect": {
+        "status": [
+         200
+        ],
+        "require": []
+       }
+      }
+     ]
+    },
+    "items": {
+     "step": "changes",
+     "pointer": ""
+    },
+    "itemId": {
+     "item": "/id"
+    },
+    "itemVersion": "/updated",
+    "order": "unordered",
+    "cursors": [
+     {
+      "name": "sync",
+      "kind": "sync-token@1",
+      "next": {
+       "step": "changes",
+       "pointer": "/nextSyncToken"
+      },
+      "lastPageOnly": true,
+      "excludes": [
+       "orderBy",
+       "q",
+       "timeMin",
+       "timeMax",
+       "updatedMin",
+       "iCalUID",
+       "privateExtendedProperty",
+       "sharedExtendedProperty"
+      ]
+     }
+    ],
+    "resync": {
+     "statusIn": [
+      410
+     ]
+    },
+    "minIntervalSeconds": 120
+   },
+   "filter": [
+    {
+     "equals": [
+      {
+       "item": "/status"
+      },
+      {
+       "const": "cancelled"
+      }
+     ]
+    }
+   ],
+   "dedupe": {
+    "kind": "content-hash",
+    "fields": [
+     {
+      "item": "/id"
+     },
+     {
+      "item": "/updated"
+     }
+    ]
+   },
+   "event": {
+    "schema": {
+     "type": "object",
+     "properties": {
+      "calendarId": {
+       "type": "string",
+       "maxLength": 200
+      },
+      "eventId": {
+       "type": "string",
+       "maxLength": 300
+      },
+      "status": {
+       "type": "string",
+       "maxLength": 16
+      },
+      "title": {
+       "type": "string",
+       "maxLength": 200
+      },
+      "start": {
+       "type": "string",
+       "maxLength": 40
+      },
+      "startDate": {
+       "type": "string",
+       "maxLength": 10
+      },
+      "end": {
+       "type": "string",
+       "maxLength": 40
+      },
+      "endDate": {
+       "type": "string",
+       "maxLength": 10
+      },
+      "updated": {
+       "type": "string",
+       "maxLength": 40
+      },
+      "recurringEventId": {
+       "type": "string",
+       "maxLength": 300
+      },
+      "originalStart": {
+       "type": "string",
+       "maxLength": 40
+      }
+     },
+     "required": [
+      "calendarId",
+      "eventId"
+     ],
+     "additionalProperties": false
+    },
+    "id": {
+     "concat": [
+      {
+       "item": "/id"
+      },
+      {
+       "const": ":cancelled"
+      }
+     ],
+     "max": 1200
+    },
+    "occurredAt": {
+     "pick": {
+      "transform": "time.offsetFromNow@1",
+      "args": {
+       "now": {
+        "now": {}
+       },
+       "minutes": {
+        "const": 0
+       },
+       "prefer": {
+        "item": "/updated"
+       }
+      }
+     },
+     "pointer": "/time"
+    },
+    "fields": {
+     "calendarId": {
+      "input": "/calendarId"
+     },
+     "eventId": {
+      "item": "/id"
+     },
+     "status": {
+      "when": {
+       "present": {
+        "item": "/status"
+       }
+      },
+      "then": {
+       "item": "/status"
+      }
+     },
+     "title": {
+      "when": {
+       "present": {
+        "item": "/summary"
+       }
+      },
+      "then": {
+       "pick": {
+        "transform": "text.truncate@1",
+        "args": {
+         "text": {
+          "item": "/summary"
+         },
+         "max": {
+          "const": 200
+         }
+        }
+       },
+       "pointer": "/text"
+      }
+     },
+     "start": {
+      "when": {
+       "present": {
+        "item": "/start/dateTime"
+       }
+      },
+      "then": {
+       "item": "/start/dateTime"
+      }
+     },
+     "startDate": {
+      "when": {
+       "present": {
+        "item": "/start/date"
+       }
+      },
+      "then": {
+       "item": "/start/date"
+      }
+     },
+     "end": {
+      "when": {
+       "present": {
+        "item": "/end/dateTime"
+       }
+      },
+      "then": {
+       "item": "/end/dateTime"
+      }
+     },
+     "endDate": {
+      "when": {
+       "present": {
+        "item": "/end/date"
+       }
+      },
+      "then": {
+       "item": "/end/date"
+      }
+     },
+     "updated": {
+      "when": {
+       "present": {
+        "item": "/updated"
+       }
+      },
+      "then": {
+       "item": "/updated"
+      }
+     },
+     "recurringEventId": {
+      "when": {
+       "present": {
+        "item": "/recurringEventId"
+       }
+      },
+      "then": {
+       "item": "/recurringEventId"
+      }
+     },
+     "originalStart": {
+      "when": {
+       "present": {
+        "item": "/originalStartTime/dateTime"
+       }
+      },
+      "then": {
+       "item": "/originalStartTime/dateTime"
+      }
+     }
+    },
+    "summary": [
+     {
+      "label": "Event",
+      "expr": {
+       "item": "/summary"
+      },
+      "truncate": 120
+     }
+    ]
+   },
+   "backfill": {
+    "default": 0,
+    "max": 0
+   },
+   "retention": {
+    "days": 7
+   },
+   "bounds": {
+    "pages": 10,
+    "items": 500,
+    "pollSeconds": 10
+   },
+   "rows": [
+    "google-calendar.events.read"
+   ]
+  },
+  {
+   "id": "google-calendar.trigger.invitation-needs-response.v1.ca09af543fea72337b8620a9",
+   "key": "invitation-needs-response",
+   "version": 1,
+   "name": "An invitation needs your answer",
+   "description": "Tells you once when someone invites you to an event and you have not answered. The title comes from the sender.",
+   "delivery": {
+    "method": "watch",
+    "fallback": "polling",
+    "register": {
+     "step": {
+      "id": "watch",
+      "method": "POST",
+      "path": "/calendars/{calendarId}/events/watch",
+      "params": {
+       "calendarId": {
+        "input": "/calendarId"
+       }
+      },
+      "body": {
+       "object": {
+        "id": {
+         "subscriptionKey": "channel"
+        },
+        "type": {
+         "const": "web_hook"
+        },
+        "address": {
+         "receiver": "google-calendar"
+        },
+        "token": {
+         "secret": "channel"
+        }
+       }
+      },
+      "expect": {
+       "status": [
+        200
+       ],
+       "require": []
+      }
+     },
+     "keep": {
+      "channelId": "/id",
+      "resourceId": "/resourceId",
+      "expiration": "/expiration"
+     }
+    },
+    "renew": {
+     "lifetime": {
+      "kept": "expiration",
+      "format": "epoch-ms-string"
+     },
+     "at": 0.5,
+     "order": "new-then-stop-old",
+     "onMiss": "resync"
+    },
+    "teardown": {
+     "step": {
+      "id": "stop",
+      "method": "POST",
+      "path": "/channels/stop",
+      "body": {
+       "object": {
+        "id": {
+         "kept": "channelId"
+        },
+        "resourceId": {
+         "kept": "resourceId"
+        }
+       }
+      },
+      "expect": {
+       "status": [
+        204
+       ],
+       "require": []
+      }
+     },
+     "onFailure": "record-leftover"
+    },
+    "admission": {
+     "scheme": "channel-token",
+     "header": "x-goog-channel-token",
+     "secret": "channel",
+     "route": [
+      {
+       "header": "x-goog-channel-id",
+       "equals": {
+        "kept": "channelId"
+       }
+      },
+      {
+       "header": "x-goog-resource-id",
+       "equals": {
+        "kept": "resourceId"
+       }
+      }
+     ],
+     "handshake": "google-sync",
+     "trust": "doorbell"
+    }
+   },
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "calendarId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024,
+      "description": "The calendar: an id from List my calendars."
+     }
+    },
+    "required": [
+     "calendarId"
+    ],
+    "additionalProperties": false
+   },
+   "choices": [
+    {
+     "input": "calendarId",
+     "source": "calendars"
+    }
+   ],
+   "resource": [
+    "calendarId"
+   ],
+   "poll": {
+    "source": {
+     "steps": [
+      {
+       "id": "changes",
+       "method": "GET",
+       "path": "/calendars/{calendarId}/events",
+       "params": {
+        "calendarId": {
+         "input": "/calendarId"
+        }
+       },
+       "query": {
+        "syncToken": {
+         "cursor": "sync"
+        },
+        "maxResults": {
+         "const": "250"
+        },
+        "showHiddenInvitations": {
+         "const": "true"
+        },
+        "fields": {
+         "const": "nextPageToken,nextSyncToken,items(id,etag,status,updated,summary,description,location,start,end,recurrence,recurringEventId,originalStartTime,eventType,organizer(email,self),attendees(email,self,organizer,responseStatus),attendeesOmitted,htmlLink)"
+        }
+       },
+       "page": {
+        "next": {
+         "pointer": "/nextPageToken"
+        },
+        "into": {
+         "query": "pageToken"
+        },
+        "items": "/items",
+        "max": 10
+       },
+       "expect": {
+        "status": [
+         200
+        ],
+        "require": []
+       }
+      }
+     ]
+    },
+    "items": {
+     "step": "changes",
+     "pointer": ""
+    },
+    "itemId": {
+     "item": "/id"
+    },
+    "itemVersion": "/updated",
+    "order": "unordered",
+    "cursors": [
+     {
+      "name": "sync",
+      "kind": "sync-token@1",
+      "next": {
+       "step": "changes",
+       "pointer": "/nextSyncToken"
+      },
+      "lastPageOnly": true,
+      "excludes": [
+       "orderBy",
+       "q",
+       "timeMin",
+       "timeMax",
+       "updatedMin",
+       "iCalUID",
+       "privateExtendedProperty",
+       "sharedExtendedProperty"
+      ]
+     }
+    ],
+    "resync": {
+     "statusIn": [
+      410
+     ]
+    },
+    "minIntervalSeconds": 120
+   },
+   "filter": [
+    {
+     "anyOf": [
+      {
+       "equals": [
+        {
+         "item": "/status"
+        },
+        {
+         "const": "confirmed"
+        }
+       ]
+      },
+      {
+       "equals": [
+        {
+         "item": "/status"
+        },
+        {
+         "const": "tentative"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "absent": {
+      "item": "/organizer/self"
+     }
+    },
+    {
+     "equals": [
+      {
+       "pick": {
+        "transform": "collections.calendarSelf@1",
+        "args": {
+         "event": {
+          "item": ""
+         }
+        }
+       },
+       "pointer": "/response"
+      },
+      {
+       "const": "needsAction"
+      }
+     ]
+    }
+   ],
+   "dedupe": {
+    "kind": "id"
+   },
+   "event": {
+    "schema": {
+     "type": "object",
+     "properties": {
+      "calendarId": {
+       "type": "string",
+       "maxLength": 200
+      },
+      "eventId": {
+       "type": "string",
+       "maxLength": 300
+      },
+      "status": {
+       "type": "string",
+       "maxLength": 16
+      },
+      "title": {
+       "type": "string",
+       "maxLength": 200
+      },
+      "start": {
+       "type": "string",
+       "maxLength": 40
+      },
+      "startDate": {
+       "type": "string",
+       "maxLength": 10
+      },
+      "end": {
+       "type": "string",
+       "maxLength": 40
+      },
+      "endDate": {
+       "type": "string",
+       "maxLength": 10
+      },
+      "updated": {
+       "type": "string",
+       "maxLength": 40
+      },
+      "organizer": {
+       "type": "string",
+       "maxLength": 254
+      }
+     },
+     "required": [
+      "calendarId",
+      "eventId"
+     ],
+     "additionalProperties": false
+    },
+    "id": {
+     "concat": [
+      {
+       "item": "/id"
+      },
+      {
+       "const": ":invited"
+      }
+     ],
+     "max": 1200
+    },
+    "occurredAt": {
+     "item": "/updated"
+    },
+    "fields": {
+     "calendarId": {
+      "input": "/calendarId"
+     },
+     "eventId": {
+      "item": "/id"
+     },
+     "status": {
+      "when": {
+       "present": {
+        "item": "/status"
+       }
+      },
+      "then": {
+       "item": "/status"
+      }
+     },
+     "title": {
+      "when": {
+       "present": {
+        "item": "/summary"
+       }
+      },
+      "then": {
+       "pick": {
+        "transform": "text.truncate@1",
+        "args": {
+         "text": {
+          "item": "/summary"
+         },
+         "max": {
+          "const": 200
+         }
+        }
+       },
+       "pointer": "/text"
+      }
+     },
+     "start": {
+      "when": {
+       "present": {
+        "item": "/start/dateTime"
+       }
+      },
+      "then": {
+       "item": "/start/dateTime"
+      }
+     },
+     "startDate": {
+      "when": {
+       "present": {
+        "item": "/start/date"
+       }
+      },
+      "then": {
+       "item": "/start/date"
+      }
+     },
+     "end": {
+      "when": {
+       "present": {
+        "item": "/end/dateTime"
+       }
+      },
+      "then": {
+       "item": "/end/dateTime"
+      }
+     },
+     "endDate": {
+      "when": {
+       "present": {
+        "item": "/end/date"
+       }
+      },
+      "then": {
+       "item": "/end/date"
+      }
+     },
+     "updated": {
+      "when": {
+       "present": {
+        "item": "/updated"
+       }
+      },
+      "then": {
+       "item": "/updated"
+      }
+     },
+     "organizer": {
+      "when": {
+       "present": {
+        "item": "/organizer/email"
+       }
+      },
+      "then": {
+       "item": "/organizer/email"
+      }
+     }
+    },
+    "summary": [
+     {
+      "label": "Event",
+      "expr": {
+       "item": "/summary"
+      },
+      "truncate": 120
+     },
+     {
+      "label": "Starts",
+      "expr": {
+       "item": "/start/dateTime"
+      }
+     },
+     {
+      "label": "All day from",
+      "expr": {
+       "item": "/start/date"
+      }
+     }
+    ]
+   },
+   "backfill": {
+    "default": 0,
+    "max": 0
+   },
+   "retention": {
+    "days": 7
+   },
+   "bounds": {
+    "pages": 10,
+    "items": 500,
+    "pollSeconds": 10
+   },
+   "rows": [
+    "google-calendar.events.read"
+   ]
+  },
+  {
+   "id": "google-calendar.trigger.guest-responded.v1.fa442de4c094f2b047c3e501",
+   "key": "guest-responded",
+   "version": 1,
+   "name": "A guest answered your invitation",
+   "description": "Tells you once for each answer a guest gives on an event you organize: accepted, declined or maybe. Only on events this calendar organizes.",
+   "delivery": {
+    "method": "watch",
+    "fallback": "polling",
+    "register": {
+     "step": {
+      "id": "watch",
+      "method": "POST",
+      "path": "/calendars/{calendarId}/events/watch",
+      "params": {
+       "calendarId": {
+        "input": "/calendarId"
+       }
+      },
+      "body": {
+       "object": {
+        "id": {
+         "subscriptionKey": "channel"
+        },
+        "type": {
+         "const": "web_hook"
+        },
+        "address": {
+         "receiver": "google-calendar"
+        },
+        "token": {
+         "secret": "channel"
+        }
+       }
+      },
+      "expect": {
+       "status": [
+        200
+       ],
+       "require": []
+      }
+     },
+     "keep": {
+      "channelId": "/id",
+      "resourceId": "/resourceId",
+      "expiration": "/expiration"
+     }
+    },
+    "renew": {
+     "lifetime": {
+      "kept": "expiration",
+      "format": "epoch-ms-string"
+     },
+     "at": 0.5,
+     "order": "new-then-stop-old",
+     "onMiss": "resync"
+    },
+    "teardown": {
+     "step": {
+      "id": "stop",
+      "method": "POST",
+      "path": "/channels/stop",
+      "body": {
+       "object": {
+        "id": {
+         "kept": "channelId"
+        },
+        "resourceId": {
+         "kept": "resourceId"
+        }
+       }
+      },
+      "expect": {
+       "status": [
+        204
+       ],
+       "require": []
+      }
+     },
+     "onFailure": "record-leftover"
+    },
+    "admission": {
+     "scheme": "channel-token",
+     "header": "x-goog-channel-token",
+     "secret": "channel",
+     "route": [
+      {
+       "header": "x-goog-channel-id",
+       "equals": {
+        "kept": "channelId"
+       }
+      },
+      {
+       "header": "x-goog-resource-id",
+       "equals": {
+        "kept": "resourceId"
+       }
+      }
+     ],
+     "handshake": "google-sync",
+     "trust": "doorbell"
+    }
+   },
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "calendarId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024,
+      "description": "The calendar: an id from List my calendars."
+     }
+    },
+    "required": [
+     "calendarId"
+    ],
+    "additionalProperties": false
+   },
+   "choices": [
+    {
+     "input": "calendarId",
+     "source": "calendars"
+    }
+   ],
+   "resource": [
+    "calendarId"
+   ],
+   "poll": {
+    "source": {
+     "steps": [
+      {
+       "id": "changes",
+       "method": "GET",
+       "path": "/calendars/{calendarId}/events",
+       "params": {
+        "calendarId": {
+         "input": "/calendarId"
+        }
+       },
+       "query": {
+        "syncToken": {
+         "cursor": "sync"
+        },
+        "maxResults": {
+         "const": "250"
+        },
+        "showHiddenInvitations": {
+         "const": "true"
+        },
+        "fields": {
+         "const": "nextPageToken,nextSyncToken,items(id,etag,status,updated,summary,description,location,start,end,recurrence,recurringEventId,originalStartTime,eventType,organizer(email,self),attendees(email,self,organizer,responseStatus),attendeesOmitted,htmlLink)"
+        }
+       },
+       "page": {
+        "next": {
+         "pointer": "/nextPageToken"
+        },
+        "into": {
+         "query": "pageToken"
+        },
+        "items": "/items",
+        "max": 10
+       },
+       "expect": {
+        "status": [
+         200
+        ],
+        "require": []
+       }
+      }
+     ]
+    },
+    "items": {
+     "pick": {
+      "transform": "collections.calendarGuests@1",
+      "args": {
+       "list": {
+        "step": "changes",
+        "pointer": ""
+       }
+      }
+     },
+     "pointer": "/responses"
+    },
+    "itemId": {
+     "concat": [
+      {
+       "item": "/eventId"
+      },
+      {
+       "const": ":"
+      },
+      {
+       "item": "/email"
+      }
+     ],
+     "max": 1400
+    },
+    "itemVersion": "/responseStatus",
+    "order": "unordered",
+    "cursors": [
+     {
+      "name": "sync",
+      "kind": "sync-token@1",
+      "next": {
+       "step": "changes",
+       "pointer": "/nextSyncToken"
+      },
+      "lastPageOnly": true,
+      "excludes": [
+       "orderBy",
+       "q",
+       "timeMin",
+       "timeMax",
+       "updatedMin",
+       "iCalUID",
+       "privateExtendedProperty",
+       "sharedExtendedProperty"
+      ]
+     }
+    ],
+    "resync": {
+     "statusIn": [
+      410
+     ]
+    },
+    "minIntervalSeconds": 120
+   },
+   "dedupe": {
+    "kind": "id+version"
+   },
+   "event": {
+    "schema": {
+     "type": "object",
+     "properties": {
+      "calendarId": {
+       "type": "string",
+       "maxLength": 200
+      },
+      "eventId": {
+       "type": "string",
+       "maxLength": 300
+      },
+      "guest": {
+       "type": "string",
+       "maxLength": 254
+      },
+      "response": {
+       "type": "string",
+       "maxLength": 16
+      },
+      "title": {
+       "type": "string",
+       "maxLength": 200
+      },
+      "start": {
+       "type": "string",
+       "maxLength": 40
+      },
+      "updated": {
+       "type": "string",
+       "maxLength": 40
+      }
+     },
+     "required": [
+      "calendarId",
+      "eventId",
+      "guest",
+      "response"
+     ],
+     "additionalProperties": false
+    },
+    "id": {
+     "concat": [
+      {
+       "item": "/eventId"
+      },
+      {
+       "const": ":"
+      },
+      {
+       "item": "/email"
+      },
+      {
+       "const": ":"
+      },
+      {
+       "item": "/etag"
+      }
+     ],
+     "max": 1700
+    },
+    "occurredAt": {
+     "pick": {
+      "transform": "time.offsetFromNow@1",
+      "args": {
+       "now": {
+        "now": {}
+       },
+       "minutes": {
+        "const": 0
+       },
+       "prefer": {
+        "item": "/updated"
+       }
+      }
+     },
+     "pointer": "/time"
+    },
+    "fields": {
+     "calendarId": {
+      "input": "/calendarId"
+     },
+     "eventId": {
+      "item": "/eventId"
+     },
+     "guest": {
+      "item": "/email"
+     },
+     "response": {
+      "item": "/responseStatus"
+     },
+     "title": {
+      "when": {
+       "present": {
+        "item": "/summary"
+       }
+      },
+      "then": {
+       "pick": {
+        "transform": "text.truncate@1",
+        "args": {
+         "text": {
+          "item": "/summary"
+         },
+         "max": {
+          "const": 200
+         }
+        }
+       },
+       "pointer": "/text"
+      }
+     },
+     "start": {
+      "when": {
+       "present": {
+        "item": "/start"
+       }
+      },
+      "then": {
+       "item": "/start"
+      }
+     },
+     "updated": {
+      "when": {
+       "present": {
+        "item": "/updated"
+       }
+      },
+      "then": {
+       "item": "/updated"
+      }
+     }
+    },
+    "summary": [
+     {
+      "label": "Guest",
+      "expr": {
+       "item": "/email"
+      }
+     },
+     {
+      "label": "Answer",
+      "expr": {
+       "item": "/responseStatus"
+      }
+     },
+     {
+      "label": "Event",
+      "expr": {
+       "item": "/summary"
+      },
+      "truncate": 120
+     }
+    ]
+   },
+   "backfill": {
+    "default": 0,
+    "max": 0
+   },
+   "retention": {
+    "days": 7
+   },
+   "bounds": {
+    "pages": 10,
+    "items": 500,
+    "pollSeconds": 10
+   },
+   "rows": [
+    "google-calendar.events.read"
+   ]
+  },
+  {
+   "id": "google-calendar.trigger.starting-soon.v1.e2964b731c49050a293a7148",
+   "key": "starting-soon",
+   "version": 1,
+   "name": "An event is starting soon",
+   "description": "Tells you once, ahead of the time you choose, when a timed event or one occurrence is about to start. All-day events and events already under way are left out. It runs only while this Mac is awake.",
+   "delivery": {
+    "method": "polling",
+    "intervalSeconds": {
+     "default": 120,
+     "min": 60
+    }
+   },
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "calendarId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024,
+      "description": "The calendar: an id from List my calendars."
+     },
+     "leadMinutes": {
+      "type": "integer",
+      "minimum": 5,
+      "maximum": 1440,
+      "description": "How many minutes before the start to tell you."
+     }
+    },
+    "required": [
+     "calendarId",
+     "leadMinutes"
+    ],
+    "additionalProperties": false
+   },
+   "choices": [
+    {
+     "input": "calendarId",
+     "source": "calendars"
+    }
+   ],
+   "resource": [
+    "calendarId",
+    "leadMinutes"
+   ],
+   "poll": {
+    "source": {
+     "steps": [
+      {
+       "id": "soon",
+       "method": "GET",
+       "path": "/calendars/{calendarId}/events",
+       "params": {
+        "calendarId": {
+         "input": "/calendarId"
+        }
+       },
+       "query": {
+        "singleEvents": {
+         "const": "true"
+        },
+        "orderBy": {
+         "const": "startTime"
+        },
+        "maxResults": {
+         "const": "50"
+        },
+        "maxAttendees": {
+         "const": "1"
+        },
+        "timeMin": {
+         "pick": {
+          "transform": "time.offsetFromNow@1",
+          "args": {
+           "now": {
+            "now": {}
+           },
+           "minutes": {
+            "const": 0
+           }
+          }
+         },
+         "pointer": "/time"
+        },
+        "timeMax": {
+         "pick": {
+          "transform": "time.offsetFromNow@1",
+          "args": {
+           "now": {
+            "now": {}
+           },
+           "minutes": {
+            "input": "/leadMinutes"
+           }
+          }
+         },
+         "pointer": "/time"
+        },
+        "fields": {
+         "const": "nextPageToken,items(id,status,summary,start,end,recurringEventId,attendees(self,responseStatus),htmlLink)"
+        }
+       },
+       "page": {
+        "next": {
+         "pointer": "/nextPageToken"
+        },
+        "into": {
+         "query": "pageToken"
+        },
+        "items": "/items",
+        "max": 2
+       },
+       "expect": {
+        "status": [
+         200
+        ],
+        "require": []
+       }
+      }
+     ]
+    },
+    "items": {
+     "step": "soon",
+     "pointer": ""
+    },
+    "itemId": {
+     "item": "/id"
+    },
+    "itemVersion": "/start/dateTime",
+    "order": "asc",
+    "cursors": [
+     {
+      "name": "window",
+      "kind": "snapshot@1",
+      "compare": "collections.diff@1"
+     }
+    ],
+    "resync": {
+     "statusIn": []
+    },
+    "minIntervalSeconds": 60
+   },
+   "filter": [
+    {
+     "present": {
+      "item": "/start/dateTime"
+     }
+    },
+    {
+     "equals": [
+      {
+       "pick": {
+        "transform": "time.isAfter@1",
+        "args": {
+         "instant": {
+          "item": "/start/dateTime"
+         },
+         "now": {
+          "now": {}
+         }
+        }
+       },
+       "pointer": "/after"
+      },
+      {
+       "const": true
+      }
+     ]
+    }
+   ],
+   "dedupe": {
+    "kind": "id+version"
+   },
+   "event": {
+    "schema": {
+     "type": "object",
+     "properties": {
+      "calendarId": {
+       "type": "string",
+       "maxLength": 200
+      },
+      "eventId": {
+       "type": "string",
+       "maxLength": 300
+      },
+      "title": {
+       "type": "string",
+       "maxLength": 200
+      },
+      "start": {
+       "type": "string",
+       "maxLength": 40
+      },
+      "end": {
+       "type": "string",
+       "maxLength": 40
+      },
+      "myResponse": {
+       "type": "string",
+       "maxLength": 16
+      }
+     },
+     "required": [
+      "calendarId",
+      "eventId",
+      "start"
+     ],
+     "additionalProperties": false
+    },
+    "id": {
+     "concat": [
+      {
+       "item": "/id"
+      },
+      {
+       "const": ":"
+      },
+      {
+       "item": "/start/dateTime"
+      }
+     ],
+     "max": 700
+    },
+    "occurredAt": {
+     "item": "/start/dateTime"
+    },
+    "fields": {
+     "calendarId": {
+      "input": "/calendarId"
+     },
+     "eventId": {
+      "item": "/id"
+     },
+     "title": {
+      "when": {
+       "present": {
+        "item": "/summary"
+       }
+      },
+      "then": {
+       "pick": {
+        "transform": "text.truncate@1",
+        "args": {
+         "text": {
+          "item": "/summary"
+         },
+         "max": {
+          "const": 200
+         }
+        }
+       },
+       "pointer": "/text"
+      }
+     },
+     "start": {
+      "item": "/start/dateTime"
+     },
+     "end": {
+      "when": {
+       "present": {
+        "item": "/end/dateTime"
+       }
+      },
+      "then": {
+       "item": "/end/dateTime"
+      }
+     },
+     "myResponse": {
+      "pick": {
+       "transform": "collections.calendarSelf@1",
+       "args": {
+        "event": {
+         "item": ""
+        }
+       }
+      },
+      "pointer": "/response"
+     }
+    },
+    "summary": [
+     {
+      "label": "Event",
+      "expr": {
+       "item": "/summary"
+      },
+      "truncate": 120
+     },
+     {
+      "label": "Starts",
+      "expr": {
+       "item": "/start/dateTime"
+      }
+     }
+    ]
+   },
+   "backfill": {
+    "default": 0,
+    "max": 0
+   },
+   "retention": {
+    "days": 1
+   },
+   "bounds": {
+    "pages": 2,
+    "items": 100,
+    "pollSeconds": 10
+   },
+   "rows": [
+    "google-calendar.events.read"
+   ]
+  },
+  {
+   "id": "google-calendar.trigger.calendar-list-changed.v1.d87fc47dcb0f68b78f926c7f",
+   "key": "calendar-list-changed",
+   "version": 1,
+   "name": "Your calendar list changed",
+   "description": "Tells you when a calendar is added to or removed from your list, or hidden or shown again. Google leaves a change of your access out of this list, so it shows only with the calendar's next change. Colours, names and notification settings do not count.",
+   "delivery": {
+    "method": "watch",
+    "fallback": "polling",
+    "register": {
+     "step": {
+      "id": "watch",
+      "method": "POST",
+      "path": "/users/me/calendarList/watch",
+      "body": {
+       "object": {
+        "id": {
+         "subscriptionKey": "channel"
+        },
+        "type": {
+         "const": "web_hook"
+        },
+        "address": {
+         "receiver": "google-calendar"
+        },
+        "token": {
+         "secret": "channel"
+        }
+       }
+      },
+      "expect": {
+       "status": [
+        200
+       ],
+       "require": []
+      }
+     },
+     "keep": {
+      "channelId": "/id",
+      "resourceId": "/resourceId",
+      "expiration": "/expiration"
+     }
+    },
+    "renew": {
+     "lifetime": {
+      "kept": "expiration",
+      "format": "epoch-ms-string"
+     },
+     "at": 0.5,
+     "order": "new-then-stop-old",
+     "onMiss": "resync"
+    },
+    "teardown": {
+     "step": {
+      "id": "stop",
+      "method": "POST",
+      "path": "/channels/stop",
+      "body": {
+       "object": {
+        "id": {
+         "kept": "channelId"
+        },
+        "resourceId": {
+         "kept": "resourceId"
+        }
+       }
+      },
+      "expect": {
+       "status": [
+        204
+       ],
+       "require": []
+      }
+     },
+     "onFailure": "record-leftover"
+    },
+    "admission": {
+     "scheme": "channel-token",
+     "header": "x-goog-channel-token",
+     "secret": "channel",
+     "route": [
+      {
+       "header": "x-goog-channel-id",
+       "equals": {
+        "kept": "channelId"
+       }
+      },
+      {
+       "header": "x-goog-resource-id",
+       "equals": {
+        "kept": "resourceId"
+       }
+      }
+     ],
+     "handshake": "google-sync",
+     "trust": "doorbell"
+    }
+   },
+   "inputSchema": {
+    "type": "object",
+    "properties": {},
+    "required": [],
+    "additionalProperties": false
+   },
+   "resource": [],
+   "poll": {
+    "source": {
+     "steps": [
+      {
+       "id": "list",
+       "method": "GET",
+       "path": "/users/me/calendarList",
+       "query": {
+        "syncToken": {
+         "cursor": "sync"
+        },
+        "maxResults": {
+         "const": "250"
+        }
+       },
+       "page": {
+        "next": {
+         "pointer": "/nextPageToken"
+        },
+        "into": {
+         "query": "pageToken"
+        },
+        "items": "/items",
+        "max": 10
+       },
+       "expect": {
+        "status": [
+         200
+        ],
+        "require": []
+       }
+      }
+     ]
+    },
+    "items": {
+     "step": "list",
+     "pointer": ""
+    },
+    "itemId": {
+     "item": "/id"
+    },
+    "itemVersion": "/etag",
+    "order": "unordered",
+    "cursors": [
+     {
+      "name": "sync",
+      "kind": "sync-token@1",
+      "next": {
+       "step": "list",
+       "pointer": "/nextSyncToken"
+      },
+      "lastPageOnly": true,
+      "excludes": [
+       "minAccessRole",
+       "showOwnOrganizationOnly"
+      ]
+     }
+    ],
+    "resync": {
+     "statusIn": [
+      410
+     ]
+    },
+    "minIntervalSeconds": 900
+   },
+   "dedupe": {
+    "kind": "content-hash",
+    "fields": [
+     {
+      "item": "/id"
+     },
+     {
+      "item": "/accessRole"
+     },
+     {
+      "item": "/deleted"
+     },
+     {
+      "item": "/hidden"
+     }
+    ]
+   },
+   "event": {
+    "schema": {
+     "type": "object",
+     "properties": {
+      "calendarId": {
+       "type": "string",
+       "maxLength": 200
+      },
+      "title": {
+       "type": "string",
+       "maxLength": 200
+      },
+      "accessRole": {
+       "type": "string",
+       "maxLength": 32
+      },
+      "removed": {
+       "type": "boolean"
+      },
+      "hidden": {
+       "type": "boolean"
+      },
+      "primary": {
+       "type": "boolean"
+      }
+     },
+     "required": [
+      "calendarId"
+     ],
+     "additionalProperties": false
+    },
+    "id": {
+     "concat": [
+      {
+       "item": "/id"
+      },
+      {
+       "const": ":"
+      },
+      {
+       "item": "/etag"
+      }
+     ],
+     "max": 1400
+    },
+    "occurredAt": {
+     "pick": {
+      "transform": "time.offsetFromNow@1",
+      "args": {
+       "now": {
+        "now": {}
+       },
+       "minutes": {
+        "const": 0
+       }
+      }
+     },
+     "pointer": "/time"
+    },
+    "fields": {
+     "calendarId": {
+      "item": "/id"
+     },
+     "title": {
+      "when": {
+       "present": {
+        "item": "/summary"
+       }
+      },
+      "then": {
+       "pick": {
+        "transform": "text.truncate@1",
+        "args": {
+         "text": {
+          "item": "/summary"
+         },
+         "max": {
+          "const": 200
+         }
+        }
+       },
+       "pointer": "/text"
+      }
+     },
+     "accessRole": {
+      "when": {
+       "present": {
+        "item": "/accessRole"
+       }
+      },
+      "then": {
+       "item": "/accessRole"
+      }
+     },
+     "removed": {
+      "when": {
+       "present": {
+        "item": "/deleted"
+       }
+      },
+      "then": {
+       "item": "/deleted"
+      }
+     },
+     "hidden": {
+      "when": {
+       "present": {
+        "item": "/hidden"
+       }
+      },
+      "then": {
+       "item": "/hidden"
+      }
+     },
+     "primary": {
+      "when": {
+       "present": {
+        "item": "/primary"
+       }
+      },
+      "then": {
+       "item": "/primary"
+      }
+     }
+    },
+    "summary": [
+     {
+      "label": "Calendar",
+      "expr": {
+       "item": "/summary"
+      },
+      "truncate": 120
+     },
+     {
+      "label": "Your access",
+      "expr": {
+       "item": "/accessRole"
+      }
+     }
+    ]
+   },
+   "backfill": {
+    "default": 0,
+    "max": 0
+   },
+   "retention": {
+    "days": 7
+   },
+   "bounds": {
+    "pages": 10,
+    "items": 500,
+    "pollSeconds": 10
+   },
+   "rows": [
+    "google-calendar.calendars.read"
+   ]
+  },
+  {
+   "id": "google-calendar.trigger.calendar-sharing-changed.v1.9f1149d9676546952fe6cb0c",
+   "key": "calendar-sharing-changed",
+   "version": 1,
+   "name": "A calendar's sharing changed",
+   "description": "Tells you when someone is added to a calendar's sharing, their role changes, or they are removed, including when a calendar is made public. Needs the sharing permission, and writer or owner access to that calendar.",
+   "delivery": {
+    "method": "polling",
+    "intervalSeconds": {
+     "default": 900,
+     "min": 300
+    }
+   },
+   "inputSchema": {
+    "type": "object",
+    "properties": {
+     "calendarId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024,
+      "description": "The calendar: an id from List my calendars."
+     }
+    },
+    "required": [
+     "calendarId"
+    ],
+    "additionalProperties": false
+   },
+   "choices": [
+    {
+     "input": "calendarId",
+     "source": "calendars"
+    }
+   ],
+   "resource": [
+    "calendarId"
+   ],
+   "poll": {
+    "source": {
+     "steps": [
+      {
+       "id": "rules",
+       "method": "GET",
+       "path": "/calendars/{calendarId}/acl",
+       "params": {
+        "calendarId": {
+         "input": "/calendarId"
+        }
+       },
+       "query": {
+        "syncToken": {
+         "cursor": "sync"
+        },
+        "maxResults": {
+         "const": "250"
+        }
+       },
+       "page": {
+        "next": {
+         "pointer": "/nextPageToken"
+        },
+        "into": {
+         "query": "pageToken"
+        },
+        "items": "/items",
+        "max": 10
+       },
+       "expect": {
+        "status": [
+         200
+        ],
+        "require": []
+       }
+      }
+     ]
+    },
+    "items": {
+     "step": "rules",
+     "pointer": ""
+    },
+    "itemId": {
+     "item": "/id"
+    },
+    "itemVersion": "/etag",
+    "order": "unordered",
+    "cursors": [
+     {
+      "name": "sync",
+      "kind": "sync-token@1",
+      "next": {
+       "step": "rules",
+       "pointer": "/nextSyncToken"
+      },
+      "lastPageOnly": true
+     }
+    ],
+    "resync": {
+     "statusIn": [
+      410
+     ]
+    },
+    "minIntervalSeconds": 300
+   },
+   "dedupe": {
+    "kind": "content-hash",
+    "fields": [
+     {
+      "item": "/id"
+     },
+     {
+      "item": "/role"
+     }
+    ]
+   },
+   "event": {
+    "schema": {
+     "type": "object",
+     "properties": {
+      "calendarId": {
+       "type": "string",
+       "maxLength": 200
+      },
+      "ruleId": {
+       "type": "string",
+       "maxLength": 300
+      },
+      "role": {
+       "type": "string",
+       "maxLength": 32
+      },
+      "scopeType": {
+       "type": "string",
+       "maxLength": 16
+      },
+      "scopeValue": {
+       "type": "string",
+       "maxLength": 254
+      }
+     },
+     "required": [
+      "calendarId",
+      "ruleId",
+      "role"
+     ],
+     "additionalProperties": false
+    },
+    "id": {
+     "concat": [
+      {
+       "item": "/id"
+      },
+      {
+       "const": ":"
+      },
+      {
+       "item": "/etag"
+      }
+     ],
+     "max": 1400
+    },
+    "occurredAt": {
+     "pick": {
+      "transform": "time.offsetFromNow@1",
+      "args": {
+       "now": {
+        "now": {}
+       },
+       "minutes": {
+        "const": 0
+       }
+      }
+     },
+     "pointer": "/time"
+    },
+    "fields": {
+     "calendarId": {
+      "input": "/calendarId"
+     },
+     "ruleId": {
+      "item": "/id"
+     },
+     "role": {
+      "item": "/role"
+     },
+     "scopeType": {
+      "when": {
+       "present": {
+        "item": "/scope/type"
+       }
+      },
+      "then": {
+       "item": "/scope/type"
+      }
+     },
+     "scopeValue": {
+      "when": {
+       "present": {
+        "item": "/scope/value"
+       }
+      },
+      "then": {
+       "item": "/scope/value"
+      }
+     }
+    },
+    "summary": [
+     {
+      "label": "Who",
+      "expr": {
+       "item": "/scope/value"
+      }
+     },
+     {
+      "label": "Kind",
+      "expr": {
+       "item": "/scope/type"
+      }
+     },
+     {
+      "label": "Role",
+      "expr": {
+       "item": "/role"
+      }
+     }
+    ]
+   },
+   "backfill": {
+    "default": 0,
+    "max": 0
+   },
+   "retention": {
+    "days": 7
+   },
+   "bounds": {
+    "pages": 10,
+    "items": 500,
+    "pollSeconds": 10
+   },
+   "rows": [
+    "google-calendar.settings.read"
+   ]
+  }
+ ]
+}

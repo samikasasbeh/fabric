@@ -1,0 +1,15 @@
+{
+ "schemaVersion": 1,
+ "appId": "notion",
+ "simulator": "test/fixtures/provider-simulators/notion.mjs",
+ "tests": ["test/triggers-notion.test.mjs"],
+ "cases": {
+  "new-row v1": ["baseline-silent", "one-then-zero", "crash-before-cursor", "background-never", "row-never-mid-poll", "malformed-cursor", "caps", "pause-on-refusal"],
+  "row-changed v1": ["baseline-silent", "one-then-zero", "crash-before-cursor", "background-never", "row-never-mid-poll", "malformed-cursor", "caps", "pause-on-refusal"],
+  "page-content-changed v1": ["baseline-silent", "one-then-zero", "crash-before-cursor", "background-never", "row-never-mid-poll", "malformed-cursor", "caps", "pause-on-refusal"],
+  "new-comment v1": ["baseline-silent", "one-then-zero", "crash-before-cursor", "background-never", "row-never-mid-poll", "malformed-cursor", "caps", "pause-on-refusal"],
+  "trashed-or-restored v1": ["baseline-silent", "one-then-zero", "crash-before-cursor", "background-never", "row-never-mid-poll", "malformed-cursor", "caps", "pause-on-refusal"],
+  "schema-changed v1": ["baseline-silent", "one-then-zero", "crash-before-cursor", "background-never", "row-never-mid-poll", "malformed-cursor", "caps", "pause-on-refusal"],
+  "new-child-page v1": ["baseline-silent", "one-then-zero", "crash-before-cursor", "background-never", "row-never-mid-poll", "malformed-cursor", "caps", "pause-on-refusal"]
+ }
+}

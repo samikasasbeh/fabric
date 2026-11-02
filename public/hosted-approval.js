@@ -12,6 +12,8 @@ export const WARNINGS = {
   // F10.11 part j: a reviewed action that reads before it shows its final request, and one that edits something Fabric did not make.
   prepares_first: 'Fabric runs these steps first. It shows you the exact final request before sending it.',
   not_made_by_fabric: 'Fabric did not make this record, so it asks first.',
+  // Iteration 9 part 3c: a watch sends nothing when approved, and goes on reading after it.
+  background_reads: 'Fabric reads this in the background and tells the agent what it finds, until you pause or remove it.',
 };
 
 /**

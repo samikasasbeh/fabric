@@ -1,0 +1,14 @@
+{
+ "schemaVersion": 1,
+ "appId": "gmail",
+ "simulator": "test/fixtures/provider-simulators/gmail.mjs",
+ "tests": ["test/triggers-gmail.test.mjs"],
+ "cases": {
+  "new-inbox-email v1": ["baseline-silent", "one-then-zero", "crash-before-cursor", "background-never", "row-never-mid-poll", "malformed-cursor", "caps", "resync-gap", "pause-on-refusal"],
+  "label-added v1": ["baseline-silent", "one-then-zero", "crash-before-cursor", "background-never", "row-never-mid-poll", "malformed-cursor", "caps", "resync-gap", "pause-on-refusal"],
+  "email-sent v1": ["baseline-silent", "one-then-zero", "crash-before-cursor", "background-never", "row-never-mid-poll", "malformed-cursor", "caps", "resync-gap", "pause-on-refusal"],
+  "reply-on-my-thread v1": ["baseline-silent", "one-then-zero", "crash-before-cursor", "background-never", "row-never-mid-poll", "malformed-cursor", "caps", "resync-gap", "pause-on-refusal"],
+  "new-email-with-attachment v1": ["baseline-silent", "one-then-zero", "crash-before-cursor", "background-never", "row-never-mid-poll", "malformed-cursor", "caps", "resync-gap", "pause-on-refusal"],
+  "new-email-matching-search v1": ["baseline-silent", "one-then-zero", "crash-before-cursor", "background-never", "row-never-mid-poll", "malformed-cursor", "caps", "resync-gap", "pause-on-refusal"]
+ }
+}

@@ -8,6 +8,7 @@
 // the simulator does not, stricter, never looser). Routes (named "METHOD /template" below users/{userId}, as the switches take them), each
 // with the scopes the Discovery document lists for it:
 //   GET    /profile                  {emailAddress, messagesTotal, threadsTotal, historyId}
+//   GET    /history                  the mailbox's change log (below)
 //   GET    /messages                 search (below); GET /messages/{id} one message, by format
 //   POST   /messages/send            {raw, threadId?}: sends (below)
 //   POST   /messages/batchModify     {ids, addLabelIds, removeLabelIds}: 204
@@ -17,7 +18,7 @@
 //   POST   /drafts, GET and PUT /drafts/{id}, POST /drafts/send
 //   GET    /labels, GET /labels/{id}, POST /labels
 //   GET    and PUT /settings/vacation, POST /settings/filters, GET /settings/filters/{id}
-// No other route is served (404): these are what Gmail's 13 actions, their readbacks and the live plan's reads call. Scopes whose grant
+// No other route is served (404): these are what Gmail's 13 actions, their readbacks, the live plan's reads and the trigger polls call. Scopes whose grant
 // depends on the object or the request are left out of the table (gmail.addons.current.*, and gmail.metadata where Google lists it on
 // messages and threads, since it allows only some formats and no search): such a token is refused, stricter than Google, never looser.
 //
@@ -47,7 +48,7 @@
 // - Search, GET /messages: q reads only what Fabric writes (text.gmailQuery@1's form): from:"..." (the From field, address or name),
 //   to:"..." (the To field), subject:"...", label:"..." (a label's name in any ASCII case, or its id), has:attachment, "a phrase" (in the
 //   subject, From, To, Cc or text, in any case), after:N and before:N in epoch seconds (after inclusive, before not), each may start with
-//   "-". Any other operator or form answers 400 notSimulated, so no test trusts a search the simulator cannot do. Mail in TRASH or SPAM is
+//   "-", and newer_than:<n>d reads the clock, in days. Any other operator or form answers 400 notSimulated, so no test trusts a search the simulator cannot do. Mail in TRASH or SPAM is
 //   left out unless includeSpamTrash=true. Newest first; maxResults 1 to 500 (default 100) and an opaque pageToken page: {messages: [{id,
 //   threadId}], nextPageToken?, resultSizeEstimate}, with no messages key when nothing matches.
 // - Drafts: create {message: {raw?, threadId?}} gives {id: r<digits>, message: {id, threadId, labelIds: ['DRAFT']}}; without raw the draft
@@ -66,6 +67,16 @@
 // - Filters: {criteria, action}, each with at least one known field; a label id of no label answers 400; an identical filter answers 400
 //   failedPrecondition "Filter already exists"; a forward answers 403 insufficientPermissions without gmail.settings.sharing (Fabric never
 //   asks for it) and 400 failedPrecondition with it (the simulator has no verified forwarding address).
+// - History (Iteration 9 step 7, from Google's history guide and users.history.list, as the simulator reads them; step 9 checks them live): one record per change, in order: {id, messages: [{id,
+//   threadId}], and any of messagesAdded and messagesDeleted, [{message}], and labelsAdded and labelsRemoved, [{message, labelIds}]}. labelIds there are the labels that one change moved, and a
+//   message holds only id and threadId unless historyOptions({labels: true}) says otherwise. A modify that changes nothing writes no record and moves no id. An id rises by a gap that varies
+//   ("increase chronologically but are not contiguous with random gaps"), and it is text, so the historyId option can start a mailbox past 2^53. A message's historyId is the last record that
+//   moved it, and a draft's update or send deletes its message and adds another. GET /history takes startHistoryId (required, digits; records after it), maxResults (1 to 500, default 100),
+//   an opaque pageToken bound to that startHistoryId, labelId (records with a message holding that label) and repeated historyTypes (messageAdded, messageDeleted, labelAdded, labelRemoved).
+//   It answers {history?, nextPageToken?, historyId}: no history key when nothing changed, and historyId the mailbox's current one. An id below expireHistory(id), older than
+//   historyOptions({keepHours}), from before the mailbox or above the current one answers 404 notFound. historyOptions({emptyHoldsId: false}) leaves the id out of an empty answer: probe U2
+//   decides which Google sends.
+// - Search lag: historyOptions({searchLagMs}) sets how long a message written from then on stays out of q. It keeps its place by date, so it can land behind what is newer.
 //
 // The network contract is lib/network.mjs's seam: `request` takes its options and answers {status, headers, data}. Refused before
 // sending, with sent false: a URL that is not https on 443 or carries credentials, an origin outside allowedOrigins or not Gmail's, an
@@ -77,12 +88,14 @@
 // users/{userId}), user, route, query, headers, body, write, status}. writes() and reads() are the calls to write and read routes; state()
 // is a copy of the state; deliveries() the copies Gmail delivered. Switches, each for the next call to one route unless {times} says how
 // many: fail(route, {status, headers?, data?}) answers that instead and changes nothing; limit(route, kind) answers as Google documents a
-// limit (tooManyRequests: 429 rateLimitExceeded; dailyLimitExceeded, userRateLimitExceeded or rateLimitExceeded: 403; all in domain
-// usageLimits) and changes nothing; drop(route) applies the call, then throws as a lost answer; swallow(route) answers as if applied but
+// limit (tooManyRequests and tooManyConcurrent: 429 rateLimitExceeded; dailyLimitExceeded, userRateLimitExceeded or rateLimitExceeded: 403; all in domain
+// usageLimits, with no Retry-After, since Google names only "a retry time") and changes nothing; drop(route) applies the call, then throws as a lost answer; swallow(route) answers as if applied but
 // changes nothing (a readback then sees the old state); oversize(route, bytes) pads the answer; hold(route) returns {reached, release()}.
-// Test data, recorded as no call: deliver(raw, labels) is mail that arrives (INBOX and UNREAD unless labels says); seedDraft(raw) is a
-// draft the owner wrote in Gmail; editDraft(id, raw) is the owner editing a draft in Gmail; remove(kind, id) is the owner deleting a
-// message, thread, draft, label or filter.
+// Test data, recorded as no call: deliver(raw, labels, {labelsAdded}) is mail that arrives (INBOX and UNREAD unless labels says; labelsAdded also
+// writes that record, for a filter's label, whichever probe U5 finds); seedDraft(raw) is a draft the owner wrote in Gmail; editDraft(id, raw) is
+// the owner editing a draft in Gmail; remove(kind, id) is the owner deleting a message, thread, draft, label or filter; relabel(id, {add, remove})
+// is the owner changing a message's labels; ownerSends(raw, threadId) is a send from Gmail; together(fn) puts every change fn makes in one record;
+// expireHistory(id) and historyOptions() are described above.
 import {createHash} from 'node:crypto';
 
 export const ORIGIN = 'https://gmail.googleapis.com';
@@ -121,11 +134,14 @@ const ACTION_FIELDS = ['addLabelIds', 'removeLabelIds', 'forward'];
 const MAX_BATCH = 1000, MAX_DEPTH = 8;
 const STATUS = {400: 'INVALID_ARGUMENT', 401: 'UNAUTHENTICATED', 403: 'PERMISSION_DENIED', 404: 'NOT_FOUND', 409: 'ALREADY_EXISTS', 429: 'RESOURCE_EXHAUSTED'};
 /** The limit answers Google documents for Gmail ("Resolve errors"), by kind: [status, reason, message]. */
-const LIMITS = Object.freeze({tooManyRequests: [429, 'rateLimitExceeded', 'Rate Limit Exceeded'], dailyLimitExceeded: [403, 'dailyLimitExceeded', 'Daily Limit Exceeded'],
+const LIMITS = Object.freeze({tooManyRequests: [429, 'rateLimitExceeded', 'Rate Limit Exceeded'], tooManyConcurrent: [429, 'rateLimitExceeded', 'Too many concurrent requests for user'], dailyLimitExceeded: [403, 'dailyLimitExceeded', 'Daily Limit Exceeded'],
   userRateLimitExceeded: [403, 'userRateLimitExceeded', 'User Rate Limit Exceeded'], rateLimitExceeded: [403, 'rateLimitExceeded', 'Rate Limit Exceeded']});
 /** The fields the from:, to: and subject: operators read. */
 const SEARCHED = Object.freeze({from: 'From', to: 'To', subject: 'Subject'});
-const OPERATORS = new Set([...Object.keys(SEARCHED), 'label', 'has', 'after', 'before']);
+const OPERATORS = new Set([...Object.keys(SEARCHED), 'label', 'has', 'after', 'before', 'newer_than']);
+/** historyTypes as a request names them, and the field of a record each reads. */
+const HISTORY_TYPES = Object.freeze({messageAdded: 'messagesAdded', messageDeleted: 'messagesDeleted', labelAdded: 'labelsAdded', labelRemoved: 'labelsRemoved'});
+const HOUR_MS = 3_600_000, DAY_MS = 24 * HOUR_MS;
 
 const notSent = message => Object.assign(new Error(message), {sent: false});
 const lost = message => Object.assign(new Error(message), {sent: true});
@@ -270,12 +286,13 @@ function parseQuery(q) {
   const terms = [];
   let rest = q.trim();
   while (rest) {
-    const match = /^(-?)(?:([a-z]+):)?(?:"([^"]*)"|([^\s"(){}:]+))(?=\s|$)/.exec(rest);
+    const match = /^(-?)(?:([a-z_]+):)?(?:"([^"]*)"|([^\s"(){}:]+))(?=\s|$)/.exec(rest);
     if (!match) notSimulated();
     const [whole, minus, operator, quoted, bare] = match, value = quoted ?? bare;
     if ((operator !== undefined && !OPERATORS.has(operator)) || ['OR', 'AND'].includes(bare) || !value) notSimulated();
     if (operator === 'has' && value !== 'attachment') notSimulated();
     if ((operator === 'after' || operator === 'before') && !/^[0-9]{1,12}$/.test(value)) notSimulated();
+    if (operator === 'newer_than' && !/^[0-9]{1,4}d$/.test(value)) notSimulated();
     terms.push({negated: minus === '-', operator: operator ?? 'words', value});
     rest = rest.slice(whole.length).trimStart();
   }
@@ -290,7 +307,7 @@ export class GmailSimulator {
    * scopes (by default Fabric's Gmail sign-in: gmail.modify and gmail.settings.basic).
    */
   constructor({clock = () => Date.parse('2026-10-26T13:00:00.000Z'), token = 'gmail-token', owner = {email: 'owner@example.com'},
-    scopes: granted = scopes('gmail.modify', 'gmail.settings.basic')} = {}) {
+    scopes: granted = scopes('gmail.modify', 'gmail.settings.basic'), historyId = '1000'} = {}) {
     if (!record(owner) || typeof owner.email !== 'string' || !/^[^\s@]+@[^\s@]+$/.test(owner.email)) throw new Error('owner is {email}.');
     this.clock = clock;
     this.token = token;
@@ -298,7 +315,9 @@ export class GmailSimulator {
     this.calls = [];
     this.switches = new Map();
     this.holds = new Map();
-    this.data = {owner: {email: owner.email}, messages: {}, drafts: {}, labels: {}, vacation: {enableAutoReply: false}, filters: {}, deliveries: [],
+    this.historySettings = {labels: false, emptyHoldsId: true, keepHours: null, searchLagMs: 0};
+    this.group = null;
+    this.data = {owner: {email: owner.email}, messages: {}, drafts: {}, labels: {}, vacation: {enableAutoReply: false}, filters: {}, deliveries: [], history: [], historyId, historyFloor: historyId,
       next: {message: 1, draft: 1, label: 1, filter: 1, history: 1, seq: 1}};
     this.request = this.request.bind(this);
   }
@@ -336,9 +355,34 @@ export class GmailSimulator {
 
   // ---- test data ---------------------------------------------------------------------------------------------------------------------
   /** Mail that arrives from someone, threaded by its headers: {id, threadId}. */
-  deliver(raw, labels = ['INBOX', 'UNREAD']) {
+  deliver(raw, labels = ['INBOX', 'UNREAD'], {labelsAdded = false} = {}) {
     const state = this.data, text = rawText(raw), message = this.#commit(state, {text, labelIds: [...labels], threadId: this.#incoming(state, entity(text).fields)});
+    if (labelsAdded) { message.historyId = this.#history(state); this.#log(state, message, 'labelsAdded', [...labels]); }
     return {id: message.id, threadId: message.threadId};
+  }
+  /** A send from Gmail: as messages/send, with no request. */
+  ownerSends(raw, threadId = null) {
+    const state = this.data, text = rawText(raw), {fields} = entity(text), {data} = this.#sent(state, text, this.#recipients(fields), threadId ?? this.#incoming(state, fields));
+    return {id: data.id, threadId: data.threadId};
+  }
+  /** The owner changes a message's labels in Gmail. */
+  relabel(id, {add = [], remove = []}) {
+    const message = this.data.messages[id];
+    if (!message) throw new Error(`No message ${id}.`);
+    this.#change(this.data, [message], add, remove);
+  }
+  /** Every change `run` makes lands in one history record. */
+  together(run) {
+    this.group = {};
+    try { run(); } finally { this.group = null; }
+  }
+  /** Ids below this one are out of date: a read from one answers 404. */
+  expireHistory(id) { this.data.historyFloor = String(id); }
+  /** Changes how history and search read: {labels, emptyHoldsId, keepHours, searchLagMs}, as the header comment names them. */
+  historyOptions(changes) {
+    for (const name of Object.keys(changes)) if (!Object.hasOwn(this.historySettings, name)) throw new Error(`No history option ${name}.`);
+    Object.assign(this.historySettings, changes);
+    return this;
   }
   /** A draft the owner wrote in Gmail: {id, message: {id, threadId}}. */
   seedDraft(raw) {
@@ -351,6 +395,7 @@ export class GmailSimulator {
     const state = this.data, old = state.messages[state.drafts[id]];
     if (!old) throw new Error(`No draft ${id}.`);
     const text = rawText(raw, {empty: true});
+    this.#deleted(state, old);
     delete state.messages[old.id];
     const message = this.#commit(state, {text, labelIds: ['DRAFT'], threadId: old.threadId === old.id ? null : old.threadId});
     state.drafts[id] = message.id;
@@ -360,7 +405,7 @@ export class GmailSimulator {
   remove(kind, id) {
     const state = this.data, fail = () => { throw new Error(`No ${kind} ${id}.`); };
     const forget = messageIds => {
-      for (const messageId of messageIds) delete state.messages[messageId];
+      for (const messageId of messageIds) { this.#deleted(state, state.messages[messageId]); delete state.messages[messageId]; }
       for (const [draftId, messageId] of Object.entries(state.drafts)) if (messageIds.includes(messageId)) delete state.drafts[draftId];
     };
     if (kind === 'message') forget([state.messages[id]?.id ?? fail()]);
@@ -369,19 +414,40 @@ export class GmailSimulator {
     else if (kind === 'label') {
       if (!state.labels[id]) fail();
       delete state.labels[id];
-      for (const message of Object.values(state.messages)) message.labelIds = message.labelIds.filter(label => label !== id);
+      this.#change(state, Object.values(state.messages), [], [id]);
     } else if (kind === 'filter') { if (!state.filters[id]) fail(); delete state.filters[id]; }
     else throw new Error('remove takes message, thread, draft, label or filter.');
   }
 
   // ---- shared pieces -----------------------------------------------------------------------------------------------------------------
   #draftId(state) { return `r${BigInt(`0x${hex(`draft:${state.next.draft++}`).slice(0, 15)}`)}`; }
-  #history(state) { return String(1000 + state.next.history++); }
+  /** The next history id: the last one plus a gap that varies, kept as text so it stays exact past 2^53. Inside together() every change shares one. */
+  #history(state) {
+    if (this.group?.id) return this.group.id;
+    const gap = BigInt(parseInt(hex(`history:${state.next.history++}`).slice(0, 4), 16) % 97 + 1);
+    state.historyId = String(BigInt(state.historyId) + gap);
+    if (this.group) this.group.id = state.historyId;
+    return state.historyId;
+  }
+  /** Writes one change under the message's history id. The record holds the labels a message had then, and history[].messages repeats the typed fields. */
+  #log(state, message, type, labelIds) {
+    const {id, threadId} = message;
+    let entry = state.history.at(-1);
+    if (entry?.id !== message.historyId) state.history.push(entry = {id: message.historyId, at: this.clock(), messages: []});
+    if (!entry.messages.some(item => item.id === id)) entry.messages.push({id, threadId});
+    (entry[type] ??= []).push({message: {id, threadId, labelIds: [...message.labelIds]}, ...(labelIds ? {labelIds} : {})});
+  }
+  /** The log's record of a message that is about to go. */
+  #deleted(state, message) {
+    message.historyId = this.#history(state);
+    this.#log(state, message, 'messagesDeleted');
+  }
   /** Stores a message: a new id, the clock's time, a history id and an order; a message with no thread starts its own. */
   #commit(state, {text, labelIds, threadId}) {
     const id = hex(`message:${state.next.message++}`).slice(0, 16);
-    const message = {id, threadId: threadId ?? id, labelIds, text, internalDate: this.clock(), historyId: this.#history(state), seq: state.next.seq++};
+    const message = {id, threadId: threadId ?? id, labelIds, text, internalDate: this.clock(), searchableAt: this.clock() + this.historySettings.searchLagMs, historyId: this.#history(state), seq: state.next.seq++};
     state.messages[id] = message;
+    this.#log(state, message, 'messagesAdded');
     return message;
   }
   #thread(state, id) { return Object.values(state.messages).filter(message => message.threadId === id).sort((a, b) => a.seq - b.seq); }
@@ -402,6 +468,7 @@ export class GmailSimulator {
   /** The thread mail that arrives joins: the thread of a message it names, by the same rule. */
   #incoming(state, fields) {
     const named = new Set([...idsIn(valueOf(fields, 'in-reply-to')), ...idsIn(valueOf(fields, 'references'))]);
+    if (!named.size) return null;
     for (const message of Object.values(state.messages).sort((a, b) => a.seq - b.seq)) {
       if (named.has(messageIdOf(message)) && this.#joins(state, message.threadId, fields)) return message.threadId;
     }
@@ -442,7 +509,7 @@ export class GmailSimulator {
   }
   #threadAnswer(state, id) {
     const thread = this.#thread(state, id);
-    return {id, historyId: thread.map(message => message.historyId).sort((a, b) => Number(a) - Number(b)).at(-1), messages: thread.map(message => ({id: message.id, threadId: message.threadId, labelIds: [...message.labelIds]}))};
+    return {id, historyId: thread.map(message => message.historyId).reduce((high, value) => BigInt(value) > BigInt(high) ? value : high), messages: thread.map(message => ({id: message.id, threadId: message.threadId, labelIds: [...message.labelIds]}))};
   }
   #labels(state) { return [...SYSTEM_LABELS.map(id => ({id, name: id, type: 'system'})), ...Object.values(state.labels).map(label => ({...label}))]; }
   #labelOf(state, id) { return SYSTEM_LABELS.includes(id) ? {id, name: id, type: 'system'} : state.labels[id] ?? null; }
@@ -461,19 +528,23 @@ export class GmailSimulator {
   }
   #change(state, messages, add, remove) {
     for (const message of messages) {
-      message.labelIds = [...message.labelIds, ...add.filter(id => !message.labelIds.includes(id))].filter(id => !remove.includes(id));
+      const added = add.filter(id => !message.labelIds.includes(id)), removed = remove.filter(id => message.labelIds.includes(id));
+      if (!added.length && !removed.length) continue;
+      message.labelIds = [...message.labelIds, ...added].filter(id => !remove.includes(id));
       message.historyId = this.#history(state);
+      if (added.length) this.#log(state, message, 'labelsAdded', added);
+      if (removed.length) this.#log(state, message, 'labelsRemoved', removed);
     }
   }
-  /** A page of `items` at `token`, `max` a page: {items, next}. A token is opaque. */
-  #page(items, token, max) {
+  /** A page of `items` at `token`, `max` a page: {items, next}. A token is opaque and names the list it came from. */
+  #page(items, token, max, list = 'messages') {
     let start = 0;
     if (token !== null) {
-      const decoded = Buffer.from(token, 'base64url').toString('utf8'), match = /^messages:([0-9]{1,6})$/.exec(decoded);
-      if (!match || Buffer.from(decoded).toString('base64url') !== token) invalid('Invalid pageToken');
-      start = Number(match[1]);
+      const decoded = Buffer.from(token, 'base64url').toString('utf8'), place = decoded.startsWith(`${list}:`) ? decoded.slice(list.length + 1) : '';
+      if (!/^[0-9]{1,6}$/.test(place) || Buffer.from(decoded).toString('base64url') !== token) invalid('Invalid pageToken');
+      start = Number(place);
     }
-    return {items: items.slice(start, start + max), next: start + max < items.length ? Buffer.from(`messages:${start + max}`).toString('base64url') : null};
+    return {items: items.slice(start, start + max), next: start + max < items.length ? Buffer.from(`${list}:${start + max}`).toString('base64url') : null};
   }
   #matches(state, message, {operator, value}) {
     const {fields} = entity(message.text), field = name => decodeWords(valuesOf(fields, fold(name)).join(', '));
@@ -482,6 +553,7 @@ export class GmailSimulator {
     if (operator === 'has') return hasAttachment(partOf(message.text, ''));
     if (operator === 'after') return message.internalDate >= Number(value) * 1000;
     if (operator === 'before') return message.internalDate < Number(value) * 1000;
+    if (operator === 'newer_than') return message.internalDate >= this.clock() - parseInt(value, 10) * DAY_MS;
     return holds([field('Subject'), field('From'), field('To'), field('Cc'), textOf(partOf(message.text, '')) ?? ''].join('\n'), value);
   }
 
@@ -491,8 +563,9 @@ export class GmailSimulator {
     return this.#routes ??= [
       {method: 'GET', template: '/profile', scopes: PROFILE, handle: ({state}) => {
         const messages = Object.values(state.messages);
-        return ok({emailAddress: state.owner.email, messagesTotal: messages.length, threadsTotal: new Set(messages.map(message => message.threadId)).size, historyId: String(999 + state.next.history)});
+        return ok({emailAddress: state.owner.email, messagesTotal: messages.length, threadsTotal: new Set(messages.map(message => message.threadId)).size, historyId: state.historyId});
       }},
+      {method: 'GET', template: '/history', scopes: READ, handle: ctx => this.#historyList(ctx)},
       {method: 'GET', template: '/messages', scopes: READ, handle: ctx => this.#list(ctx)},
       {method: 'GET', template: '/messages/{id}', scopes: READ, handle: ({state, params, query}) => {
         const view = this.#format(query);
@@ -542,6 +615,7 @@ export class GmailSimulator {
         known(body, DRAFT_FIELDS, 'draft');
         if (body.id !== undefined && body.id !== params.id) invalid('The draft id in the body is not the one in the path.');
         const {message, text} = this.#draftMessage(body), threadId = this.#place(state, message.threadId, entity(text).fields, old);
+        this.#deleted(state, state.messages[old]);
         delete state.messages[old];
         const stored = this.#commit(state, {text, labelIds: ['DRAFT'], threadId});
         state.drafts[params.id] = stored.id;
@@ -553,6 +627,7 @@ export class GmailSimulator {
         const draft = state.messages[state.drafts[body.id] ?? notFound()], given = body.message === undefined ? null : known(body.message, MESSAGE_FIELDS, 'draft.message');
         const text = given?.raw !== undefined ? rawText(given.raw) : draft.text, {fields} = entity(text), recipients = this.#recipients(fields);
         const threadId = given?.threadId !== undefined ? this.#place(state, given.threadId, fields, draft.id) : this.#joins(state, draft.threadId, fields, draft.id) ? draft.threadId : null;
+        this.#deleted(state, draft);
         delete state.messages[draft.id];
         delete state.drafts[body.id];
         return this.#sent(state, text, recipients, threadId);
@@ -594,11 +669,33 @@ export class GmailSimulator {
     const message = known(body.message ?? {}, MESSAGE_FIELDS, 'draft.message');
     return {message, text: message.raw === undefined ? '' : rawText(message.raw, {empty: true})};
   }
-  #list({state, query}) {
+  /** maxResults, 1 to 500, 100 when not given. */
+  #pageSize(query) {
     const given = query.get('maxResults'), max = given === null ? 100 : Number(given);
     if (given !== null && (!/^[0-9]{1,4}$/.test(given) || max < 1 || max > 500)) invalid('Invalid value for: maxResults');
+    return max;
+  }
+  /** One record as an answer shows it, or nothing when its types or its label leave it out. */
+  #shown(state, record, types, labelId) {
+    const entries = (types.length ? types : Object.keys(HISTORY_TYPES)).map(type => HISTORY_TYPES[type]).filter(field => record[field])
+      .map(field => [field, record[field].map(({message: {id, threadId, labelIds}, ...rest}) => ({message: {id, threadId, ...(this.historySettings.labels ? {labelIds} : {})}, ...rest}))]);
+    if (!entries.length || (labelId !== null && !record.messages.some(({id}) => state.messages[id]?.labelIds.includes(labelId)))) return [];
+    return [{id: record.id, messages: record.messages.map(message => ({...message})), ...Object.fromEntries(entries)}];
+  }
+  #historyList({state, query}) {
+    const start = query.get('startHistoryId'), max = this.#pageSize(query), types = query.getAll('historyTypes');
+    if (start === null || !/^[0-9]{1,20}$/.test(start)) invalid('Invalid value for: startHistoryId');
+    for (const type of types) if (!Object.hasOwn(HISTORY_TYPES, type)) invalid('Invalid value for: historyTypes');
+    const after = BigInt(start), {keepHours, emptyHoldsId} = this.historySettings, lost = keepHours === null ? [] : state.history.filter(record => record.at < this.clock() - keepHours * HOUR_MS);
+    if (after < BigInt(state.historyFloor) || after > BigInt(state.historyId) || (lost.length && after < BigInt(lost.at(-1).id))) notFound();
+    const found = state.history.filter(record => BigInt(record.id) > after).flatMap(record => this.#shown(state, record, types, query.get('labelId')));
+    const page = this.#page(found, query.get('pageToken'), max, `history:${start}`);
+    return ok({...(page.items.length ? {history: page.items} : {}), ...(page.next ? {nextPageToken: page.next} : {}), ...(page.items.length || emptyHoldsId ? {historyId: state.historyId} : {})});
+  }
+  #list({state, query}) {
+    const max = this.#pageSize(query);
     const terms = parseQuery(query.get('q') ?? ''), everything = query.get('includeSpamTrash') === 'true', labels = query.getAll('labelIds');
-    const found = Object.values(state.messages).sort((a, b) => b.internalDate - a.internalDate || b.seq - a.seq)
+    const found = Object.values(state.messages).filter(message => !terms.length || message.searchableAt <= this.clock()).sort((a, b) => b.internalDate - a.internalDate || b.seq - a.seq)
       .filter(message => (everything || !message.labelIds.some(id => LEFT_OUT.has(id))) && labels.every(id => message.labelIds.includes(id)) && terms.every(term => this.#matches(state, message, term) !== term.negated));
     const page = this.#page(found, query.get('pageToken'), max);
     return ok({...(page.items.length ? {messages: page.items.map(message => ({id: message.id, threadId: message.threadId}))} : {}), ...(page.next ? {nextPageToken: page.next} : {}), resultSizeEstimate: found.length});

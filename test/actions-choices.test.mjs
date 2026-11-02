@@ -230,10 +230,10 @@ test('part i: choice sources refused at load: pointers (R11), paging, search, lo
     ['51 excludes', {...labels, exclude: Array.from({length: 51}, (_, index) => `L${index}`)}, /exclude lists 1 to 50/],
     ['an unknown kind', {...labels, kind: 'search'}, /labels: kind is directory or lookup/],
   ]) loadRefused([source], pattern, name);
-  // Link paging reads the next page number through ids.linkPage@1 (a step 17 transform, a stub in the fixture registry).
+  // Link paging reads the next page number through ids.linkPage@1 (Iteration 9 ships it).
   const linked = {...labels, page: {next: {link: 'next', param: 'page'}, into: {query: 'page'}, max: 3}};
   assert.doesNotThrow(() => loads([linked]), 'Link paging with its transform');
-  loadRefused([linked], /labels\.page\.next: Link paging reads the next page through ids\.linkPage@1, which the registry does not hold/, 'without it', 'fixture', {...SOURCE_DEPS, transforms: SHIPPED});
+  loadRefused([linked], /labels\.page\.next: Link paging reads the next page through ids\.linkPage@1, which the registry does not hold/, 'without it', 'fixture', {...SOURCE_DEPS, transforms: new Map([...SHIPPED].filter(([id]) => id !== 'ids.linkPage@1'))});
   loadRefused([labels, {...sourceOf('items'), id: 'labels'}], /fixture: the choice source id labels is used twice/, 'a repeated id');
   assert.throws(() => validateChoiceSources({...fixtureChoices(), schemaVersion: 1}, SOURCE_DEPS), /Choice sources for fixture: a choice source file holds exactly schemaVersion 2, appId, reviewed and sources/);
   assert.throws(() => validateChoiceSources({...fixtureChoices(), appId: 'nothing'}, SOURCE_DEPS), /Choice sources for nothing: the app has no reviewed permission rows and proxy settings/);

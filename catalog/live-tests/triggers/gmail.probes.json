@@ -1,0 +1,127 @@
+{
+ "schemaVersion": 1,
+ "appId": "gmail",
+ "probes": true,
+ "note": "Read probes U2 and U7 of docs/I07-BUILD-MAP.md section 6, run before the Gmail simulator grows in step 7. Send no mail while they run: U2 needs a mailbox with nothing new. Each test is one question: yes means its checks hold. U7 decides the stale value of TG7: use one that answers 404. Answers go in section 12 by hand.",
+ "recorded": {},
+ "readRows": [
+  "gmail.messages.read"
+ ],
+ "tests": [
+  {
+   "id": "U2-start",
+   "name": "Does the profile give a history id?",
+   "steps": [
+    {
+     "read": {
+      "path": "/gmail/v1/users/me/profile",
+      "checks": [
+       {
+        "status": 200
+       },
+       {
+        "pointer": "/historyId",
+        "present": true
+       }
+      ],
+      "save": {
+       "current": "/historyId"
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "U2-empty",
+   "name": "With nothing new, is history left out of the answer?",
+   "steps": [
+    {
+     "read": {
+      "path": "/gmail/v1/users/me/history",
+      "query": {
+       "startHistoryId": {
+        "$saved": "current"
+       },
+       "maxResults": "500"
+      },
+      "checks": [
+       {
+        "status": 200
+       },
+       {
+        "pointer": "/history",
+        "present": false
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "U2-id",
+   "name": "With nothing new, does the answer still hold a historyId?",
+   "steps": [
+    {
+     "read": {
+      "path": "/gmail/v1/users/me/history",
+      "query": {
+       "startHistoryId": {
+        "$saved": "current"
+       },
+       "maxResults": "500"
+      },
+      "checks": [
+       {
+        "status": 200
+       },
+       {
+        "pointer": "/historyId",
+        "present": true
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "U7-low",
+   "name": "Does startHistoryId=1 answer 404?",
+   "steps": [
+    {
+     "read": {
+      "path": "/gmail/v1/users/me/history",
+      "query": {
+       "startHistoryId": "1",
+       "maxResults": "1"
+      },
+      "checks": [
+       {
+        "status": 404
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "U7-high",
+   "name": "Does an id above the current one answer 404?",
+   "steps": [
+    {
+     "read": {
+      "path": "/gmail/v1/users/me/history",
+      "query": {
+       "startHistoryId": "9000000000000000000",
+       "maxResults": "1"
+      },
+      "checks": [
+       {
+        "status": 404
+       }
+      ]
+     }
+    }
+   ]
+  }
+ ]
+}

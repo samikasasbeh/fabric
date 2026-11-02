@@ -4,12 +4,14 @@
 // outside the owner's test areas before it leaves the machine.
 //
 //   node --env-file-if-exists=.env scripts/live-certify.mjs <appId> --folder <absolute path> [--record <name>=<value>]... [--resume <runId> [--from <test>]]
+//   node --env-file-if-exists=.env scripts/live-certify.mjs <appId> --folder <absolute path> --probes [--record <name>=<value>]...      Iteration 9 part 3g: read probes, which write no evidence
+//   node --env-file-if-exists=.env scripts/live-certify.mjs <appId> --folder <absolute path> --triggers --leave [--record <name>=<value>]... [--resume <runId> [--from <test>]]      Iteration 9 part 9a: the trigger plan, which writes triggers.json
 //   node scripts/live-certify.mjs [<appId>] --check      checks plan structure offline; starts nothing and sends nothing
 //
 // The folder and the port never come from the environment: FABRIC_DATA_DIR and FABRIC_PORT are ignored. This file holds the owner
 // principal only to bind each test's client grant (section 8, question 3): it reaches Fabric through createApp, start, close, the guard,
-// protocol.createClient, protocol.revokeClient, the client calls and read-only lookups, and never approves, sets a row or resets
-// (test/f10-12-churn.test.mjs pins this).
+// protocol.createClient, protocol.revokeClient, the client calls, read-only lookups and the engine's pollNow and ageCursor, and never approves,
+// sets a row or resets (test/f10-12-churn.test.mjs pins this).
 import {randomBytes} from 'node:crypto';
 import {existsSync, readFileSync, readdirSync} from 'node:fs';
 import path from 'node:path';
@@ -18,7 +20,7 @@ import {createInterface} from 'node:readline/promises';
 import {createApp, lockDataDir} from '../server.mjs';
 import {CERTIFICATION_PORT, certificationFolderRefusal} from '../lib/certification.mjs';
 import {createGuard, newRunId, signInFile, LIMITS, RULES} from '../lib/live-guard.mjs';
-import {checkPlan, checkPlanShape, evidenceRecords, openRunState, runDateOf, runLiveTests, writeEvidence, writeIntrospection} from '../lib/live-certify.mjs';
+import {checkPlan, checkPlanShape, checkTriggerPlan, evidenceRecords, openRunState, runDateOf, runLiveTests, triggerEvidenceRecords, writeEvidence, writeIntrospection} from '../lib/live-certify.mjs';
 import {loadActionCatalog} from '../lib/action-catalog.mjs';
 import {PERMISSION_GROUPS} from '../lib/permission-groups.mjs';
 import {PROXY_CONFIGS} from '../lib/proxy-config.mjs';
@@ -33,17 +35,21 @@ const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 export const PLANS = path.join(ROOT, 'catalog', 'live-tests');
 /** The one owner of every certification Fabric: fixed, so a folder the harness made always opens again with `require`. */
 export const CERTIFICATION_OWNER = validatePrincipal({schemaVersion: 1, kind: 'local_owner', id: 'fabric-certification', scope: {schemaVersion: 1, kind: 'local', localOwnerId: 'fabric-certification'}});
-export const USAGE = 'Usage: node --env-file-if-exists=.env scripts/live-certify.mjs <appId> --folder <absolute path> [--record <name>=<value>]... [--resume <runId> [--from <test>]]\n       node scripts/live-certify.mjs [<appId>] --check';
+export const USAGE = 'Usage: node --env-file-if-exists=.env scripts/live-certify.mjs <appId> --folder <absolute path> [--record <name>=<value>]... [--resume <runId> [--from <test>]]\n       node --env-file-if-exists=.env scripts/live-certify.mjs <appId> --folder <absolute path> --probes [--record <name>=<value>]...\n       node --env-file-if-exists=.env scripts/live-certify.mjs <appId> --folder <absolute path> --triggers --leave [--record <name>=<value>]... [--resume <runId> [--from <test>]]\n       node scripts/live-certify.mjs [<appId>] --check';
+/** Part 3g: said when the read probes end. Nothing keeps their answers but this terminal and the run's own folder. */
+export const PROBES_DONE = 'Every probe has run, and nothing was written. Put each answer in section 12 of docs/I07-BUILD-MAP.md by hand.';
 const APP = /^[a-z][a-z0-9-]{1,63}$/, NAME = /^[A-Za-z][A-Za-z0-9]{0,39}$/, RUN_ID = /^[A-Z2-7]{8}$/, TEST_ID = /^[A-Za-z][A-Za-z0-9-]{0,15}$/, EMAIL = /^[^\s@]+@[^\s@]+$/;
 const record = value => value !== null && typeof value === 'object' && !Array.isArray(value);
 
 /** The command line, closed: every flag known, the folder absolute, a value for every flag that takes one. */
 export function parseArgs(argv) {
-  const options = {appId: null, folder: null, records: {}, resume: null, from: null, check: false, leave: false};
+  const options = {appId: null, folder: null, records: {}, resume: null, from: null, check: false, leave: false, probes: false, triggers: false};
   for (let index = 0; index < argv.length; index++) {
     const arg = argv[index], value = () => { const next = argv[++index]; if (next === undefined || next.startsWith('--')) throw new Error(`${arg} needs a value.`); return next; };
     if (arg === '--check') options.check = true;
     else if (arg === '--leave') options.leave = true;
+    else if (arg === '--probes') options.probes = true;
+    else if (arg === '--triggers') options.triggers = true;
     else if (arg === '--folder') options.folder = value();
     else if (arg === '--record') {
       const text = value(), cut = text.indexOf('='), name = text.slice(0, cut), given = text.slice(cut + 1);
@@ -57,7 +63,7 @@ export function parseArgs(argv) {
     else throw new Error(`Name one app; ${arg} is a second one.`);
   }
   if (options.check) {
-    if (options.folder || options.resume || options.from || Object.keys(options.records).length) throw new Error('--check takes an app id at most.');
+    if (options.folder || options.resume || options.from || options.probes || options.triggers || Object.keys(options.records).length) throw new Error('--check takes an app id at most.');
     return options;
   }
   if (!options.appId) throw new Error('Name the app whose live tests to run, such as google-calendar.');
@@ -65,6 +71,8 @@ export function parseArgs(argv) {
   if (!path.isAbsolute(options.folder)) throw new Error('Give --folder as an absolute path.');
   if (options.from && !options.resume) throw new Error('--from goes with --resume <runId>.');
   if (options.resume && Object.keys(options.records).length) throw new Error('A resumed run keeps the values it recorded; give no --record.');
+  if (options.probes && (options.resume || options.leave)) throw new Error('--probes reads and leaves nothing, so it takes no --resume and no --leave.');
+  if (options.probes && options.triggers) throw new Error('--probes and --triggers each run their own file, so name one.');
   return options;
 }
 
@@ -78,8 +86,9 @@ export function harnessPort(app, {owner = CERTIFICATION_OWNER} = {}) {
   const readyAccount = appId => app.store.list('connections').filter(item => item.appId === appId && item.status === 'ready').sort((a, b) => Date.parse(a.createdAt) - Date.parse(b.createdAt))[0] ?? null;
   const copy = value => value === undefined || value === null ? null : structuredClone(value);
   const body = item => item.body === null || item.body === undefined ? {} : {body: item.body};
+  const standing = id => { const watch = app.store.get('subscriptions', id); return watch ? {status: watch.status, reason: watch.reason ?? null, approvalExpiresAt: watch.approvalExpiresAt} : null; };
   return Object.freeze({
-    /** A client call (calls.create, calls.get or proxy.request) on one of this run's grants, with its request id. */
+    /** A client call (calls.create, calls.get, proxy.request, triggers.subscribe, triggers.unsubscribe or events.list) on one of this run's grants, with its request id. */
     async call(grantId, method, params, requestId) {
       const token = tokens.get(grantId);
       if (!token) throw new Error('That grant is not one this run holds.');
@@ -121,6 +130,19 @@ export function harnessPort(app, {owner = CERTIFICATION_OWNER} = {}) {
     /** This port's grants still active. */
     grants: () => issued.filter(id => app.store.get('clientGrants', id)?.status === 'active'),
     link: jobId => `${app.origin}/approve/${jobId}`,
+    /** Iteration 9 part 9a: a watch's standing, which holds no cursor and no value a provider sent. */
+    watch: standing,
+    /** One poll of each of a watch's feeds, on the engine's own path, inside the test the guard is in. It answers the watch's standing. */
+    async pollNow(id) {
+      await app.triggers.pollNow(id);
+      return standing(id);
+    },
+    /** Each of a watch's feeds' last run, or null for a feed that has none: counts and statuses, and whether the provider answered. A feed's cursors stay out of it. */
+    lastRuns: id => (app.store.get('subscriptions', id)?.feeds ?? []).map(feedId => copy(app.store.get('triggerRuns', feedId)?.runs.at(-1))),
+    /** Part 9b: when each of a watch's feeds may next poll, as a time, or null for a feed with no floor: all a plan reads of a provider's X-Poll-Interval. A feed's cursors stay out of it. */
+    floors: id => (app.store.get('subscriptions', id)?.feeds ?? []).map(feedId => app.store.get('triggerFeeds', feedId)?.notBefore ?? null),
+    /** The one seam that writes a cursor. The engine refuses it outside a certification Fabric. */
+    ageCursor: (id, value) => app.triggers.ageCursor(id, value),
     appLink: appId => `${app.origin}/connectors/${appId}`,
     /** F10.19: the token introspection of the app's ready account (the one account() names), through its own sign-in, as {active, scope}
      *  only; null for an app whose provider has none, or with no ready account. It changes nothing at the provider or here. */
@@ -186,6 +208,8 @@ const providerOf = appId => reviewedProviderIds().find(id => definitionFor(id).a
  * Any other app: nothing is asked and nothing written. Returns the record, or null.
  */
 export async function introspectOnce(port, plan, {runId, at, root = ROOT, emails = [], say = () => {}} = {}) {
+  // Part 3g: a run of probes writes no evidence, and the introspection record is evidence. Part 9a: N0 belongs to the action plan's run, and a trigger run would rewrite it under another id.
+  if (plan.probes || plan.triggers) return null;
   const providerId = providerOf(plan.appId);
   if (!providerId || !Object.hasOwn(INTROSPECTION, providerId)) return null;
   const answer = await port.introspect(plan.appId);
@@ -286,10 +310,16 @@ export async function main(argv = process.argv.slice(2), {say = line => console.
   if (refusal) { say(refusal); return 2; }
   let plan;
   try {
-    const file = path.join(plans, `${args.appId}.json`);
-    if (!existsSync(file)) throw new Error(`No live test plan for ${args.appId} yet.`);
+    const name = args.probes ? `${args.appId}.probes.json` : `${args.appId}.json`, file = args.probes || args.triggers ? path.join(plans, 'triggers', name) : path.join(plans, name);
+    if (!existsSync(file)) throw new Error(args.probes ? `No read probes for ${args.appId} yet.` : args.triggers ? `No trigger plan for ${args.appId} yet.` : `No live test plan for ${args.appId} yet.`);
     plan = checkPlanShape(JSON.parse(readFileSync(file, 'utf8')));
-    if (plan.appId !== args.appId) throw new Error(`${args.appId}.json must be named after its appId.`);
+    if (plan.appId !== args.appId) throw new Error(`${name} must be named after its appId.`);
+    // A plan marked probes owes no action evidence, so only this flag runs one, and a run of probes writes none.
+    if (plan.probes === true && !args.probes) throw new Error(`${name} is not a plan: its probes run with --probes.`);
+    if (plan.probes !== true && args.probes) throw new Error(`${name} is not marked probes, so it does not run with --probes.`);
+    // A trigger plan watches, and writes triggers.json, so only its own flag runs one, and that flag runs nothing else.
+    if (plan.triggers === true && !args.triggers) throw new Error(`${name} is a trigger plan: it runs with --triggers.`);
+    if (plan.triggers !== true && args.triggers) throw new Error(`${name} is not marked triggers, so it does not run with --triggers.`);
   } catch (error) { say(error.message); return 2; }
   if (!args.resume) {
     const missing = Object.keys(plan.recorded).filter(name => !Object.hasOwn(args.records, name)), extra = Object.keys(args.records).filter(name => !Object.hasOwn(plan.recorded, name));
@@ -311,7 +341,8 @@ export async function main(argv = process.argv.slice(2), {say = line => console.
     await preconditions(app, port, plan, {guard, folder: args.folder, say, prompt, clock});
     if (!app.actions) throw new Error('The action catalog did not load, so no action can run.');
     const entries = [...app.actions.entries.values()].filter(item => item.appId === plan.appId).map(item => item.entry);
-    const checked = checkPlan(plan, {entries, superseded: [...app.actions.superseded.keys()], groups: PERMISSION_GROUPS.get(plan.appId), config: PROXY_CONFIGS.get(plan.appId), rules: RULES});
+    const triggers = [...app.actions.triggers.values()].filter(item => item.appId === plan.appId).map(item => item.entry), against = args.triggers ? deps => checkTriggerPlan(plan, {...deps, triggers}) : deps => checkPlan(plan, deps);
+    const checked = against({entries, superseded: [...app.actions.superseded.keys()], groups: PERMISSION_GROUPS.get(plan.appId), config: PROXY_CONFIGS.get(plan.appId), rules: RULES});
     let state;
     if (args.resume) {
       state = openRunState(args.folder, plan.appId, runId);
@@ -325,12 +356,15 @@ export async function main(argv = process.argv.slice(2), {say = line => console.
     }
     say(`Run date ${state.data.runDate} in ${state.data.timeZone}: every date of this run falls on days 7 to 13 after it.`);
     const run = await runLiveTests(port, checked, {guard, state, prompt, say, clock, from: args.from ?? undefined, leave: args.leave});
+    // Part 3g: evidence would rewrite actions.json, and a probe calls no action.
+    if (args.probes) { say(PROBES_DONE); return 0; }
     const map = app.store.get('applicationMaps', plan.appId);
-    const evidence = evidenceRecords(run, {key, entries, trace: id => guard.trace(id), job: id => port.job(id), maps: new Map(map ? [[plan.appId, map]] : [])});
-    writeEvidence(evidenceRoot, plan.appId, evidence, {emails: [port.account(plan.appId)?.email, guard.owner()?.email].filter(Boolean)});
-    say(`Evidence: docs/live-evidence/${plan.appId}/actions.json. Commit it only with the owner's OK.`);
+    const read = {key, trace: id => guard.trace(id), job: id => port.job(id), maps: new Map(map ? [[plan.appId, map]] : [])}, evidenceFile = args.triggers ? 'triggers.json' : 'actions.json';
+    const evidence = args.triggers ? triggerEvidenceRecords(run, {...read, entries: triggers, actions: entries}) : evidenceRecords(run, {...read, entries});
+    writeEvidence(evidenceRoot, plan.appId, evidence, {emails: [port.account(plan.appId)?.email, guard.owner()?.email].filter(Boolean)}, evidenceFile);
+    say(`Evidence: docs/live-evidence/${plan.appId}/${evidenceFile}. Commit it only with the owner's OK.`);
     for (const item of run.left) say(`Still there: ${item}`);
-    if (run.stopped) say(`To resume: node --env-file-if-exists=.env scripts/live-certify.mjs ${plan.appId} --folder ${args.folder} --resume ${runId} --from ${run.stopped.test}`);
+    if (run.stopped) say(`To resume: node --env-file-if-exists=.env scripts/live-certify.mjs ${plan.appId} --folder ${args.folder}${args.triggers ? ' --triggers' : ''}${args.leave ? ' --leave' : ''} --resume ${runId} --from ${run.stopped.test}`);
     return run.stopped ? 1 : 0;
   } catch (error) {
     say(String(error?.message ?? error));

@@ -1,0 +1,1452 @@
+{
+ "schemaVersion": 1,
+ "appId": "gmail",
+ "triggers": true,
+ "note": "Gmail's trigger pass, TG0 to TG8 of docs/I07-BUILD-MAP.md section 8, on the test account, on the certification Fabric, run with --triggers --leave. What it sends stays in the mailbox, marked synthetic. One mailbox tells several watches of one mail, so each test polls every watch a write reaches, or its counts would carry to the next test. TG4, TG6 and TG8 are your hand steps, together. Each mail you send by hand takes a Find emails after it arrives and before the next poll: a proxied read gives the guard bytes, so only an action's search lists a mail, and a read the guard refuses skips that item for good. TG1's saved history answers probes U1 and U3, TGO's U6, TG4 and TG6 U4, and TG5 U8. TG7 needs probe U7's answer. If neither 1 nor an id above current answered 404, keep this run's first historyId and run TG7 alone after 8 days.",
+ "recorded": {
+  "staleHistoryId": "The history id that answered 404 in probe U7: 1, or an id above the mailbox's current one."
+ },
+ "readRows": [
+  "gmail.messages.read",
+  "gmail.labels.read"
+ ],
+ "tests": [
+  {
+   "id": "TS",
+   "name": "Make the label the watch names",
+   "steps": [
+    {
+     "call": {
+      "action": "create-label@1",
+      "args": {
+       "name": {
+        "$text": "label"
+       }
+      },
+      "save": {
+       "label": "/id"
+      },
+      "checks": [
+       {
+        "pointer": "/created",
+        "equals": true
+       }
+      ]
+     }
+    }
+   ],
+   "undo": {
+    "none": "The label stays, marked synthetic."
+   }
+  },
+  {
+   "id": "TW",
+   "name": "Watch all six sources. Each baseline and its re-poll store nothing. This is TG0",
+   "steps": [
+    {
+     "watch": {
+      "trigger": "new-inbox-email@1",
+      "args": {},
+      "save": {
+       "inbox": "/id"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "inbox"
+      },
+      "events": 0
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "inbox"
+      },
+      "events": 0
+     }
+    },
+    {
+     "watch": {
+      "trigger": "label-added@1",
+      "args": {
+       "labelId": {
+        "$saved": "label"
+       }
+      },
+      "save": {
+       "labelled": "/id"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "labelled"
+      },
+      "events": 0
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "labelled"
+      },
+      "events": 0
+     }
+    },
+    {
+     "watch": {
+      "trigger": "email-sent@1",
+      "args": {},
+      "save": {
+       "sent": "/id"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "sent"
+      },
+      "events": 0
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "sent"
+      },
+      "events": 0
+     }
+    },
+    {
+     "watch": {
+      "trigger": "reply-on-my-thread@1",
+      "args": {},
+      "save": {
+       "replies": "/id"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "replies"
+      },
+      "events": 0
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "replies"
+      },
+      "events": 0
+     }
+    },
+    {
+     "watch": {
+      "trigger": "new-email-with-attachment@1",
+      "args": {},
+      "save": {
+       "files": "/id"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "files"
+      },
+      "events": 0
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "files"
+      },
+      "events": 0
+     }
+    },
+    {
+     "watch": {
+      "trigger": "new-email-matching-search@1",
+      "args": {
+       "search": {
+        "subject": "[SYNTHETIC] Fabric TG5"
+       }
+      },
+      "save": {
+       "search": "/id"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "search"
+      },
+      "events": 0
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "search"
+      },
+      "events": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "TG1",
+   "name": "A mail to yourself gives one inbox event, a re-poll none, and a draft none. The history it saves answers probes U1 and U3",
+   "steps": [
+    {
+     "read": {
+      "path": "/gmail/v1/users/me/profile",
+      "save": {
+       "before": "/historyId"
+      },
+      "checks": [
+       {
+        "status": 200
+       }
+      ]
+     }
+    },
+    {
+     "call": {
+      "action": "send-email@1",
+      "args": {
+       "to": [
+        {
+         "$owner": "email"
+        }
+       ],
+       "subject": {
+        "$text": "inbox"
+       },
+       "text": {
+        "$text": "text"
+       }
+      },
+      "save": {
+       "m1": "/id"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "inbox"
+      },
+      "events": 1,
+      "within": 120,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/messageId",
+        "equals": {
+         "$saved": "m1"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "inbox"
+      },
+      "events": 0
+     }
+    },
+    {
+     "read": {
+      "path": "/gmail/v1/users/me/history",
+      "query": {
+       "startHistoryId": {
+        "$saved": "before"
+       }
+      },
+      "save": {
+       "historyAnswer": "/history"
+      },
+      "checks": [
+       {
+        "pointer": "/history",
+        "where": {
+         "/messagesAdded/0/message/id": {
+          "$saved": "m1"
+         }
+        },
+        "field": "/messagesAdded/0/message/id",
+        "equals": {
+         "$saved": "m1"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "sent"
+      },
+      "events": 1,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/messageId",
+        "equals": {
+         "$saved": "m1"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "files"
+      },
+      "events": 0
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "replies"
+      },
+      "events": 0
+     }
+    },
+    {
+     "call": {
+      "action": "create-draft@1",
+      "args": {
+       "to": [
+        {
+         "$owner": "email"
+        }
+       ],
+       "subject": {
+        "$text": "draft"
+       },
+       "text": {
+        "$text": "draft text"
+       }
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "inbox"
+      },
+      "events": 0,
+      "within": 30
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "sent"
+      },
+      "events": 0
+     }
+    }
+   ],
+   "undo": {
+    "none": "The mail and the draft stay, marked synthetic."
+   }
+  },
+  {
+   "id": "TG2",
+   "name": "A label added gives one event, a re-poll none, and taking it off and on again one more",
+   "steps": [
+    {
+     "call": {
+      "action": "organize-email@1",
+      "args": {
+       "target": "messages",
+       "messageIds": [
+        {
+         "$saved": "m1"
+        }
+       ],
+       "addLabels": [
+        {
+         "$saved": "label"
+        }
+       ],
+       "removeLabels": []
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "labelled"
+      },
+      "events": 1,
+      "within": 120,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/labelId",
+        "equals": {
+         "$saved": "label"
+        }
+       },
+       {
+        "pointer": "/events/0/fields/messageId",
+        "equals": {
+         "$saved": "m1"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "labelled"
+      },
+      "events": 0
+     }
+    },
+    {
+     "call": {
+      "action": "organize-email@1",
+      "args": {
+       "target": "messages",
+       "messageIds": [
+        {
+         "$saved": "m1"
+        }
+       ],
+       "addLabels": [],
+       "removeLabels": [
+        {
+         "$saved": "label"
+        }
+       ]
+      }
+     }
+    },
+    {
+     "call": {
+      "action": "organize-email@1",
+      "args": {
+       "target": "messages",
+       "messageIds": [
+        {
+         "$saved": "m1"
+        }
+       ],
+       "addLabels": [
+        {
+         "$saved": "label"
+        }
+       ],
+       "removeLabels": []
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "labelled"
+      },
+      "events": 1,
+      "within": 120,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/labelId",
+        "equals": {
+         "$saved": "label"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "labelled"
+      },
+      "events": 0
+     }
+    }
+   ],
+   "undo": {
+    "none": "The mail keeps the run's label."
+   }
+  },
+  {
+   "id": "TG3",
+   "name": "A send, a reply and a sent draft give one event each, a draft none, and a reply to yourself no reply event",
+   "steps": [
+    {
+     "call": {
+      "action": "send-email@1",
+      "args": {
+       "to": [
+        {
+         "$owner": "email"
+        }
+       ],
+       "subject": {
+        "$text": "sent"
+       },
+       "text": {
+        "$text": "text"
+       }
+      },
+      "save": {
+       "m3": "/id",
+       "t3": "/threadId"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "sent"
+      },
+      "events": 1,
+      "within": 120,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/messageId",
+        "equals": {
+         "$saved": "m3"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "sent"
+      },
+      "events": 0
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "inbox"
+      },
+      "events": 1,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/messageId",
+        "equals": {
+         "$saved": "m3"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "call": {
+      "action": "reply@1",
+      "args": {
+       "messageId": {
+        "$saved": "m3"
+       },
+       "replyAll": false,
+       "text": {
+        "$text": "reply text"
+       }
+      },
+      "save": {
+       "m4": "/id"
+      },
+      "checks": [
+       {
+        "pointer": "/threadId",
+        "equals": {
+         "$saved": "t3"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "sent"
+      },
+      "events": 1,
+      "within": 120,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/messageId",
+        "equals": {
+         "$saved": "m4"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "inbox"
+      },
+      "events": 1,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/messageId",
+        "equals": {
+         "$saved": "m4"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "replies"
+      },
+      "events": 0
+     }
+    },
+    {
+     "call": {
+      "action": "create-draft@1",
+      "args": {
+       "to": [
+        {
+         "$owner": "email"
+        }
+       ],
+       "subject": {
+        "$text": "v1"
+       },
+       "text": {
+        "$text": "v1"
+       }
+      },
+      "save": {
+       "draft8": "/id"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "sent"
+      },
+      "events": 0,
+      "within": 30
+     }
+    },
+    {
+     "call": {
+      "action": "send-draft@1",
+      "args": {
+       "draftId": {
+        "$saved": "draft8"
+       }
+      },
+      "save": {
+       "sent8": "/id"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "sent"
+      },
+      "events": 1,
+      "within": 120,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/messageId",
+        "equals": {
+         "$saved": "sent8"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "sent"
+      },
+      "events": 0
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "inbox"
+      },
+      "events": 1,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/messageId",
+        "equals": {
+         "$saved": "sent8"
+        }
+       }
+      ]
+     }
+    }
+   ],
+   "undo": {
+    "none": "The mail stays, marked synthetic."
+   }
+  },
+  {
+   "id": "TG4",
+   "name": "A reply from someone else gives one event, and a new mail from them none here and one in the inbox",
+   "steps": [
+    {
+     "owner": {
+      "words": "From this test account, send a mail with the subject [SYNTHETIC] Fabric TG4 to your second test account, and reply to it from that account. Press Enter once the reply has arrived."
+     }
+    },
+    {
+     "call": {
+      "action": "find-emails@1",
+      "args": {
+       "words": "[SYNTHETIC] Fabric TG4",
+       "maxResults": 5
+      },
+      "save": {
+       "replyMail": "/messages/0/id"
+      },
+      "checks": [
+       {
+        "pointer": "/messages/0/subject",
+        "equals": "Re: [SYNTHETIC] Fabric TG4"
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "replies"
+      },
+      "events": 1,
+      "within": 120,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/messageId",
+        "equals": {
+         "$saved": "replyMail"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "replies"
+      },
+      "events": 0
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "inbox"
+      },
+      "events": 1,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/messageId",
+        "equals": {
+         "$saved": "replyMail"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "sent"
+      },
+      "events": 1,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/subject",
+        "equals": "[SYNTHETIC] Fabric TG4"
+       }
+      ]
+     }
+    },
+    {
+     "owner": {
+      "words": "From your second test account, send a new mail with the subject [SYNTHETIC] Fabric TG4b to this test account. Press Enter once it has arrived."
+     }
+    },
+    {
+     "call": {
+      "action": "find-emails@1",
+      "args": {
+       "words": "[SYNTHETIC] Fabric TG4b",
+       "maxResults": 5
+      },
+      "save": {
+       "controlMail": "/messages/0/id"
+      },
+      "checks": [
+       {
+        "pointer": "/messages/0/subject",
+        "equals": "[SYNTHETIC] Fabric TG4b"
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "replies"
+      },
+      "events": 0,
+      "within": 30
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "inbox"
+      },
+      "events": 1,
+      "within": 120,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/messageId",
+        "equals": {
+         "$saved": "controlMail"
+        }
+       }
+      ]
+     }
+    }
+   ],
+   "undo": {
+    "none": "The mail stays in both mailboxes, marked synthetic."
+   }
+  },
+  {
+   "id": "TG5",
+   "name": "A mail with the searched subject shows within 5 minutes, once",
+   "steps": [
+    {
+     "call": {
+      "action": "send-email@1",
+      "args": {
+       "to": [
+        {
+         "$owner": "email"
+        }
+       ],
+       "subject": {
+        "$text": "searched"
+       },
+       "text": {
+        "$text": "text"
+       }
+      },
+      "save": {
+       "m5": "/id"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "search"
+      },
+      "events": 1,
+      "within": 300,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/messageId",
+        "equals": {
+         "$saved": "m5"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "search"
+      },
+      "events": 0,
+      "itemsRead": 1
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "inbox"
+      },
+      "events": 1,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/messageId",
+        "equals": {
+         "$saved": "m5"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "sent"
+      },
+      "events": 1,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/messageId",
+        "equals": {
+         "$saved": "m5"
+        }
+       }
+      ]
+     }
+    }
+   ],
+   "undo": {
+    "none": "The mail stays, marked synthetic."
+   }
+  },
+  {
+   "id": "TGO",
+   "name": "A mail with another subject gives no search event, and moved to the trash no event at all. The history it saves answers probe U6",
+   "steps": [
+    {
+     "call": {
+      "action": "send-email@1",
+      "args": {
+       "to": [
+        {
+         "$owner": "email"
+        }
+       ],
+       "subject": {
+        "$text": "another subject"
+       },
+       "text": {
+        "$text": "text"
+       }
+      },
+      "save": {
+       "mo": "/id"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "search"
+      },
+      "events": 0,
+      "within": 60,
+      "itemsRead": 1
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "inbox"
+      },
+      "events": 1,
+      "within": 120,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/messageId",
+        "equals": {
+         "$saved": "mo"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "sent"
+      },
+      "events": 1,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/messageId",
+        "equals": {
+         "$saved": "mo"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "read": {
+      "path": "/gmail/v1/users/me/profile",
+      "save": {
+       "beforeTrash": "/historyId"
+      },
+      "checks": [
+       {
+        "status": 200
+       }
+      ]
+     }
+    },
+    {
+     "call": {
+      "action": "move-to-trash@1",
+      "args": {
+       "move": "trash-message",
+       "messageId": {
+        "$saved": "mo"
+       }
+      },
+      "checks": [
+       {
+        "pointer": "/messageId",
+        "equals": {
+         "$saved": "mo"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "read": {
+      "path": "/gmail/v1/users/me/history",
+      "query": {
+       "startHistoryId": {
+        "$saved": "beforeTrash"
+       }
+      },
+      "save": {
+       "trashAnswer": "/history"
+      },
+      "checks": [
+       {
+        "status": 200
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "labelled"
+      },
+      "events": 0,
+      "within": 30
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "inbox"
+      },
+      "events": 0
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "sent"
+      },
+      "events": 0
+     }
+    }
+   ],
+   "undo": {
+    "none": "The mail stays in the trash, marked synthetic."
+   }
+  },
+  {
+   "id": "TG6",
+   "name": "A mail with a file gives one event with the file's name",
+   "steps": [
+    {
+     "owner": {
+      "words": "Send yourself a mail with the subject [SYNTHETIC] Fabric TG6 and a small text file named fabric-synthetic.txt attached. Press Enter once it has arrived."
+     }
+    },
+    {
+     "call": {
+      "action": "find-emails@1",
+      "args": {
+       "words": "[SYNTHETIC] Fabric TG6",
+       "maxResults": 5
+      },
+      "save": {
+       "fileMail": "/messages/0/id"
+      },
+      "checks": [
+       {
+        "pointer": "/messages/0/subject",
+        "equals": "[SYNTHETIC] Fabric TG6"
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "files"
+      },
+      "events": 1,
+      "within": 120,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/messageId",
+        "equals": {
+         "$saved": "fileMail"
+        }
+       },
+       {
+        "pointer": "/events/0/fields/firstFilename",
+        "equals": "fabric-synthetic.txt"
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "files"
+      },
+      "events": 0
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "inbox"
+      },
+      "events": 1,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/messageId",
+        "equals": {
+         "$saved": "fileMail"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "sent"
+      },
+      "events": 1,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/messageId",
+        "equals": {
+         "$saved": "fileMail"
+        }
+       }
+      ]
+     }
+    }
+   ],
+   "undo": {
+    "none": "The mail stays, marked synthetic."
+   }
+  },
+  {
+   "id": "TG7",
+   "name": "A stale history id gives each of the five watches on the feed one gap, repeats nothing, and tells the next mail",
+   "steps": [
+    {
+     "call": {
+      "action": "send-email@1",
+      "args": {
+       "to": [
+        {
+         "$owner": "email"
+        }
+       ],
+       "subject": {
+        "$text": "M1"
+       },
+       "text": {
+        "$text": "text"
+       }
+      },
+      "save": {
+       "m71": "/id"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "inbox"
+      },
+      "events": 1,
+      "within": 120,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/messageId",
+        "equals": {
+         "$saved": "m71"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "inbox"
+      },
+      "events": 0
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "sent"
+      },
+      "events": 1,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/messageId",
+        "equals": {
+         "$saved": "m71"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "call": {
+      "action": "send-email@1",
+      "args": {
+       "to": [
+        {
+         "$owner": "email"
+        }
+       ],
+       "subject": {
+        "$text": "M2"
+       },
+       "text": {
+        "$text": "text"
+       }
+      },
+      "save": {
+       "m72": "/id"
+      }
+     }
+    },
+    {
+     "age": {
+      "subscription": {
+       "$saved": "inbox"
+      },
+      "value": {
+       "$recorded": "staleHistoryId"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "inbox"
+      },
+      "events": 0,
+      "gaps": 1,
+      "checks": [
+       {
+        "pointer": "/gaps/0/fields/reason",
+        "equals": "resync"
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "labelled"
+      },
+      "events": 0,
+      "gaps": 1,
+      "checks": [
+       {
+        "pointer": "/gaps/0/fields/reason",
+        "equals": "resync"
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "sent"
+      },
+      "events": 0,
+      "gaps": 1,
+      "checks": [
+       {
+        "pointer": "/gaps/0/fields/reason",
+        "equals": "resync"
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "replies"
+      },
+      "events": 0,
+      "gaps": 1,
+      "checks": [
+       {
+        "pointer": "/gaps/0/fields/reason",
+        "equals": "resync"
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "files"
+      },
+      "events": 0,
+      "gaps": 1,
+      "checks": [
+       {
+        "pointer": "/gaps/0/fields/reason",
+        "equals": "resync"
+       }
+      ]
+     }
+    },
+    {
+     "call": {
+      "action": "send-email@1",
+      "args": {
+       "to": [
+        {
+         "$owner": "email"
+        }
+       ],
+       "subject": {
+        "$text": "M3"
+       },
+       "text": {
+        "$text": "text"
+       }
+      },
+      "save": {
+       "m73": "/id"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "inbox"
+      },
+      "events": 1,
+      "within": 120,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/messageId",
+        "equals": {
+         "$saved": "m73"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "inbox"
+      },
+      "events": 0
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "sent"
+      },
+      "events": 1,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/messageId",
+        "equals": {
+         "$saved": "m73"
+        }
+       }
+      ]
+     }
+    }
+   ],
+   "undo": {
+    "none": "The mail stays, marked synthetic."
+   }
+  },
+  {
+   "id": "TG8",
+   "name": "Access emails at Never pauses the watch with no call to Gmail, and it stays paused after Allow",
+   "steps": [
+    {
+     "owner": {
+      "words": "On the Gmail page of this Fabric, set Access emails to Never, then press Enter."
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "inbox"
+      },
+      "paused": "permission_changed"
+     }
+    },
+    {
+     "owner": {
+      "words": "Set Access emails back to Allow, then press Enter."
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "inbox"
+      },
+      "paused": "permission_changed"
+     }
+    }
+   ],
+   "undo": {
+    "none": "The test changes one row by your hand, and you put it back."
+   }
+  }
+ ]
+}

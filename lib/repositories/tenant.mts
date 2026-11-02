@@ -77,6 +77,9 @@ export class TenantRepository {
     this.#own(this.#store.get(collection, id), collection);
     return this.#store.delete(collection, id);
   }
+  /** Iteration 9: tenant polling waits for hosting, so only the erase and the sweep reach the trigger tables. This environment's file holds them. */
+  deleteConnectionTriggerData(connectionId: string): number { return typeof this.#store.deleteConnectionTriggerData === 'function' ? this.#store.deleteConnectionTriggerData(connectionId) : 0; }
+  sweepEvents(now: number): number { return typeof this.#store.sweepEvents === 'function' ? this.#store.sweepEvents(now) : 0; }
   audit(event: Record<string, unknown>): RepositoryDocument { return this.#store.audit({...event, scope: this.#key}); }
   close(): void { this.#store.close(); }
   #platform(): PlatformReader {

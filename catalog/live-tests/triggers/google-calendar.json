@@ -1,0 +1,1877 @@
+{
+ "schemaVersion": 1,
+ "appId": "google-calendar",
+ "triggers": true,
+ "note": "Calendar's trigger pass, the TC tests of docs/I07-BUILD-MAP.md section 8, on two run calendars A and B, on the certification Fabric, run with --triggers --leave. Calendars and events stay, marked synthetic: a run deletes no calendar. One event reaches several watches, so each test polls every watch a write reaches. TC-guest, TC-share, TC-hide and TC-never are your hand steps, together. TC-soon's two tests are the only ones whose dates fall inside the next hour, and no other watch polls in them. TC-replay holds probe P1, TC-move P7, TC-guest P4, TC-invite P5 and P8, TC-cancel P6, and every poll's `within` P9. Google gives no way to expire a token, so no test ages a cursor. If probe P3 answers 410, add one.",
+ "recorded": {
+  "secondGuest": "The address of your second test account, which TC-guest invites and which answers by hand."
+ },
+ "readRows": [
+  "google-calendar.events.read",
+  "google-calendar.calendars.read",
+  "google-calendar.settings.read"
+ ],
+ "timeZone": {
+  "path": "/users/me/settings/timezone",
+  "pointer": "/value"
+ },
+ "tests": [
+  {
+   "id": "TW1",
+   "name": "Watch the calendar list before the run makes its calendars",
+   "steps": [
+    {
+     "watch": {
+      "trigger": "calendar-list-changed@1",
+      "args": {},
+      "save": {
+       "list": "/id"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "list"
+      },
+      "events": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "TC-list",
+   "name": "Two new calendars give exactly two list events, each with its owner role",
+   "steps": [
+    {
+     "call": {
+      "action": "create-calendar@1",
+      "args": {
+       "summary": {
+        "$text": "calendar A"
+       },
+       "timeZone": {
+        "$owner": "timeZone"
+       }
+      },
+      "save": {
+       "calendarA": "/id"
+      }
+     }
+    },
+    {
+     "call": {
+      "action": "create-calendar@1",
+      "args": {
+       "summary": {
+        "$text": "calendar B"
+       },
+       "timeZone": {
+        "$owner": "timeZone"
+       }
+      },
+      "save": {
+       "calendarB": "/id"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "list"
+      },
+      "events": 2,
+      "within": 120,
+      "checks": [
+       {
+        "pointer": "/events",
+        "where": {
+         "/fields/calendarId": {
+          "$saved": "calendarA"
+         }
+        },
+        "field": "/fields/accessRole",
+        "equals": "owner"
+       },
+       {
+        "pointer": "/events",
+        "where": {
+         "/fields/calendarId": {
+          "$saved": "calendarB"
+         }
+        },
+        "field": "/fields/accessRole",
+        "equals": "owner"
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "list"
+      },
+      "events": 0
+     }
+    }
+   ],
+   "undo": {
+    "none": "The two calendars stay, marked synthetic: deleting one takes the owner's one-time Ask, and a run leaves what it makes."
+   }
+  },
+  {
+   "id": "TC-base",
+   "name": "An event made before the watches is in their baseline, so each stores nothing",
+   "steps": [
+    {
+     "call": {
+      "action": "create-event@1",
+      "args": {
+       "calendarId": {
+        "$saved": "calendarA"
+       },
+       "kind": "timed",
+       "summary": {
+        "$text": "event"
+       },
+       "start": {
+        "$local": {
+         "day": 9,
+         "time": "10:00"
+        }
+       },
+       "end": {
+        "$local": {
+         "day": 9,
+         "time": "10:30"
+        }
+       },
+       "notify": "none"
+      },
+      "save": {
+       "event": "/id"
+      }
+     }
+    },
+    {
+     "watch": {
+      "trigger": "new-event@1",
+      "args": {
+       "calendarId": {
+        "$saved": "calendarA"
+       }
+      },
+      "save": {
+       "newA": "/id"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "newA"
+      },
+      "events": 0
+     }
+    },
+    {
+     "watch": {
+      "trigger": "event-changed@1",
+      "args": {
+       "calendarId": {
+        "$saved": "calendarA"
+       }
+      },
+      "save": {
+       "changedA": "/id"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "changedA"
+      },
+      "events": 0
+     }
+    },
+    {
+     "watch": {
+      "trigger": "event-cancelled@1",
+      "args": {
+       "calendarId": {
+        "$saved": "calendarA"
+       }
+      },
+      "save": {
+       "cancelledA": "/id"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "cancelledA"
+      },
+      "events": 0
+     }
+    },
+    {
+     "watch": {
+      "trigger": "guest-responded@1",
+      "args": {
+       "calendarId": {
+        "$saved": "calendarA"
+       }
+      },
+      "save": {
+       "guestA": "/id"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "guestA"
+      },
+      "events": 0
+     }
+    },
+    {
+     "watch": {
+      "trigger": "calendar-sharing-changed@1",
+      "args": {
+       "calendarId": {
+        "$saved": "calendarA"
+       }
+      },
+      "save": {
+       "shareA": "/id"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "shareA"
+      },
+      "events": 0
+     }
+    },
+    {
+     "watch": {
+      "trigger": "new-event@1",
+      "args": {
+       "calendarId": {
+        "$saved": "calendarB"
+       }
+      },
+      "save": {
+       "newB": "/id"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "newB"
+      },
+      "events": 0
+     }
+    },
+    {
+     "watch": {
+      "trigger": "event-changed@1",
+      "args": {
+       "calendarId": {
+        "$saved": "calendarB"
+       }
+      },
+      "save": {
+       "changedB": "/id"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "changedB"
+      },
+      "events": 0
+     }
+    },
+    {
+     "watch": {
+      "trigger": "event-cancelled@1",
+      "args": {
+       "calendarId": {
+        "$saved": "calendarB"
+       }
+      },
+      "save": {
+       "cancelledB": "/id"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "cancelledB"
+      },
+      "events": 0
+     }
+    },
+    {
+     "watch": {
+      "trigger": "invitation-needs-response@1",
+      "args": {
+       "calendarId": {
+        "$saved": "calendarB"
+       }
+      },
+      "save": {
+       "inviteB": "/id"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "inviteB"
+      },
+      "events": 0
+     }
+    }
+   ],
+   "undo": {
+    "none": "The event goes in TC-cancel."
+   }
+  },
+  {
+   "id": "TC-new",
+   "name": "One event per new event, a series of three gives exactly one, and no other watch hears of them",
+   "steps": [
+    {
+     "read": {
+      "path": "/calendars/{cal}/events",
+      "params": {
+       "cal": {
+        "$saved": "calendarA"
+       }
+      },
+      "save": {
+       "replayToken": "/nextSyncToken"
+      },
+      "checks": [
+       {
+        "status": 200
+       }
+      ]
+     }
+    },
+    {
+     "call": {
+      "action": "create-event@1",
+      "args": {
+       "calendarId": {
+        "$saved": "calendarA"
+       },
+       "kind": "timed",
+       "summary": {
+        "$text": "meet"
+       },
+       "start": {
+        "$local": {
+         "day": 9,
+         "time": "11:00"
+        }
+       },
+       "end": {
+        "$local": {
+         "day": 9,
+         "time": "11:30"
+        }
+       },
+       "notify": "none",
+       "meet": true
+      },
+      "save": {
+       "meet": "/id"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "newA"
+      },
+      "events": 1,
+      "within": 120,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/eventId",
+        "equals": {
+         "$saved": "meet"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "newA"
+      },
+      "events": 0
+     }
+    },
+    {
+     "call": {
+      "action": "create-event@1",
+      "args": {
+       "calendarId": {
+        "$saved": "calendarA"
+       },
+       "kind": "all-day",
+       "summary": {
+        "$text": "all day"
+       },
+       "date": {
+        "$day": 10
+       },
+       "days": 1,
+       "notify": "none"
+      },
+      "save": {
+       "allDay": "/id"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "newA"
+      },
+      "events": 1,
+      "within": 120,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/eventId",
+        "equals": {
+         "$saved": "allDay"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "call": {
+      "action": "create-event@1",
+      "args": {
+       "calendarId": {
+        "$saved": "calendarA"
+       },
+       "kind": "timed",
+       "summary": {
+        "$text": "daily"
+       },
+       "start": {
+        "$local": {
+         "day": 11,
+         "time": "09:00"
+        }
+       },
+       "end": {
+        "$local": {
+         "day": 11,
+         "time": "09:30"
+        }
+       },
+       "notify": "none",
+       "recurrence": "RRULE:FREQ=DAILY;COUNT=3"
+      },
+      "save": {
+       "daily": "/id"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "newA"
+      },
+      "events": 1,
+      "within": 120,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/eventId",
+        "equals": {
+         "$saved": "daily"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "call": {
+      "action": "quick-add@1",
+      "args": {
+       "calendarId": {
+        "$saved": "calendarA"
+       },
+       "text": {
+        "$text": {
+         "words": "quick add on {date} at 3pm to 3:30pm",
+         "day": 10
+        }
+       },
+       "notify": "none"
+      },
+      "save": {
+       "quick": "/id"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "newA"
+      },
+      "events": 1,
+      "within": 120,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/eventId",
+        "equals": {
+         "$saved": "quick"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "newA"
+      },
+      "events": 0
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "changedA"
+      },
+      "events": 0
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "cancelledA"
+      },
+      "events": 0
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "guestA"
+      },
+      "events": 0
+     }
+    }
+   ],
+   "undo": {
+    "none": "The events go in TC-cancel."
+   }
+  },
+  {
+   "id": "TC-change",
+   "name": "The accepted change gives one event, the refused one none, and its undo one more",
+   "steps": [
+    {
+     "race": {
+      "action": "update-event@1",
+      "args": {
+       "calendarId": {
+        "$saved": "calendarA"
+       },
+       "eventId": {
+        "$saved": "event"
+       },
+       "newTime": {
+        "start": {
+         "$local": {
+          "day": 9,
+          "time": "10:30"
+         }
+        },
+        "end": {
+         "$local": {
+          "day": 9,
+          "time": "11:00"
+         }
+        }
+       },
+       "notify": "none"
+      },
+      "status": 412,
+      "readback": {
+       "path": "/calendars/{cal}/events/{event}",
+       "params": {
+        "cal": {
+         "$saved": "calendarA"
+        },
+        "event": {
+         "$saved": "event"
+        }
+       },
+       "pointer": "/etag",
+       "output": "/etag"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "changedA"
+      },
+      "events": 1,
+      "within": 120,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/eventId",
+        "equals": {
+         "$saved": "event"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "changedA"
+      },
+      "events": 0
+     }
+    },
+    {
+     "call": {
+      "action": "update-event@1",
+      "args": {
+       "calendarId": {
+        "$saved": "calendarA"
+       },
+       "eventId": {
+        "$saved": "event"
+       },
+       "newTime": {
+        "start": {
+         "$local": {
+          "day": 9,
+          "time": "10:00"
+         }
+        },
+        "end": {
+         "$local": {
+          "day": 9,
+          "time": "10:30"
+         }
+        }
+       },
+       "notify": "none"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "changedA"
+      },
+      "events": 1,
+      "within": 120,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/eventId",
+        "equals": {
+         "$saved": "event"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "changedA"
+      },
+      "events": 0
+     }
+    }
+   ],
+   "undo": {
+    "none": "The test's last write puts the event back."
+   }
+  },
+  {
+   "id": "TC-noise",
+   "name": "A guest added and taken off gives no change and no answer",
+   "steps": [
+    {
+     "call": {
+      "action": "update-guests@1",
+      "args": {
+       "calendarId": {
+        "$saved": "calendarA"
+       },
+       "eventId": {
+        "$saved": "event"
+       },
+       "add": [
+        "fabric-guest@example.com"
+       ],
+       "remove": [],
+       "notify": "none"
+      },
+      "checks": [
+       {
+        "pointer": "/added",
+        "count": 1
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "changedA"
+      },
+      "events": 0,
+      "within": 30
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "guestA"
+      },
+      "events": 0
+     }
+    },
+    {
+     "call": {
+      "action": "update-guests@1",
+      "args": {
+       "calendarId": {
+        "$saved": "calendarA"
+       },
+       "eventId": {
+        "$saved": "event"
+       },
+       "add": [],
+       "remove": [
+        "fabric-guest@example.com"
+       ],
+       "notify": "none"
+      },
+      "checks": [
+       {
+        "pointer": "/removed",
+        "count": 1
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "changedA"
+      },
+      "events": 0,
+      "within": 30
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "guestA"
+      },
+      "events": 0
+     }
+    }
+   ],
+   "undo": {
+    "none": "The test's last write takes the guest off."
+   }
+  },
+  {
+   "id": "TC-move",
+   "name": "A move to B gives one cancelled on A and one new on B, and the move back one cancelled on B and nothing new on A. This answers probe P7",
+   "steps": [
+    {
+     "call": {
+      "action": "move-event@1",
+      "args": {
+       "calendarId": {
+        "$saved": "calendarA"
+       },
+       "eventId": {
+        "$saved": "event"
+       },
+       "destination": {
+        "$saved": "calendarB"
+       },
+       "notify": "none"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "cancelledA"
+      },
+      "events": 1,
+      "within": 120,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/eventId",
+        "equals": {
+         "$saved": "event"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "cancelledA"
+      },
+      "events": 0
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "newB"
+      },
+      "events": 1,
+      "within": 120,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/eventId",
+        "equals": {
+         "$saved": "event"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "changedB"
+      },
+      "events": 0
+     }
+    },
+    {
+     "call": {
+      "action": "move-event@1",
+      "args": {
+       "calendarId": {
+        "$saved": "calendarB"
+       },
+       "eventId": {
+        "$saved": "event"
+       },
+       "destination": {
+        "$saved": "calendarA"
+       },
+       "notify": "none"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "cancelledB"
+      },
+      "events": 1,
+      "within": 120,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/eventId",
+        "equals": {
+         "$saved": "event"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "newA"
+      },
+      "events": 0,
+      "within": 30
+     }
+    }
+   ],
+   "undo": {
+    "none": "The test's last write puts the event back on A."
+   }
+  },
+  {
+   "id": "TC-guest",
+   "name": "A guest answering Yes, Maybe and Yes gives three events and no change. This answers probe P4",
+   "steps": [
+    {
+     "call": {
+      "action": "create-event@1",
+      "args": {
+       "calendarId": {
+        "$saved": "calendarA"
+       },
+       "kind": "timed",
+       "summary": {
+        "$text": "guest"
+       },
+       "start": {
+        "$local": {
+         "day": 12,
+         "time": "10:00"
+        }
+       },
+       "end": {
+        "$local": {
+         "day": 12,
+         "time": "10:30"
+        }
+       },
+       "notify": "none",
+       "guests": [
+        {
+         "$recorded": "secondGuest"
+        }
+       ]
+      },
+      "save": {
+       "guestEvent": "/id"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "newA"
+      },
+      "events": 1,
+      "within": 120,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/eventId",
+        "equals": {
+         "$saved": "guestEvent"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "owner": {
+      "words": "From your second test account, answer Yes to the event whose title ends in guest, then press Enter."
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "guestA"
+      },
+      "events": 1,
+      "within": 120,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/eventId",
+        "equals": {
+         "$saved": "guestEvent"
+        }
+       },
+       {
+        "pointer": "/events/0/fields/guest",
+        "equals": {
+         "$recorded": "secondGuest"
+        }
+       },
+       {
+        "pointer": "/events/0/fields/response",
+        "equals": "accepted"
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "guestA"
+      },
+      "events": 0
+     }
+    },
+    {
+     "owner": {
+      "words": "From your second test account, answer Maybe to that event, then press Enter."
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "guestA"
+      },
+      "events": 1,
+      "within": 120,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/response",
+        "equals": "tentative"
+       }
+      ]
+     }
+    },
+    {
+     "owner": {
+      "words": "From your second test account, answer Yes to that event again, then press Enter."
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "guestA"
+      },
+      "events": 1,
+      "within": 120,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/response",
+        "equals": "accepted"
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "changedA"
+      },
+      "events": 0
+     }
+    }
+   ],
+   "undo": {
+    "none": "The event stays on A, marked synthetic."
+   }
+  },
+  {
+   "id": "TC-invite",
+   "name": "An event that invites calendar B gives one invitation and one new event on B, with its title, and one cancelled there once it goes. This answers probes P5 and P8",
+   "steps": [
+    {
+     "call": {
+      "action": "create-event@1",
+      "args": {
+       "calendarId": {
+        "$saved": "calendarA"
+       },
+       "kind": "timed",
+       "summary": {
+        "$text": "invite"
+       },
+       "start": {
+        "$local": {
+         "day": 12,
+         "time": "11:00"
+        }
+       },
+       "end": {
+        "$local": {
+         "day": 12,
+         "time": "11:30"
+        }
+       },
+       "notify": "none",
+       "guests": [
+        {
+         "$saved": "calendarB"
+        }
+       ]
+      },
+      "save": {
+       "invited": "/id"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "inviteB"
+      },
+      "events": 1,
+      "within": 120,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/title",
+        "equals": {
+         "$text": "invite"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "inviteB"
+      },
+      "events": 0
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "newB"
+      },
+      "events": 1,
+      "within": 120,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/title",
+        "equals": {
+         "$text": "invite"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "newA"
+      },
+      "events": 1,
+      "within": 120,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/eventId",
+        "equals": {
+         "$saved": "invited"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "call": {
+      "action": "delete-event@1",
+      "args": {
+       "calendarId": {
+        "$saved": "calendarA"
+       },
+       "eventId": {
+        "$saved": "invited"
+       },
+       "notify": "none"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "cancelledB"
+      },
+      "events": 1,
+      "within": 120,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/status",
+        "equals": "cancelled"
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "cancelledA"
+      },
+      "events": 1,
+      "within": 120,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/eventId",
+        "equals": {
+         "$saved": "invited"
+        }
+       }
+      ]
+     }
+    }
+   ],
+   "undo": {
+    "none": "The test's last write cancels its own event."
+   }
+  },
+  {
+   "id": "TC-soon-watch",
+   "name": "Watch one calendar for what starts in the next 15 minutes. No other watch polls here",
+   "steps": [
+    {
+     "watch": {
+      "trigger": "starting-soon@1",
+      "args": {
+       "calendarId": {
+        "$saved": "calendarA"
+       },
+       "leadMinutes": 15
+      },
+      "save": {
+       "soonA": "/id"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "soonA"
+      },
+      "events": 0
+     }
+    }
+   ]
+  },
+  {
+   "id": "TC-soon",
+   "name": "An event 10 minutes away gives one event with its start, and a re-poll none. Approve its card at once",
+   "steps": [
+    {
+     "call": {
+      "action": "create-event@1",
+      "args": {
+       "calendarId": {
+        "$saved": "calendarA"
+       },
+       "kind": "timed",
+       "summary": {
+        "$text": "soon"
+       },
+       "start": {
+        "$localIn": {
+         "minutes": 10
+        }
+       },
+       "end": {
+        "$localIn": {
+         "minutes": 40
+        }
+       },
+       "notify": "none"
+      },
+      "save": {
+       "soonEvent": "/id",
+       "soonStart": "/start/dateTime"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "soonA"
+      },
+      "events": 1,
+      "within": 120,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/eventId",
+        "equals": {
+         "$saved": "soonEvent"
+        }
+       },
+       {
+        "pointer": "/events/0/fields/start",
+        "equals": {
+         "$saved": "soonStart"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "soonA"
+      },
+      "events": 0,
+      "itemsRead": 1
+     }
+    }
+   ],
+   "undo": {
+    "none": "The event stays on A, marked synthetic, and it is over within the hour."
+   }
+  },
+  {
+   "id": "TC-soon-told",
+   "name": "That event reaches the new-event watch, once a read may list the calendar whole. It sits here so that a resume past it watches again with nothing left to read",
+   "steps": [
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "newA"
+      },
+      "events": 1,
+      "within": 120,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/eventId",
+        "equals": {
+         "$saved": "soonEvent"
+        }
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "TC-share",
+   "name": "A share gives one event with its role, and stopping it one more",
+   "steps": [
+    {
+     "owner": {
+      "words": "In Google Calendar, open the settings of the calendar whose name ends in calendar A, share it with fabric-share@example.com (See all event details), then press Enter.",
+      "until": {
+       "path": "/calendars/{cal}/acl/{rule}",
+       "params": {
+        "cal": {
+         "$saved": "calendarA"
+        },
+        "rule": "user:fabric-share@example.com"
+       },
+       "checks": [
+        {
+         "pointer": "/role",
+         "equals": "reader"
+        }
+       ]
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "shareA"
+      },
+      "events": 1,
+      "within": 120,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/ruleId",
+        "equals": "user:fabric-share@example.com"
+       },
+       {
+        "pointer": "/events/0/fields/role",
+        "equals": "reader"
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "shareA"
+      },
+      "events": 0
+     }
+    },
+    {
+     "call": {
+      "action": "stop-sharing@1",
+      "args": {
+       "calendarId": {
+        "$saved": "calendarA"
+       },
+       "ruleId": "user:fabric-share@example.com"
+      },
+      "checks": [
+       {
+        "pointer": "/ruleId",
+        "equals": "user:fabric-share@example.com"
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "shareA"
+      },
+      "events": 1,
+      "within": 120,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/ruleId",
+        "equals": "user:fabric-share@example.com"
+       },
+       {
+        "pointer": "/events/0/fields/role",
+        "equals": "none"
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "shareA"
+      },
+      "events": 0
+     }
+    }
+   ],
+   "undo": {
+    "none": "The test's last write ends its own share."
+   }
+  },
+  {
+   "id": "TC-cancel",
+   "name": "One event per delete, and a series gives exactly one. This answers probe P6",
+   "steps": [
+    {
+     "call": {
+      "action": "delete-event@1",
+      "args": {
+       "calendarId": {
+        "$saved": "calendarA"
+       },
+       "eventId": {
+        "$saved": "event"
+       },
+       "notify": "none"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "cancelledA"
+      },
+      "events": 1,
+      "within": 120,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/eventId",
+        "equals": {
+         "$saved": "event"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "call": {
+      "action": "delete-event@1",
+      "args": {
+       "calendarId": {
+        "$saved": "calendarA"
+       },
+       "eventId": {
+        "$saved": "meet"
+       },
+       "notify": "none"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "cancelledA"
+      },
+      "events": 1,
+      "within": 120,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/eventId",
+        "equals": {
+         "$saved": "meet"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "call": {
+      "action": "delete-event@1",
+      "args": {
+       "calendarId": {
+        "$saved": "calendarA"
+       },
+       "eventId": {
+        "$saved": "allDay"
+       },
+       "notify": "none"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "cancelledA"
+      },
+      "events": 1,
+      "within": 120,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/eventId",
+        "equals": {
+         "$saved": "allDay"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "call": {
+      "action": "delete-event@1",
+      "args": {
+       "calendarId": {
+        "$saved": "calendarA"
+       },
+       "eventId": {
+        "$saved": "daily"
+       },
+       "notify": "none"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "cancelledA"
+      },
+      "events": 1,
+      "within": 120,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/eventId",
+        "equals": {
+         "$saved": "daily"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "cancelledA"
+      },
+      "events": 0
+     }
+    },
+    {
+     "call": {
+      "action": "delete-event@1",
+      "args": {
+       "calendarId": {
+        "$saved": "calendarA"
+       },
+       "eventId": {
+        "$saved": "quick"
+       },
+       "notify": "none"
+      }
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "cancelledA"
+      },
+      "events": 1,
+      "within": 120,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/eventId",
+        "equals": {
+         "$saved": "quick"
+        }
+       }
+      ]
+     }
+    }
+   ],
+   "undo": {
+    "none": "A cancelled event is what this test leaves."
+   }
+  },
+  {
+   "id": "TC-hide",
+   "name": "B hidden gives one list event, and shown one more",
+   "steps": [
+    {
+     "owner": {
+      "words": "In Google Calendar, hide the calendar whose name ends in calendar B from your list, then press Enter."
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "list"
+      },
+      "events": 1,
+      "within": 120,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/calendarId",
+        "equals": {
+         "$saved": "calendarB"
+        }
+       },
+       {
+        "pointer": "/events/0/fields/hidden",
+        "equals": true
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "list"
+      },
+      "events": 0
+     }
+    },
+    {
+     "owner": {
+      "words": "Show that calendar in your list again, then press Enter."
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "list"
+      },
+      "events": 1,
+      "within": 120,
+      "checks": [
+       {
+        "pointer": "/events/0/fields/calendarId",
+        "equals": {
+         "$saved": "calendarB"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "list"
+      },
+      "events": 0
+     }
+    }
+   ],
+   "undo": {
+    "none": "The test's last step shows the calendar again."
+   }
+  },
+  {
+   "id": "TC-replay",
+   "name": "An old sync token read twice gives the same changes, and the token after them none. This answers probe P1",
+   "steps": [
+    {
+     "read": {
+      "path": "/calendars/{cal}/events",
+      "params": {
+       "cal": {
+        "$saved": "calendarA"
+       }
+      },
+      "query": {
+       "syncToken": {
+        "$saved": "replayToken"
+       }
+      },
+      "save": {
+       "replayFirst": "/items/0/id",
+       "replayNext": "/nextSyncToken"
+      },
+      "checks": [
+       {
+        "pointer": "/items",
+        "where": {
+         "/id": {
+          "$saved": "meet"
+         }
+        },
+        "field": "/status",
+        "equals": "cancelled"
+       }
+      ]
+     }
+    },
+    {
+     "read": {
+      "path": "/calendars/{cal}/events",
+      "params": {
+       "cal": {
+        "$saved": "calendarA"
+       }
+      },
+      "query": {
+       "syncToken": {
+        "$saved": "replayToken"
+       }
+      },
+      "save": {
+       "replaySecond": "/items/0/id",
+       "replayAgain": "/nextSyncToken"
+      },
+      "checks": [
+       {
+        "pointer": "/items",
+        "where": {
+         "/id": {
+          "$saved": "meet"
+         }
+        },
+        "field": "/status",
+        "equals": "cancelled"
+       },
+       {
+        "pointer": "/items/0/id",
+        "equals": {
+         "$saved": "replayFirst"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "read": {
+      "path": "/calendars/{cal}/events",
+      "params": {
+       "cal": {
+        "$saved": "calendarA"
+       }
+      },
+      "query": {
+       "syncToken": {
+        "$saved": "replayNext"
+       }
+      },
+      "save": {
+       "replayQuiet": "/nextSyncToken"
+      },
+      "checks": [
+       {
+        "pointer": "/items",
+        "count": 0
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "TC-never",
+   "name": "Access events at Never pauses the six watches that read it with no call to Google, and two others go on",
+   "steps": [
+    {
+     "owner": {
+      "words": "On the Google Calendar page of this Fabric, set Access events to Never, then press Enter. Set it back to Allow when the run ends."
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "newA"
+      },
+      "paused": "permission_changed"
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "changedA"
+      },
+      "paused": "permission_changed"
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "cancelledA"
+      },
+      "paused": "permission_changed"
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "inviteB"
+      },
+      "paused": "permission_changed"
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "guestA"
+      },
+      "paused": "permission_changed"
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "soonA"
+      },
+      "paused": "permission_changed"
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "newA"
+      },
+      "paused": "permission_changed"
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "list"
+      },
+      "events": 0
+     }
+    },
+    {
+     "poll": {
+      "subscription": {
+       "$saved": "shareA"
+      },
+      "events": 0
+     }
+    }
+   ],
+   "undo": {
+    "none": "The test changes one row by your hand, and you put it back."
+   }
+  }
+ ]
+}

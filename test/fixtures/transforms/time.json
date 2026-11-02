@@ -521,6 +521,132 @@
    }
   },
   {
+   "name": "offsetFromNow adds its minutes to now",
+   "source": "Fabric: the time goes in as `now`, so a poll reads one clock",
+   "transform": "time.offsetFromNow@1",
+   "input": {
+    "now": 1792504800000,
+    "minutes": 15
+   },
+   "output": {
+    "time": "2026-10-20T14:15:00Z"
+   }
+  },
+  {
+   "name": "offsetFromNow keeps the milliseconds of now",
+   "source": "Fabric: the time goes in as `now`, so a poll reads one clock",
+   "transform": "time.offsetFromNow@1",
+   "input": {
+    "now": 1792504800123,
+    "minutes": 0
+   },
+   "output": {
+    "time": "2026-10-20T14:00:00.123Z"
+   }
+  },
+  {
+   "name": "offsetFromNow gives the preferred time as it stands",
+   "source": "Fabric: the time goes in as `now`, so a poll reads one clock",
+   "transform": "time.offsetFromNow@1",
+   "input": {
+    "now": 1792504800000,
+    "minutes": 0,
+    "prefer": "2026-10-20T10:00:00.5-04:00"
+   },
+   "output": {
+    "time": "2026-10-20T10:00:00.5-04:00"
+   }
+  },
+  {
+   "name": "offsetFromNow refuses a preferred time that is none",
+   "source": "Fabric adversarial",
+   "transform": "time.offsetFromNow@1",
+   "input": {
+    "now": 1792504800000,
+    "minutes": 0,
+    "prefer": "tomorrow"
+   },
+   "refuses": "time_invalid"
+  },
+  {
+   "name": "offsetFromNow refuses minutes past a day",
+   "source": "Fabric adversarial",
+   "transform": "time.offsetFromNow@1",
+   "input": {
+    "now": 1792504800000,
+    "minutes": 1441
+   },
+   "refuses": "input_invalid"
+  },
+  {
+   "name": "offsetFromNow refuses a time past year 9999",
+   "source": "Fabric adversarial",
+   "transform": "time.offsetFromNow@1",
+   "input": {
+    "now": 8640000000000000,
+    "minutes": 0
+   },
+   "refuses": "time_invalid"
+  },
+  {
+   "name": "isAfter reads a later instant",
+   "source": "Fabric: the time goes in as `now`, so a poll reads one clock",
+   "transform": "time.isAfter@1",
+   "input": {
+    "instant": "2026-10-20T10:00:01-04:00",
+    "now": 1792504800000
+   },
+   "output": {
+    "after": true
+   }
+  },
+  {
+   "name": "isAfter reads the same instant as not after, whatever its offset",
+   "source": "Fabric: the time goes in as `now`, so a poll reads one clock",
+   "transform": "time.isAfter@1",
+   "input": {
+    "instant": "2026-10-20T10:00:00-04:00",
+    "now": 1792504800000
+   },
+   "output": {
+    "after": false
+   }
+  },
+  {
+   "name": "isAfter reads an earlier instant as not after",
+   "source": "Fabric: the time goes in as `now`, so a poll reads one clock",
+   "transform": "time.isAfter@1",
+   "input": {
+    "instant": "2026-10-20T13:59:59Z",
+    "now": 1792504800000
+   },
+   "output": {
+    "after": false
+   }
+  },
+  {
+   "name": "isAfter counts a fraction below the millisecond",
+   "source": "Fabric adversarial",
+   "transform": "time.isAfter@1",
+   "input": {
+    "instant": "2026-10-20T14:00:00.0001Z",
+    "now": 1792504800000
+   },
+   "output": {
+    "after": true
+   }
+  },
+  {
+   "name": "isAfter refuses what is no instant",
+   "source": "Fabric adversarial",
+   "transform": "time.isAfter@1",
+   "input": {
+    "instant": "2026-10-28",
+    "now": 1792504800000
+   },
+   "refuses": "time_invalid"
+  },
+  {
    "name": "window: an instant within 120 days of now passes",
    "source": "Slack API, chat.scheduleMessage (at most 120 days ahead)",
    "transform": "time.window@1",

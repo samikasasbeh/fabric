@@ -795,6 +795,470 @@
     "path": "docs/a‮gpj.exe"
    },
    "refuses": "path_invalid"
+  },
+  {
+   "name": "linkPage: the id form of a next link gives its page",
+   "source": "GitHub REST API, using pagination in the REST API",
+   "transform": "ids.linkPage@1",
+   "input": {
+    "link": "<https://api.github.com/repositories/500001/issues?state=all&per_page=30&page=2>; rel=\"next\", <https://api.github.com/repositories/500001/issues?state=all&per_page=30&page=9>; rel=\"last\"",
+    "url": "https://api.github.com/repos/octo-a/fabric-sandbox/issues?state=all&per_page=30",
+    "param": "page"
+   },
+   "output": {
+    "page": 2
+   }
+  },
+  {
+   "name": "linkPage: the request's own path gives its page",
+   "source": "GitHub REST API, using pagination in the REST API",
+   "transform": "ids.linkPage@1",
+   "input": {
+    "link": "<https://api.github.com/repos/octo-a/fabric-sandbox/issues?page=3>; rel=\"next\"",
+    "url": "https://api.github.com/repos/octo-a/fabric-sandbox/issues?state=all&per_page=30",
+    "param": "page"
+   },
+   "output": {
+    "page": 3
+   }
+  },
+  {
+   "name": "linkPage: a list off the repository paths gives its page",
+   "source": "GitHub REST API, using pagination in the REST API",
+   "transform": "ids.linkPage@1",
+   "input": {
+    "link": "<https://api.github.com/notifications?all=true&page=2>; rel=\"next\"",
+    "url": "https://api.github.com/notifications?all=true",
+    "param": "page"
+   },
+   "output": {
+    "page": 2
+   }
+  },
+  {
+   "name": "linkPage: no next link gives nothing",
+   "source": "GitHub REST API, using pagination in the REST API",
+   "transform": "ids.linkPage@1",
+   "input": {
+    "link": "<https://api.github.com/repositories/500001/issues?page=1>; rel=\"prev\", <https://api.github.com/repositories/500001/issues?page=1>; rel=\"first\"",
+    "url": "https://api.github.com/repos/octo-a/fabric-sandbox/issues?state=all&per_page=30",
+    "param": "page"
+   },
+   "output": {}
+  },
+  {
+   "name": "linkPage: a relation that only starts with next is no next link",
+   "source": "Fabric adversarial",
+   "transform": "ids.linkPage@1",
+   "input": {
+    "link": "<https://evil.example/?page=2>; rel=\"nextish\"",
+    "url": "https://api.github.com/repos/octo-a/fabric-sandbox/issues?state=all&per_page=30",
+    "param": "page"
+   },
+   "output": {}
+  },
+  {
+   "name": "linkPage: next among two relations reads",
+   "source": "GitHub REST API, using pagination in the REST API",
+   "transform": "ids.linkPage@1",
+   "input": {
+    "link": "<https://api.github.com/repositories/500001/issues?page=2>; rel=\"prev next\"",
+    "url": "https://api.github.com/repos/octo-a/fabric-sandbox/issues?state=all&per_page=30",
+    "param": "page"
+   },
+   "output": {
+    "page": 2
+   }
+  },
+  {
+   "name": "linkPage: a relation name in capitals reads",
+   "source": "GitHub REST API, using pagination in the REST API",
+   "transform": "ids.linkPage@1",
+   "input": {
+    "link": "<https://api.github.com/repositories/500001/issues?page=2>; REL=\"NEXT\"",
+    "url": "https://api.github.com/repos/octo-a/fabric-sandbox/issues?state=all&per_page=30",
+    "param": "page"
+   },
+   "output": {
+    "page": 2
+   }
+  },
+  {
+   "name": "linkPage: a relation with no quotes reads",
+   "source": "GitHub REST API, using pagination in the REST API",
+   "transform": "ids.linkPage@1",
+   "input": {
+    "link": "<https://api.github.com/repositories/500001/issues?page=2>; rel=next",
+    "url": "https://api.github.com/repos/octo-a/fabric-sandbox/issues?state=all&per_page=30",
+    "param": "page"
+   },
+   "output": {
+    "page": 2
+   }
+  },
+  {
+   "name": "linkPage: a relation after another parameter reads",
+   "source": "GitHub REST API, using pagination in the REST API",
+   "transform": "ids.linkPage@1",
+   "input": {
+    "link": "<https://api.github.com/repositories/500001/issues?page=2>; title=\"a, b\"; rel=\"next\"",
+    "url": "https://api.github.com/repos/octo-a/fabric-sandbox/issues?state=all&per_page=30",
+    "param": "page"
+   },
+   "output": {
+    "page": 2
+   }
+  },
+  {
+   "name": "linkPage: a comma inside a URL does not end the link",
+   "source": "GitHub REST API, using pagination in the REST API",
+   "transform": "ids.linkPage@1",
+   "input": {
+    "link": "<https://api.github.com/repositories/500001/issues?labels=a,b&page=2>; rel=\"next\"",
+    "url": "https://api.github.com/repos/octo-a/fabric-sandbox/issues?state=all&per_page=30",
+    "param": "page"
+   },
+   "output": {
+    "page": 2
+   }
+  },
+  {
+   "name": "linkPage: a host in capitals is the same host",
+   "source": "GitHub REST API, using pagination in the REST API",
+   "transform": "ids.linkPage@1",
+   "input": {
+    "link": "<https://API.GitHub.com/repositories/500001/issues?page=2>; rel=\"next\"",
+    "url": "https://api.github.com/repos/octo-a/fabric-sandbox/issues?state=all&per_page=30",
+    "param": "page"
+   },
+   "output": {
+    "page": 2
+   }
+  },
+  {
+   "name": "linkPage: a fragment is no part of the page",
+   "source": "GitHub REST API, using pagination in the REST API",
+   "transform": "ids.linkPage@1",
+   "input": {
+    "link": "<https://api.github.com/repositories/500001/issues?page=2#top>; rel=\"next\"",
+    "url": "https://api.github.com/repos/octo-a/fabric-sandbox/issues?state=all&per_page=30",
+    "param": "page"
+   },
+   "output": {
+    "page": 2
+   }
+  },
+  {
+   "name": "linkPage: the page parameter is the one named",
+   "source": "GitHub REST API, using pagination in the REST API",
+   "transform": "ids.linkPage@1",
+   "input": {
+    "link": "<https://api.github.com/repositories/500001/issues?page=9&index=2>; rel=\"next\"",
+    "url": "https://api.github.com/repos/octo-a/fabric-sandbox/issues?state=all&per_page=30",
+    "param": "index"
+   },
+   "output": {
+    "page": 2
+   }
+  },
+  {
+   "name": "linkPage: the highest page reads",
+   "source": "Fabric adversarial",
+   "transform": "ids.linkPage@1",
+   "input": {
+    "link": "<https://api.github.com/repositories/500001/issues?page=99999>; rel=\"next\"",
+    "url": "https://api.github.com/repos/octo-a/fabric-sandbox/issues?state=all&per_page=30",
+    "param": "page"
+   },
+   "output": {
+    "page": 99999
+   }
+  },
+  {
+   "name": "linkPage: another origin refuses",
+   "source": "Fabric adversarial",
+   "transform": "ids.linkPage@1",
+   "input": {
+    "link": "<https://evil.example/repos/octo-a/fabric-sandbox/issues?page=2>; rel=\"next\"",
+    "url": "https://api.github.com/repos/octo-a/fabric-sandbox/issues?state=all&per_page=30",
+    "param": "page"
+   },
+   "refuses": "link_invalid"
+  },
+  {
+   "name": "linkPage: a host that only ends in the request's refuses",
+   "source": "Fabric adversarial",
+   "transform": "ids.linkPage@1",
+   "input": {
+    "link": "<https://api.github.com.evil.example/repositories/500001/issues?page=2>; rel=\"next\"",
+    "url": "https://api.github.com/repos/octo-a/fabric-sandbox/issues?state=all&per_page=30",
+    "param": "page"
+   },
+   "refuses": "link_invalid"
+  },
+  {
+   "name": "linkPage: http refuses",
+   "source": "Fabric adversarial",
+   "transform": "ids.linkPage@1",
+   "input": {
+    "link": "<http://api.github.com/repositories/500001/issues?page=2>; rel=\"next\"",
+    "url": "https://api.github.com/repos/octo-a/fabric-sandbox/issues?state=all&per_page=30",
+    "param": "page"
+   },
+   "refuses": "link_invalid"
+  },
+  {
+   "name": "linkPage: a port refuses",
+   "source": "Fabric adversarial",
+   "transform": "ids.linkPage@1",
+   "input": {
+    "link": "<https://api.github.com:444/repositories/500001/issues?page=2>; rel=\"next\"",
+    "url": "https://api.github.com/repos/octo-a/fabric-sandbox/issues?state=all&per_page=30",
+    "param": "page"
+   },
+   "refuses": "link_invalid"
+  },
+  {
+   "name": "linkPage: a user in the URL refuses",
+   "source": "Fabric adversarial",
+   "transform": "ids.linkPage@1",
+   "input": {
+    "link": "<https://token@api.github.com/repositories/500001/issues?page=2>; rel=\"next\"",
+    "url": "https://api.github.com/repos/octo-a/fabric-sandbox/issues?state=all&per_page=30",
+    "param": "page"
+   },
+   "refuses": "link_invalid"
+  },
+  {
+   "name": "linkPage: another path refuses",
+   "source": "Fabric adversarial",
+   "transform": "ids.linkPage@1",
+   "input": {
+    "link": "<https://api.github.com/user/repos?page=2>; rel=\"next\"",
+    "url": "https://api.github.com/repos/octo-a/fabric-sandbox/issues?state=all&per_page=30",
+    "param": "page"
+   },
+   "refuses": "link_invalid"
+  },
+  {
+   "name": "linkPage: a path that climbs refuses",
+   "source": "Fabric adversarial",
+   "transform": "ids.linkPage@1",
+   "input": {
+    "link": "<https://api.github.com/repos/octo-a/fabric-sandbox/../../../user/issues?page=2>; rel=\"next\"",
+    "url": "https://api.github.com/repos/octo-a/fabric-sandbox/issues?state=all&per_page=30",
+    "param": "page"
+   },
+   "refuses": "link_invalid"
+  },
+  {
+   "name": "linkPage: the id form of another list refuses",
+   "source": "Fabric adversarial",
+   "transform": "ids.linkPage@1",
+   "input": {
+    "link": "<https://api.github.com/repositories/500001/pulls?page=2>; rel=\"next\"",
+    "url": "https://api.github.com/repos/octo-a/fabric-sandbox/issues?state=all&per_page=30",
+    "param": "page"
+   },
+   "refuses": "link_invalid"
+  },
+  {
+   "name": "linkPage: the id form with no digits refuses",
+   "source": "Fabric adversarial",
+   "transform": "ids.linkPage@1",
+   "input": {
+    "link": "<https://api.github.com/repositories/abc/issues?page=2>; rel=\"next\"",
+    "url": "https://api.github.com/repos/octo-a/fabric-sandbox/issues?state=all&per_page=30",
+    "param": "page"
+   },
+   "refuses": "link_invalid"
+  },
+  {
+   "name": "linkPage: the id form with letters after its digits refuses",
+   "source": "Fabric adversarial",
+   "transform": "ids.linkPage@1",
+   "input": {
+    "link": "<https://api.github.com/repositories/500001x/issues?page=2>; rel=\"next\"",
+    "url": "https://api.github.com/repos/octo-a/fabric-sandbox/issues?state=all&per_page=30",
+    "param": "page"
+   },
+   "refuses": "link_invalid"
+  },
+  {
+   "name": "linkPage: the id form of a list off the repository paths refuses",
+   "source": "Fabric adversarial",
+   "transform": "ids.linkPage@1",
+   "input": {
+    "link": "<https://api.github.com/repositories/500001/notifications?page=2>; rel=\"next\"",
+    "url": "https://api.github.com/notifications",
+    "param": "page"
+   },
+   "refuses": "link_invalid"
+  },
+  {
+   "name": "linkPage: a request that is no https URL refuses",
+   "source": "Fabric adversarial",
+   "transform": "ids.linkPage@1",
+   "input": {
+    "link": "<https://api.github.com/repositories/500001/issues?page=2>; rel=\"next\"",
+    "url": "not a url",
+    "param": "page"
+   },
+   "refuses": "link_invalid"
+  },
+  {
+   "name": "linkPage: a next link that is no URL refuses",
+   "source": "Fabric adversarial",
+   "transform": "ids.linkPage@1",
+   "input": {
+    "link": "<not a url>; rel=\"next\"",
+    "url": "https://api.github.com/repos/octo-a/fabric-sandbox/issues?state=all&per_page=30",
+    "param": "page"
+   },
+   "refuses": "link_invalid"
+  },
+  {
+   "name": "linkPage: a next link with no page refuses",
+   "source": "Fabric adversarial",
+   "transform": "ids.linkPage@1",
+   "input": {
+    "link": "<https://api.github.com/repositories/500001/issues?after=Y3Vyc29y>; rel=\"next\"",
+    "url": "https://api.github.com/repos/octo-a/fabric-sandbox/issues?state=all&per_page=30",
+    "param": "page"
+   },
+   "refuses": "link_invalid"
+  },
+  {
+   "name": "linkPage: a next link with no query refuses",
+   "source": "Fabric adversarial",
+   "transform": "ids.linkPage@1",
+   "input": {
+    "link": "<https://api.github.com/repositories/500001/issues>; rel=\"next\"",
+    "url": "https://api.github.com/repos/octo-a/fabric-sandbox/issues?state=all&per_page=30",
+    "param": "page"
+   },
+   "refuses": "link_invalid"
+  },
+  {
+   "name": "linkPage: page zero refuses",
+   "source": "Fabric adversarial",
+   "transform": "ids.linkPage@1",
+   "input": {
+    "link": "<https://api.github.com/repositories/500001/issues?page=0>; rel=\"next\"",
+    "url": "https://api.github.com/repos/octo-a/fabric-sandbox/issues?state=all&per_page=30",
+    "param": "page"
+   },
+   "refuses": "link_invalid"
+  },
+  {
+   "name": "linkPage: a page that is no number refuses",
+   "source": "Fabric adversarial",
+   "transform": "ids.linkPage@1",
+   "input": {
+    "link": "<https://api.github.com/repositories/500001/issues?page=2x>; rel=\"next\"",
+    "url": "https://api.github.com/repos/octo-a/fabric-sandbox/issues?state=all&per_page=30",
+    "param": "page"
+   },
+   "refuses": "link_invalid"
+  },
+  {
+   "name": "linkPage: a page of six digits refuses",
+   "source": "Fabric adversarial",
+   "transform": "ids.linkPage@1",
+   "input": {
+    "link": "<https://api.github.com/repositories/500001/issues?page=100000>; rel=\"next\"",
+    "url": "https://api.github.com/repos/octo-a/fabric-sandbox/issues?state=all&per_page=30",
+    "param": "page"
+   },
+   "refuses": "link_invalid"
+  },
+  {
+   "name": "linkPage: an empty page refuses",
+   "source": "Fabric adversarial",
+   "transform": "ids.linkPage@1",
+   "input": {
+    "link": "<https://api.github.com/repositories/500001/issues?page=>; rel=\"next\"",
+    "url": "https://api.github.com/repos/octo-a/fabric-sandbox/issues?state=all&per_page=30",
+    "param": "page"
+   },
+   "refuses": "link_invalid"
+  },
+  {
+   "name": "linkPage: a repeated page refuses",
+   "source": "Fabric adversarial",
+   "transform": "ids.linkPage@1",
+   "input": {
+    "link": "<https://api.github.com/repositories/500001/issues?page=2&page=3>; rel=\"next\"",
+    "url": "https://api.github.com/repos/octo-a/fabric-sandbox/issues?state=all&per_page=30",
+    "param": "page"
+   },
+   "refuses": "link_invalid"
+  },
+  {
+   "name": "linkPage: two next links refuse",
+   "source": "Fabric adversarial",
+   "transform": "ids.linkPage@1",
+   "input": {
+    "link": "<https://api.github.com/repositories/500001/issues?page=2>; rel=\"next\", <https://api.github.com/repositories/500001/issues?page=3>; rel=\"next\"",
+    "url": "https://api.github.com/repos/octo-a/fabric-sandbox/issues?state=all&per_page=30",
+    "param": "page"
+   },
+   "refuses": "link_invalid"
+  },
+  {
+   "name": "linkPage: a header with no angle brackets refuses",
+   "source": "Fabric adversarial",
+   "transform": "ids.linkPage@1",
+   "input": {
+    "link": "https://api.github.com/repositories/500001/issues?page=2; rel=\"next\"",
+    "url": "https://api.github.com/repos/octo-a/fabric-sandbox/issues?state=all&per_page=30",
+    "param": "page"
+   },
+   "refuses": "link_invalid"
+  },
+  {
+   "name": "linkPage: an unclosed link refuses",
+   "source": "Fabric adversarial",
+   "transform": "ids.linkPage@1",
+   "input": {
+    "link": "<https://api.github.com/repositories/500001/issues?page=2; rel=\"next\"",
+    "url": "https://api.github.com/repos/octo-a/fabric-sandbox/issues?state=all&per_page=30",
+    "param": "page"
+   },
+   "refuses": "link_invalid"
+  },
+  {
+   "name": "linkPage: an unclosed quote refuses",
+   "source": "Fabric adversarial",
+   "transform": "ids.linkPage@1",
+   "input": {
+    "link": "<https://api.github.com/repositories/500001/issues?page=2>; rel=\"next",
+    "url": "https://api.github.com/repos/octo-a/fabric-sandbox/issues?state=all&per_page=30",
+    "param": "page"
+   },
+   "refuses": "link_invalid"
+  },
+  {
+   "name": "linkPage: text after a link refuses",
+   "source": "Fabric adversarial",
+   "transform": "ids.linkPage@1",
+   "input": {
+    "link": "<https://api.github.com/repositories/500001/issues?page=2> rel=\"next\"",
+    "url": "https://api.github.com/repos/octo-a/fabric-sandbox/issues?state=all&per_page=30",
+    "param": "page"
+   },
+   "refuses": "link_invalid"
+  },
+  {
+   "name": "linkPage: a stray character between two links refuses",
+   "source": "Fabric adversarial",
+   "transform": "ids.linkPage@1",
+   "input": {
+    "link": "<https://api.github.com/repositories/500001/issues?page=1>; rel=\"prev\"x<https://api.github.com/repositories/500001/issues?page=2>; rel=\"next\"",
+    "url": "https://api.github.com/repos/octo-a/fabric-sandbox/issues?state=all&per_page=30",
+    "param": "page"
+   },
+   "refuses": "link_invalid"
   }
  ]
 }

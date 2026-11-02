@@ -291,7 +291,7 @@ export const FAULTS = Object.freeze([
   {id: 'f1020-stale-send', step: STEP, name: 'A read-back that never left says nothing was changed, after a write that landed.',
     file: RUNNER, from: "(error?.code === ACTION_REFUSED || error?.message === RUN_WORDS.not_sent);", to: '(error?.code === ACTION_REFUSED);', tests: ACTION_TESTS},
   {id: 'f1020-size-words', step: STEP, name: 'A read-back too large to compare ends in the JSON library\'s words.',
-    file: RUNNER, from: "      try { key = canonicalHash({id, args}); } catch { throw new TransformError('input_too_large'); }\n", to: "      key = canonicalHash({id, args});\n", tests: ACTION_TESTS},
+    file: RUNNER, from: "      try { key = canonicalHash({id, args}); } catch (error) { throw new TransformError(/unsafe property/.test(error.message) ? 'value_unreadable' : 'input_too_large'); }\n", to: "      key = canonicalHash({id, args});\n", tests: ACTION_TESTS},
   {id: 'f1020-sim-raw', step: STEP, name: 'The simulator reads text back as it was written, as it did before the live run.',
     file: SIM, from: 'text: [readBack(page.text), ...files]', to: 'text: [page.text, ...files]', tests: [...SIM_TESTS, ...ACTION_TESTS]},
   {id: 'f1020-sim-signed', step: STEP, name: 'The simulator signs a file\'s link once, so a page with a file reads the same twice.',

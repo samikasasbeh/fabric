@@ -1096,6 +1096,810 @@
    "refuses": "match_many"
   },
   {
+   "name": "calendarGuests gives one row per answer on the organizer's copy, each with its event's fields",
+   "source": "Google Calendar API, the Events resource",
+   "transform": "collections.calendarGuests@1",
+   "input": {
+    "list": [
+     {
+      "id": "e1",
+      "etag": "\"1\"",
+      "status": "confirmed",
+      "summary": "Review",
+      "updated": "2026-10-20T10:00:00.000Z",
+      "start": {
+       "dateTime": "2026-10-28T10:00:00-04:00"
+      },
+      "organizer": {
+       "email": "a@group.calendar.google.com",
+       "self": true
+      },
+      "attendees": [
+       {
+        "email": "a@group.calendar.google.com",
+        "self": true,
+        "organizer": true,
+        "responseStatus": "accepted"
+       },
+       {
+        "email": "yes@example.com",
+        "responseStatus": "accepted"
+       },
+       {
+        "email": "maybe@example.com",
+        "responseStatus": "tentative"
+       },
+       {
+        "email": "no@example.com",
+        "responseStatus": "declined"
+       },
+       {
+        "email": "later@example.com",
+        "responseStatus": "needsAction"
+       }
+      ]
+     }
+    ]
+   },
+   "output": {
+    "responses": [
+     {
+      "eventId": "e1",
+      "email": "yes@example.com",
+      "responseStatus": "accepted",
+      "etag": "\"1\"",
+      "summary": "Review",
+      "updated": "2026-10-20T10:00:00.000Z",
+      "start": "2026-10-28T10:00:00-04:00"
+     },
+     {
+      "eventId": "e1",
+      "email": "maybe@example.com",
+      "responseStatus": "tentative",
+      "etag": "\"1\"",
+      "summary": "Review",
+      "updated": "2026-10-20T10:00:00.000Z",
+      "start": "2026-10-28T10:00:00-04:00"
+     },
+     {
+      "eventId": "e1",
+      "email": "no@example.com",
+      "responseStatus": "declined",
+      "etag": "\"1\"",
+      "summary": "Review",
+      "updated": "2026-10-20T10:00:00.000Z",
+      "start": "2026-10-28T10:00:00-04:00"
+     }
+    ]
+   }
+  },
+  {
+   "name": "calendarGuests skips the calendar's own entry, marked self, whatever its address",
+   "source": "Google Calendar API, the Events resource",
+   "transform": "collections.calendarGuests@1",
+   "input": {
+    "list": [
+     {
+      "id": "e1",
+      "etag": "\"1\"",
+      "status": "confirmed",
+      "summary": "Review",
+      "updated": "2026-10-20T10:00:00.000Z",
+      "start": {
+       "dateTime": "2026-10-28T10:00:00-04:00"
+      },
+      "organizer": {
+       "email": "a@group.calendar.google.com",
+       "self": true
+      },
+      "attendees": [
+       {
+        "email": "other@example.com",
+        "self": true,
+        "responseStatus": "accepted"
+       }
+      ]
+     }
+    ]
+   },
+   "output": {
+    "responses": []
+   }
+  },
+  {
+   "name": "calendarGuests skips the organizer, marked organizer, whatever its address",
+   "source": "Google Calendar API, the Events resource",
+   "transform": "collections.calendarGuests@1",
+   "input": {
+    "list": [
+     {
+      "id": "e1",
+      "etag": "\"1\"",
+      "status": "confirmed",
+      "summary": "Review",
+      "updated": "2026-10-20T10:00:00.000Z",
+      "start": {
+       "dateTime": "2026-10-28T10:00:00-04:00"
+      },
+      "organizer": {
+       "email": "a@group.calendar.google.com",
+       "self": true
+      },
+      "attendees": [
+       {
+        "email": "boss@example.com",
+        "organizer": true,
+        "responseStatus": "accepted"
+       }
+      ]
+     }
+    ]
+   },
+   "output": {
+    "responses": []
+   }
+  },
+  {
+   "name": "calendarGuests skips a guest who has not answered",
+   "source": "Google Calendar API, the Events resource",
+   "transform": "collections.calendarGuests@1",
+   "input": {
+    "list": [
+     {
+      "id": "e1",
+      "etag": "\"1\"",
+      "status": "confirmed",
+      "summary": "Review",
+      "updated": "2026-10-20T10:00:00.000Z",
+      "start": {
+       "dateTime": "2026-10-28T10:00:00-04:00"
+      },
+      "organizer": {
+       "email": "a@group.calendar.google.com",
+       "self": true
+      },
+      "attendees": [
+       {
+        "email": "later@example.com",
+        "responseStatus": "needsAction"
+       }
+      ]
+     }
+    ]
+   },
+   "output": {
+    "responses": []
+   }
+  },
+  {
+   "name": "calendarGuests skips a copy this calendar does not organize",
+   "source": "Google Calendar API, the Events resource",
+   "transform": "collections.calendarGuests@1",
+   "input": {
+    "list": [
+     {
+      "id": "e1",
+      "etag": "\"1\"",
+      "status": "confirmed",
+      "summary": "Review",
+      "updated": "2026-10-20T10:00:00.000Z",
+      "start": {
+       "dateTime": "2026-10-28T10:00:00-04:00"
+      },
+      "organizer": {
+       "email": "b@example.com"
+      },
+      "attendees": [
+       {
+        "email": "a@group.calendar.google.com",
+        "self": true,
+        "organizer": true,
+        "responseStatus": "accepted"
+       },
+       {
+        "email": "yes@example.com",
+        "responseStatus": "accepted"
+       },
+       {
+        "email": "maybe@example.com",
+        "responseStatus": "tentative"
+       },
+       {
+        "email": "no@example.com",
+        "responseStatus": "declined"
+       },
+       {
+        "email": "later@example.com",
+        "responseStatus": "needsAction"
+       }
+      ]
+     }
+    ]
+   },
+   "output": {
+    "responses": []
+   }
+  },
+  {
+   "name": "calendarGuests skips an organizer marked self: false",
+   "source": "Fabric adversarial",
+   "transform": "collections.calendarGuests@1",
+   "input": {
+    "list": [
+     {
+      "id": "e1",
+      "etag": "\"1\"",
+      "status": "confirmed",
+      "summary": "Review",
+      "updated": "2026-10-20T10:00:00.000Z",
+      "start": {
+       "dateTime": "2026-10-28T10:00:00-04:00"
+      },
+      "organizer": {
+       "email": "b@example.com",
+       "self": false
+      },
+      "attendees": [
+       {
+        "email": "a@group.calendar.google.com",
+        "self": true,
+        "organizer": true,
+        "responseStatus": "accepted"
+       },
+       {
+        "email": "yes@example.com",
+        "responseStatus": "accepted"
+       },
+       {
+        "email": "maybe@example.com",
+        "responseStatus": "tentative"
+       },
+       {
+        "email": "no@example.com",
+        "responseStatus": "declined"
+       },
+       {
+        "email": "later@example.com",
+        "responseStatus": "needsAction"
+       }
+      ]
+     }
+    ]
+   },
+   "output": {
+    "responses": []
+   }
+  },
+  {
+   "name": "calendarGuests skips a cancelled event",
+   "source": "Google Calendar API, the Events resource",
+   "transform": "collections.calendarGuests@1",
+   "input": {
+    "list": [
+     {
+      "id": "e1",
+      "etag": "\"1\"",
+      "status": "cancelled",
+      "summary": "Review",
+      "updated": "2026-10-20T10:00:00.000Z",
+      "start": {
+       "dateTime": "2026-10-28T10:00:00-04:00"
+      },
+      "organizer": {
+       "email": "a@group.calendar.google.com",
+       "self": true
+      },
+      "attendees": [
+       {
+        "email": "a@group.calendar.google.com",
+        "self": true,
+        "organizer": true,
+        "responseStatus": "accepted"
+       },
+       {
+        "email": "yes@example.com",
+        "responseStatus": "accepted"
+       },
+       {
+        "email": "maybe@example.com",
+        "responseStatus": "tentative"
+       },
+       {
+        "email": "no@example.com",
+        "responseStatus": "declined"
+       },
+       {
+        "email": "later@example.com",
+        "responseStatus": "needsAction"
+       }
+      ]
+     }
+    ]
+   },
+   "output": {
+    "responses": []
+   }
+  },
+  {
+   "name": "calendarGuests reads an event with no attendees, and an empty page",
+   "transform": "collections.calendarGuests@1",
+   "input": {
+    "list": [
+     {
+      "id": "e2",
+      "etag": "\"2\"",
+      "organizer": {
+       "self": true
+      }
+     }
+    ]
+   },
+   "output": {
+    "responses": []
+   }
+  },
+  {
+   "name": "calendarGuests reads an all-day start, and leaves out what the event does not hold",
+   "transform": "collections.calendarGuests@1",
+   "input": {
+    "list": [
+     {
+      "id": "e2",
+      "etag": "\"2\"",
+      "start": {
+       "date": "2026-10-28"
+      },
+      "organizer": {
+       "self": true
+      },
+      "attendees": [
+       {
+        "email": "yes@example.com",
+        "responseStatus": "accepted"
+       }
+      ]
+     }
+    ]
+   },
+   "output": {
+    "responses": [
+     {
+      "eventId": "e2",
+      "email": "yes@example.com",
+      "responseStatus": "accepted",
+      "etag": "\"2\"",
+      "start": "2026-10-28"
+     }
+    ]
+   }
+  },
+  {
+   "name": "calendarGuests skips an entry it cannot name, and never stops the page for one",
+   "source": "Fabric adversarial",
+   "transform": "collections.calendarGuests@1",
+   "input": {
+    "list": [
+     null,
+     "text",
+     {
+      "id": "e3",
+      "organizer": {
+       "self": true
+      },
+      "attendees": [
+       {
+        "email": "x@example.com",
+        "responseStatus": "accepted"
+       }
+      ]
+     },
+     {
+      "id": "e1",
+      "etag": "\"1\"",
+      "status": "confirmed",
+      "summary": "Review",
+      "updated": "2026-10-20T10:00:00.000Z",
+      "start": {
+       "dateTime": "2026-10-28T10:00:00-04:00"
+      },
+      "organizer": {
+       "email": "a@group.calendar.google.com",
+       "self": true
+      },
+      "attendees": [
+       null,
+       {
+        "responseStatus": "accepted"
+       },
+       {
+        "email": "y@example.com"
+       },
+       {
+        "email": 7,
+        "responseStatus": "accepted"
+       },
+       {
+        "email": {
+         "$repeat": [
+          "a",
+          321
+         ]
+        },
+        "responseStatus": "accepted"
+       },
+       {
+        "email": "z@example.com",
+        "responseStatus": {
+         "$repeat": [
+          "a",
+          17
+         ]
+        }
+       }
+      ]
+     },
+     {
+      "id": "e1",
+      "etag": "\"1\"",
+      "status": "confirmed",
+      "summary": "Review",
+      "updated": "2026-10-20T10:00:00.000Z",
+      "start": {
+       "dateTime": "2026-10-28T10:00:00-04:00"
+      },
+      "organizer": {
+       "email": "a@group.calendar.google.com",
+       "self": true
+      },
+      "attendees": "none"
+     },
+     {
+      "id": "e1",
+      "etag": "\"1\"",
+      "status": "confirmed",
+      "summary": "Review",
+      "updated": "2026-10-20T10:00:00.000Z",
+      "start": {
+       "dateTime": "2026-10-28T10:00:00-04:00"
+      },
+      "organizer": "text",
+      "attendees": [
+       {
+        "email": "a@group.calendar.google.com",
+        "self": true,
+        "organizer": true,
+        "responseStatus": "accepted"
+       },
+       {
+        "email": "yes@example.com",
+        "responseStatus": "accepted"
+       },
+       {
+        "email": "maybe@example.com",
+        "responseStatus": "tentative"
+       },
+       {
+        "email": "no@example.com",
+        "responseStatus": "declined"
+       },
+       {
+        "email": "later@example.com",
+        "responseStatus": "needsAction"
+       }
+      ]
+     }
+    ]
+   },
+   "output": {
+    "responses": []
+   }
+  },
+  {
+   "name": "calendarGuests leaves out an optional field that is not text of a fitting size",
+   "source": "Fabric adversarial",
+   "transform": "collections.calendarGuests@1",
+   "input": {
+    "list": [
+     {
+      "id": "e4",
+      "etag": "\"4\"",
+      "summary": 7,
+      "updated": {
+       "$repeat": [
+        "a",
+        41
+       ]
+      },
+      "start": {
+       "dateTime": {
+        "$repeat": [
+         "a",
+         41
+        ]
+       }
+      },
+      "organizer": {
+       "self": true
+      },
+      "attendees": [
+       {
+        "email": "yes@example.com",
+        "responseStatus": "accepted"
+       }
+      ]
+     }
+    ]
+   },
+   "output": {
+    "responses": [
+     {
+      "eventId": "e4",
+      "email": "yes@example.com",
+      "responseStatus": "accepted",
+      "etag": "\"4\""
+     }
+    ]
+   }
+  },
+  {
+   "name": "calendarGuests cuts a long title, so a row stays bounded",
+   "source": "Fabric adversarial",
+   "transform": "collections.calendarGuests@1",
+   "input": {
+    "list": [
+     {
+      "id": "e5",
+      "etag": "\"5\"",
+      "summary": {
+       "$repeat": [
+        "a",
+        1001
+       ]
+      },
+      "organizer": {
+       "self": true
+      },
+      "attendees": [
+       {
+        "email": "yes@example.com",
+        "responseStatus": "accepted"
+       }
+      ]
+     }
+    ]
+   },
+   "output": {
+    "responses": [
+     {
+      "eventId": "e5",
+      "email": "yes@example.com",
+      "responseStatus": "accepted",
+      "etag": "\"5\"",
+      "summary": {
+       "$repeat": [
+        "a",
+        1000
+       ]
+      }
+     }
+    ]
+   }
+  },
+  {
+   "name": "calendarGuests holds 1,000 answers",
+   "transform": "collections.calendarGuests@1",
+   "input": {
+    "list": [
+     {
+      "id": "e6",
+      "etag": "\"6\"",
+      "organizer": {
+       "self": true
+      },
+      "attendees": {
+       "$list": [
+        1000,
+        {
+         "email": "g{n}@example.com",
+         "responseStatus": "accepted"
+        }
+       ]
+      }
+     }
+    ]
+   },
+   "expect": {
+    "/responses/999/email": "g999@example.com"
+   }
+  },
+  {
+   "name": "calendarGuests refuses the 1,001st, and never cuts a page in silence",
+   "transform": "collections.calendarGuests@1",
+   "input": {
+    "list": [
+     {
+      "id": "e6",
+      "etag": "\"6\"",
+      "organizer": {
+       "self": true
+      },
+      "attendees": {
+       "$list": [
+        1001,
+        {
+         "email": "g{n}@example.com",
+         "responseStatus": "accepted"
+        }
+       ]
+      }
+     }
+    ]
+   },
+   "refuses": "too_many_items"
+  },
+  {
+   "name": "calendarGuests refuses what is no list",
+   "source": "Fabric adversarial",
+   "transform": "collections.calendarGuests@1",
+   "input": {
+    "list": {
+     "items": []
+    }
+   },
+   "refuses": "input_invalid"
+  },
+  {
+   "name": "calendarSelf reads the attendee marked self",
+   "source": "Google Calendar API, the Events resource",
+   "transform": "collections.calendarSelf@1",
+   "input": {
+    "event": {
+     "attendees": [
+      {
+       "email": "a@example.com",
+       "responseStatus": "accepted"
+      },
+      {
+       "email": "me@example.com",
+       "self": true,
+       "responseStatus": "tentative"
+      }
+     ]
+    }
+   },
+   "output": {
+    "response": "tentative"
+   }
+  },
+  {
+   "name": "calendarSelf reads self on a secondary calendar, whose address is not the owner's",
+   "source": "Google Calendar API, the Events resource",
+   "transform": "collections.calendarSelf@1",
+   "input": {
+    "event": {
+     "attendees": [
+      {
+       "email": "owner@example.com",
+       "responseStatus": "declined"
+      },
+      {
+       "email": "run-a@group.calendar.google.com",
+       "self": true,
+       "responseStatus": "needsAction"
+      }
+     ]
+    }
+   },
+   "output": {
+    "response": "needsAction"
+   }
+  },
+  {
+   "name": "calendarSelf finds no answer in an event with no self entry",
+   "source": "Google Calendar API, the Events resource",
+   "transform": "collections.calendarSelf@1",
+   "input": {
+    "event": {
+     "attendees": [
+      {
+       "email": "owner@example.com",
+       "responseStatus": "accepted"
+      }
+     ]
+    }
+   },
+   "output": {}
+  },
+  {
+   "name": "calendarSelf finds no answer in an event with no attendees",
+   "source": "Google Calendar API, the Events resource",
+   "transform": "collections.calendarSelf@1",
+   "input": {
+    "event": {
+     "id": "e1"
+    }
+   },
+   "output": {}
+  },
+  {
+   "name": "calendarSelf reads self only when it is true",
+   "source": "Fabric adversarial",
+   "transform": "collections.calendarSelf@1",
+   "input": {
+    "event": {
+     "attendees": [
+      {
+       "self": "true",
+       "responseStatus": "accepted"
+      },
+      {
+       "self": false,
+       "responseStatus": "declined"
+      }
+     ]
+    }
+   },
+   "output": {}
+  },
+  {
+   "name": "calendarSelf leaves out an answer that is not short text, and survives what is no list",
+   "source": "Fabric adversarial",
+   "transform": "collections.calendarSelf@1",
+   "input": {
+    "event": {
+     "attendees": [
+      null,
+      {
+       "self": true,
+       "responseStatus": 7
+      }
+     ]
+    }
+   },
+   "output": {}
+  },
+  {
+   "name": "calendarSelf leaves out an answer past the field it fills",
+   "source": "Fabric adversarial",
+   "transform": "collections.calendarSelf@1",
+   "input": {
+    "event": {
+     "attendees": [
+      {
+       "self": true,
+       "responseStatus": {
+        "$repeat": [
+         "a",
+         17
+        ]
+       }
+      }
+     ]
+    }
+   },
+   "output": {}
+  },
+  {
+   "name": "calendarSelf reads an event with a list of no use",
+   "source": "Fabric adversarial",
+   "transform": "collections.calendarSelf@1",
+   "input": {
+    "event": {
+     "attendees": "none"
+    }
+   },
+   "output": {}
+  },
+  {
+   "name": "calendarSelf reads a value that is no event as one with no answer",
+   "source": "Fabric adversarial",
+   "transform": "collections.calendarSelf@1",
+   "input": {
+    "event": "text"
+   },
+   "output": {}
+  },
+  {
    "name": "diff lists additions and removals in a stable order",
    "transform": "collections.diff@1",
    "input": {
@@ -1336,6 +2140,232 @@
    "refuses": "too_many_items"
   },
   {
+   "name": "gmailHistory keeps the messages added, in record order, with their record",
+   "source": "Gmail API, users.history.list",
+   "transform": "collections.gmailHistory@1",
+   "input": {
+    "list": [
+     {
+      "id": "101",
+      "messages": [
+       {
+        "id": "m1",
+        "threadId": "t1"
+       }
+      ],
+      "messagesAdded": [
+       {
+        "message": {
+         "id": "m1",
+         "threadId": "t1"
+        }
+       }
+      ]
+     },
+     {
+      "id": "105",
+      "messagesDeleted": [
+       {
+        "message": {
+         "id": "m0",
+         "threadId": "t0"
+        }
+       }
+      ]
+     },
+     {
+      "id": "109",
+      "messagesAdded": [
+       {
+        "message": {
+         "id": "m2",
+         "threadId": "t2"
+        }
+       },
+       {
+        "message": {
+         "id": "m3",
+         "threadId": "t2"
+        }
+       }
+      ]
+     }
+    ],
+    "kind": "messagesAdded"
+   },
+   "output": {
+    "items": [
+     {
+      "id": "m1",
+      "threadId": "t1",
+      "recordId": "101"
+     },
+     {
+      "id": "m2",
+      "threadId": "t2",
+      "recordId": "109"
+     },
+     {
+      "id": "m3",
+      "threadId": "t2",
+      "recordId": "109"
+     }
+    ]
+   }
+  },
+  {
+   "name": "gmailHistory keeps a label's entries only",
+   "source": "Gmail API, users.history.list",
+   "transform": "collections.gmailHistory@1",
+   "input": {
+    "list": [
+     {
+      "id": "7",
+      "labelsAdded": [
+       {
+        "message": {
+         "id": "m1",
+         "threadId": "t1"
+        },
+        "labelIds": [
+         "Label_1"
+        ]
+       },
+       {
+        "message": {
+         "id": "m2",
+         "threadId": "t2"
+        },
+        "labelIds": [
+         "STARRED"
+        ]
+       }
+      ]
+     }
+    ],
+    "kind": "labelsAdded",
+    "labelId": "Label_1"
+   },
+   "output": {
+    "items": [
+     {
+      "id": "m1",
+      "threadId": "t1",
+      "labelIds": [
+       "Label_1"
+      ],
+      "recordId": "7"
+     }
+    ]
+   }
+  },
+  {
+   "name": "gmailHistory reads an empty page as no items",
+   "source": "Gmail API, users.history.list: a page with no record holds no history",
+   "transform": "collections.gmailHistory@1",
+   "input": {
+    "list": [],
+    "kind": "messagesAdded"
+   },
+   "output": {
+    "items": []
+   }
+  },
+  {
+   "name": "gmailHistory stops at a whole record and names it",
+   "source": "Fabric adversarial",
+   "transform": "collections.gmailHistory@1",
+   "input": {
+    "list": {
+     "$list": [
+      251,
+      {
+       "id": "1{n}",
+       "messagesAdded": [
+        {
+         "message": {
+          "id": "m{n}a",
+          "threadId": "t{n}"
+         }
+        },
+        {
+         "message": {
+          "id": "m{n}b",
+          "threadId": "t{n}"
+         }
+        }
+       ]
+      }
+     ]
+    },
+    "kind": "messagesAdded"
+   },
+   "expect": {
+    "/items/499/id": "m249b",
+    "/items/500": {
+     "$absent": true
+    },
+    "/throughRecordId": "1249"
+   }
+  },
+  {
+   "name": "gmailSentBefore reads a sent message before this one",
+   "source": "Gmail API, users.threads.get at format=minimal",
+   "transform": "collections.gmailSentBefore@1",
+   "input": {
+    "thread": {
+     "id": "t1",
+     "messages": [
+      {
+       "id": "m1",
+       "labelIds": [
+        "SENT"
+       ]
+      },
+      {
+       "id": "m2",
+       "labelIds": [
+        "INBOX",
+        "UNREAD"
+       ]
+      }
+     ]
+    },
+    "messageId": "m2"
+   },
+   "output": {
+    "sentBefore": true
+   }
+  },
+  {
+   "name": "gmailSentBefore does not read a later message",
+   "source": "Fabric adversarial",
+   "transform": "collections.gmailSentBefore@1",
+   "input": {
+    "thread": {
+     "id": "t1",
+     "messages": [
+      {
+       "id": "m1",
+       "labelIds": [
+        "INBOX"
+       ]
+      },
+      {
+       "id": "m2",
+       "labelIds": [
+        "SENT"
+       ]
+      }
+     ]
+    },
+    "messageId": "m1"
+   },
+   "output": {
+    "sentBefore": false
+   }
+  },
+  {
    "name": "stringValues: pairs become one object of strings",
    "source": "GitHub REST API, create a workflow dispatch event (inputs)",
    "transform": "collections.stringValues@1",
@@ -1396,6 +2426,283 @@
     ]
    },
    "refuses": "name_invalid"
+  },
+  {
+   "name": "slackReactions: each reaction of each message, in list order, with its true count",
+   "source": "Slack Web API, conversations.history and the reaction object",
+   "transform": "collections.slackReactions@1",
+   "input": {
+    "list": [
+     {
+      "ts": "1761490000.000100",
+      "user": "U0ADA0001",
+      "text": "First",
+      "reactions": [
+       {
+        "name": "tada",
+        "users": [
+         "U0ADA0001",
+         "U0GRACE01",
+         "U0OWNER01"
+        ],
+        "count": 7
+       },
+       {
+        "name": "eyes",
+        "users": [
+         "U0GRACE01"
+        ],
+        "count": 1
+       }
+      ]
+     },
+     {
+      "ts": "1761489000.000100",
+      "user": "U0GRACE01",
+      "text": "No reactions"
+     },
+     {
+      "ts": "1761488000.000100",
+      "user": "U0OWNER01",
+      "reactions": [
+       {
+        "name": "thumbsup::skin-tone-2",
+        "users": [
+         "U0ADA0001"
+        ],
+        "count": 1
+       }
+      ]
+     }
+    ]
+   },
+   "output": {
+    "items": [
+     {
+      "name": "tada",
+      "count": 7,
+      "parent": {
+       "ts": "1761490000.000100",
+       "user": "U0ADA0001"
+      }
+     },
+     {
+      "name": "eyes",
+      "count": 1,
+      "parent": {
+       "ts": "1761490000.000100",
+       "user": "U0ADA0001"
+      }
+     },
+     {
+      "name": "thumbsup::skin-tone-2",
+      "count": 1,
+      "parent": {
+       "ts": "1761488000.000100",
+       "user": "U0OWNER01"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "name": "slackReactions: a message from a bot has no user, so its parent holds only ts",
+   "source": "Slack Web API, conversations.history and the reaction object",
+   "transform": "collections.slackReactions@1",
+   "input": {
+    "list": [
+     {
+      "ts": "1761490000.000100",
+      "subtype": "bot_message",
+      "bot_id": "B0FABRIC01",
+      "reactions": [
+       {
+        "name": "rocket",
+        "users": [],
+        "count": 2
+       }
+      ]
+     }
+    ]
+   },
+   "output": {
+    "items": [
+     {
+      "name": "rocket",
+      "count": 2,
+      "parent": {
+       "ts": "1761490000.000100"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "name": "slackReactions: no messages give no items",
+   "source": "Slack Web API, conversations.history and the reaction object",
+   "transform": "collections.slackReactions@1",
+   "input": {
+    "list": []
+   },
+   "output": {
+    "items": []
+   }
+  },
+  {
+   "name": "slackReactions: an entry it cannot tell is left out, and the rest stay",
+   "source": "Fabric adversarial",
+   "transform": "collections.slackReactions@1",
+   "input": {
+    "list": [
+     "a string",
+     null,
+     {
+      "user": "U0ADA0001",
+      "reactions": [
+       {
+        "name": "tada",
+        "count": 1
+       }
+      ]
+     },
+     {
+      "ts": "1761490000.000100",
+      "reactions": "none"
+     },
+     {
+      "ts": "1761490001.000100",
+      "user": {
+       "id": "U1"
+      },
+      "reactions": [
+       null,
+       {
+        "name": "",
+        "count": 1
+       },
+       {
+        "count": 1
+       },
+       {
+        "name": "tada"
+       },
+       {
+        "name": "tada",
+        "count": "3"
+       },
+       {
+        "name": "tada",
+        "count": 1.5
+       },
+       {
+        "name": "tada",
+        "count": -1
+       },
+       {
+        "name": "tada",
+        "count": 1000001
+       },
+       {
+        "name": "eyes",
+        "count": 0
+       }
+      ]
+     }
+    ]
+   },
+   "output": {
+    "items": [
+     {
+      "name": "eyes",
+      "count": 0,
+      "parent": {
+       "ts": "1761490001.000100"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "name": "slackReactions: a value that is no list refuses",
+   "source": "Fabric adversarial",
+   "transform": "collections.slackReactions@1",
+   "input": {
+    "list": {
+     "messages": []
+    }
+   },
+   "refuses": "input_invalid"
+  },
+  {
+   "name": "slackReactions: exactly 1,000 reactions are kept",
+   "source": "Fabric adversarial",
+   "transform": "collections.slackReactions@1",
+   "input": {
+    "list": {
+     "$list": [
+      100,
+      {
+       "ts": "1761490000.000100",
+       "reactions": {
+        "$list": [
+         10,
+         {
+          "name": "e{n}",
+          "count": 1
+         }
+        ]
+       }
+      }
+     ]
+    }
+   },
+   "expect": {
+    "/items/999/name": "e99",
+    "/items/1000": {
+     "$absent": true
+    }
+   }
+  },
+  {
+   "name": "slackReactions: more than 1,000 reactions refuse and are never cut",
+   "source": "Fabric adversarial",
+   "transform": "collections.slackReactions@1",
+   "input": {
+    "list": {
+     "$list": [
+      100,
+      {
+       "ts": "1761490000.000100",
+       "reactions": {
+        "$list": [
+         11,
+         {
+          "name": "e{n}",
+          "count": 1
+         }
+        ]
+       }
+      }
+     ]
+    }
+   },
+   "refuses": "too_many_items"
+  },
+  {
+   "name": "slackReactions: more than 1,000 messages refuse",
+   "source": "Fabric adversarial",
+   "transform": "collections.slackReactions@1",
+   "input": {
+    "list": {
+     "$list": [
+      1001,
+      {
+       "ts": "1761490000.000100"
+      }
+     ]
+    }
+   },
+   "refuses": "too_many_items"
   }
  ]
 }

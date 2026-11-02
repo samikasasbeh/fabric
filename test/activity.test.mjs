@@ -8,7 +8,7 @@ import {activityPage, operationLabel} from '../lib/ui-contracts.mjs';
 import {taskTitle} from '../lib/runtime.mjs';
 import {owner, fixture} from './fixtures/continuation-fixture.mjs';
 import {freePort} from './fixtures/signin-fixture.mjs';
-import {describeItem, describeApproval, dayLabel} from '../public/hosted-activity.js';
+import {describeItem, describeApproval, describeWatch, dayLabel} from '../public/hosted-activity.js';
 
 // UI-4: activity timeline, approvals queue and agent task titles.
 const NOW = Date.parse('2026-10-12T12:00:00.000Z');
@@ -62,6 +62,15 @@ test('account requests appear on their own while open, and once as their action 
   assert.equal(closed.openUrl, undefined); assert.equal(closed.summary, 'You declined the account request');
 });
 
+test('a watch sits beside the timeline: its request joins the approvals, its row joins the watches, and neither takes a line of a day', () => {
+  const asked = {id: 'w1', status: 'awaiting_approval', appId: 'github', approvalExpiresAt: '2026-10-12T12:05:00.000Z', args: {}, createdAt: '2026-10-12T11:59:00.000Z'};
+  const reading = {id: 'w2', status: 'active', appId: 'github', args: {}, createdAt: '2026-10-12T10:00:00.000Z'}, watchFacts = () => ({health: {state: 'quiet', lastCheckedAt: null}, skipped: 0, trigger: null});
+  const page = activityPage({...names, jobs: [job('j1', 'succeeded')], subscriptions: [asked, reading], watchFacts});
+  assert.deepEqual([page.approvals.map(item => item.callRef), page.watches.map(row => row.ref), page.days.flatMap(day => day.items.map(item => item.callRef))], [['w1'], ['w2'], ['j1']]);
+  assert.equal(page.nextCursor, undefined);
+  assert.deepEqual([page.watches[0].agent, page.watches[0].account], ['Muse', 'octo']);
+});
+
 test('the timeline pages with an opaque cursor', () => {
   const jobs = Array.from({length: 5}, (_, i) => job(`p${i}`, 'succeeded', {updatedAt: `2026-10-12T0${i}:00:00.000Z`}));
   const first = activityPage({...names, jobs, limit: 2});
@@ -105,6 +114,8 @@ test('the page shows the agent title first and makes invisible characters visibl
   const shown = describeApproval({operation: 'Send email', appName: 'Gmail', taskTitle: 'Just a note', exact: {complete: true, blocks: [{label: 'Body', text: 'to: boss\u202egnp.exe'}]}, approve: {}, cancel: {}});
   assert.ok(shown.blocks[0].text.includes('⟦U+202E⟧') && !shown.blocks[0].text.includes('\u202e'));
   assert.equal(shown.heading, 'Send email in Gmail'); assert.equal(shown.agentSays, 'Agent says: “Just a note”');
+  assert.equal(describeApproval({operation: 'Watch: New email', appName: 'Gmail', warnings: ['background_reads'], exact: {complete: true, blocks: []}, approve: {}, cancel: {}}).warnings.length, 1);
+  assert.equal(describeWatch({name: 'New email', appName: 'Gmail', line: 'Paused by you.', attention: true, details: [], remove: {path: '/r', body: {}}}).attention, true);
   assert.equal(dayLabel('2026-10-12', new Date('2026-10-12T15:00:00')), 'Today'); assert.equal(dayLabel('2026-10-11', new Date('2026-10-12T15:00:00')), 'Yesterday');
 });
 

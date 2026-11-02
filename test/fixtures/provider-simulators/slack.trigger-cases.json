@@ -1,0 +1,17 @@
+{
+ "schemaVersion": 1,
+ "appId": "slack",
+ "simulator": "test/fixtures/provider-simulators/slack.mjs",
+ "tests": [
+  "test/triggers-slack.test.mjs"
+ ],
+ "cases": {
+  "new-message v1": ["baseline-silent", "one-then-zero", "crash-before-cursor", "background-never", "row-never-mid-poll", "malformed-cursor", "caps", "pause-on-refusal"],
+  "new-dm v1": ["baseline-silent", "one-then-zero", "crash-before-cursor", "background-never", "row-never-mid-poll", "malformed-cursor", "caps", "pause-on-refusal"],
+  "mention-search v1": ["baseline-silent", "one-then-zero", "crash-before-cursor", "background-never", "row-never-mid-poll", "malformed-cursor", "caps", "resync-gap", "pause-on-refusal"],
+  "thread-reply v1": ["baseline-silent", "one-then-zero", "crash-before-cursor", "background-never", "row-never-mid-poll", "malformed-cursor", "caps", "pause-on-refusal"],
+  "reaction-recent v1": ["baseline-silent", "one-then-zero", "crash-before-cursor", "background-never", "row-never-mid-poll", "malformed-cursor", "caps", "resync-gap", "pause-on-refusal"],
+  "file-shared v1": ["baseline-silent", "one-then-zero", "crash-before-cursor", "background-never", "row-never-mid-poll", "malformed-cursor", "caps", "pause-on-refusal"],
+  "conversation-joined v1": ["baseline-silent", "one-then-zero", "crash-before-cursor", "background-never", "row-never-mid-poll", "malformed-cursor", "caps", "pause-on-refusal"]
+ }
+}

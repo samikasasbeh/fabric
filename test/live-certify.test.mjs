@@ -2,16 +2,18 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
 import {createHash, randomBytes} from 'node:crypto';
-import {existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, writeFileSync} from 'node:fs';
+import {existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {createApp} from '../server.mjs';
 import {CERTIFICATION_PORT} from '../lib/certification.mjs';
 import {createGuard, newRunId, refuseRequest, synthetic, GUARD_WORDS, RULES} from '../lib/live-guard.mjs';
-import {checkPlan, checkPlanShape, runLiveTests, openRunState, runStateFile, evidenceRecords, assertEvidenceSafe, writeEvidence, writeIntrospection, fillPlaceholders, pendingUndos, PLAN_LIMITS, PLACEHOLDERS, TOKEN_PREFIXES} from '../lib/live-certify.mjs';
-import {harnessPort, readOwner, resumedOwner, main, introspectOnce, parseArgs, CERTIFICATION_OWNER} from '../scripts/live-certify.mjs';
-import {evidencePasses, loadActionCatalog, seedActions} from '../lib/action-catalog.mjs';
+import {CALLER_HEADERS} from '../lib/proxy-request.mjs';
+import {RESPONSE_HEADERS as PROXY_HEADERS} from '../lib/proxy-runtime.mjs';
+import {checkPlan, checkPlanShape, runLiveTests, openRunState, runStateFile, evidenceRecords, assertEvidenceSafe, writeEvidence, writeIntrospection, fillPlaceholders, pendingUndos, PLAN_LIMITS, PLACEHOLDERS, PROBE_HEADERS, TOKEN_PREFIXES} from '../lib/live-certify.mjs';
+import {harnessPort, readOwner, resumedOwner, main, introspectOnce, parseArgs, CERTIFICATION_OWNER, PLANS, PROBES_DONE, USAGE} from '../scripts/live-certify.mjs';
+import {evidencePasses, loadActionCatalog, seedActions, triggerEvidencePasses} from '../lib/action-catalog.mjs';
 import {validateActionFile} from '../lib/actions.mjs';
 import {PermissionManager} from '../lib/permissions.mjs';
 import {ProxyPolicy} from '../lib/proxy-policy.mjs';
@@ -27,6 +29,12 @@ import {fixtureChoices, fixtureMap, fixtureSignIn, withIds} from './fixtures/act
 import {TRANSFORMS, PINS} from './fixtures/actions/registry.mjs';
 import {googleMap} from './fixtures/access/google-maps.mjs';
 import {freePort} from './fixtures/signin-fixture.mjs';
+import {calendarHarness} from './fixtures/actions/calendar-harness.mjs';
+import {githubHarness} from './fixtures/actions/github-harness.mjs';
+import {gmailHarness} from './fixtures/actions/gmail-harness.mjs';
+import {slackHarness, IDS, OWNER as SLACK_OWNER} from './fixtures/actions/slack-harness.mjs';
+import {triggerHarness} from './fixtures/actions/trigger-fixture.mjs';
+import {triggerWorld} from './fixtures/actions/trigger-harness.mjs';
 
 // F10.12 part 2 (docs/F10.12-BUILD-MAP.md section 3, test/live-certify.test.mjs): the harness, its plans and its evidence. The fake app of
 // step 11 (test/fixtures/actions) runs behind its provider simulator with a test rule set for the live guard; a scripted owner (Muse) reads
@@ -1104,4 +1112,279 @@ test('harness 26: a cleanup test calls no action, undoes nothing and comes last;
   assert.deepEqual(stopped.left, ['T7 (Tidy the event) was not run: the owner chose to leave what this run made.']);
   // The command takes --leave, off unless given.
   assert.deepEqual([parseArgs(['gmail', '--folder', '/tmp/x', '--leave']).leave, parseArgs(['gmail', '--folder', '/tmp/x']).leave], [true, false]);
+});
+
+// ---- Iteration 9 part 3g: read probes (docs/I07-BUILD-MAP.md part 3g) ------------------------------------------------------------------
+// A probes plan asks the provider questions with reads alone, so a simulator can be written from an answer and not from a guess. Nothing here reaches a provider: the
+// fake app runs on its simulator, and the shipped files are checked against the real rows and the real guard, and run on Slack's simulator through the command.
+const PROBE_FILES = Object.freeze({slack: 'slack.probes.json', github: 'github.probes.json', gmail: 'gmail.probes.json', 'google-calendar': 'google-calendar.probes.json'});
+const shippedProbes = appId => JSON.parse(readFileSync(path.join(PLANS, 'triggers', PROBE_FILES[appId]), 'utf8'));
+const probesPlan = (tests, more = {}) => ({schemaVersion: 1, appId: 'fixture', probes: true, note: 'Read probes of the fake app.', recorded: {}, readRows: ['fixture.items.read'], tests, ...more});
+const question = (id, name, read) => ({id, name, steps: [{read}]});
+
+test('probes 1: a plan marked probes owes no action evidence, holds reads alone, and only such a plan may send a header or read one', t => {
+  const h = actionHarness(t, {designated: true, evidence: () => ({})}), entries = fixtureEntries(h);
+  const deps = {entries, superseded: [], groups: h.groups.get('fixture'), config: h.configs.get('fixture'), rules: FIXTURE_RULES};
+  const plan = probesPlan([question('P1', 'Does the list answer?', {path: '/items', checks: [{status: 200}]})]);
+  const checked = checkPlan(plan, deps);
+  assert.deepEqual([checked.plan.probes, [...checked.actions.keys()]], [true, []], 'it calls nothing, and it is not refused for that');
+  // The same plan without the mark owes every action, so the mark is what exempts it.
+  const {probes: _, ...ordinary} = plan;
+  assert.throws(() => checkPlan(ordinary, deps), /is called by no test, so it would get no evidence/);
+  for (const value of [false, 'true', 1, null]) assert.throws(() => checkPlanShape(probesPlan(plan.tests, {probes: value})), /probes is true or absent/, String(value));
+  // Reads alone: a probe never writes, so it owes no undo and leaves nothing behind.
+  for (const [step, note] of [[{call: {action: 'list-items@1', args: {}}}, 'a call'], [{owner: {words: 'Do something.'}}, 'an owner step'], [{ask: {row: 'fixture.items.write', requests: [{method: 'GET', path: '/items'}]}}, 'an ask'],
+    [{oneTimeAsk: {row: 'fixture.items.delete', requests: [{method: 'DELETE', path: '/items/I1'}]}}, 'a one-time Ask'], [{race: {action: 'list-items@1', status: 412, readback: {path: '/items', pointer: '', output: ''}}}, 'a race']]) {
+    assert.throws(() => checkPlanShape(probesPlan([{id: 'P1', name: 'A probe', steps: [step]}])), /a step is exactly one of read/, note);
+  }
+  assert.throws(() => checkPlanShape(probesPlan([{...plan.tests[0], undo: {none: 'Nothing.'}}])), /a probe undoes nothing/);
+  assert.throws(() => checkPlanShape(probesPlan([{...plan.tests[0], cleanup: true}])), /a probe undoes nothing/);
+  // The headers a probe may send and read are closed.
+  const read = fields => probesPlan([question('P1', 'A probe', {path: '/items', ...fields})]);
+  for (const name of ['Accept', 'If-None-Match', 'If-Modified-Since']) assert.equal(checkPlanShape(read({headers: {[name]: 'x'}})).tests.length, 1, name);
+  for (const headers of [{Authorization: 'Bearer x'}, {'If-Match': 'x'}, {'X-Other': 'x'}, 'If-None-Match', {Accept: 7}]) assert.throws(() => checkPlanShape(read({headers})), /a probe sends only Accept, If-None-Match or If-Modified-Since/, JSON.stringify(headers));
+  for (const name of ['etag', 'last-modified', 'link', 'x-ratelimit-remaining']) {
+    for (const check of [{header: name, present: true}, {header: name, includes: '/x'}, {header: name, equals: 'x'}]) assert.equal(checkPlanShape(read({checks: [check]})).tests.length, 1, JSON.stringify(check));
+  }
+  // x-poll-interval never comes back through the proxy, so a check of it could only ever answer no.
+  for (const check of [{header: 'x-poll-interval', present: true}, {header: 'authorization', present: true}, {header: 'etag'}, {header: 'etag', includes: 7}, {header: 'etag', includes: ''}, {header: 'etag', present: 'yes'}]) {
+    assert.throws(() => checkPlanShape(read({checks: [check]})), /a check is one of/, JSON.stringify(check));
+  }
+  for (const saveHeaders of [{tag: 'etag'}, {tag: '/authorization'}, {tag: '/x-poll-interval'}]) assert.throws(() => checkPlanShape(read({saveHeaders})), /saveHeaders names a header a probe may read/, JSON.stringify(saveHeaders));
+  assert.equal(checkPlanShape(probesPlan([question('P1', 'A probe', {path: '/items', saveHeaders: {tag: '/etag'}}), question('P2', 'A probe', {path: '/items', headers: {'If-None-Match': {$saved: 'tag'}}})])).tests.length, 2, 'a saved header stands in a later probe');
+  assert.throws(() => checkPlanShape(read({headers: {'If-None-Match': {$saved: 'tag'}}})), /\$saved: tag is used before a step saves it/);
+  // An ordinary plan's evidence stays what it was: none of this reaches one.
+  for (const [fields, note] of [[{headers: {Accept: 'application/json'}}, 'headers'], [{saveHeaders: {tag: '/etag'}}, 'saveHeaders'], [{checks: [{header: 'etag', present: true}]}, 'a header check']]) {
+    const {probes: __, ...plain} = read(fields);
+    assert.throws(() => checkPlanShape(plain), note === 'a header check' ? /a check is one of/ : new RegExp(`${note} is for a probes plan`), note);
+  }
+});
+
+test('probes 2: every read of a shipped probes file is allowed by the real guard, sits on a row the plan names, and reads Allow by default', async t => {
+  const harnesses = {slack: slackHarness, github: githubHarness, gmail: gmailHarness, 'google-calendar': calendarHarness};
+  for (const [appId, harness] of Object.entries(harnesses)) {
+    const plan = shippedProbes(appId), h = harness(t), folder = temp(t), key = randomBytes(32), runId = newRunId();
+    assert.deepEqual([plan.probes, plan.appId], [true, appId]);
+    const entries = [...h.catalog.entries.values()].filter(item => item.appId === appId).map(item => item.entry);
+    const checked = checkPlan(plan, {entries, superseded: [], groups: PERMISSION_GROUPS.get(appId), config: PROXY_CONFIGS.get(appId), rules: RULES});
+    const guard = createGuard({appId, runId, folder, key, rules: RULES, clock: () => h.now});
+    const recorded = Object.fromEntries(Object.keys(plan.recorded).map(name => [name, appId === 'slack' ? 'C0FABTEST1' : `${name}@group.calendar.google.com`]));
+    guard.setOwner({email: OWNER_EMAIL, timeZone: ZONE, runDate: RUN_DATE, recorded});
+    const run = {runId, runDate: RUN_DATE, timeZone: ZONE, recorded, saved: Object.fromEntries(checked.plan.tests.flatMap(item => item.steps.flatMap(step => Object.keys({...step.read.save, ...step.read.saveHeaders}))).map(name => [name, '12345']))};
+    const rows = new Set(plan.readRows.map(row => `group:${row}`));
+    for (const item of checked.plan.tests) {
+      guard.begin(item.id);
+      for (const {read} of item.steps) {
+        const ctx = {run, account: {email: OWNER_EMAIL}}, query = Object.fromEntries(Object.entries(fillPlaceholders(read.query ?? {}, ctx, item)).map(([name, value]) => [name, String(value)]));
+        const route = read.path.replace(/\{\+?([A-Za-z0-9_]+)\}/g, (_, slot) => encodeURIComponent(fillPlaceholders(read.params[slot], ctx, item)));
+        const request = {method: 'GET', path: route, query, ...(read.headers ? {headers: fillPlaceholders(read.headers, ctx, item)} : {})};
+        const decision = h.proxyPolicy.decide(h.account, request), verdict = guard.check({method: 'GET', url: decision.request.url});
+        assert.equal(verdict.allowed, true, `${appId} ${item.id}: ${verdict.words}`);
+        assert.equal(verdict.write, false, `${appId} ${item.id} is a read`);
+        assert.ok(rows.has(decision.row), `${appId} ${item.id}: ${decision.row} is not in readRows`);
+        assert.equal(decision.effect, 'read', `${appId} ${item.id}`);
+        assert.equal(decision.mode, 'allow', `${appId} ${item.id}: a probe runs with no card, unless the owner moved its row`);
+      }
+      guard.end();
+    }
+  }
+  assert.deepEqual(readdirSync(path.join(PLANS, 'triggers')).filter(name => name === 'README.md' || name.endsWith('.probes.json')).sort(), ['README.md', ...Object.values(PROBE_FILES)].sort(), 'a probes file for each app that has probes owed before its simulator');
+  for (const name of PROBE_HEADERS.read) assert.ok(PROXY_HEADERS.includes(name), `a probe reads through the proxy, whose answer keeps ${name}`);
+  assert.deepEqual(PROBE_HEADERS.send, ['Accept', 'If-None-Match', 'If-Modified-Since'].filter(name => CALLER_HEADERS.includes(name)), 'each is one the proxy lets a caller send');
+});
+
+test('probes 3: a run asks every question: a no is an answer, a read that fails is no answer, and neither stops the next probe, sends a write or leaves a stop to resume', async t => {
+  const h = triggerHarness(t, {designated: true});
+  h.simulator.seed(3);
+  const list = {path: '/feed', query: {limit: '5'}};
+  const plan = probesPlan([
+    question('P1', 'Does the feed answer with an etag?', {...list, checks: [{status: 200}, {header: 'etag', present: true}, {header: 'etag', includes: 'W/'}], saveHeaders: {tag: '/etag'}}),
+    question('P2', 'Is the next read a 304?', {...list, headers: {'If-None-Match': {$saved: 'tag'}}, checks: [{status: 304}, {header: 'etag', equals: {$saved: 'tag'}}]}),
+    question('P3', 'Does the etag name something it does not?', {...list, checks: [{header: 'etag', includes: 'no such text'}]}),
+    question('P4', 'Is a header there that is not?', {...list, checks: [{header: 'link', present: true}]}),
+    question('P5', 'Is it missing, as it is?', {...list, checks: [{header: 'link', present: false}]}),
+    question('P6', 'A read whose value cannot be saved', {...list, save: {gone: '/no/such/value'}, checks: [{status: 200}]}),
+    question('P7', 'Is a read of what is gone a 404 at the first read?', {path: '/items/{item}', params: {item: 'I2'}, checks: [{status: 404}]}),
+    question('P8', 'A read Fabric refuses', {path: '/feed', headers: {Accept: 'text/html'}}),
+    question('P9', 'Does a probe after all of those still run?', {...list, checks: [{status: 200}]}),
+  ]);
+  const r = fakeRun(t, {plan, keys: [], recorded: {}, h}), run = await r.run();
+  await r.muse.done();
+  const said = id => r.muse.lines.find(line => line.startsWith(`${id}: `) && !line.startsWith(`${id}: ${plan.tests.find(item => item.id === id).name}`));
+  assert.deepEqual(['P1', 'P2', 'P3', 'P4', 'P5', 'P7', 'P9'].map(said), ['P1: yes (last answer 200)', 'P2: yes (last answer 304)', 'P3: no (last answer 200)', 'P4: no (last answer 200)', 'P5: yes (last answer 200)', 'P7: no (last answer 200)', 'P9: yes (last answer 200)']);
+  assert.match(said('P6'), /^P6: not answered: \/no\/such\/value is not in the answer, so gone cannot be saved\. \(last answer 200\)$/);
+  assert.match(said('P8'), /^P8: not answered: Fabric refused the request \(header_not_allowed\)/);
+  assert.deepEqual([run.stopped, run.order], [null, plan.tests.map(item => item.id)]);
+  assert.equal(run.results.P7.reads.length, 1, 'a probe reads once, so a no is not read five times over');
+  assert.deepEqual(r.muse.links, [], 'no card');
+  assert.deepEqual(writes(r.h), []);
+  assert.equal(r.muse.lines.some(line => /Run the pending undos|To resume/.test(line)), false);
+  // An ordinary plan's words and its stop are as they were.
+  const ordinary = fakeRun(t, {plan: {...fixturePlan(), recorded: {}, tests: [{id: 'T7', name: 'A check that fails', steps: [{read: {path: '/items/{item}', params: {item: 'I2'}, checks: [{gone: true}]}}]}, {id: 'T8', name: 'After it', steps: [{read: {path: '/items'}}]}]}, keys: [], recorded: {}});
+  const stopped = await ordinary.run();
+  assert.deepEqual([stopped.stopped.test, Object.hasOwn(stopped.results, 'T8')], ['T7', false]);
+  assert.ok(ordinary.muse.lines.includes('T7: failed: A check did not hold.'));
+});
+
+/** The command's whole path on Slack's simulator: the shipped rows and guard, a fake app of the harness's parts, and the owner's address typed once. */
+async function probeCommand(t, {records, argv = [], plans = PLANS} = {}) {
+  const h = slackHarness(t), say = [], folder = path.join(temp(t), 'harness'), evidenceRoot = temp(t);
+  const given = records ?? {fabricTest: IDS.fabricTest, selfDm: IDS.selfDm, ownerUser: IDS.owner, synthetic1: '1761490000.000100', beforeSynthetic1: '1761489999.000100', latestReply: '1761490100.000100', reacted: '1761490000.000100', closedDm: 'D0CLOSED01'};
+  const protocol = new FabricProtocol({store: h.store, runtime: h.runtime, clock: () => h.now, origin: ORIGIN});
+  h.runtime.authorizeSource = job => protocol.authorizeJob(job);
+  const deps = {lockDataDir: async () => async () => {}, createApp: async ({certification}) => {
+    h.runtime.request = certification.guard.wrap(h.simulator.request);
+    return {store: h.store, runtime: h.runtime, origin: ORIGIN, actions: h.catalog, connections: {providers: {resolve: () => ({})}}, start: async () => {}, close: async () => {},
+      protocol: {handle: (...args) => protocol.handle(...args), revokeClient: id => protocol.revokeClient(id), createClient: data => protocol.createClient(data, SLACK_OWNER)}};
+  }};
+  const code = await main(['slack', '--folder', folder, '--probes', ...Object.entries(given).flatMap(([name, value]) => ['--record', `${name}=${value}`]), ...argv],
+    {say: line => say.push(String(line)), prompt: async () => 'owner@fabric-owner.test', deps, plans, evidenceRoot, clock: () => h.now});
+  return {code, say, folder, evidenceRoot, h};
+}
+
+test('probes 4: the command reads the probes file in place of the plan, says each answer, sends no write, and leaves no evidence behind it', async t => {
+  const {code, say, evidenceRoot, h} = await probeCommand(t);
+  const plan = shippedProbes('slack'), answers = plan.tests.map(item => say.find(line => line.startsWith(`${item.id}: `) && line !== `${item.id}: ${item.name}`));
+  assert.equal(code, 0, say.join('\n'));
+  for (const [index, line] of answers.entries()) assert.match(line ?? '', /: (yes|no) \(last answer 200\)$/, `${plan.tests[index].id}: every question reached the simulator`);
+  assert.ok(say.includes(PROBES_DONE), say.join('\n'));
+  assert.deepEqual(readdirSync(evidenceRoot), [], 'nothing under the evidence root: a run of probes would otherwise rewrite actions.json');
+  assert.equal(say.some(line => line.startsWith('Evidence:')), false);
+  assert.deepEqual(h.simulator.calls.filter(call => call.method !== 'GET').map(call => call.name), [], 'reads alone');
+  assert.deepEqual(h.store.list('clientGrants').filter(item => item.status === 'active'), [], 'every grant of the run revoked');
+});
+
+test('probes 5: --probes takes its own file only: a probes file needs the flag, the flag needs a probes file, and it refuses what only a plan run means', async t => {
+  const calls = [], say = [], deps = {createApp: async () => { calls.push('createApp'); throw new Error('stop here'); }, lockDataDir: async () => { calls.push('lock'); return async () => {}; }};
+  const go = (argv, options = {}) => main(argv, {say: line => say.push(String(line)), prompt: async () => '', deps, ...options});
+  const folder = path.join(temp(t), 'harness'), plans = temp(t), {probes: _, ...plain} = shippedProbes('slack'), records = Object.keys(plain.recorded).flatMap(name => ['--record', `${name}=x`]);
+  mkdirSync(path.join(plans, 'triggers'));
+  assert.equal(await go(['slack', '--folder', folder, '--probes'], {plans}), 2);
+  assert.equal(say.at(-1), 'No read probes for slack yet.');
+  writeFileSync(path.join(plans, 'slack.json'), JSON.stringify({...plain, probes: true}));
+  assert.equal(await go(['slack', '--folder', folder, ...records], {plans}), 2);
+  assert.match(say.at(-1), /slack\.json is not a plan: its probes run with --probes/);
+  writeFileSync(path.join(plans, 'triggers', 'slack.probes.json'), JSON.stringify(plain));
+  assert.equal(await go(['slack', '--folder', folder, '--probes', ...records], {plans}), 2);
+  assert.match(say.at(-1), /slack\.probes\.json is not marked probes, so it does not run with --probes/);
+  writeFileSync(path.join(plans, 'triggers', 'slack.probes.json'), JSON.stringify(shippedProbes('gmail')));
+  assert.equal(await go(['slack', '--folder', folder, '--probes'], {plans}), 2);
+  assert.match(say.at(-1), /must be named after its appId/);
+  writeFileSync(path.join(plans, 'triggers', 'slack.probes.json'), JSON.stringify(shippedProbes('slack')));
+  assert.equal(await go(['slack', '--folder', folder, '--probes'], {plans}), 2);
+  assert.match(say.at(-1), /--record fabricTest=<value>/, 'its recorded values are given before anything opens');
+  assert.deepEqual(calls, [], 'refused before any lock or start');
+  // The flag: off unless given, and with nothing that only a plan run means.
+  assert.deepEqual([parseArgs(['gmail', '--folder', '/tmp/x', '--probes']).probes, parseArgs(['gmail', '--folder', '/tmp/x']).probes], [true, false]);
+  for (const argv of [['gmail', '--check', '--probes'], ['gmail', '--folder', '/tmp/x', '--probes', '--resume', 'ABCDEFGH'], ['gmail', '--folder', '/tmp/x', '--probes', '--leave']]) {
+    assert.throws(() => parseArgs(argv), /--probes|--check takes/, argv.join(' '));
+  }
+  assert.match(USAGE, /--probes/);
+  // --check reads only top-level names, so the folder of probes never reads as an app, and what it says of the shipped plans is unchanged.
+  say.length = 0;
+  assert.equal(await go(['--check']), 0);
+  assert.deepEqual(say, ['github: 15 tests check, calling 15 actions.', 'gmail: 12 tests check, calling 13 actions.', 'google-calendar: 14 tests check, calling 13 actions.', 'notion: 13 tests check, calling 16 actions.', 'slack: 7 tests check, calling 13 actions.']);
+});
+
+// ---- Iteration 9 part 9a: the command's --triggers path (docs/I07-BUILD-MAP.md part 9a) --------------------------------------------------------------------------------
+// test/live-triggers.test.mjs holds the steps, the watch grant and the evidence on the fake app. These hold the command around them: on Slack's simulator, behind the shipped guard and rows.
+const SLACK_RECORDED = () => ({fabricTest: IDS.fabricTest, selfDm: IDS.selfDm, ownerUser: IDS.owner, synthetic1: '1761490000.000100', beforeSynthetic1: '1761489999.000100', latestReply: '1761490100.000100', reacted: '1761490000.000100', closedDm: 'D0CLOSED01'});
+const subscriptionOf = name => ({subscription: {$saved: name}});
+const slackTriggerPlan = (tests = [], more = {}) => ({schemaVersion: 1, appId: 'slack', triggers: true, note: 'One Slack trigger, for the command.', recorded: Object.fromEntries(Object.keys(SLACK_RECORDED()).map(name => [name, `The value of ${name}.`])), readRows: ['slack.messages.read'], tests: [
+  {id: 'W1', name: 'Watch the channel', steps: [{watch: {trigger: 'new-message@1', args: {channels: [{$recorded: 'fabricTest'}]}, save: {sub1: '/id'}}}, {poll: {...subscriptionOf('sub1'), events: 0}}]}, ...tests], ...more});
+const ONE_MESSAGE = {id: 'T1', name: 'One message', steps: [{owner: {words: 'Post once in #fabric-test.'}}, {poll: {...subscriptionOf('sub1'), events: 1}}, {poll: {...subscriptionOf('sub1'), events: 0}}], undo: {none: 'The channel keeps it.'}};
+
+/** The command's whole trigger path: the app's parts on a world of one Slack trigger, the owner approving each link it prints, and one message posted at each hand step. */
+async function triggerCommand(t, {plan, argv = []} = {}) {
+  const h = triggerWorld(t, 'slack', {keys: ['new-message'], engine: {certification: true}}), said = [], folder = path.join(temp(t), 'harness'), evidenceRoot = temp(t), plans = temp(t), posted = [];
+  mkdirSync(path.join(plans, 'triggers'));
+  writeFileSync(path.join(plans, 'triggers', 'slack.json'), JSON.stringify(plan));
+  h.runtime.authorizeSource = job => h.protocol.authorizeJob(job);
+  const deps = {lockDataDir: async () => async () => {}, createApp: async ({certification}) => {
+    h.runtime.request = certification.guard.wrap(h.simulator.request);
+    return {store: h.store, runtime: h.runtime, origin: ORIGIN, actions: h.catalog, triggers: h.engine, connections: {providers: {resolve: () => ({})}}, start: async () => {}, close: async () => {},
+      protocol: {handle: (...args) => h.protocol.handle(...args), revokeClient: id => h.protocol.revokeClient(id), createClient: data => h.protocol.createClient(data, SLACK_OWNER)}};
+  }};
+  const say = line => { said.push(String(line)); const link = /^Approve: .+\/approve\/([0-9a-f-]{36})$/.exec(line); if (link) h.approve(link[1]); };
+  const prompt = async words => { if (!/Post once/.test(words)) return 'owner@fabric-owner.test'; h.advance(1000); posted.push(h.simulator.post(IDS.fabricTest, {text: 'A message.'})); return ''; };
+  const code = await main(['slack', '--folder', folder, '--triggers', ...Object.entries(SLACK_RECORDED()).flatMap(([name, value]) => ['--record', `${name}=${value}`]), ...argv], {say, prompt, deps, plans, evidenceRoot, clock: () => h.now});
+  return {code, said, folder, evidenceRoot, h, posted};
+}
+
+test('triggers 1: the command reads the trigger plan, writes triggers.json beside no actions.json, honours --leave, and revokes every grant', async t => {
+  const tidy = {id: 'C1', name: 'A tidy up', cleanup: true, steps: [{owner: {words: 'This never runs.'}}], undo: {none: 'Nothing to undo.'}};
+  const {code, said, evidenceRoot, h, posted} = await triggerCommand(t, {plan: slackTriggerPlan([ONE_MESSAGE, tidy]), argv: ['--leave']});
+  assert.equal(code, 0, said.join('\n'));
+  assert.equal(posted.length, 1);
+  assert.ok(said.includes('Evidence: docs/live-evidence/slack/triggers.json. Commit it only with the owner\'s OK.'), said.join('\n'));
+  assert.ok(said.some(line => /^Left in place: C1 /.test(line)), 'the cleanup test is left, as --leave asks');
+  assert.ok(said.filter(line => line.startsWith('Approve: ')).length === 1, 'one card');
+  const folder = path.join(evidenceRoot, 'docs', 'live-evidence', 'slack');
+  assert.deepEqual(readdirSync(folder), ['triggers.json'], 'an action\'s evidence, and N0\'s record, stay as they are');
+  const [entry] = h.triggerEntries, evidence = JSON.parse(readFileSync(path.join(folder, 'triggers.json'), 'utf8'));
+  assert.equal(evidence[entry.id].tests.at(-1).proof.afterWrite, 1);
+  assert.equal(triggerEvidencePasses(entry, evidence[entry.id], SHIPPED_PINS.transforms), true);
+  assert.deepEqual(h.store.list('clientGrants').filter(item => item.status === 'active' && item.name.startsWith('Live test')), [], 'every grant of the run revoked');
+});
+
+test('triggers 2: a stop says how to resume with --triggers, and writes what it has', async t => {
+  const {code, said, evidenceRoot} = await triggerCommand(t, {plan: slackTriggerPlan([{...ONE_MESSAGE, steps: [ONE_MESSAGE.steps[0], {poll: {...subscriptionOf('sub1'), events: 2}}]}]), argv: ['--leave']});
+  assert.equal(code, 1);
+  assert.ok(said.some(line => /^To resume: .* --triggers --leave --resume [A-Z2-7]{8} --from T1$/.test(line)), said.join('\n'));
+  assert.ok(existsSync(path.join(evidenceRoot, 'docs', 'live-evidence', 'slack', 'triggers.json')));
+});
+
+test('triggers 3: --triggers takes its own file only, and the flag and a mark on the file go together', async t => {
+  const calls = [], say = [], deps = {createApp: async () => { calls.push('createApp'); throw new Error('stop here'); }, lockDataDir: async () => { calls.push('lock'); return async () => {}; }};
+  const go = (argv, options = {}) => main(argv, {say: line => say.push(String(line)), prompt: async () => '', deps, ...options});
+  const folder = path.join(temp(t), 'harness'), plans = temp(t), plan = slackTriggerPlan([ONE_MESSAGE]), {triggers: _, ...unmarked} = {...plan, tests: [{id: 'T1', name: 'A read', steps: [{read: {path: '/conversations.list'}}]}]};
+  const records = Object.keys(plan.recorded).flatMap(name => ['--record', `${name}=x`]);
+  mkdirSync(path.join(plans, 'triggers'));
+  assert.equal(await go(['slack', '--folder', folder, '--triggers'], {plans}), 2);
+  assert.equal(say.at(-1), 'No trigger plan for slack yet.');
+  writeFileSync(path.join(plans, 'slack.json'), JSON.stringify(plan));
+  assert.equal(await go(['slack', '--folder', folder, ...records], {plans}), 2);
+  assert.match(say.at(-1), /slack\.json is a trigger plan: it runs with --triggers/);
+  writeFileSync(path.join(plans, 'triggers', 'slack.json'), JSON.stringify(unmarked));
+  assert.equal(await go(['slack', '--folder', folder, '--triggers', ...records], {plans}), 2);
+  assert.match(say.at(-1), /slack\.json is not marked triggers, so it does not run with --triggers/);
+  writeFileSync(path.join(plans, 'triggers', 'slack.json'), JSON.stringify({...plan, appId: 'gmail'}));
+  assert.equal(await go(['slack', '--folder', folder, '--triggers', ...records], {plans}), 2);
+  assert.match(say.at(-1), /must be named after its appId/);
+  writeFileSync(path.join(plans, 'triggers', 'slack.json'), JSON.stringify(plan));
+  assert.equal(await go(['slack', '--folder', folder, '--triggers'], {plans}), 2);
+  assert.match(say.at(-1), /--record fabricTest=<value>/, 'its recorded values are given before anything opens');
+  assert.deepEqual(calls, [], 'refused before any lock or start');
+  assert.deepEqual([parseArgs(['gmail', '--folder', '/tmp/x', '--triggers']).triggers, parseArgs(['gmail', '--folder', '/tmp/x']).triggers], [true, false]);
+  assert.equal(parseArgs(['gmail', '--folder', '/tmp/x', '--triggers', '--leave', '--resume', 'ABCDEFGH', '--from', 'T1']).resume, 'ABCDEFGH', 'a trigger run resumes, as an action run does');
+  assert.throws(() => parseArgs(['gmail', '--check', '--triggers']), /--check takes/);
+  assert.throws(() => parseArgs(['gmail', '--folder', '/tmp/x', '--triggers', '--probes']), /--probes and --triggers/);
+  assert.match(USAGE, /--triggers/);
+  // N0's record belongs to the action plan's run, so a trigger run asks nothing and rewrites nothing.
+  let asked = 0;
+  assert.equal(await introspectOnce({introspect: async () => { asked++; return {active: true}; }}, {appId: 'notion', triggers: true}, {runId: 'R', at: 'now', root: temp(t)}), null);
+  assert.equal(asked, 0);
+});
+
+test('triggers 4: the port holds no approve, and reads a watch through its standing and its runs alone, with no cursor', t => {
+  const h = triggerHarness(t), port = harnessPort({store: h.store, origin: ORIGIN, triggers: {pollNow: async () => {}, ageCursor: async (id, value) => `aged ${id} ${value}`}});
+  assert.deepEqual(Object.keys(port).filter(name => /approve|decide|decline|resume|pause|remove|reset|promote|^set/i.test(name)), []);
+  assert.equal(port.watch('none'), null);
+  assert.deepEqual(port.lastRuns('none'), []);
+  const at = new Date(h.now).toISOString(), watch = {...h.watch('feed-logged', {status: 'paused', reason: 'owner_paused', approvalExpiresAt: at}), feeds: ['feed-a', 'feed-b']};
+  h.store.put('subscriptions', watch);
+  h.store.put('triggerFeeds', {id: 'feed-a', connectionId: h.account, cursors: {history: '7'}});
+  h.store.put('triggerRuns', {id: 'feed-a', connectionId: h.account, runs: [{at: 1, outcome: 'done', status: 200, requests: 1, items: 2, skipped: 0, events: {}}, {at: 2, outcome: 'done', status: 304, requests: 1, items: 0, skipped: 0, events: {}}]});
+  assert.deepEqual(port.watch(watch.id), {status: 'paused', reason: 'owner_paused', approvalExpiresAt: at});
+  assert.deepEqual(port.lastRuns(watch.id), [{at: 2, outcome: 'done', status: 304, requests: 1, items: 0, skipped: 0, events: {}}, null], 'the last run of each feed, and null for one that has none');
+  assert.equal(JSON.stringify([port.watch(watch.id), port.lastRuns(watch.id)]).includes('history'), false);
+});
+
+test('triggers 5: writeEvidence() names its file, and writes actions.json when told nothing', t => {
+  const root = temp(t), folder = path.join(root, 'docs', 'live-evidence', 'fixture');
+  writeEvidence(root, 'fixture', {records: {a: {passed: true}}, run: {runId: 'A'}});
+  writeEvidence(root, 'fixture', {records: {b: {passed: true}}, run: {runId: 'B'}}, {}, 'triggers.json');
+  assert.deepEqual(readdirSync(folder).sort(), ['actions.json', 'triggers.json']);
+  assert.deepEqual(Object.keys(JSON.parse(readFileSync(path.join(folder, 'actions.json'), 'utf8'))).sort(), ['a', 'run']);
+  assert.deepEqual(Object.keys(JSON.parse(readFileSync(path.join(folder, 'triggers.json'), 'utf8'))).sort(), ['b', 'run']);
 });

@@ -6,7 +6,7 @@
  "pinnedParameters": {},
  "triggers": [
   {
-   "id": "github.trigger.issue-activity.v1.a6d2c18dd481d1a0e88e854b",
+   "id": "github.trigger.issue-activity.v1.0fdfcd9848fe7239bb154550",
    "key": "issue-activity",
    "version": 1,
    "name": "Issue or pull request activity in a repository",

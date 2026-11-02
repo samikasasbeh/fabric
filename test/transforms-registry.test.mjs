@@ -11,6 +11,7 @@ import {CODES, FILES, TRANSFORMS, checkEntry, runTransform} from '../lib/transfo
 import {runEntry} from '../lib/transforms/run.mjs';
 import {FAMILY_CODES, HARNESS_CODES, TransformError} from '../lib/transforms/_shared/error.v1.mjs';
 import {FAMILY_CODES as LATER_V4} from '../lib/transforms/_shared/error.v4.mjs';
+import {FAMILY_CODES as LATER_V5} from '../lib/transforms/_shared/error.v5.mjs';
 import {FAMILY_CODES as FAMILY_CODES_V2, TransformError as TransformErrorV2} from '../lib/transforms/_shared/error.v2.mjs';
 import {pointerReader, wellFormedPointer} from '../lib/transforms/_shared/pointer.v1.mjs';
 import {hasHidden} from '../lib/transforms/_shared/hidden.v1.mjs';
@@ -401,7 +402,7 @@ test('a child process in another zone and locale gives byte-identical outputs fo
 });
 
 // The output fields a clock transform's `now` may change; every shipped entry with usesClock is listed here.
-const CLOCK_FIELDS = Object.freeze({'rfc5322.build@1': ['raw', 'bytes'], 'time.window@1': []});
+const CLOCK_FIELDS = Object.freeze({'rfc5322.build@1': ['raw', 'bytes'], 'time.window@1': [], 'time.offsetFromNow@1': ['time'], 'time.isAfter@1': ['after']});
 test('the clock is an input: only entries with usesClock take now, and now changes only their documented fields', () => {
   const clock = fake({usesClock: true, input: OBJECT({value: STRING, now: NOW}), output: OBJECT({value: STRING, at: {type: 'integer'}}),
     example: {input: {value: 'a', now: 5}, output: {value: 'a', at: 5}}, run: input => ({value: input.value, at: input.now})});
@@ -686,10 +687,10 @@ test('error.v1.mjs holds the harness codes and exactly the Codes line of each st
   });
   assert.ok(Object.isFrozen(FAMILY_CODES) && Object.values(FAMILY_CODES).every(Object.isFrozen) && Object.isFrozen(HARNESS_CODES));
   // F10.19: error.v3.mjs adds the notion family only (test/transforms-notion.test.mjs). F10.17's error.v2.mjs adds path_invalid to ids and
-  // name_invalid and name_repeated to collections (its test below), and F10.21's error.v4.mjs emoji_invalid to ids, lists only. Every other
-  // step 8 family is v1's alone.
+  // name_invalid and name_repeated to collections (its test below), F10.21's error.v4.mjs emoji_invalid to ids, and Iteration 9's error.v5.mjs
+  // link_invalid to ids, lists only. Every other step 8 family is v1's alone.
   const {notion, ...stepEight} = Object.fromEntries(CODES);
-  assert.deepEqual(stepEight, {...FAMILY_CODES, ids: [...FAMILY_CODES.ids, ...FAMILY_CODES_V2.ids, ...LATER_V4.ids], collections: [...FAMILY_CODES.collections, ...FAMILY_CODES_V2.collections]}, 'the registry\'s union of the step 8 families is v1 and the later error files');
+  assert.deepEqual(stepEight, {...FAMILY_CODES, ids: [...FAMILY_CODES.ids, ...FAMILY_CODES_V2.ids, ...LATER_V4.ids, ...LATER_V5.ids], collections: [...FAMILY_CODES.collections, ...FAMILY_CODES_V2.collections]}, 'the registry\'s union of the step 8 families is v1 and the later error files');
   assert.ok(Array.isArray(notion));
 });
 
@@ -699,9 +700,9 @@ test('error.v2.mjs (step 17) adds path_invalid to ids and name_invalid and name_
   assert.equal(TransformErrorV2, TransformError, 'the one error type');
   assert.deepEqual(FAMILY_CODES_V2, {ids: ['path_invalid'], collections: ['name_invalid', 'name_repeated']});
   assert.ok(Object.isFrozen(FAMILY_CODES_V2) && Object.values(FAMILY_CODES_V2).every(Object.isFrozen));
-  // F10.19's notion family and F10.21's emoji_invalid (error.v3.mjs and error.v4.mjs) sit beside it in the merged registry.
+  // F10.19's notion family, F10.21's emoji_invalid and Iteration 9's link_invalid (error.v3.mjs, error.v4.mjs and error.v5.mjs) sit beside it in the merged registry.
   const {notion, ...steps} = Object.fromEntries(CODES);
-  assert.deepEqual(steps, {...FAMILY_CODES, ids: [...FAMILY_CODES.ids, 'path_invalid', ...LATER_V4.ids], collections: [...FAMILY_CODES.collections, 'name_invalid', 'name_repeated']});
+  assert.deepEqual(steps, {...FAMILY_CODES, ids: [...FAMILY_CODES.ids, 'path_invalid', ...LATER_V4.ids, ...LATER_V5.ids], collections: [...FAMILY_CODES.collections, 'name_invalid', 'name_repeated']});
   assert.ok(Array.isArray(notion));
   const text = readFileSync(path.join(ROOT, 'lib/transforms/_shared/error.v2.mjs'), 'utf8');
   assert.deepEqual([...text.matchAll(/^import|^export \{TransformError\} from '(.+)'/gm)].map(match => match[0]), ["export {TransformError} from './error.v1.mjs'"]);

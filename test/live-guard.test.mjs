@@ -4,7 +4,7 @@ import {createHash, createHmac, randomBytes} from 'node:crypto';
 import {mkdtempSync, readFileSync, rmSync, statSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
-import {createGuard, newRunId, GUARD_WORDS, LIMITS, GUEST, SHARE_RULE, PERMANENT_DELETE, NOTION_PERMANENT_DELETE, RULES, guardFile, signInFile} from '../lib/live-guard.mjs';
+import {createGuard, newRunId, GUARD_WORDS, LIMITS, GUEST, SHARE_RULE, PERMANENT_DELETE, NOTION_PERMANENT_DELETE, PROBE_COLUMN, RULES, SECOND_GUEST, SOON_TESTS, guardFile, signInFile} from '../lib/live-guard.mjs';
 
 // F10.12 part 1 (docs/F10.12-BUILD-MAP.md section 3, test/live-guard.test.mjs): the live guard on its own, pure, with no network. A
 // scripted inner requester stands for the provider, so a request the guard passes is answered and one it refuses never reaches it.
@@ -169,6 +169,17 @@ test('guard 19 (F10.17): GitHub reads outside the sandbox only GET /user, /user/
     ['is:issue user:someone repo:samikasasbeh/fabric-sandbox-test', 'a user']]) refuses(guard, at(GH, 'GET', '/search/issues', {q: {q}}), 'repository', note);
   refuses(guard, at(GH, 'GET', '/search/issues'), 'repository', 'no q at all');
   refuses(guard, at(GH, 'GET', '/search/code', {q: {q: 'repo:samikasasbeh/fabric-sandbox-test x'}}), 'repository', 'another search');
+});
+
+// Iteration 9 part 3g: the guard lines a read probe needs, landed ahead of step 9. Each passes the probe's own request and refuses its near miss.
+test('guard 19b (I07): GitHub\'s notification inbox reads with GET only, and no route below it', async t => {
+  const {guard} = await githubRun(t);
+  guard.begin('N1');
+  for (const q of [undefined, {all: 'true', per_page: '1'}, {all: 'true', since: '2026-10-01T00:00:00Z', per_page: '50'}]) passes(guard, at(GH, 'GET', '/notifications', q ? {q} : {}), 'the inbox');
+  for (const route of ['/notifications/threads/1', '/notifications/threads/1/subscription', '/repos/someone/else/notifications']) refuses(guard, at(GH, 'GET', route), 'repository', route);
+  for (const method of ['PUT', 'PATCH', 'POST']) refuses(guard, at(GH, method, '/notifications', {body: {read: true}}), 'repository', method);
+  refuses(guard, at(GH, 'DELETE', '/notifications'), 'repository', 'a delete');
+  assert.ok(RULES.github.allowlist.some(pair => `${pair.method} ${pair.path}` === 'GET notifications'));
 });
 
 test('guard 20 (F10.17): GitHub branches: refs, contents and deletes only on this run\'s branches; a pull opens from one, into main or one; a merge only of a pull this run opened into its own branch', async t => {
@@ -947,16 +958,50 @@ test('guard 21 (F10.15): Gmail\'s locked row is refused by name, whatever the me
   for (const [method, route, body] of [['DELETE', '/messages/m3'], ['DELETE', '/threads/t3'], ['DELETE', '/drafts/r-made'], ['DELETE', '/labels/Label_5'], ['DELETE', '/settings/filters/f1'],
     ['POST', '/messages/batchDelete', {ids: ['m3']}], ['POST', '/messages/import', {raw: raw([`To: ${OWNER}`, `Subject: ${text('G10')}`])}], ['POST', '/messages', {raw: raw([`To: ${OWNER}`, `Subject: ${text('G10')}`])}],
     ['POST', '/messages/m3/modify', {addLabelIds: ['STARRED']}], ['PUT', '/labels/Label_5', {name: text('G10')}], ['PATCH', '/labels/Label_5', {name: text('G10')}], ['PUT', '/settings/imap', {enabled: false}],
-    ['GET', '/history'], ['GET', '/drafts'], ['GET', '/threads'], ['GET', '/settings/filters'], ['GET', '/messages/m3/attachments/a1']]) {
+    ['GET', '/drafts'], ['GET', '/threads'], ['GET', '/settings/filters'], ['GET', '/messages/m3/attachments/a1']]) {
     refuses(guard, at(GMAIL, method, route, body === undefined ? {} : {body}), 'not_allowlisted', `${method} ${route}`);
   }
   // checkPlan() (lib/live-certify.mjs) compares each write placement with the list: the reads and writes above, below Gmail's base.
   const pairs = RULES.gmail.allowlist.map(pair => `${pair.method} ${pair.path}`);
   for (const pair of ['POST messages/send', 'POST drafts', 'PUT drafts/:draft', 'POST drafts/send', 'POST labels', 'POST messages/batchModify', 'POST threads/:id/modify', 'POST messages/:id/trash',
     'POST messages/:id/untrash', 'POST threads/:id/trash', 'POST threads/:id/untrash', 'PUT settings/vacation', 'POST settings/filters', 'GET messages', 'GET messages/:id', 'GET threads/:id',
-    'GET drafts/:draft', 'GET labels', 'GET labels/:label', 'GET settings/vacation', 'GET settings/filters/:filter', 'GET profile']) assert.ok(pairs.includes(pair), pair);
-  assert.equal(pairs.length, 22, 'nothing more');
+    'GET drafts/:draft', 'GET labels', 'GET labels/:label', 'GET settings/vacation', 'GET settings/filters/:filter', 'GET profile', 'GET history']) assert.ok(pairs.includes(pair), pair);
+  assert.equal(pairs.length, 23, 'nothing more');
   for (const word of ['mailbox', 'label', 'vacation', 'filter']) assert.match(GUARD_WORDS[word], /Nothing was sent\.$/);
+});
+
+test('guard 20b (I07): a read probe lists the events of the one calendar the owner recorded as left by an earlier run, with no bounds, and nothing else opens', async t => {
+  const LEFT = 'left-over@group.calendar.google.com', OTHER = 'someone-else@group.calendar.google.com', recorded = {...OWNER_FACTS.recorded, leftoverCalendar: LEFT};
+  const {guard} = await calendarRun(t, {owner: {...OWNER_FACTS, recorded}});
+  guard.begin('P2');
+  const events = enc(LEFT);
+  for (const q of [{maxResults: '250'}, {syncToken: 'token-1', maxResults: '250', showHiddenInvitations: 'true'}]) passes(guard, cal('GET', `/calendars/${events}/events`, {q}), 'the recorded calendar');
+  refuses(guard, cal('GET', `/calendars/${enc(OTHER)}/events`, {q: {maxResults: '250'}}), 'calendar', 'another calendar');
+  refuses(guard, cal('GET', `/calendars/${events}/events`, {q: {timeMin: '2026-10-31T10:00:00-04:00'}}), 'calendar', 'a bound takes the run\'s own rule');
+  for (const route of [`/calendars/${events}`, `/calendars/${events}/events/e1`, `/calendars/${events}/acl`]) refuses(guard, cal('GET', route), 'calendar', route);
+  refuses(guard, cal('POST', `/calendars/${events}/events`, {q: {sendUpdates: 'none'}, body: {summary: text('P2')}}), 'calendar', 'a write');
+  refuses(guard, cal('DELETE', `/calendars/${events}/events/e1`, {q: {sendUpdates: 'none'}}), 'calendar', 'a delete');
+  // With nothing recorded, the same read is refused, and a recorded primary calendar still takes the primary rule.
+  const plain = await calendarRun(t);
+  plain.guard.begin('P2');
+  refuses(plain.guard, cal('GET', `/calendars/${events}/events`, {q: {maxResults: '250'}}), 'calendar', 'nothing recorded');
+  const owner = await calendarRun(t, {owner: {...OWNER_FACTS, recorded: {...OWNER_FACTS.recorded, leftoverCalendar: OWNER}}});
+  owner.guard.begin('P2');
+  refuses(owner.guard, cal('GET', `/calendars/${enc(OWNER)}/events`, {q: {maxResults: '250'}}), 'primary', 'the owner\'s own calendar');
+});
+
+test('guard 21b (I07): Gmail\'s history list takes only its three query names, and a history read lists nothing the guard then lets a read reach', async t => {
+  const {guard} = await gmailRun(t);
+  guard.begin('U2');
+  for (const q of [{startHistoryId: '1'}, {startHistoryId: '4194304', maxResults: '500'}, {startHistoryId: '4194304', maxResults: '500', pageToken: 'page-2'}]) passes(guard, at(GMAIL, 'GET', '/history', {q}), JSON.stringify(q));
+  for (const q of [{startHistoryId: '1', labelId: 'INBOX'}, {startHistoryId: '1', historyTypes: 'messageAdded'}, {startHistoryId: '1', q: '"[SYNTHETIC] Fabric x"'}, {startHistoryId: '1', fields: 'history'}]) {
+    refuses(guard, at(GMAIL, 'GET', '/history', {q}), 'mailbox', Object.keys(q)[1]);
+  }
+  for (const route of ['/history/1', '/history/list']) refuses(guard, at(GMAIL, 'GET', route), 'not_allowlisted', route);
+  refuses(guard, at(GMAIL, 'POST', '/history', {body: {startHistoryId: '1'}}), 'not_allowlisted', 'a POST');
+  assert.equal(RULES.gmail.route({method: 'GET', segments: ['history'], query: new URLSearchParams({startHistoryId: '1'}), body: null}, {}).lists, undefined, 'a history answer lists no id for a read to reach');
+  refuses(guard, at(GMAIL, 'GET', '/messages/not-this-run'), 'mailbox', 'an id a history answer named stays out of reach');
+  guard.end();
 });
 
 test('guard 22 (F10.15): a sent message\'s thread joins the run only from a passed send\'s answer, once, and survives a restart; a draft\'s does not', async t => {
@@ -1131,5 +1176,151 @@ test('guard N4: Notion\'s token introspection passes as sign-in, inside a test o
   assert.deepEqual(guard.counts().writes, 2, 'only N1\'s page and N9\'s comment count');
   refuses(guard, {url: 'https://api.notion.com/v1/oauth/revoke', method: 'POST', headers: {}, body: '{}'}, 'revocation');
   assert.deepEqual(RULES.notion.allowlist.filter(pair => pair.method !== 'GET').map(pair => `${pair.method} ${pair.path}`).sort(),
-    ['DELETE blocks/:block', 'DELETE comments/:comment', 'PATCH pages/:page', 'PATCH pages/:page/markdown', 'POST comments', 'POST data_sources/:source/query', 'POST pages', 'POST pages/:page/move', 'POST search']);
+    ['DELETE blocks/:block', 'DELETE comments/:comment', 'PATCH data_sources/:source', 'PATCH pages/:page', 'PATCH pages/:page/markdown', 'POST comments', 'POST data_sources/:source/query', 'POST pages', 'POST pages/:page/move', 'POST search']);
+});
+
+// ---- Iteration 9 part 9b (docs/I07-BUILD-MAP.md part 9b): what the trigger plans send that no action plan does. Each row holds its near misses, so a widening stays one value wide. ------------------
+test('guard I1 (I07): Gmail\'s search reads the one literal newer_than:7d, wherever it stands, and no other term with an underscore', async t => {
+  const {guard} = await gmailRun(t), quoted = text('TG5', 'searched');
+  guard.begin('TG5');
+  passes(guard, search(`subject:"${quoted}" newer_than:7d`), 'as the trigger sends it');
+  passes(guard, search(`newer_than:7d subject:"${quoted}"`), 'first');
+  passes(guard, search(`from:"me" subject:"${quoted}" has:attachment newer_than:7d`), 'beside the rest of Fabric\'s form');
+  refuses(guard, search('newer_than:7d'), 'mailbox', 'alone it reads the whole week\'s mail');
+  for (const term of ['newer_than:30d', 'newer_than:7', 'newer_than:7dx', 'newer_than:8d', 'older_than:7d', 'NEWER_THAN:7d', '-newer_than:7d', '"newer_than:7d"x']) refuses(guard, search(`subject:"${quoted}" ${term}`), 'mailbox', term);
+  refuses(guard, search(`subject:"${quoted}"  newer_than:7d`), 'mailbox', 'two spaces');
+  refuses(guard, search(`subject:"${quoted}" newer_than:7d OR from:other`), 'mailbox', 'what follows it is still read');
+  refuses(guard, search('newer_than:7d label:inbox'), 'mailbox', 'it is no synthetic term');
+});
+
+test('guard I2 (I07): a guest is fabric-guest@example.com or the one second account the run recorded, and no one else', async t => {
+  const SECOND = 'second-test@example.net', {guard} = await calendarRun(t, {owner: {...OWNER_FACTS, recorded: {...OWNER_FACTS.recorded, [SECOND_GUEST]: SECOND}}}), invite = attendees => insert(RUN_A, event('TC-guest', {attendees}));
+  assert.equal(SECOND_GUEST, 'secondGuest');
+  guard.begin('TC-guest');
+  passes(guard, invite([{email: SECOND}]));
+  passes(guard, invite([{email: SECOND.toUpperCase()}]), 'an address in any case');
+  passes(guard, invite([{email: GUEST}, {email: SECOND}]));
+  for (const email of ['second-test@example.net.evil.test', 'x-second-test@example.net', 'second-test@example.com']) refuses(guard, invite([{email}]), 'guest', email);
+  guard.end();
+  // With nothing recorded nothing opens, an entry with no address included.
+  const plain = await calendarRun(t);
+  plain.guard.begin('TC-guest');
+  refuses(plain.guard, insert(RUN_A, event('TC-guest', {attendees: [{email: SECOND}]})), 'guest', 'not recorded');
+  refuses(plain.guard, insert(RUN_A, event('TC-guest', {attendees: [{displayName: 'No address'}]})), 'guest', 'no address');
+});
+
+test('guard I3 (I07): only the two tests of an event about to start reach past day 7: an event on a run calendar within the hour, with no guest and no repeat, and a list of the next hour', async t => {
+  const start = Date.parse('2026-10-24T12:00:00.000Z'), {guard} = await calendarRun(t, {start}), iso = minutes => new Date(start + minutes * 60_000).toISOString().replace('.000Z', 'Z');
+  const soon = (id, startAt = 10, endAt = 40, extra = {}) => event(id, {start: {dateTime: iso(startAt), timeZone: 'UTC'}, end: {dateTime: iso(endAt), timeZone: 'UTC'}, ...extra});
+  const list = (from, to, calendar = RUN_A) => cal('GET', `/calendars/${enc(calendar)}/events`, {q: {singleEvents: 'true', orderBy: 'startTime', timeMin: from, timeMax: to}});
+  assert.deepEqual([...SOON_TESTS].sort(), ['TC-soon', 'TC-soon-watch']);
+  guard.begin('TC-soon');
+  const verdict = passes(guard, insert(RUN_A, soon('TC-soon')));
+  assert.deepEqual([verdict.write, verdict.creates], [true, 'event']);
+  passes(guard, insert(RUN_B, soon('TC-soon', 1, 2)), 'the other run calendar, at the edge of now');
+  passes(guard, insert(RUN_A, soon('TC-soon', 60, 120)), 'the edge of the hour');
+  passes(guard, list(iso(0), iso(15)));
+  passes(guard, list(iso(-4), iso(60)), 'a poll built a moment before the guard read it');
+  refuses(guard, insert(RUN_A, soon('TC-soon', 61, 90)), 'soon', 'past the hour');
+  refuses(guard, insert(RUN_A, soon('TC-soon', 10, 121)), 'soon', 'an end past two hours');
+  refuses(guard, insert(RUN_A, soon('TC-soon', 0, 30)), 'soon', 'one that has started');
+  refuses(guard, insert(RUN_A, soon('TC-soon', 40, 30)), 'soon', 'an end before its start');
+  refuses(guard, insert(RUN_A, soon('TC-soon', 10, 40, {attendees: [{email: GUEST}]})), 'soon', 'no guests here');
+  refuses(guard, insert(RUN_A, soon('TC-soon', 10, 40, {recurrence: ['RRULE:FREQ=DAILY;COUNT=2']})), 'soon', 'no repeat');
+  refuses(guard, insert(RUN_A, soon('TC-soon', 10, 40, {originalStartTime: {dateTime: iso(10)}})), 'soon', 'no instance of a series');
+  refuses(guard, insert(RUN_A, soon('TC-soon', 10, 40, {start: {dateTime: iso(10), timeZone: 'Not/AZone'}})), 'body', 'a zone Intl does not know');
+  refuses(guard, insert(RUN_A, soon('TC-soon', 10, 40, {end: {dateTime: iso(40), timeZone: 'Not/AZone'}})), 'body', 'on its end too');
+  refuses(guard, insert(RUN_A, soon('TC-soon', 10, 40, {summary: 'Team sync'})), 'text', 'still synthetic');
+  refuses(guard, insert(RUN_A, soon('TC-soon'), {}), 'notifications', 'still sends no notification');
+  refuses(guard, insert('primary', soon('TC-soon')), 'primary', 'still only a run calendar');
+  refuses(guard, insert(RUN_A, event('TC-soon', {start: {date: '2026-10-24'}, end: {date: '2026-10-25'}})), 'soon', 'an all-day event');
+  refuses(guard, insert(RUN_A, event('TC-soon')), 'soon', 'the run window is no part of this test');
+  refuses(guard, list(iso(-6), iso(15)), 'soon', 'a list that reaches back');
+  refuses(guard, list(iso(-4), iso(-1)), 'soon', 'a list of what has passed');
+  refuses(guard, list(iso(0), iso(61)), 'soon', 'a list that reaches past the hour');
+  refuses(guard, list(iso(0), '2026-11-02T10:00:00-05:00'), 'soon', 'a list of the run window');
+  refuses(guard, cal('GET', `/calendars/${enc(RUN_A)}/events`, {q: {timeMin: iso(0)}}), 'soon', 'a list with one bound');
+  refuses(guard, list(iso(0), iso(15), 'primary'), 'primary', 'not the owner\'s own calendar');
+  refuses(guard, list(iso(0), iso(15), 'other@group.calendar.google.com'), 'calendar', 'nor another');
+  refuses(guard, cal('PATCH', `/calendars/${enc(RUN_A)}/events/e1`, {q: {sendUpdates: 'none'}, body: {start: {dateTime: iso(10)}}}), 'window', 'an edit stays in the window');
+  guard.end();
+  // The watch test lists, and makes nothing past the window's rule: its one job is the list.
+  guard.begin('TC-soon-watch');
+  passes(guard, list(iso(0), iso(15)));
+  guard.end();
+  // Any other test holds the window as ever.
+  guard.begin('C2');
+  refuses(guard, insert(RUN_A, soon('C2')), 'window', 'another test');
+  refuses(guard, list(iso(0), iso(15)), 'window', 'another test');
+  passes(guard, insert(RUN_A, event('C2')));
+  guard.end();
+  guard.begin('TC-soonish');
+  refuses(guard, list(iso(0), iso(15)), 'window', 'a name that only starts the same');
+});
+
+test('guard I4 (I07): one ask publishes a prerelease, of this run\'s own branch and tag, with a synthetic name', async t => {
+  const {guard} = await githubRun(t), branch = `fabric/test-${RUN}-rel`, body = (extra = {}) => ({tag_name: branch, target_commitish: branch, name: text('TH8', 'release'), draft: false, prerelease: true, ...extra}), publish = extra => at(SANDBOX, 'POST', '/releases', {body: body(extra)});
+  guard.begin('TH8');
+  assert.equal(passes(guard, publish()).write, true);
+  passes(guard, publish({tag_name: `fabric/test-${RUN}`, target_commitish: `fabric/test-${RUN}`}), 'the run\'s plain branch');
+  for (const [extra, rule, note] of [[{tag_name: 'v1.0.0'}, 'branch', 'a tag of the repository\'s own'], [{target_commitish: 'main'}, 'branch', 'main'], [{tag_name: 'fabric/test-AAAAAAAA'}, 'branch', 'another run'], [{target_commitish: undefined}, 'branch', 'no branch'],
+    [{name: 'Version 1'}, 'text', 'a plain name'], [{name: undefined}, 'text', 'no name'], [{draft: true}, 'release', 'a draft is what `release-published` filters out'], [{draft: undefined}, 'release', 'no draft flag'], [{prerelease: false}, 'release', 'a full release moves `latest`'],
+    [{prerelease: undefined}, 'release', 'no prerelease flag'], [{prerelease: 'true'}, 'release', 'text'], [{body: 'Notes'}, 'body', 'no notes'], [{generate_release_notes: true}, 'body', 'no generated notes'], [{make_latest: 'true'}, 'body', 'no latest'], [{discussion_category_name: 'General'}, 'body', 'no discussion']]) refuses(guard, publish(extra), rule, note);
+  refuses(guard, at(`${GH}/repos/samikasasbeh/other`, 'POST', '/releases', {body: body()}), 'repository', 'another repository');
+  refuses(guard, at(SANDBOX, 'PATCH', '/releases/1', {body: {draft: false}}), 'not_allowlisted', 'no edit');
+  refuses(guard, at(SANDBOX, 'DELETE', '/releases/1'), 'not_allowlisted', 'no delete');
+  refuses(guard, at(SANDBOX, 'POST', '/releases/1/assets', {body: {}}), 'not_allowlisted', 'no asset');
+});
+
+test('guard I6b (I07): the one mention is a post of TR3, so an edit of that post may not hold it', async t => {
+  const {guard} = slackRun(t), mention = `${text('TR3', '').trimEnd()} <@${SLACK_RECORDED.ownerUser}>`, ts = '1761490000.000200', send = guard.wrap(async () => ({status: 200, data: {ok: true, ts}}));
+  guard.begin('TR3');
+  await send(post('TR3', {text: mention}));
+  passes(guard, slackCall('POST', 'chat.update', {channel: 'C0FABTEST1', ts, text: text('TR3', 'plain'), parse: 'none', link_names: false}), 'an edit with no mention');
+  refuses(guard, slackCall('POST', 'chat.update', {channel: 'C0FABTEST1', ts, text: mention, parse: 'none', link_names: false}), 'slack_mention', 'the same text, through an edit');
+  guard.end();
+});
+
+test('guard I5 (I07): one ask adds or removes one column by its fixed name, on the recorded data source, and nothing else of a schema moves', async t => {
+  const {guard, send} = await notionRun(t), column = (value, source = SOURCE, name = PROBE_COLUMN) => notion('PATCH', `/data_sources/${source}`, {body: {properties: {[name]: value}}});
+  assert.equal(PROBE_COLUMN, '[SYNTHETIC] Fabric trigger probe');
+  guard.begin('T6');
+  assert.equal(passes(guard, column({rich_text: {}})).write, true);
+  passes(guard, column(null), 'its undo');
+  passes(guard, column({rich_text: {}}, SOURCE.replace(/-/g, '')), 'an id in either form');
+  await send(column({rich_text: {}}));
+  assert.equal(guard.counts().testWrites.T6, 1, 'it counts as a change');
+  refuses(guard, column({rich_text: {}}, OTHER), 'notion_area', 'another data source');
+  for (const name of ['Status', 'title', '[SYNTHETIC] Fabric trigger probe 2', '[synthetic] fabric trigger probe']) refuses(guard, column(null, SOURCE, name), 'notion_column', name);
+  for (const value of [{number: {}}, {type: 'rich_text', rich_text: {}}, {rich_text: {x: 1}}, {name: 'Renamed'}, {select: {options: []}}, {relation: {data_source_id: OTHER}}, {}, 1, 'x', true]) refuses(guard, column(value), 'notion_column', JSON.stringify(value));
+  refuses(guard, notion('PATCH', `/data_sources/${SOURCE}`, {body: {properties: {[PROBE_COLUMN]: null, Status: null}}}), 'notion_column', 'two columns');
+  refuses(guard, notion('PATCH', `/data_sources/${SOURCE}`, {body: {properties: {}}}), 'notion_column', 'no column');
+  refuses(guard, notion('PATCH', `/data_sources/${SOURCE}`, {body: {properties: {[PROBE_COLUMN]: null}, title: pieces(text('T6'))}}), 'body', 'a rename of the source');
+  refuses(guard, notion('PATCH', `/data_sources/${SOURCE}`, {body: {in_trash: true}}), 'body', 'trash');
+  refuses(guard, notion('PATCH', `/data_sources/${SOURCE}`, {body: {}}), 'notion_column', 'nothing');
+  refuses(guard, notion('POST', '/data_sources', {body: {parent: {database_id: DATABASE}, properties: {}}}), 'not_allowlisted', 'a new data source');
+});
+
+test('guard I6 (I07): Slack reads every <...> as a mention or a link whatever `parse` says, so a text holds none, but TR3\'s one mention of the owner', t => {
+  const {guard} = slackRun(t), mention = `${text('TR3', '').trimEnd()} <@${SLACK_RECORDED.ownerUser}>`, send = textValue => post('TR3', {text: textValue});
+  guard.begin('TR3');
+  passes(guard, send(mention));
+  passes(guard, send(text('TR3', 'plain')), 'the plain form');
+  for (const [value, note] of [[`${text('TR3', '').trimEnd()} <@U0OTHER01>`, 'another person'], [`${text('TR3', '').trimEnd()} <!channel>`, 'the channel'], [`${text('TR3', '').trimEnd()} <!here>`, 'here'], [`${text('TR3', '').trimEnd()} <!everyone>`, 'everyone'],
+    [`${text('TR3', '').trimEnd()} <#C0OTHER01>`, 'a channel link'], [`${text('TR3', '').trimEnd()} <https://example.com|click>`, 'a link'], [`${mention} <@${SLACK_RECORDED.ownerUser}>`, 'two mentions'], [`${mention} more`, 'words after it'], [`${text('TR3', 'words')} <@${SLACK_RECORDED.ownerUser}>`, 'words before it'],
+    [`${mention}<https://example.com>`, 'a link beside it'], [`${text('TR3', '').trimEnd()} <!subteam^S0TEAM01>`, 'a user group'], [`${text('TR3', '').trimEnd()} <@${SLACK_RECORDED.ownerUser}|name>`, 'a label']]) refuses(guard, send(value), 'slack_mention', note);
+  for (const extra of [{parse: 'full'}, {link_names: true}, {unfurl_links: true}, {unfurl_media: true}]) refuses(guard, post('TR3', {text: mention, ...extra}), 'body', JSON.stringify(extra));
+  refuses(guard, post('TR3', {text: mention, channel: 'C0OTHER01'}), 'slack_channel', 'only #fabric-test');
+  guard.end();
+  // The one mention is TR3's alone, and neither an edit nor a schedule holds one.
+  guard.begin('S2');
+  refuses(guard, post('S2', {text: `${text('S2', '').trimEnd()} <@${SLACK_RECORDED.ownerUser}>`}), 'slack_mention', 'another test');
+  guard.end();
+  const atNoOwner = guardOf(t, {appId: 'slack', start: SLACK_START});
+  atNoOwner.guard.setOwner({email: 'owner@example.com', timeZone: 'UTC', runDate: '2026-10-26', recorded: {fabricTest: 'C0FABTEST1'}});
+  atNoOwner.guard.begin('TR3');
+  refuses(atNoOwner.guard, post('TR3', {text: `${text('TR3', '').trimEnd()} <@undefined>`}), 'slack_mention', 'no recorded member');
+  guard.begin('TR3');
+  refuses(guard, slackCall('POST', 'chat.scheduleMessage', {channel: 'C0FABTEST1', text: mention, post_at: NOW_SECONDS + 600, parse: 'none', link_names: false, unfurl_links: false, unfurl_media: false}), 'slack_mention', 'a schedule');
+  refuses(guard, slackCall('POST', 'chat.update', {channel: 'C0FABTEST1', ts: '1.1', text: mention, parse: 'none', link_names: false}), 'slack_message', 'an edit of no message of this run');
 });

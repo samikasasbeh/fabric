@@ -38,7 +38,7 @@ async function openPull(simulator, {name = 'feature/one', draft = false} = {}) {
 test('the seam: only the headers asked for come back, an answer over maxBytes throws sent true, and requests refused before sending are never recorded', async () => {
   const simulator = sim();
   const user = await simulator.request({url: `${ORIGIN}/user`, method: 'GET', headers: AUTH, allowedOrigins: [ORIGIN]});
-  assert.deepEqual(Object.keys(user.headers).sort(), ['content-type'], 'the seam\'s default list: content-type, etag, retry-after, x-ratelimit-remaining');
+  assert.deepEqual(Object.keys(user.headers).sort(), ['content-type', 'x-ratelimit-remaining'], 'the seam\'s default list: content-type, etag, retry-after, x-ratelimit-remaining');
   assert.deepEqual([user.status, user.data.login, user.data.id], [200, 'octo-a', 101]);
   assert.deepEqual(Object.keys((await send(simulator, 'GET', '/user', {responseHeaders: ['x-oauth-scopes']})).headers), ['x-oauth-scopes']);
   await assert.rejects(send(simulator, 'GET', '/user/repos', {maxBytes: 64}), error => error.sent === true && /size limit/.test(error.message));
@@ -102,7 +102,8 @@ test('repositories: /user/repos pages with per_page, page and a Link header, and
   assert.deepEqual(first.data.map(repo => [repo.private, repo.default_branch, repo.archived, repo.permissions.push]), [[true, 'main', false, true], [true, 'main', false, true]]);
   const second = await send(simulator, 'GET', '/user/repos', {query: {per_page: 2, page: 2, sort: 'updated'}});
   assert.deepEqual([second.data.map(repo => repo.full_name), second.headers.link], [['octo-a/public-notes'], '<https://api.github.com/user/repos?per_page=2&page=1&sort=updated>; rel="prev", <https://api.github.com/user/repos?per_page=2&page=1&sort=updated>; rel="first"']);
-  assert.equal((await send(simulator, 'GET', '/user/repos', {query: {per_page: 101}})).status, 422);
+  const capped = await send(simulator, 'GET', '/user/repos', {query: {per_page: 101}});
+  assert.ok(capped.status === 200 && capped.data.length <= 100, 'Iteration 9 listed churn: a per_page past the cap is cut in silence');
   const one = await send(simulator, 'GET', repoPath(SANDBOX, ''));
   assert.deepEqual([one.data.full_name, one.data.owner.login, typeof one.data.temp_clone_token], [SANDBOX, 'octo-a', 'string']);
   assert.equal((await send(simulator, 'GET', repoPath('octo-a/missing', ''))).status, 404);
@@ -385,6 +386,318 @@ test('swallow on a contents PUT answers 201 with the new blob, and the file is n
   assert.deepEqual([answer.status, answer.data.content.path, typeof answer.data.content.sha, answer.data.content.size], [201, 'docs/swallowed.md', 'string', 6]);
   assert.equal((await getFile(simulator, 'docs/swallowed.md')).status, 404);
   assert.equal(simulator.state().blobs[answer.data.content.sha], undefined, 'the blob it made is not kept');
+});
+
+// ---- Iteration 9 step 6 (docs/I07-BUILD-MAP.md step 6): what a poll reads, written from GitHub's REST reference and pagination page -------------
+const LIST_HEADERS = [...ALL_HEADERS, 'etag', 'last-modified', 'x-poll-interval', 'x-ratelimit-limit', 'x-ratelimit-remaining', 'x-ratelimit-reset', 'x-ratelimit-used', 'x-ratelimit-resource'];
+const START = Date.parse('2026-10-23T13:00:00.000Z');
+/** A simulator on a clock a test moves. */
+const moving = (options = {}) => { let now = START; return {simulator: sim({clock: () => now, ...options}), step: ms => { now += ms; }, now: () => now}; };
+const read = (simulator, path, options = {}) => send(simulator, 'GET', path, {responseHeaders: LIST_HEADERS, redirect: 'report', ...options});
+const newIssue = (simulator, title) => send(simulator, 'POST', repoPath(SANDBOX, '/issues'), {body: {title}});
+const numbers = answer => answer.data.map(item => item.number);
+
+test('the issues list: open only, newest created first, by default; state, sort, direction and since; pull requests included with pull_request', async () => {
+  const {simulator, step} = moving(), list = query => read(simulator, repoPath(SANDBOX, '/issues'), {query});
+  assert.deepEqual(numbers(await list({})), [3, 2, 1]);
+  step(60_000);
+  await send(simulator, 'PATCH', repoPath(SANDBOX, '/issues/1'), {body: {state: 'closed'}});
+  step(60_000);
+  await send(simulator, 'PATCH', repoPath(SANDBOX, '/issues/2'), {body: {title: 'Renamed'}});
+  assert.deepEqual(numbers(await list({})), [3, 2], 'a closed issue leaves the default list');
+  assert.deepEqual(numbers(await list({state: 'closed'})), [1]);
+  assert.deepEqual(numbers(await list({state: 'all', sort: 'updated', direction: 'asc'})), [3, 1, 2]);
+  assert.deepEqual(numbers(await list({state: 'all', sort: 'updated'})), [2, 1, 3], 'direction defaults to desc');
+  assert.deepEqual(numbers(await list({state: 'all', sort: 'created', direction: 'asc'})), [1, 2, 3]);
+  assert.deepEqual(numbers(await list({state: 'all', since: new Date(START + 120_000).toISOString()})), [2], 'since is inclusive and reads updated_at');
+  for (const query of [{state: 'nothing'}, {sort: 'nothing'}, {direction: 'up'}, {since: 'yesterday'}]) assert.equal((await list(query)).status, 422, JSON.stringify(query));
+  simulator.seedFile(SANDBOX, 'main', 'a.txt', 'a');
+  await branchFrom(simulator, 'side');
+  simulator.seedFile(SANDBOX, 'side', 'b.txt', 'b');
+  await send(simulator, 'POST', repoPath(SANDBOX, '/pulls'), {body: {title: 'Pull', head: 'side', base: 'main'}});
+  const [pull] = (await list({})).data;
+  assert.deepEqual([pull.number, typeof pull.pull_request.html_url, pull.pull_request.merged_at], [4, 'string', null]);
+  simulator.deleteIssue(SANDBOX, 3);
+  assert.ok(!numbers(await list({state: 'all'})).includes(3), 'a deleted issue leaves the list');
+});
+
+test('seedIssues: thousands of issues at one call, spaced as asked, and a list reads only its page', async () => {
+  const {simulator} = moving();
+  simulator.seedIssues(SANDBOX, 500, {at: START - 1_000_000, spacingMs: 2000});
+  const answer = await read(simulator, repoPath(SANDBOX, '/issues'), {query: {state: 'all', sort: 'updated', direction: 'desc', per_page: 1}});
+  assert.deepEqual([answer.data.length, answer.data[0].number, answer.data[0].updated_at], [1, 3, '2026-10-23T13:00:00Z'], 'the three the sandbox started with are the latest');
+  assert.match(answer.headers.link, /rel="last"/);
+});
+
+test('the comments list: ascending id by default, direction ignored without sort, sort and since read updated_at', async () => {
+  const {simulator, step} = moving(), path = repoPath(SANDBOX, '/issues/comments');
+  const say = async (number, body) => (await send(simulator, 'POST', repoPath(SANDBOX, `/issues/${number}/comments`), {body: {body}})).data.id;
+  const first = await say(1, 'One');
+  step(60_000);
+  const second = await say(2, 'Two');
+  step(60_000);
+  simulator.editComment(SANDBOX, first, 'One, edited');
+  const ids = answer => answer.data.map(item => item.id);
+  assert.deepEqual(ids(await read(simulator, path)), [first, second]);
+  assert.deepEqual(ids(await read(simulator, path, {query: {direction: 'desc'}})), [first, second], 'direction means nothing without sort');
+  assert.deepEqual(ids(await read(simulator, path, {query: {sort: 'updated', direction: 'desc'}})), [first, second]);
+  assert.deepEqual(ids(await read(simulator, path, {query: {sort: 'updated', direction: 'asc'}})), [second, first]);
+  assert.deepEqual(ids(await read(simulator, path, {query: {sort: 'created', direction: 'desc'}})), [second, first]);
+  assert.deepEqual(ids(await read(simulator, path, {query: {since: new Date(START + 120_000).toISOString()}})), [first]);
+  assert.equal((await read(simulator, path)).data[0].body, 'One, edited');
+  assert.equal((await read(simulator, path, {query: {sort: 'nothing'}})).status, 422);
+});
+
+test('the activity list: one row per ref change, newest first, a nullable actor, one activity_type, and opaque after and before', async () => {
+  const {simulator, step} = moving(), path = repoPath(SANDBOX, '/activity'), list = query => read(simulator, path, {query});
+  const before = simulator.head(SANDBOX, 'main');
+  assert.deepEqual((await list()).data, [], 'a new repository has moved no ref');
+  await branchFrom(simulator, 'side');
+  step(1000);
+  const head = simulator.push(SANDBOX, 'side', {text: 'one'});
+  step(1000);
+  simulator.push(SANDBOX, 'side', {text: 'two', force: true, actor: null});
+  step(1000);
+  await send(simulator, 'POST', repoPath(SANDBOX, '/pulls'), {body: {title: 'Pull', head: 'side', base: 'main'}});
+  await send(simulator, 'PUT', repoPath(SANDBOX, '/pulls/4/merge'), {body: {}});
+  await send(simulator, 'DELETE', repoPath(SANDBOX, '/git/refs/heads/side'));
+  const all = await list();
+  assert.deepEqual(all.data.map(row => [row.activity_type, row.ref]), [['branch_deletion', 'refs/heads/side'], ['pr_merge', 'refs/heads/main'], ['force_push', 'refs/heads/side'], ['push', 'refs/heads/side'], ['branch_creation', 'refs/heads/side']]);
+  assert.deepEqual([all.data[3].before, all.data[3].after, all.data[3].actor.login, all.data[2].actor], [before, head, 'octo-a', null]);
+  assert.ok(all.data.every(row => Number.isSafeInteger(row.id) && row.timestamp.endsWith('Z')));
+  assert.deepEqual((await list({activity_type: 'push'})).data.map(row => row.activity_type), ['push']);
+  const first = await list({per_page: 2}), after = /[?&]after=([^&>]+)/.exec(first.headers.link)?.[1];
+  assert.equal(first.data.length, 2);
+  assert.match(first.headers.link, /rel="next"/);
+  assert.ok(!/^[0-9]+$/.test(after), 'a cursor is opaque');
+  const second = await list({per_page: 2, after});
+  assert.deepEqual(second.data.map(row => row.activity_type), ['force_push', 'push']);
+  const back = await list({per_page: 2, before: /[?&]before=([^&>]+)/.exec(second.headers.link)?.[1]});
+  assert.deepEqual(back.data.map(row => row.activity_type), ['branch_deletion', 'pr_merge']);
+});
+
+test('the runs list: status takes statuses and conclusions, exclude_pull_requests empties pull_requests, total_count counts them all, finishRun and rerun move a run in its place', async () => {
+  const {simulator, step} = moving(), path = repoPath(SANDBOX, '/actions/runs'), list = query => read(simulator, path, {query}), ids = answer => answer.data.workflow_runs.map(run => run.id);
+  const old = simulator.addRun(SANDBOX, {conclusion: 'success', pullRequests: [{number: 9}]});
+  step(1000);
+  const failed = simulator.addRun(SANDBOX, {conclusion: 'failure'});
+  step(1000);
+  await send(simulator, 'POST', repoPath(SANDBOX, '/actions/workflows/fabric-synthetic.yml/dispatches'), {body: {ref: 'main'}});
+  const [{id: fresh}] = simulator.state().repos[SANDBOX].runs.slice(-1);
+  assert.deepEqual(ids(await list()), [fresh, failed, old], 'newest first');
+  assert.equal((await list()).data.total_count, 3);
+  assert.deepEqual(ids(await list({status: 'queued'})), [fresh]);
+  assert.deepEqual(ids(await list({status: 'completed'})), [failed, old]);
+  assert.deepEqual(ids(await list({status: 'failure'})), [failed], 'a conclusion reads through status');
+  assert.deepEqual((await list({per_page: 1})).data.workflow_runs.length, 1);
+  assert.equal((await list({per_page: 1})).data.total_count, 3, 'total_count is the whole list, not the page');
+  const shown = id => read(simulator, repoPath(SANDBOX, `/actions/runs/${id}`));
+  assert.deepEqual((await shown(old)).data.pull_requests, [{number: 9}]);
+  assert.deepEqual((await list({exclude_pull_requests: 'true'})).data.workflow_runs.find(run => run.id === old).pull_requests, []);
+  assert.deepEqual([(await shown(fresh)).data.status, (await shown(fresh)).data.run_attempt, (await shown(fresh)).data.conclusion], ['queued', 1, null]);
+  simulator.startRun(fresh);
+  assert.equal((await shown(fresh)).data.status, 'in_progress');
+  step(1000);
+  simulator.finishRun(fresh, 'cancelled');
+  assert.deepEqual([(await shown(fresh)).data.status, (await shown(fresh)).data.conclusion, (await shown(fresh)).data.updated_at], ['completed', 'cancelled', '2026-10-23T13:00:03Z']);
+  simulator.rerun(old);
+  assert.deepEqual([(await shown(old)).data.status, (await shown(old)).data.run_attempt, (await shown(old)).data.conclusion], ['queued', 2, null]);
+  assert.deepEqual(ids(await list({status: 'completed'})), [fresh, failed], 'a run being re-run leaves the finished list');
+  simulator.finishRun(old);
+  assert.deepEqual(ids(await list({status: 'completed'})), [fresh, failed, old], 'and comes back in its old place');
+  assert.throws(() => simulator.finishRun(1), /No run 1/);
+});
+
+test('a release keeps the notes it was given, so a list of long notes reaches a reader\'s size limit as GitHub\'s would', async () => {
+  const simulator = sim(), path = repoPath(SANDBOX, '/releases'), body = 'n'.repeat(125_000);
+  for (let index = 0; index < 30; index++) simulator.addRelease(SANDBOX, {tag: `v${index}`, body});
+  assert.deepEqual((await send(simulator, 'GET', path, {query: {per_page: 10}})).data.map(item => item.body.length), Array(10).fill(125_000));
+  await assert.rejects(send(simulator, 'GET', path, {query: {per_page: 30}, maxBytes: 2_097_152}), /size limit/);
+});
+
+test('the releases list: created_at is the commit date, a draft has no published_at and shows only with push access, and POST refuses a repeated tag', async () => {
+  const {simulator, step} = moving(), path = repoPath(SANDBOX, '/releases'), make = body => send(simulator, 'POST', path, {body});
+  step(3_600_000);
+  const draft = await make({tag_name: 'v1', draft: true}), live = await make({tag_name: 'v2', name: 'Two', prerelease: true});
+  assert.deepEqual([draft.status, draft.data.draft, draft.data.published_at, draft.data.created_at], [201, true, null, '2026-10-23T13:00:00Z']);
+  assert.deepEqual([live.data.published_at, live.data.created_at, live.data.prerelease, live.data.name, live.data.author.login], ['2026-10-23T14:00:00Z', '2026-10-23T13:00:00Z', true, 'Two', 'octo-a']);
+  assert.deepEqual((await read(simulator, path)).data.map(item => item.tag_name), ['v2', 'v1']);
+  simulator.grant(['read:user']);
+  assert.equal((await read(simulator, repoPath('octo-a/public-notes', '/releases'))).status, 200, 'a public repository reads with no scope');
+  simulator.grant(FIVE);
+  assert.equal((await make({tag_name: 'v2'})).status, 422);
+  assert.equal((await make({})).status, 422);
+  await send(simulator, 'POST', repoPath('octo-a/public-notes', '/releases'), {body: {tag_name: 'p1', draft: true}});
+  simulator.grant([]);
+  assert.deepEqual((await read(simulator, repoPath('octo-a/public-notes', '/releases'))).data, [], 'with no push access a draft is not listed');
+  simulator.grant(FIVE);
+  step(1000);
+  simulator.publishRelease(SANDBOX, draft.data.id);
+  const published = (await read(simulator, path)).data.find(item => item.id === draft.data.id);
+  assert.deepEqual([published.draft, published.published_at], [false, '2026-10-23T14:00:01Z']);
+  simulator.deleteRelease(SANDBOX, live.data.id);
+  assert.deepEqual((await read(simulator, path)).data.map(item => item.tag_name), ['v1']);
+});
+
+test('notifications: unread by default, all, participating and since, caps of 50 and 100, string ids, Last-Modified and X-Poll-Interval', async () => {
+  const {simulator, step} = moving(), list = query => read(simulator, '/notifications', {query}), ids = answer => answer.data.map(item => item.id);
+  const first = simulator.notify(SANDBOX, {reason: 'mention', title: 'One', participating: true});
+  step(60_000);
+  const second = simulator.notify('octo-a/public-notes', {reason: 'ci_activity', type: 'CheckSuite', title: 'Two'});
+  assert.equal(typeof first, 'string');
+  const answer = await list();
+  assert.deepEqual(ids(answer), [second, first], 'newest first');
+  assert.deepEqual([answer.data[0].repository.full_name, answer.data[0].reason, answer.data[0].subject.title, answer.data[0].subject.type, answer.data[0].unread], ['octo-a/public-notes', 'ci_activity', 'Two', 'CheckSuite', true]);
+  assert.deepEqual([answer.headers['last-modified'], answer.headers['x-poll-interval']], ['Fri, 23 Oct 2026 13:01:00 GMT', '60']);
+  simulator.markRead(second);
+  assert.deepEqual(ids(await list()), [first], 'a read thread leaves the default list');
+  assert.deepEqual(ids(await list({all: 'true'})), [second, first]);
+  assert.deepEqual(ids(await list({all: 'true', participating: 'true'})), [first]);
+  assert.deepEqual(ids(await list({all: 'true', since: new Date(START + 60_000).toISOString()})), [second]);
+  step(60_000);
+  assert.equal(simulator.notify(SANDBOX, {thread: first, title: 'One again'}), first, 'news on a thread keeps its id');
+  assert.deepEqual([ids(await list({all: 'true'})), (await list({all: 'true'})).data[0].subject.title], [[first, second], 'One again']);
+  for (let index = 0; index < 120; index++) simulator.notify(SANDBOX, {title: `Thread ${index}`});
+  assert.equal((await list({per_page: 100})).data.length, 50, 'the account list caps at 50 in silence');
+  assert.equal((await list({})).data.length, 50, 'and takes 50 by default');
+  const repository = read(simulator, repoPath(SANDBOX, '/notifications'));
+  assert.equal((await repository).data.length, 30, 'the repository list takes 30 by default');
+  assert.equal((await read(simulator, repoPath(SANDBOX, '/notifications'), {query: {per_page: 500}})).data.length, 100, 'and caps at 100');
+  assert.ok((await read(simulator, repoPath('octo-a/public-notes', '/notifications'), {query: {all: 'true'}})).data.every(item => item.repository.full_name === 'octo-a/public-notes'));
+  simulator.setPollInterval(300);
+  assert.equal((await list()).headers['x-poll-interval'], '300');
+  simulator.grant(['read:user']);
+  assert.equal((await list()).status, 403, 'the token needs repo or notifications');
+  simulator.grant(['notifications']);
+  assert.equal((await list()).status, 200);
+});
+
+test('a list carries a weak etag of its bytes, and a matching If-None-Match gives a body-less 304 as the seam answers it', async () => {
+  const {simulator} = moving(), path = repoPath(SANDBOX, '/issues'), first = await read(simulator, path);
+  assert.match(first.headers.etag, /^W\/"[0-9a-f]{40}"$/);
+  assert.equal((await read(simulator, path)).headers.etag, first.headers.etag, 'the same bytes, the same etag');
+  const again = await read(simulator, path, {headers: {...AUTH, 'If-None-Match': first.headers.etag}});
+  assert.deepEqual([again.status, again.data, again.notModified, again.redirected, again.headers.etag, again.headers.link], [304, null, true, undefined, first.headers.etag, undefined]);
+  assert.equal(simulator.calls.at(-1).status, 304);
+  assert.equal((await read(simulator, path, {headers: {...AUTH, 'If-None-Match': 'W/"other"'}})).status, 200);
+  await assert.rejects(read(simulator, path, {headers: {...AUTH, 'If-None-Match': first.headers.etag}, redirect: 'error'}), error => error.sent === true, 'with no report, the seam fails a 304');
+  await newIssue(simulator, 'New');
+  const moved = await read(simulator, path, {headers: {...AUTH, 'If-None-Match': first.headers.etag}});
+  assert.deepEqual([moved.status, moved.data.length, moved.headers.etag === first.headers.etag], [200, 4, false]);
+  assert.equal((await send(simulator, 'GET', repoPath(SANDBOX, ''), {responseHeaders: ['etag'], redirect: 'report'})).headers.etag, undefined, 'one repository is no list');
+  const one = await read(simulator, repoPath('octo-a/public-notes', '/actions/runs'));
+  assert.equal((await read(simulator, repoPath('octo-a/public-notes', '/actions/runs'), {headers: {...AUTH, 'If-None-Match': one.headers.etag}})).status, 304, 'a list under total_count too');
+});
+
+test('If-Modified-Since matches Last-Modified by its exact string, and a 304 still carries X-Poll-Interval', async () => {
+  const {simulator, step} = moving(), since = value => read(simulator, '/notifications', {headers: {...AUTH, 'If-Modified-Since': value}});
+  simulator.notify(SANDBOX, {title: 'One'});
+  const stamp = (await read(simulator, '/notifications')).headers['last-modified'];
+  const quiet = await since(stamp);
+  assert.deepEqual([quiet.status, quiet.data, quiet.notModified, quiet.headers['x-poll-interval'], quiet.headers['last-modified']], [304, null, true, '60', stamp]);
+  assert.equal((await since('Fri, 23 Oct 2026 12:00:00 GMT')).status, 200, 'another string reads in full, even an older time');
+  step(1000);
+  simulator.notify(SANDBOX, {title: 'Two'});
+  assert.equal((await since(stamp)).status, 200);
+});
+
+test('a list of a repository links its pages by /repositories/<id>, as GitHub does: next, last, prev and first', async () => {
+  const {simulator} = moving(), {id} = (await send(simulator, 'GET', repoPath(SANDBOX, ''))).data;
+  const first = await read(simulator, repoPath(SANDBOX, '/issues'), {query: {per_page: 1}});
+  assert.equal(first.headers.link, `<https://api.github.com/repositories/${id}/issues?per_page=1&page=2>; rel="next", <https://api.github.com/repositories/${id}/issues?per_page=1&page=3>; rel="last"`);
+  const middle = await read(simulator, repoPath(SANDBOX, '/issues'), {query: {per_page: 1, page: 2}});
+  assert.equal(middle.headers.link, `<https://api.github.com/repositories/${id}/issues?per_page=1&page=3>; rel="next", <https://api.github.com/repositories/${id}/issues?per_page=1&page=3>; rel="last", <https://api.github.com/repositories/${id}/issues?per_page=1&page=1>; rel="prev", <https://api.github.com/repositories/${id}/issues?per_page=1&page=1>; rel="first"`);
+  assert.match((await read(simulator, '/user/repos', {query: {per_page: 1}})).headers.link, /api\.github\.com\/user\/repos\?/, 'a list off the repository paths keeps its own path');
+});
+
+test('per_page past its cap is cut in silence, and paging still ends where the Link header ends', async () => {
+  const {simulator} = moving();
+  simulator.seedIssues(SANDBOX, 147);
+  let pages = 0, seen = 0;
+  for (let page = 1; page; pages++) {
+    const answer = await read(simulator, repoPath(SANDBOX, '/issues'), {query: {per_page: 500, page}});
+    assert.equal(answer.status, 200);
+    seen += answer.data.length;
+    assert.ok(answer.data.length <= 100);
+    page = /<[^>]*[?&]page=([0-9]+)>; rel="next"/.exec(answer.headers.link ?? '')?.[1];
+    page = page === undefined ? 0 : Number(page);
+  }
+  assert.deepEqual([pages, seen], [2, 150]);
+});
+
+test('the rate count: all five headers on every answer, a request spends one, a 304 spends none, and the count fills at its reset', async () => {
+  const {simulator, step, now} = moving(), path = repoPath(SANDBOX, '/issues'), first = await read(simulator, path), reset = Math.floor(START / 1000) + 3600;
+  const rate = answer => ['limit', 'remaining', 'reset', 'used', 'resource'].map(name => answer.headers[`x-ratelimit-${name}`]);
+  assert.deepEqual(rate(first), ['5000', '4999', String(reset), '1', 'core']);
+  assert.deepEqual(rate(await read(simulator, path)), ['5000', '4998', String(reset), '2', 'core']);
+  assert.deepEqual(rate(await read(simulator, path, {headers: {...AUTH, 'If-None-Match': first.headers.etag}})), ['5000', '4998', String(reset), '2', 'core'], 'a 304 leaves the count alone');
+  assert.deepEqual(rate(await send(simulator, 'GET', '/user', {responseHeaders: LIST_HEADERS})), ['5000', '4997', String(reset), '3', 'core'], 'one count across routes');
+  simulator.rateLeft(400);
+  assert.deepEqual(rate(await read(simulator, path)).slice(1, 2), ['399']);
+  step(reset * 1000 - now());
+  assert.deepEqual(rate(await read(simulator, path)), ['5000', '4999', String(reset + 3600), '1', 'core'], 'a new hour, a full count');
+  assert.equal((await send(simulator, 'GET', '/user', {headers: {}, responseHeaders: LIST_HEADERS})).headers['x-ratelimit-limit'], undefined, 'a refused token reads no count');
+});
+
+test('the limits: a primary limit spent answers 403 or 429 with remaining 0 and its reset until then; a secondary limit by the switch, with and without retry-after', async () => {
+  const {simulator, step, now} = moving(), path = repoPath(SANDBOX, '/issues');
+  simulator.exhaust();
+  const spent = await read(simulator, path), reset = Number(spent.headers['x-ratelimit-reset']);
+  assert.deepEqual([spent.status, spent.headers['x-ratelimit-remaining'], spent.headers['retry-after']], [403, '0', undefined]);
+  assert.match(spent.data.message, /API rate limit exceeded/);
+  assert.equal((await read(simulator, path)).status, 403, 'and again until the reset');
+  step(reset * 1000 - now());
+  assert.equal((await read(simulator, path)).status, 200);
+  simulator.exhaust({status: 429});
+  assert.equal((await read(simulator, path)).status, 429);
+  simulator.rateLeft(5000);
+  for (const [status, retryAfter] of [[403, 120], [403, undefined], [429, 30], [429, undefined]]) {
+    simulator.secondaryLimit({status, retryAfter});
+    const answer = await read(simulator, path);
+    assert.deepEqual([answer.status, answer.headers['retry-after'], answer.headers['x-ratelimit-remaining'] !== '0'], [status, retryAfter === undefined ? undefined : String(retryAfter), true]);
+    assert.match(answer.data.message, /secondary rate limit/);
+    assert.equal((await read(simulator, path)).status, 200, 'one answer, unless told more');
+  }
+  simulator.secondaryLimit({times: 2});
+  assert.deepEqual([(await read(simulator, path)).status, (await read(simulator, path)).status, (await read(simulator, path)).status], [403, 403, 200]);
+});
+
+test('a renamed repository answers 301 to its id, on the same origin, under report; a retired API version answers 410', async () => {
+  const {simulator} = moving(), {id} = (await send(simulator, 'GET', repoPath(SANDBOX, ''))).data;
+  simulator.rename(SANDBOX, 'octo-a/renamed');
+  const moved = await read(simulator, repoPath(SANDBOX, '/issues'), {query: {state: 'all'}});
+  assert.deepEqual([moved.status, moved.redirected, moved.notModified, moved.data, moved.headers.location], [301, true, undefined, null, `https://api.github.com/repositories/${id}/issues?state=all`]);
+  await assert.rejects(read(simulator, repoPath(SANDBOX, '/issues'), {redirect: 'error'}), error => error.sent === true, 'a redirect is never followed');
+  const found = await read(simulator, repoPath('octo-a/renamed', ''));
+  assert.deepEqual([found.status, found.data.full_name, found.data.name], [200, 'octo-a/renamed', 'renamed']);
+  simulator.retire('2022-11-28');
+  const old = {...AUTH, 'X-GitHub-Api-Version': '2022-11-28'};
+  assert.equal((await read(simulator, repoPath('octo-a/renamed', '/issues'), {headers: old})).status, 410);
+  assert.equal((await read(simulator, repoPath('octo-a/renamed', '/issues'), {headers: {...AUTH, 'X-GitHub-Api-Version': '2026-03-10'}})).status, 200);
+  assert.equal((await read(simulator, repoPath('octo-a/renamed', '/issues'))).status, 200, 'no version header takes the default');
+});
+
+test('listLag: a list shows its old state for that many reads; a review and a head push each move the pull request', async () => {
+  const {simulator, step} = moving(), route = 'GET /repos/{owner}/{repo}/issues', path = repoPath(SANDBOX, '/issues');
+  simulator.listLag(route, 2);
+  await newIssue(simulator, 'New');
+  assert.deepEqual([numbers(await read(simulator, path)), numbers(await read(simulator, path)), numbers(await read(simulator, path))], [[3, 2, 1], [3, 2, 1], [4, 3, 2, 1]]);
+  assert.equal((await read(simulator, repoPath(SANDBOX, '/issues/4'))).status, 200, 'another route does not lag');
+  await branchFrom(simulator, 'side');
+  simulator.seedFile(SANDBOX, 'side', 'c.txt', 'c');
+  const {number} = (await send(simulator, 'POST', repoPath(SANDBOX, '/pulls'), {body: {title: 'Pull', head: 'side', base: 'main'}})).data;
+  const updated = async () => (await read(simulator, repoPath(SANDBOX, `/issues/${number}`))).data.updated_at;
+  const at = await updated();
+  step(2000);
+  simulator.push(SANDBOX, 'side', {text: 'more'});
+  const pushed = await updated();
+  assert.ok(pushed > at, 'a head push moves updated_at');
+  step(2000);
+  simulator.author(SANDBOX, number, {login: 'someone', id: 77});
+  await send(simulator, 'POST', repoPath(SANDBOX, `/pulls/${number}/reviews`), {body: {}});
+  assert.equal(await updated(), pushed, 'a review left pending moves nothing');
+  await send(simulator, 'POST', repoPath(SANDBOX, `/pulls/${number}/reviews`), {body: {event: 'APPROVE'}});
+  assert.ok(await updated() > pushed, 'a submitted review moves updated_at');
 });
 
 test('the simulator imports only node built-ins: never lib/, catalog/, an action file or the GitHub sign-in', () => {

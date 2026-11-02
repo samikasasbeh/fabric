@@ -220,8 +220,8 @@ test('part j: the new card sentence and both new warnings appear; validateCard()
   assert.throws(() => validateCard({...action, summary: 'Fabric prepared something. Approve it.', text: action.text.replace(action.summary, 'Fabric prepared something. Approve it.')}, {origin}), /not a valid Fabric card/);
   assert.equal(WARNINGS.prepares_first, 'Fabric runs these steps first. It shows you the exact final request before sending it.');
   assert.equal(WARNINGS.not_made_by_fabric, 'Fabric did not make this record, so it asks first.');
-  const job = {id, status: 'awaiting_approval', kind: 'action', effect: 'write', approvalExpiresAt: expiresAt, approvalDigest: 'd', preview: {warnings: ['prepares_first', 'not_made_by_fabric', 'made_up']}};
-  assert.deepEqual(approvalItem(job).warnings, ['prepares_first', 'not_made_by_fabric']);
+  const job = {id, status: 'awaiting_approval', kind: 'action', effect: 'write', approvalExpiresAt: expiresAt, approvalDigest: 'd', preview: {warnings: ['prepares_first', 'not_made_by_fabric', 'made_up', 'background_reads']}};
+  assert.deepEqual(approvalItem(job).warnings, ['prepares_first', 'not_made_by_fabric'], 'a job never claims a watch\'s warning');
 });
 
 test('part j: on the runtime path a job that sent a perform write other than its resolving write never reaches awaiting_approval, and the contract refuses the same transition', async t => {

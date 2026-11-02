@@ -35,9 +35,9 @@ async function memory(t, reply) {
 }
 const code = reply => reply.structuredContent?.error?.code;
 
-test('the adapter keeps four tools and refuses calls that name both or neither account and application', async t => {
+test('the adapter keeps six tools and refuses calls that name both or neither account and application', async t => {
   const m = await memory(t, handoffView());
-  assert.deepEqual((await m.client.listTools()).tools.map(tool => tool.name).sort(), ['fabric_get_call', 'fabric_invoke', 'fabric_list_capabilities', 'fabric_proxy_request']);
+  assert.deepEqual((await m.client.listTools()).tools.map(tool => tool.name).sort(), ['fabric_get_call', 'fabric_invoke', 'fabric_list_capabilities', 'fabric_list_events', 'fabric_proxy_request', 'fabric_watch']);
   const both = await m.invoke({...ask, connectionId: 'acct-a'}), neither = await m.invoke({requestId: 'x', capabilityId: 'c', definitionHash: HASH, args: {}});
   assert.equal(code(both), 'invalid_request'); assert.equal(code(neither), 'invalid_request');
   assert.equal(m.calls.length, 0, 'no upstream request is made for an invalid shape');

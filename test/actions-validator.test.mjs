@@ -68,12 +68,12 @@ test('the fixture app loads through the shipped validators: its rows, proxy sett
 
 // F10.17 and F10.19 listed churn: collections.stringValues@1, notion.schema@1 and notion.propertyValues@1 ship, so their stubs are gone and
 // the fixture registry holds the shipped entries in their real shape: an outputMap result, a schema entry, and a resolvedValues argument
-// with an outputFrom result.
-test('the fixture registry is the shipped registry plus one stub in the real entry shape, with its own pin (R17, open point Minor 2)', () => {
-  assert.deepEqual(STUBS.map(({entry}) => `${entry.name}@${entry.version}`), ['ids.linkPage@1']);
+// with an outputFrom result. Iteration 9 listed churn: ids.linkPage@1 ships too, so the list of stubs is empty.
+test('the fixture registry is the shipped registry, with no stub left (R17, open point Minor 2)', () => {
+  assert.deepEqual(STUBS.map(({entry}) => `${entry.name}@${entry.version}`), []);
   for (const {file, entry} of STUBS) assert.doesNotThrow(() => checkEntry(entry, file), file);
   for (const [id, entry] of SHIPPED) assert.equal(TRANSFORMS.get(id), entry, id);
-  assert.equal(TRANSFORMS.size, SHIPPED.size + 1);
+  assert.equal(TRANSFORMS.size, SHIPPED.size);
   const byId = Object.fromEntries(STUBS.map(({entry}) => [`${entry.name}@${entry.version}`, entry]));
   assert.equal(SHIPPED.get('notion.schema@1').kind, 'schema');
   assert.deepEqual(Object.keys(SHIPPED.get('notion.propertyValues@1').resolvedValues), ['values']);
@@ -90,7 +90,8 @@ test('the fixture registry is the shipped registry plus one stub in the real ent
   for (const values of [[{name: 'a', value: '1'}, {name: 'a', value: '2'}], [{name: '1abc', value: '1'}], [{name: 'a b', value: '1'}]]) {
     assert.throws(() => runIn(TRANSFORMS, 'collections.stringValues@1', {values}), error => error instanceof TransformError, JSON.stringify(values));
   }
-  assert.deepEqual(runIn(TRANSFORMS, 'ids.linkPage@1', {link: '<https://api.fixture.test/other?page=2>; rel="next"', url: 'https://api.fixture.test/items', param: 'page'}), {}, 'another path is never a next page');
+  assert.throws(() => runIn(TRANSFORMS, 'ids.linkPage@1', {link: '<https://api.fixture.test/other?page=2>; rel="next"', url: 'https://api.fixture.test/items', param: 'page'}),
+    error => error instanceof TransformError && error.code === 'link_invalid', 'another path is never a next page, and never the end of the list');
 });
 
 test('the fixture GitHub answer carries temp_clone_token in each repository, which secretKey() names a secret and "0" does not', () => {
